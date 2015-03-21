@@ -1,0 +1,11 @@
+*~
+*.bak
+*.bck
+*-cache.lib
+*.kicad_pcb-bak
+*.dcm
+*.pho
+*.drl
+*.pdf
+.hg*
+.dropbox.attr
