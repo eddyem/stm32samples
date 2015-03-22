@@ -54,7 +54,7 @@ int main(){
 			usbdatalen = parce_incoming_buf(usbdatabuf, usbdatalen);
 		}
 		//check_and_parce_UART(USART1); // also check data in UART buffers
-
+		check_btns();
 		if(Timer - Old_timer > 999){ // one-second cycle
 			Old_timer += 1000;
 		}else if(Timer < Old_timer){ // Timer overflow

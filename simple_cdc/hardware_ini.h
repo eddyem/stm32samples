@@ -33,6 +33,22 @@ void GPIO_init();
 void SysTick_init();
 
 /*
+ * Buttons on devboard
+ */
+#define BTNS_PORT		GPIOC
+// PCO -- S2
+#define BTN_S2_PIN		GPIO0
+// PC1 -- S3
+#define BTN_S3_PIN		GPIO1
+
+/*
+ * LEDS: PB9 for D1, PB8 for D2
+ */
+#define LEDS_PORT		GPIOB
+#define LED_D1_PIN		GPIO9
+#define LED_D2_PIN		GPIO8
+
+/*
  * USB interface
  * connect boot1 jumper to gnd, boot0 to gnd; and reconnect boot0 to +3.3 to boot flash
  */
@@ -54,5 +70,7 @@ void SysTick_init();
 // my simple devboard have no variants for programmed connection/disconnection of USB
 #define usb_disconnect()
 #define usb_connect()
+
+void check_btns();
 
 #endif // __HARDWARE_INI_H__

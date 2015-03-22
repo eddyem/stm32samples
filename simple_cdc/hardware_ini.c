@@ -35,6 +35,16 @@ void GPIO_init(){
 	rcc_peripheral_enable_clock(&RCC_APB2ENR, RCC_APB2ENR_IOPAEN |
 			RCC_APB2ENR_IOPBEN | RCC_APB2ENR_IOPCEN | RCC_APB2ENR_IOPDEN |
 			RCC_APB2ENR_IOPEEN);
+	// Buttons: pull-up input
+	gpio_set_mode(BTNS_PORT, GPIO_MODE_INPUT, GPIO_CNF_INPUT_PULL_UPDOWN,
+			BTN_S2_PIN | BTN_S3_PIN);
+	// turn on pull-up
+	gpio_set(BTNS_PORT, BTN_S2_PIN | BTN_S3_PIN);
+	// LEDS: opendrain output
+	gpio_set_mode(LEDS_PORT, GPIO_MODE_OUTPUT_2_MHZ, GPIO_CNF_OUTPUT_OPENDRAIN,
+			LED_D1_PIN | LED_D2_PIN);
+	// turn off LEDs
+	gpio_set(LEDS_PORT, LED_D1_PIN | LED_D2_PIN);
 /*
 	// USB_DISC: push-pull
 	gpio_set_mode(USB_DISC_PORT, GPIO_MODE_OUTPUT_2_MHZ,
@@ -53,4 +63,23 @@ void SysTick_init(){
 	systick_set_reload(8999); // 9000 pulses: 1kHz
 	systick_interrupt_enable();
 	systick_counter_enable();
+}
+
+// check buttons S2/S3
+void check_btns(){
+	static uint8_t oldstate[2] = {1,1}; // old buttons state
+	uint8_t newstate[2], i;
+	newstate[0] = gpio_get(BTNS_PORT, BTN_S2_PIN) ? 1 : 0;
+	newstate[1] = gpio_get(BTNS_PORT, BTN_S3_PIN) ? 1 : 0;
+	for(i = 0; i < 2; i++){
+		uint8_t new = newstate[i];
+		if(new != oldstate[i]){
+			P("Button S");
+			usb_send('2' + i);
+			if(new) P("pressed");
+			else P("released");
+			newline();
+			oldstate[i] = new;
+		}
+	}
 }

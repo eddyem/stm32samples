@@ -42,12 +42,15 @@ void help(){
 	P("H\tshow this help\n");
 	P("I\ttest entering integer value\n");
 	P("T\tshow current approx. time\n");
+	P("1\tswitch LED D1 state\n");
+	P("2\tswitch LED D2 state\n");
 }
 
 /**
  * show entered integer value
  */
 uint8_t show_int(int32_t v){
+	newline();
 	print_int(v);
 	newline();
 	return 0;
@@ -60,20 +63,26 @@ uint8_t show_int(int32_t v){
 int parce_incoming_buf(char *buf, int len){
 	uint8_t command;
 	//uint32_t utmp;
-	int i;
+	int i = 0;
 	if(Uval_ready == UVAL_START){ // we are in process of user's value reading
 		i += read_int(buf, len);
 	}
 	if(Uval_ready == UVAL_ENTERED){
-		print_int(User_value); // printout readed integer value for error control
+		//print_int(User_value); // printout readed integer value for error control
 		Uval_ready = UVAL_BAD; // clear Uval
 		I(User_value);
 		return 0;
 	}
-	for(i = 0; i < len; i++){
+	for(; i < len; i++){
 		command = buf[i];
 		if(!command) continue; // omit zero
 		switch (command){
+			case '1':
+				gpio_toggle(LEDS_PORT, LED_D1_PIN);
+			break;
+			case '2':
+				gpio_toggle(LEDS_PORT, LED_D2_PIN);
+			break;
 			case 'H': // show help
 				help();
 			break;
@@ -82,7 +91,9 @@ int parce_incoming_buf(char *buf, int len){
 				READINT();
 			break;
 			case 'T':
+				newline();
 				print_int(Timer); // be careful for Time >= 2^{31}!!!
+				newline();
 			break;
 			case '\n': // show newline, space and tab as is
 			case '\r':
