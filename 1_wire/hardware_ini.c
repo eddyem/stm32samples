@@ -45,6 +45,10 @@ void GPIO_init(){
 			LED_D1_PIN | LED_D2_PIN);
 	// turn off LEDs
 	gpio_set(LEDS_PORT, LED_D1_PIN | LED_D2_PIN);
+	// test pin PC10: Push-Pull
+#ifdef EBUG
+	gpio_set_mode(GPIOC, GPIO_MODE_OUTPUT_50_MHZ, GPIO_CNF_OUTPUT_PUSHPULL, GPIO10);
+#endif
 /*
 	// USB_DISC: push-pull
 	gpio_set_mode(USB_DISC_PORT, GPIO_MODE_OUTPUT_2_MHZ,
@@ -76,7 +80,7 @@ void check_btns(){
 		uint8_t new = newstate[i];
 		// pause for 60ms
 		uint32_t O = Old_timer[i];
-		if(!O){
+		if(O){
 			if(Timer - O > 60 || O > Timer){
 				P("Button S");
 				usb_send('2' + i);
