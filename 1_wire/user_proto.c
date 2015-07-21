@@ -103,7 +103,10 @@ int parce_incoming_buf(char *buf, int len){
 				OW_fill_next_ID();
 			break;
 			case 'Q':
-				OW_read_next_temp();
+				if(OW_MEASUREMENTS_DONE())
+					OW_read_next_temp();
+				else
+					P("Wait for measurements ends or start another\n");
 			break;
 			case 'R':
 				OW_send_read_seq();

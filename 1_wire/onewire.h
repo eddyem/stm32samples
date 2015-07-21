@@ -24,12 +24,13 @@
 #include "main.h"
 #include "hardware_ini.h"
 
-#define TIM2_DMABUFF_SIZE 128
+// 20 bytes x 8bits
+#define TIM2_DMABUFF_SIZE 160
 
 // freq = 1MHz
 // ARR values: 1000 for reset, 100 for data in/out
-// CCR2 values: 500 for reset, 60 for sending 0 or reading, <15 for sending 1
-// CCR1 values: >550 if there's devices on line (on reset), >12 (typ.15) - read 0, < 12 (typ.1) - read 1
+// CCR4 values: 500 for reset, 60 for sending 0 or reading, <15 for sending 1
+// CCR3 values: >550 if there's devices on line (on reset), >12 (typ.15) - read 0, < 12 (typ.1) - read 1
 #define RESET_LEN         ((uint16_t)1000)
 #define BIT_LEN           ((uint16_t)100)
 #define RESET_P           ((uint16_t)500)
@@ -39,7 +40,7 @@
 #define RESET_BARRIER     ((uint16_t)550)
 #define ONE_ZERO_BARRIER  ((uint16_t)10)
 
-#define ERR_TEMP_VAL  (200000)
+#define ERR_TEMP_VAL  ((int32_t)200000)
 
 typedef struct{
 	uint8_t bytes[8];
@@ -64,8 +65,11 @@ extern int tum2buff_ctr;
 #define OW_reset_buffer()   do{tum2buff_ctr = 0;}while(0)
 
 extern uint8_t ow_data_ready;
+extern uint8_t ow_measurements_done;
 #define OW_DATA_READY()       (ow_data_ready)
 #define OW_CLEAR_READY_FLAG() do{ow_data_ready = 0;}while(0)
+#define OW_MEASUREMENTS_DONE()  (ow_measurements_done)
+#define OW_CLEAR_DONE_FLAG()  do{ow_measurements_done = 0;}while(0)
 
 void OW_process();
 void OW_fill_next_ID();

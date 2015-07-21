@@ -33,12 +33,13 @@ typedef enum{
 volatile OW_States OW_State = OW_OFF_STATE; // 1-wire state, 0-not runned
 
 void (*ow_process_resdata)() = NULL;
-
+void wait_reading();
 
 uint16_t tim2_buff[TIM2_DMABUFF_SIZE];
 uint16_t tim2_inbuff[TIM2_DMABUFF_SIZE];
 int tum2buff_ctr = 0;
 uint8_t ow_done = 1;
+uint8_t ow_measurements_done = 0;
 
 /**
  * this function sends bits of ow_byte (LSB first) to 1-wire line
@@ -61,8 +62,8 @@ uint8_t OW_add_byte(uint8_t ow_byte){
 		tim2_buff[tum2buff_ctr++] = byte;
 		ow_byte >>= 1;
 	}
-	INT(tum2buff_ctr);
-	DBG(" bytes in send buffer\n");
+//	INT(tum2buff_ctr);
+//	DBG(" bytes in send buffer\n");
 	return 1;
 }
 
@@ -82,8 +83,8 @@ uint8_t OW_add_read_seq(uint8_t Nbytes){
 		}
 		tim2_buff[tum2buff_ctr++] = BIT_READ_P;
 	}
-	INT(tum2buff_ctr);
-	DBG(" bytes in send buffer\n");
+//	INT(tum2buff_ctr);
+//	DBG(" bytes in send buffer\n");
 	return 1;
 }
 
@@ -101,14 +102,16 @@ void read_from_OWbuf(uint8_t start_idx, uint8_t N, uint8_t *outbuf){
 		byte = 0;
 		for(j = 0; j < 8; j++){
 			byte >>= 1;
-			INT(tim2_inbuff[i]);
-			DBG(" ");
+//			INT(tim2_inbuff[i]);
+//			DBG(" ");
 			if(tim2_inbuff[i++] < ONE_ZERO_BARRIER)
 				byte |= 0x80;
 		}
 		*outbuf++ = byte;
-		DBG("readed \n");
+//		DBG("readed \n");
 	}
+//	print_hex(outbuf-N, N);
+//	DBG(" readed\n");
 }
 // there's a mistake in opencm3, so redefine this if needed (TIM_CCMR2_CC3S_IN_TI1 -> TIM_CCMR2_CC3S_IN_TI4)
 #ifndef TIM_CCMR2_CC3S_IN_TI4
@@ -124,7 +127,6 @@ void init_ow_dmatimer(){ // tim2_ch4 - PA3, no remap
 	// 36MHz of APB1
 	timer_set_mode(TIM2, TIM_CR1_CKD_CK_INT, TIM_CR1_CMS_EDGE, TIM_CR1_DIR_UP);
 	// 72MHz div 72 = 1MHz
-	// TODO: WHY 71 if freq = 36MHz?
 	TIM2_PSC = 71;  // prescaler is (div - 1)
 	TIM2_CR1 = TIM_CR1_ARPE; // bufferize ARR/CCR
 	TIM2_ARR = RESET_LEN;
@@ -153,13 +155,14 @@ void run_dmatimer(){
 	TIM2_CR1 = 0;
 	adc_disable_dma(ADC1); // turn off DMA & ADC
 	adc_off(ADC1);
+	// TIM2_CH4 - DMA1, channel 7
 	DMA1_IFCR = DMA_ISR_TEIF7|DMA_ISR_HTIF7|DMA_ISR_TCIF7|DMA_ISR_GIF7 |
 		DMA_ISR_TEIF1|DMA_ISR_HTIF1|DMA_ISR_TCIF1|DMA_ISR_GIF1; // clear flags
 	DMA1_CCR7 &= ~DMA_CCR_EN; // disable (what if it's enabled?) to set address
 	DMA1_CPAR7 = (uint32_t) &(TIM_CCR4(TIM2)); // dma_set_peripheral_address(DMA1, DMA_CHANNEL7, (uint32_t) &(TIM_CCR4(TIM2)));
 	DMA1_CMAR7 = (uint32_t) &tim2_buff[1]; // dma_set_memory_address(DMA1, DMA_CHANNEL7, (uint32_t)tim2_buff);
 	DMA1_CNDTR7 = tum2buff_ctr-1;//dma_set_number_of_data(DMA1, DMA_CHANNEL7, tum2buff_ctr);
-	// TIM2_CH4 - DMA1, channel 7
+	// TIM2_CH3 - DMA1, channel 1
 	dma_channel_reset(DMA1, DMA_CHANNEL1);
 	DMA1_CCR1 = DMA_CCR_MINC | DMA_CCR_PSIZE_16BIT | DMA_CCR_MSIZE_16BIT
 			| DMA_CCR_TEIE | DMA_CCR_TCIE | DMA_CCR_PL_HIGH;
@@ -184,9 +187,9 @@ void run_dmatimer(){
 #ifdef EBUG
 	gpio_clear(GPIOC, GPIO10);
 #endif
-	DBG("RUN transfer of ");
+/*	DBG("RUN transfer of ");
 	INT(tum2buff_ctr);
-	DBG(" bits\n");
+	DBG(" bits\n");*/
 }
 
 uint16_t rstat = 0, lastcc3 = 3;
@@ -202,7 +205,7 @@ void ow_reset(){
 	TIM2_EGR = TIM_EGR_UG; // update values of ARR & CCR4
 	//TIM2_CCMR2 = TIM_CCMR2_OC4M_PWM1 | TIM_CCMR2_OC4PE | TIM_CCMR2_CC3S_IN_TI4;
 	//TIM2_CCER = TIM_CCER_CC4P | TIM_CCER_CC4E | TIM_CCER_CC3E;
-	DBG("OW RESET in process");
+//	DBG("OW RESET in process");
 	TIM2_DIER = TIM_DIER_CC3IE;
 #ifdef EBUG
 	gpio_clear(GPIOC, GPIO10);
@@ -223,7 +226,7 @@ void tim2_isr(){
 		nvic_disable_irq(NVIC_TIM2_IRQ);
 		ow_done = 1;
 		rstat = lastcc3;
-		DBG(" ... done!\n");
+//		DBG(" ... done!\n");
 	}
 	if(TIM2_SR & TIM_SR_CC3IF){ // we need this interrupt to store CCR3 value
 		lastcc3 = TIM2_CCR3;
@@ -237,7 +240,7 @@ void tim2_isr(){
  * DMA interrupt in 1-wire mode
  */
 void dma1_channel1_isr(){
-			int i;
+		//	int i;
 	if(DMA1_ISR & DMA_ISR_TCIF1){
 #ifdef EBUG
 		gpio_set(GPIOC, GPIO10);
@@ -247,11 +250,11 @@ void dma1_channel1_isr(){
 		DMA1_CCR1 &= ~DMA_CCR_EN; // disable DMA1 channel 1
 		nvic_disable_irq(NVIC_DMA1_CHANNEL1_IRQ);
 		ow_done = 1;
-			for(i = 0; i < tum2buff_ctr; i++){
+/*			for(i = 0; i < tum2buff_ctr; i++){
 				print_int(tim2_inbuff[i]);
 				P(" ");
 			}
-			P("\n");
+			P("\n");*/
 	}else if(DMA1_ISR & DMA_ISR_TEIF1){
 		DMA1_IFCR = DMA_IFCR_CTEIF1;
 		DBG("DMA in transfer error\n");
@@ -287,7 +290,7 @@ void OW_process(){
 			return;
 		break;
 		case OW_RESET_STATE:
-			DBG("OW reset\n");
+			//DBG("OW reset\n");
 			OW_State = OW_SEND_STATE;
 			ow_was_reseting = 1;
 			ow_reset();
@@ -307,18 +310,16 @@ void OW_process(){
 			ow_was_reseting = 0;
 			OW_State = OW_READ_STATE;
 			run_dmatimer(); // turn on data transfer
-			DBG("OW send\n");
+			//DBG("OW send\n");
 		break;
 		case OW_READ_STATE:
 			if(!ow_done) return; // data isn't ready
 			OW_State = OW_OFF_STATE;
 		//	adc_dma_on(); // return DMA1_1 to ADC at end of data transmitting
-			if(ow_process_resdata){
+			if(ow_process_resdata)
 				ow_process_resdata();
-				ow_process_resdata = NULL;
-			}
 			ow_data_ready = 1;
-			DBG("OW read\n");
+			//DBG("OW read\n");
 		break;
 	}
 }
@@ -329,9 +330,16 @@ uint8_t *read_buf = NULL;    // buffer for storing readed data
  * fill ID buffer with readed data
  */
 void fill_buff_with_data(){
+	ow_process_resdata = NULL;
 	if(!read_buf) return;
 	read_from_OWbuf(1, 8, read_buf);
 	int i, j;
+	P("Readed ID: ");
+	for(i = 0; i < 8; ++i){
+		print_hex(&read_buf[i], 1);
+		usb_send(' ');
+	}
+	usb_send('\n');
 	// now check stored ROMs
 	for(i = 0; i < dev_amount; ++i){
 		uint8_t *ROM = id_array[i].bytes;
@@ -416,7 +424,7 @@ int32_t gettemp(uint8_t *scratchpad){
 		v = l >> 1 | (m & 0x80); // take signum from MSB
 		t = ((int32_t)v) * 10L;
 		if(l&1) t += 5L; // decimal 0.5
-	}else{
+	}else{ // DS18B20
 		v = l>>4 | ((m & 7)<<4) | (m & 0x80);
 		t = ((int32_t)v) * 10L;
 		m = l & 0x0f; // add decimal
@@ -434,6 +442,7 @@ int8_t Ncur = 0;
  */
 void convert_next_temp(){
 	uint8_t scratchpad[9];
+	ow_process_resdata = NULL;
 	if(dev_amount < 2){
 		read_from_OWbuf(2, 9, scratchpad);
 	}else{
@@ -468,13 +477,30 @@ void OW_read_next_temp(){
 	ow_process_resdata = convert_next_temp;
 }
 
+void wait_reading(){
+	uint8_t bt;
+	read_from_OWbuf(0, 1, &bt);
+	if(bt == 0xff){ // the conversion is done!
+		ow_measurements_done = 1;
+		ow_process_resdata = NULL;
+		DBG("Measurements done!\n");
+	}else{
+		OW_State = OW_SEND_STATE;
+		OW_reset_buffer();
+		ow_data_ready = 0;
+		OW_add_read_seq(1); // send read seq waiting for end of conversion
+	}
+}
+
 void OW_send_read_seq(){
 	ow_data_ready = 0;
+	ow_measurements_done = 0;
 	OW_State = OW_RESET_STATE;
 	OW_reset_buffer();
 	OW_add_byte(OW_SKIP_ROM);
 	OW_add_byte(OW_CONVERT_T);
-	ow_process_resdata = NULL;
+	OW_add_read_seq(1); // send read seq waiting for end of conversion
+	ow_process_resdata = wait_reading;
 }
 /*
  * scan 1-wire bus
