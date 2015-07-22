@@ -3,3 +3,6 @@ These are my simple snippets for STM32 (compiled with libopencm3)
 - client-term is terminal client used instead of "com"
 
 - simple_cdc is simplest USB-CDC working in char-mode, press H for help (another commands are for LEDs switching and test of integer input)
+
+- 1_wire - pseudo-hardware realisation of 1-wire protocol
+
