@@ -32,9 +32,17 @@
  * GPIO initialisaion: clocking + pins setup
  */
 void GPIO_init(){
-/*	rcc_peripheral_enable_clock(&RCC_APB2ENR, RCC_APB2ENR_IOPAEN |
+	rcc_peripheral_enable_clock(&RCC_APB2ENR, RCC_APB2ENR_IOPAEN |
 			RCC_APB2ENR_IOPBEN | RCC_APB2ENR_IOPCEN | RCC_APB2ENR_IOPDEN |
 			RCC_APB2ENR_IOPEEN);
+	// Setup EXTI on PA4 (PPS input from GPS) - pull down
+	gpio_set_mode(GPIOA, GPIO_MODE_INPUT, GPIO_CNF_INPUT_PULL_UPDOWN, GPIO4);
+	//AFIO_EXTICR2 = 0;
+	exti_enable_request(EXTI4);
+	// trigger on rising edge
+	exti_set_trigger(EXTI4, EXTI_TRIGGER_RISING);
+	nvic_enable_irq(NVIC_EXTI4_IRQ);
+/*
 	// Buttons: pull-up input
 	gpio_set_mode(BTNS_PORT, GPIO_MODE_INPUT, GPIO_CNF_INPUT_PULL_UPDOWN,
 			BTN_S2_PIN | BTN_S3_PIN);
@@ -60,7 +68,7 @@ void GPIO_init(){
  */
 void SysTick_init(){
 	systick_set_clocksource(STK_CSR_CLKSOURCE_AHB_DIV8); // Systyck: 72/8=9MHz
-	systick_set_reload(899); // 900 pulses: 10kHz
+	STK_RVR = 8999; // 9000 pulses: 1kHz
 	systick_interrupt_enable();
 	systick_counter_enable();
 }

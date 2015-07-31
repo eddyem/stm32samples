@@ -25,6 +25,7 @@
 #define __MAIN_H__
 
 #include <stdlib.h>
+#include <libopencm3/stm32/exti.h>
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/stm32/usart.h>
 #include <libopencm3/cm3/nvic.h>
@@ -48,8 +49,20 @@ extern void *memcpy(void *dest, const void *src, int n);
 #define U16(x)  ((uint16_t) x)
 #define U32(x)  ((uint32_t) x)
 
+typedef struct{
+	uint8_t H;
+	uint8_t M;
+	uint8_t S;
+} curtime;
+
+extern curtime current_time;
 extern volatile uint32_t Timer; // global timer (milliseconds)
+extern volatile int clear_ST_on_connect; // flag for clearing Systick counter on next PPS
+
 void Delay(uint16_t time);
+void set_time(uint8_t *buf);
+
+void print_curtime();
 
 #endif // __MAIN_H__
 

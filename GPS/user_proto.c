@@ -40,8 +40,10 @@ intfun I = NULL; // function to process entered integer
 #define READINT() do{i += read_int(&buf[i+1], len-i-1);}while(0)
 
 void help(){
+	P("C\tclear SysTick on PPS\n");
 	P("H\tshow this help\n");
 //	P("I\ttest entering integer value\n");
+	P("S\tSend GPS starting sequence\n");
 	P("T\tshow current approx. time\n");
 }
 
@@ -76,6 +78,9 @@ int parce_incoming_buf(char *buf, int len){
 		command = buf[i];
 		if(!command) continue; // omit zero
 		switch (command){
+			case 'C':
+				clear_ST_on_connect = 1;
+			break;
 			case 'H': // show help
 				help();
 			break;
@@ -83,10 +88,11 @@ int parce_incoming_buf(char *buf, int len){
 				I = show_int;
 				READINT();
 			break;*/
+			case 'S':
+				GPS_send_start_seq();
+			break;
 			case 'T':
-				newline();
-				print_int(Timer); // be careful for Time >= 2^{31}!!!
-				newline();
+				print_curtime();
 			break;
 			case '\n': // show newline, space and tab as is
 			case '\r':

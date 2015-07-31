@@ -23,7 +23,6 @@
 #include "uart.h"
 #include "cdcacm.h"
 #include "hardware_ini.h"
-#include <string.h> // for memcpy
 
 // Buffers for Tx
 static UART_buff TX_buffer[2]; // Tx buffers for all three ports

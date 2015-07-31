@@ -26,6 +26,7 @@
 #define GPS_endline() do{GPS_send_string((uint8_t*)"\r\n");}while(0)
 #define U(arg)  ((uint8_t*)arg)
 
+gps_status GPS_status = GPS_WAIT;
 
 void GPS_send_string(uint8_t *str){
 	while(*str)
@@ -48,35 +49,43 @@ uint8_t *ustrchr(uint8_t *str, uint8_t symbol){
 	return NULL;
 }
 
-/*
-// Check checksum
-int checksum(uint8_t *buf){
+uint8_t hex(uint8_t n){
+	return ((n < 10) ? (n+'0') : (n+'A'-10));
+}
+
+/**
+ * Check checksum
+ */
+int checksum_true(uint8_t *buf){
 	uint8_t *eol;
-	char chs[3];
-	uint8_t checksum = 0;
-	if(*buf != '$' || !(eol = (uint8_t*)ustrchr((char*)buf, '*'))){
-		DBG("Wrong data: %s\n", buf);
+	uint8_t checksum = 0, cs[3];
+	if(*buf != '$' || !(eol = ustrchr(buf, '*'))){
+		DBG("Wrong data: ");
+		DBG(buf);
+		DBG("\n");
 		return 0;
 	}
 	while(++buf != eol)
 		checksum ^= *buf;
-	snprintf(chs, 3, "%02X", checksum);
-	if(strncmp(chs, (char*)++buf, 2)){
-		DBG("Wrong checksum: %s", chs);
-		return 0;
-	}
-	return 1;
-}*/
+	++buf;
+	cs[0] = hex(checksum >> 4);
+	cs[1] = hex(checksum & 0x0f);
+	if(buf[0] == cs[0] && buf[1] == cs[1])
+		return 1;
+#ifdef EBUG
+	cs[2] = 0;
+	P("CHS, get ");
+	P(buf);
+	P(" need ");
+	P(cs);
+	usb_send('\n');
+#endif
+	return 0;
+}
 
 void send_chksum(uint8_t chs){
-	void puts(uint8_t c){
-		if(c < 10)
-			fill_uart_buff(USART2, c + '0');
-		else
-			fill_uart_buff(USART2, c + 'A' - 10);
-	}
-	puts(chs >> 4);
-	puts(chs & 0x0f);
+	fill_uart_buff(USART2, hex(chs >> 4));
+	fill_uart_buff(USART2, hex(chs & 0x0f));
 }
 /**
  * Calculate checksum & write message to port
@@ -135,23 +144,51 @@ uint8_t *nextpos(uint8_t **buf, int pos){
 */
 /**
  * Parse answer from GPS module
+ *
+ * Recommended minimum specific GPS/Transit data
+ * $GPRMC,hhmmss,status,latitude,N,longitude,E,spd,cog,ddmmyy,mv,mvE,mode*cs
+ * 1    = UTC of position fix
+ * 2    = Data status (V=navigation receiver warning)
+ * 3    = Latitude of fix
+ * 4    = N or S
+ * 5    = Longitude of fix
+ * 6    = E or W
+ * 7    = Speed over ground in knots
+ * 8    = Cource over ground in degrees
+ * 9    = UT date
+ * 10   = Magnetic variation degrees (Easterly var. subtracts from true course)
+ * 11   = E or W
+ * 12   = Mode: N(bad), E(approx), A(auto), D(diff)
+ * 213457.00,A,4340.59415,N,04127.47560,E,2.494,,290615,,,A*7B
  */
 void GPS_parse_answer(uint8_t *buf){
 	uint8_t *ptr;
 	DBG(buf);
-	if(strncmp(buf+3, U("RMC"), 3)) return; // not RMC message
-	buf += 7; // skip header
-	P("time: ");
-	if(*buf != ','){
-		ptr = ustrchr(buf, ',');
-		*ptr++ = 0;
-		P(buf);
-		buf = ptr;
-		P(" ");
-	}else{
-		P("undefined ");
-		++buf;
+	if(strncmp(buf+3, U("RMC"), 3)){ // not RMC message
+		GPS_send_start_seq();
+		return;
 	}
+	if(!checksum_true(buf)){
+		DBG("Wrong chs\n");
+		return; // wrong checksum
+	}
+	buf += 7; // skip header
+	if(*buf == ','){ // time unknown
+		GPS_status = GPS_WAIT;
+		return;
+	}
+	//P("time: ");
+	ptr = ustrchr(buf, ',');
+	*ptr++ = 0;
+	//P(buf);
+	if(*ptr == 'A')
+		GPS_status = GPS_VALID;
+	else
+		GPS_status = GPS_NOT_VALID;
+	print_curtime();
+	set_time(buf);
+//	buf = ustrchr(ptr, ',');
+//	P(" ");
 	P("\n");
 }
 

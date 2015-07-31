@@ -23,6 +23,14 @@
 #ifndef __GPS_H__
 #define __GPS_H__
 
+typedef enum{
+	 GPS_WAIT       // wait for satellites
+	,GPS_NOT_VALID  // time known, but not valid
+	,GPS_VALID
+} gps_status;
+
+extern gps_status GPS_status;
+
 void GPS_parse_answer(uint8_t *string);
 void GPS_send_start_seq();
 
