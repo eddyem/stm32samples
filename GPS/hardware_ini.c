@@ -35,13 +35,17 @@ void GPIO_init(){
 	rcc_peripheral_enable_clock(&RCC_APB2ENR, RCC_APB2ENR_IOPAEN |
 			RCC_APB2ENR_IOPBEN | RCC_APB2ENR_IOPCEN | RCC_APB2ENR_IOPDEN |
 			RCC_APB2ENR_IOPEEN);
-	// Setup EXTI on PA4 (PPS input from GPS) - pull down
-	gpio_set_mode(GPIOA, GPIO_MODE_INPUT, GPIO_CNF_INPUT_PULL_UPDOWN, GPIO4);
+	/*
+	 * Setup EXTI on PA4 (PPS input from GPS) - pull down
+	 * EXTI on PA5 - also pull down (trigger for time measurement)
+	 */
+	gpio_set_mode(GPIOA, GPIO_MODE_INPUT, GPIO_CNF_INPUT_PULL_UPDOWN, GPIO4 | GPIO5);
 	//AFIO_EXTICR2 = 0;
-	exti_enable_request(EXTI4);
+	exti_enable_request(EXTI4 | EXTI5);
 	// trigger on rising edge
-	exti_set_trigger(EXTI4, EXTI_TRIGGER_RISING);
+	exti_set_trigger(EXTI4 | EXTI5, EXTI_TRIGGER_RISING);
 	nvic_enable_irq(NVIC_EXTI4_IRQ);
+	nvic_enable_irq(NVIC_EXTI9_5_IRQ);
 /*
 	// Buttons: pull-up input
 	gpio_set_mode(BTNS_PORT, GPIO_MODE_INPUT, GPIO_CNF_INPUT_PULL_UPDOWN,

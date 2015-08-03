@@ -180,12 +180,11 @@ void GPS_parse_answer(uint8_t *buf){
 	ptr = ustrchr(buf, ',');
 	*ptr++ = 0;
 	//P(buf);
-	if(*ptr == 'A')
+	if(*ptr == 'A'){
 		GPS_status = GPS_VALID;
-	else
+		set_time(buf);
+	}else
 		GPS_status = GPS_NOT_VALID;
-	print_curtime();
-	set_time(buf);
 //	buf = ustrchr(ptr, ',');
 //	P(" ");
 	P("\n");

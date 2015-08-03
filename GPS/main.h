@@ -67,6 +67,7 @@ extern volatile int need_sync;
 void Delay(uint16_t time);
 void set_time(uint8_t *buf);
 
+void print_time(curtime *T, uint32_t m);
 void print_curtime();
 
 #endif // __MAIN_H__

@@ -26,9 +26,10 @@
 #include "GPS.h"
 
 volatile uint32_t Timer = 0; // milliseconds
+volatile uint32_t msctr = 0; // global milliseconds for different purposes
 usbd_device *usbd_dev;
-volatile uint32_t systick_val = 0;
-volatile uint32_t timer_val = 0;
+volatile int32_t systick_val = 0;
+volatile int32_t timer_val = 0;
 volatile int clear_ST_on_connect = 1;
 
 volatile int need_sync = 1;
@@ -39,6 +40,10 @@ volatile uint32_t last_corr_time = 0; // time of last PPS correction (seconds fr
 volatile uint32_t RVR0 = STK_RVR_DEFAULT_VAL, RVR1 = STK_RVR_DEFAULT_VAL;
 
 curtime current_time = {25,61,61};
+
+#define DIDNT_TRIGGERED (2000)
+curtime trigger_time = {25, 61, 61};
+uint32_t trigger_ms = DIDNT_TRIGGERED;
 
 void time_increment(){
 	Timer = 0;
@@ -77,6 +82,7 @@ int main(){
 
 	GPS_send_start_seq();
 
+	uint32_t trigrtm = 0;
 	while(1){
 		usbd_poll(usbd_dev);
 		if(usbdatalen){ // there's something in USB buffer
@@ -97,6 +103,13 @@ int main(){
 			P(", RVR1 = ");
 			print_int(RVR1);
 			P("\n");
+			print_curtime();
+		}
+		if(trigger_ms != DIDNT_TRIGGERED && (msctr < trigrtm || (msctr - trigrtm) > 100)){
+			trigrtm = msctr;
+			P("Trigger time: ");
+			print_time(&trigger_time, trigger_ms);
+			trigger_ms = DIDNT_TRIGGERED;
 		}
 	}
 }
@@ -107,6 +120,7 @@ int main(){
  */
 void sys_tick_handler(){
 	++Timer;
+	++msctr;
 	if(Timer == 999){
 		STK_RVR = RVR1;
 	}else if(Timer == 1000){
@@ -126,9 +140,9 @@ void exti4_isr(){
 		// correct
 		systick_val = STK_CVR;
 		STK_CVR = RVR0;
-		systick_val = RVR0 + 1 - systick_val; // Systick counts down!
 		timer_val = Timer;
 		Timer = 0;
+		systick_val = STK_RVR + 1 - systick_val; // Systick counts down!
 		if(timer_val < 10) timer_val += 1000; // our closks go faster than real
 		else if(timer_val < 990){ // something wrong
 			RVR0 = RVR1 = STK_RVR_DEFAULT_VAL;
@@ -143,14 +157,14 @@ void exti4_isr(){
 		}else{
 			//  || (last_corr_time == 86399 && t == 0)
 			if(t - last_corr_time == 1){ // PPS interval == 1s
-				ticks =  systick_val + timer_val*(RVR0 + 1);
+				ticks =  systick_val + (timer_val-1)*(RVR0 + 1) + RVR1 + 1;
 				++N;
 				ticksavr += ticks;
 				if(N > 20){
 					ticks = ticksavr / N;
 					RVR0 = ticks / 1000 - 1; // main RVR value
 					STK_RVR = RVR0;
-					RVR1 = RVR0 + ticks % 1000 - 1; // last millisecond RVR value (with fine correction)
+					RVR1 = RVR0 + ticks % 1000; // last millisecond RVR value (with fine correction)
 					N = 0;
 					ticksavr = 0;
 					need_sync = 0;
@@ -166,11 +180,23 @@ void exti4_isr(){
 	}
 }
 
+/**
+ * PA5 interrupt - print time
+ */
+void exti9_5_isr(){
+	if(EXTI_PR & EXTI5){
+		if(trigger_ms == DIDNT_TRIGGERED){ // prevent bounce
+			trigger_ms = Timer;
+			memcpy(&trigger_time, &current_time, sizeof(curtime));
+		}
+		EXTI_PR = EXTI5;
+	}
+}
 
 // pause function, delay in ms
-void Delay(uint16_t _U_ time){
-	uint32_t waitto = Timer + time;
-	while(Timer < waitto);
+void Delay(uint16_t time){
+	uint32_t waitto = msctr + time;
+	while(msctr != waitto);
 }
 
 /**
@@ -187,26 +213,30 @@ void set_time(uint8_t *buf){
 	current_time.S = atou(&buf[4]);
 }
 
+/**
+ * print time: Tm - time structure, T - milliseconds
+ */
+void print_time(curtime *Tm, uint32_t T){
+	int S = Tm->S, M = Tm->M, H = Tm->H;
+	if(H < 10) usb_send('0');
+	print_int(H); usb_send(':');
+	if(M < 10) usb_send('0');
+	print_int(M); usb_send(':');
+	if(S < 10) usb_send('0');
+	print_int(S); usb_send('.');
+	if(T < 100) usb_send('0');
+	if(T < 10) usb_send('0');
+	print_int(T);
+	if(GPS_status == GPS_NOT_VALID) P(" (not valid)");
+	if(need_sync) P(" need synchronisation");
+	newline();
+}
 
 void print_curtime(){
-	int T = Timer;
-	newline();
-	if(current_time.H < 25 && GPS_status != GPS_WAIT){
+	uint32_t T = Timer;
+	if(current_time.H < 24 && GPS_status != GPS_WAIT){
 		P("Current time: ");
-		if(current_time.H < 10) usb_send('0');
-		print_int(current_time.H); usb_send(':');
-		if(current_time.M < 10) usb_send('0');
-		print_int(current_time.M); usb_send(':');
-		if(current_time.S < 10) usb_send('0');
-		print_int(current_time.S); usb_send('.');
-	/*	uint32_t millis = STK_CVR * 1000;
-		millis /= STK_RVR;*/
-		if(T < 100) usb_send('0');
-		if(T < 10) usb_send('0');
-		print_int(T);
-		if(GPS_status == GPS_NOT_VALID) P(" (not valid)");
-		if(need_sync) P(" need synchronisation");
-		newline();
+		print_time(&current_time, T);
 	}else
 		P("Waiting for satellites\n");
 }
