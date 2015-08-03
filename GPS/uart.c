@@ -258,6 +258,7 @@ void fill_uart_RXbuff(uint32_t UART, uint8_t byte){
 	}
 	curbuff = &RX_buffer[bufidx];
 	if(curbuff->end == UART_BUF_DATA_SIZE){ // end of buffer - forget about data
+		curbuff->end = 0;
 		return;
 	}
 	curbuff->buf[curbuff->end++] = byte; // put byte into buffer

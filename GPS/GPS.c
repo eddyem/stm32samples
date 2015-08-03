@@ -163,7 +163,6 @@ uint8_t *nextpos(uint8_t **buf, int pos){
  */
 void GPS_parse_answer(uint8_t *buf){
 	uint8_t *ptr;
-	DBG(buf);
 	if(strncmp(buf+3, U("RMC"), 3)){ // not RMC message
 		GPS_send_start_seq();
 		return;

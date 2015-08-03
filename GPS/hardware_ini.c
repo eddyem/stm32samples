@@ -68,7 +68,7 @@ void GPIO_init(){
  */
 void SysTick_init(){
 	systick_set_clocksource(STK_CSR_CLKSOURCE_AHB_DIV8); // Systyck: 72/8=9MHz
-	STK_RVR = 8999; // 9000 pulses: 1kHz
+	STK_RVR = STK_RVR_DEFAULT_VAL; // 9000 pulses: 1kHz
 	systick_interrupt_enable();
 	systick_counter_enable();
 }

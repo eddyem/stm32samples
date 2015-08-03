@@ -49,6 +49,9 @@ extern void *memcpy(void *dest, const void *src, int n);
 #define U16(x)  ((uint16_t) x)
 #define U32(x)  ((uint32_t) x)
 
+#define STK_RVR_DEFAULT_VAL  (8999)
+#define TIMEZONE_GMT_PLUS    (3)
+
 typedef struct{
 	uint8_t H;
 	uint8_t M;
@@ -58,6 +61,8 @@ typedef struct{
 extern curtime current_time;
 extern volatile uint32_t Timer; // global timer (milliseconds)
 extern volatile int clear_ST_on_connect; // flag for clearing Systick counter on next PPS
+
+extern volatile int need_sync;
 
 void Delay(uint16_t time);
 void set_time(uint8_t *buf);

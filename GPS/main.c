@@ -31,6 +31,13 @@ volatile uint32_t systick_val = 0;
 volatile uint32_t timer_val = 0;
 volatile int clear_ST_on_connect = 1;
 
+volatile int need_sync = 1;
+
+volatile uint32_t last_corr_time = 0; // time of last PPS correction (seconds from midnight)
+
+// STK_CVR values for all milliseconds (RVR0) and last millisecond (RVR1)
+volatile uint32_t RVR0 = STK_RVR_DEFAULT_VAL, RVR1 = STK_RVR_DEFAULT_VAL;
+
 curtime current_time = {25,61,61};
 
 void time_increment(){
@@ -76,6 +83,7 @@ int main(){
 			usbdatalen = parce_incoming_buf(usbdatabuf, usbdatalen);
 		}
 		if((string = check_UART2())){
+			P(string);
 			GPS_parse_answer(string);
 		}
 		if(systick_val){
@@ -84,6 +92,10 @@ int main(){
 			systick_val = 0;
 			P(", timer value: ");
 			print_int(timer_val);
+			P(", RVR0 = ");
+			print_int(RVR0);
+			P(", RVR1 = ");
+			print_int(RVR1);
 			P("\n");
 		}
 	}
@@ -94,7 +106,11 @@ int main(){
  * SysTick interrupt: increment global time & send data buffer through USB
  */
 void sys_tick_handler(){
-	if(++Timer == 1000){
+	++Timer;
+	if(Timer == 999){
+		STK_RVR = RVR1;
+	}else if(Timer == 1000){
+		STK_RVR = RVR0;
 		time_increment();
 	}
 	usb_send_buffer();
@@ -102,17 +118,50 @@ void sys_tick_handler(){
 // STK_CVR - current systick val
 // STK_RVR - ticks till interrupt - 1
 
-// PA4 interrupt
+// PA4 interrupt - PPS signal
 void exti4_isr(){
+	uint32_t t = 0, ticks;
+	static uint32_t ticksavr = 0, N = 0;
 	if(EXTI_PR & EXTI4){
 		// correct
 		systick_val = STK_CVR;
+		STK_CVR = RVR0;
+		systick_val = RVR0 + 1 - systick_val; // Systick counts down!
 		timer_val = Timer;
+		Timer = 0;
+		if(timer_val < 10) timer_val += 1000; // our closks go faster than real
+		else if(timer_val < 990){ // something wrong
+			RVR0 = RVR1 = STK_RVR_DEFAULT_VAL;
+			STK_RVR = RVR0;
+			need_sync = 1;
+			goto theend;
+		}else
+			time_increment(); // ms counter less than 1000 - we need to increment time
+		t = current_time.H * 3600 + current_time.M * 60 + current_time.S;
 		if(clear_ST_on_connect){
-			STK_CVR = 0;
 			clear_ST_on_connect = 0;
-			time_increment();
+		}else{
+			//  || (last_corr_time == 86399 && t == 0)
+			if(t - last_corr_time == 1){ // PPS interval == 1s
+				ticks =  systick_val + timer_val*(RVR0 + 1);
+				++N;
+				ticksavr += ticks;
+				if(N > 20){
+					ticks = ticksavr / N;
+					RVR0 = ticks / 1000 - 1; // main RVR value
+					STK_RVR = RVR0;
+					RVR1 = RVR0 + ticks % 1000 - 1; // last millisecond RVR value (with fine correction)
+					N = 0;
+					ticksavr = 0;
+					need_sync = 0;
+				}
+			}else{
+				N = 0;
+				ticksavr = 0;
+			}
 		}
+	theend:
+		last_corr_time = t;
 		EXTI_PR = EXTI4;
 	}
 }
@@ -131,7 +180,7 @@ void set_time(uint8_t *buf){
 	inline uint8_t atou(uint8_t *b){
 		return (b[0]-'0')*10 + b[1]-'0';
 	}
-	uint8_t H = atou(buf) + 3;
+	uint8_t H = atou(buf) + TIMEZONE_GMT_PLUS;
 	if(H > 23) H -= 24;
 	current_time.H = H;
 	current_time.M = atou(&buf[2]);
@@ -156,6 +205,7 @@ void print_curtime(){
 		if(T < 10) usb_send('0');
 		print_int(T);
 		if(GPS_status == GPS_NOT_VALID) P(" (not valid)");
+		if(need_sync) P(" need synchronisation");
 		newline();
 	}else
 		P("Waiting for satellites\n");
