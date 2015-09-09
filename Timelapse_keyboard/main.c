@@ -64,7 +64,7 @@ int main(void){
 	rcc_clock_setup_in_hse_8mhz_out_72mhz();
 	// init systick (1ms)
 	systick_set_clocksource(STK_CSR_CLKSOURCE_AHB_DIV8); // Systyck: 72/8=9MHz
-	systick_set_reload(8999); // 9000 pulses: 1kHz
+	systick_set_reload(STK_RVR_DEFAULT_VAL); // 9000 pulses: 1kHz
 	systick_interrupt_enable();
 	systick_counter_enable();
 
@@ -98,7 +98,7 @@ int main(void){
 			GPS_parse_answer(string);
 		}
 		if(trigger_ms != DIDNT_TRIGGERED && trigger_ms != Timer){
-			if(msctr - trigrtm > 500 || trigrtm > msctr){
+			if(msctr - trigrtm > TRIGGER_DEBOUNCE_DELAY || trigrtm > msctr){
 				trigrtm = msctr;
 				P("Trigger time: ");
 				print_time(&trigger_time, trigger_ms);
@@ -107,7 +107,7 @@ int main(void){
 		}
 		for(i = 0; i < ADC_CHANNEL_NUMBER; ++i){
 			if(adc_ms[i] != DIDNT_TRIGGERED && adc_ms[i] != Timer){
-				if(msctr - adctm[i] > 500 || adctm[i] > msctr){
+				if(msctr - adctm[i] > ADC_DEBOUNCE_DELAY || adctm[i] > msctr){
 					adctm[i] = msctr;
 					P("ADC");
 					put_char_to_buf('0'+i);
@@ -125,7 +125,7 @@ int main(void){
 			}
 		}
 		if(ultrasonic_ms != DIDNT_TRIGGERED && ultrasonic_ms != Timer){
-			if(msctr - ultrasonictm > 500 || ultrasonictm > msctr){
+			if(msctr - ultrasonictm > ULTRASONIC_DEBOUNCE_DELAY || ultrasonictm > msctr){
 				ultrasonictm = msctr;
 				P("Ultrasonic time: ");
 				print_time(&ultrasonic_time, ultrasonic_ms);

@@ -50,6 +50,14 @@ extern void *memcpy(void *dest, const void *src, int n);
 
 #define DIDNT_TRIGGERED (2000)
 
+// debounce delays:
+// Trigger (button) - 500ms
+#define TRIGGER_DEBOUNCE_DELAY     (500)
+// ADC debounce - 1000ms
+#define ADC_DEBOUNCE_DELAY         (1000)
+// ultrasonic - 1500ms
+#define ULTRASONIC_DEBOUNCE_DELAY  (1500)
+
 typedef struct{
 	uint8_t H;
 	uint8_t M;

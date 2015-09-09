@@ -19,7 +19,7 @@ To get precision time this tool use GPS module (NEO-6M)
 
 #### Connection diagram
 | Pin  | Function  |
-| :-: |:-|
+| :--: | :-------- |
 | PA0 | Infrared sensor data |
 | PA1 | Laser photoresistor data |
 | PA2 | GPS Rx (MCU Tx) |
@@ -27,7 +27,7 @@ To get precision time this tool use GPS module (NEO-6M)
 | PA4 | GPS PPS signal |
 | PA5 | Trigger (button) switch |
 | PB10 | Ultrasonic "TRIG" pin |
-| PB11 | Ultrasonic "ECHO" pin|
+| PB11 | Ultrasonic "ECHO" pin |
 
 #### Powering devices
 * To power up GPS module you can use +5V or +3.3V.

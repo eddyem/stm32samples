@@ -37,9 +37,9 @@ const struct usb_device_descriptor dev = {
 	.bDeviceSubClass = 0,
 	.bDeviceProtocol = 0,
 	.bMaxPacketSize0 = 64,
-// 0x03EB 0x2042  -  Atmel Keyboard Demo Application
-	.idVendor = 0x03EB,
-	.idProduct = 0x2042,
+// 0x045E 0x005C  - Microsoft Office Keyboard (106/109)
+	.idVendor = 0x045E,
+	.idProduct = 0x005C,
 	.bcdDevice = 0x0200,
 	.iManufacturer = 1,
 	.iProduct = 2,
@@ -154,7 +154,7 @@ const struct usb_config_descriptor config = {
 };
 
 static const char *usb_strings[] = {
-	"Simple matrix keyboard 3x4",
+	"Timelapse keyboard",
 	"EEV",
 	"v01",
 };
