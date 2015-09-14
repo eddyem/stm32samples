@@ -50,13 +50,8 @@ extern void *memcpy(void *dest, const void *src, int n);
 
 #define DIDNT_TRIGGERED (2000)
 
-// debounce delays:
-// Trigger (button) - 500ms
-#define TRIGGER_DEBOUNCE_DELAY     (500)
-// ADC debounce - 1000ms
-#define ADC_DEBOUNCE_DELAY         (1000)
-// ultrasonic - 1500ms
-#define ULTRASONIC_DEBOUNCE_DELAY  (1500)
+// debounce delay: 1.5s
+#define TRIGGER_DELAY     (1500)
 
 typedef struct{
 	uint8_t H;
@@ -75,7 +70,7 @@ extern volatile int need_sync;
 void set_time(uint8_t *buf);
 
 void print_time(curtime *T, uint32_t m);
-void print_curtime();
+//void print_curtime();
 
 #endif // __MAIN_H__
 

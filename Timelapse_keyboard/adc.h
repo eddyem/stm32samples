@@ -36,15 +36,12 @@ typedef enum{
 
 extern adwd_stat adc_status[];
 
-
-#define ADC_CHANNEL_NUMBER (2)
-
-// something near
-#define ADC_WDG_HIGH   ((uint16_t)1500)
-// nothing in front of sensor
-#define ADC_WDG_LOW    ((uint16_t)700)
-// threshold above levels
-#define ADC_WDG_THRES  ((uint16_t)200)
+// channels: 0 - IR, 1 - laser's photoresistor, 6 - 12V
+#define ADC_CHANNEL_NUMBER (3)
+// 10.8V - power alarm (resistor divider: 10kOhm : 3.0kOhm, U/100=7/20*ADC_value)
+#define POWER_ALRM_LEVEL   (3086)
+// 11.5V - power OK
+#define GOOD_POWER_LEVEL   (3286)
 
 void init_adc_sensor();
 void poll_ADC();

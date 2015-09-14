@@ -1,11 +1,12 @@
-BINARY		= timelaps
+BINARY		= timelapse
 BOOTPORT	?= /dev/ttyUSB0
 BOOTSPEED	?= 115200
 # change this linking script depending on particular MCU model,
 # for example, if you have STM32F103VBT6, you should write:
 LDSCRIPT	= ld/stm32f103x8.ld
 LIBNAME		= opencm3_stm32f1
-DEFS		= -DSTM32F1 -DKBD_3BY4 -DEBUG
+# add -DULTRASONIC to compile with ultrasonic distance-meter support
+DEFS		= -DSTM32F1 -DEBUG
 
 OBJDIR = mk
 INDEPENDENT_HEADERS=

@@ -1,0 +1,256 @@
+EESchema Schematic File Version 2  date Чт 10 сен 2015 12:15:08
+LIBS:power
+LIBS:device
+LIBS:transistors
+LIBS:conn
+LIBS:linear
+LIBS:regul
+LIBS:74xx
+LIBS:cmos4000
+LIBS:adc-dac
+LIBS:memory
+LIBS:xilinx
+LIBS:special
+LIBS:microcontrollers
+LIBS:dsp
+LIBS:microchip
+LIBS:analog_switches
+LIBS:motorola
+LIBS:texas
+LIBS:intel
+LIBS:audio
+LIBS:interface
+LIBS:digital-audio
+LIBS:philips
+LIBS:display
+LIBS:cypress
+LIBS:siliconi
+LIBS:opto
+LIBS:atmel
+LIBS:contrib
+LIBS:valves
+EELAYER 27 0
+EELAYER END
+$Descr A4 11693 8268
+encoding utf-8
+Sheet 1 1
+Title ""
+Date "10 sep 2015"
+Rev ""
+Comp ""
+Comment1 ""
+Comment2 ""
+Comment3 ""
+Comment4 ""
+$EndDescr
+$Comp
+L LED D1
+U 1 1 55F14513
+P 2350 1300
+F 0 "D1" H 2350 1400 50  0000 C CNN
+F 1 "LED" H 2350 1200 50  0000 C CNN
+F 2 "~" H 2350 1300 60  0000 C CNN
+F 3 "~" H 2350 1300 60  0000 C CNN
+	1    2350 1300
+	1    0    0    -1  
+$EndComp
+$Comp
+L R R1
+U 1 1 55F14522
+P 1850 1300
+F 0 "R1" V 1930 1300 40  0000 C CNN
+F 1 "100" V 1857 1301 40  0000 C CNN
+F 2 "SM0603" V 1780 1300 30  0001 C CNN
+F 3 "~" H 1850 1300 30  0000 C CNN
+	1    1850 1300
+	0    -1   -1   0   
+$EndComp
+Wire Wire Line
+	2100 1300 2150 1300
+$Comp
+L LED D2
+U 1 1 55F14969
+P 2350 1650
+F 0 "D2" H 2350 1750 50  0000 C CNN
+F 1 "LED" H 2350 1550 50  0000 C CNN
+F 2 "~" H 2350 1650 60  0000 C CNN
+F 3 "~" H 2350 1650 60  0000 C CNN
+	1    2350 1650
+	1    0    0    -1  
+$EndComp
+$Comp
+L R R2
+U 1 1 55F1496F
+P 1850 1650
+F 0 "R2" V 1930 1650 40  0000 C CNN
+F 1 "100" V 1857 1651 40  0000 C CNN
+F 2 "SM0603" V 1780 1650 30  0001 C CNN
+F 3 "~" H 1850 1650 30  0000 C CNN
+	1    1850 1650
+	0    -1   -1   0   
+$EndComp
+Wire Wire Line
+	2100 1650 2150 1650
+$Comp
+L LED D3
+U 1 1 55F14976
+P 2350 2050
+F 0 "D3" H 2350 2150 50  0000 C CNN
+F 1 "LED" H 2350 1950 50  0000 C CNN
+F 2 "~" H 2350 2050 60  0000 C CNN
+F 3 "~" H 2350 2050 60  0000 C CNN
+	1    2350 2050
+	1    0    0    -1  
+$EndComp
+$Comp
+L R R3
+U 1 1 55F1497C
+P 1850 2050
+F 0 "R3" V 1930 2050 40  0000 C CNN
+F 1 "100" V 1857 2051 40  0000 C CNN
+F 2 "SM0603" V 1780 2050 30  0001 C CNN
+F 3 "~" H 1850 2050 30  0000 C CNN
+	1    1850 2050
+	0    -1   -1   0   
+$EndComp
+Wire Wire Line
+	2100 2050 2150 2050
+$Comp
+L LED D4
+U 1 1 55F14983
+P 2350 2400
+F 0 "D4" H 2350 2500 50  0000 C CNN
+F 1 "LED" H 2350 2300 50  0000 C CNN
+F 2 "~" H 2350 2400 60  0000 C CNN
+F 3 "~" H 2350 2400 60  0000 C CNN
+	1    2350 2400
+	1    0    0    -1  
+$EndComp
+$Comp
+L R R4
+U 1 1 55F14989
+P 1850 2400
+F 0 "R4" V 1930 2400 40  0000 C CNN
+F 1 "100" V 1857 2401 40  0000 C CNN
+F 2 "SM0603" V 1780 2400 30  0001 C CNN
+F 3 "~" H 1850 2400 30  0000 C CNN
+	1    1850 2400
+	0    -1   -1   0   
+$EndComp
+Wire Wire Line
+	2100 2400 2150 2400
+$Comp
+L LED D5
+U 1 1 55F14990
+P 2350 2750
+F 0 "D5" H 2350 2850 50  0000 C CNN
+F 1 "LED" H 2350 2650 50  0000 C CNN
+F 2 "~" H 2350 2750 60  0000 C CNN
+F 3 "~" H 2350 2750 60  0000 C CNN
+	1    2350 2750
+	1    0    0    -1  
+$EndComp
+$Comp
+L R R5
+U 1 1 55F14996
+P 1850 2750
+F 0 "R5" V 1930 2750 40  0000 C CNN
+F 1 "100" V 1857 2751 40  0000 C CNN
+F 2 "SM0603" V 1780 2750 30  0001 C CNN
+F 3 "~" H 1850 2750 30  0000 C CNN
+	1    1850 2750
+	0    -1   -1   0   
+$EndComp
+Wire Wire Line
+	2100 2750 2150 2750
+$Comp
+L LED D6
+U 1 1 55F1499D
+P 2350 3100
+F 0 "D6" H 2350 3200 50  0000 C CNN
+F 1 "LED" H 2350 3000 50  0000 C CNN
+F 2 "~" H 2350 3100 60  0000 C CNN
+F 3 "~" H 2350 3100 60  0000 C CNN
+	1    2350 3100
+	1    0    0    -1  
+$EndComp
+$Comp
+L R R6
+U 1 1 55F149A3
+P 1850 3100
+F 0 "R6" V 1930 3100 40  0000 C CNN
+F 1 "100" V 1857 3101 40  0000 C CNN
+F 2 "SM0603" V 1780 3100 30  0001 C CNN
+F 3 "~" H 1850 3100 30  0000 C CNN
+	1    1850 3100
+	0    -1   -1   0   
+$EndComp
+Wire Wire Line
+	2100 3100 2150 3100
+Wire Wire Line
+	1600 1300 1600 3300
+Connection ~ 1600 1650
+Connection ~ 1600 2050
+Connection ~ 1600 2400
+Connection ~ 1600 2750
+$Comp
+L CONN_7 P1
+U 1 1 55F149BB
+P 3350 1600
+F 0 "P1" V 3320 1600 60  0000 C CNN
+F 1 "CONN_7" V 3420 1600 60  0000 C CNN
+F 2 "" H 3350 1600 60  0000 C CNN
+F 3 "" H 3350 1600 60  0000 C CNN
+	1    3350 1600
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	3000 1300 2550 1300
+Wire Wire Line
+	2550 1650 2550 1400
+Wire Wire Line
+	2550 1400 3000 1400
+Wire Wire Line
+	2550 2050 2600 2050
+Wire Wire Line
+	2600 2050 2600 1500
+Wire Wire Line
+	2600 1500 3000 1500
+Wire Wire Line
+	2550 2400 2650 2400
+Wire Wire Line
+	2650 2400 2650 1600
+Wire Wire Line
+	2650 1600 3000 1600
+Wire Wire Line
+	3000 1700 2700 1700
+Wire Wire Line
+	2700 1700 2700 2750
+Wire Wire Line
+	2700 2750 2550 2750
+Wire Wire Line
+	2550 3100 2750 3100
+Wire Wire Line
+	2750 3100 2750 1800
+Wire Wire Line
+	2750 1800 3000 1800
+Wire Wire Line
+	1600 3300 3000 3300
+Wire Wire Line
+	3000 3300 3000 1900
+Connection ~ 1600 3100
+Text Label 3000 2150 0    60   ~ 0
++3.3V
+Text Label 2850 1300 2    60   ~ 0
+Y1
+Text Label 2850 1400 2    60   ~ 0
+Y2
+Text Label 2850 1500 2    60   ~ 0
+R1
+Text Label 2850 1600 2    60   ~ 0
+R2
+Text Label 2850 1700 2    60   ~ 0
+G1
+Text Label 2850 1800 2    60   ~ 0
+G2
+$EndSCHEMATC

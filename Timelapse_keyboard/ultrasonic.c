@@ -19,6 +19,8 @@
  * MA 02110-1301, USA.
  */
 
+#ifdef ULTRASONIC
+
 #include <libopencm3/stm32/timer.h>
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/stm32/rcc.h>
@@ -194,3 +196,5 @@ void poll_ultrasonic(){
 		start_ultrasonic();
 	}
 }
+
+#endif // ULTRASONIC

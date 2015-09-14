@@ -22,7 +22,7 @@
 #include "usbkeybrd.h"
 #include "keycodes.h"
 
-#define BUFLEN 512
+#define BUFLEN (1024)
 static char sendbuf[BUFLEN];
 static char *msg_start = sendbuf, *msg_end = sendbuf;
 static const char *buf_end = sendbuf+BUFLEN;

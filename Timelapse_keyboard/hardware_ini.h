@@ -26,28 +26,37 @@
 /*
  * Timers:
  * SysTick - system time
+ * Tim2 - ultrasonic
+ * Tim4 - beeper
  */
 
-
+//void tim4_init();
+//void beep();
 void GPIO_init();
 void SysTick_init();
 
-/*
- * Buttons on devboard
- */
-#define BTNS_PORT		GPIOC
-// PCO -- S2
-#define BTN_S2_PIN		GPIO0
-// PC1 -- S3
-#define BTN_S3_PIN		GPIO1
+// yellow LEDs: PA11, PA12
+#define LEDS_Y_PORT      GPIOA
+#define LEDS_Y1_PIN      GPIO13
+#define LEDS_Y2_PIN      GPIO15
+// green LEDs: PB7, PB8
+#define LEDS_G_PORT      GPIOB
+#define LEDS_G1_PIN      GPIO7
+#define LEDS_G2_PIN      GPIO8
+// red LEDs: PB6, PB5
+#define LEDS_R_PORT      GPIOB
+#define LEDS_R1_PIN      GPIO6
+#define LEDS_R2_PIN      GPIO5
+// beeper - PB9
+#define BEEPER_PORT      GPIOB
+#define BEEPER_PIN       GPIO9
 
 /*
- * LEDS: PB9 for D1, PB8 for D2
- */
-#define LEDS_PORT		GPIOB
-#define LED_D1_PIN		GPIO9
-#define LED_D2_PIN		GPIO8
-
+// beeper period (in microseconds) - approx 440 Hz
+#define BEEPER_PERIOD    (2273)
+// amount of beeper pulses (after this walue it will be off) - near 2seconds
+#define BEEPER_AMOUNT    (880)
+*/
 /*
  * USB interface
  * connect boot1 jumper to gnd, boot0 to gnd; and reconnect boot0 to +3.3 to boot flash
@@ -71,6 +80,5 @@ void SysTick_init();
 #define usb_disconnect()
 #define usb_connect()
 
-void check_btns();
 
 #endif // __HARDWARE_INI_H__

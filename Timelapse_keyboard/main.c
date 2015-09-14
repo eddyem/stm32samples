@@ -24,7 +24,9 @@
 #include "hardware_ini.h"
 #include "uart.h"
 #include "GPS.h"
+#ifdef ULTRASONIC
 #include "ultrasonic.h"
+#endif
 #include "adc.h"
 
 volatile uint32_t Timer = 0; // global timer (milliseconds)
@@ -41,10 +43,13 @@ curtime current_time = {25,61,61};
 
 curtime trigger_time = {25, 61, 61};
 curtime adc_time[ADC_CHANNEL_NUMBER] = {{25, 61, 61}, {25, 61, 61}};
+#ifdef ULTRASONIC
 curtime ultrasonic_time = {25, 61, 61};
-uint32_t trigger_ms = DIDNT_TRIGGERED, adc_ms[ADC_CHANNEL_NUMBER] = {DIDNT_TRIGGERED, DIDNT_TRIGGERED},
-	ultrasonic_ms = DIDNT_TRIGGERED;
-
+#endif
+uint32_t trigger_ms = DIDNT_TRIGGERED, adc_ms[ADC_CHANNEL_NUMBER] = {DIDNT_TRIGGERED, DIDNT_TRIGGERED};
+#ifdef ULTRASONIC
+uint32_t ultrasonic_ms = DIDNT_TRIGGERED;
+#endif
 void time_increment(){
 	Timer = 0;
 	if(current_time.H == 25) return; // Time not initialized
@@ -79,58 +84,135 @@ int main(void){
 	usb_disconnect(); // turn off USB while initializing all
 	usbkeybrd_setup();
 	UART_init(USART2); // init GPS UART
+	#ifdef ULTRASONIC
 	tim2_init(); // ultrasonic timer
+	//tim4_init(); // beeper timer
+	#endif
 /*
-	int i;
 	for (i = 0; i < 0x80000; i++)
 		__asm__("nop");
 */
 	usb_connect(); // turn on USB
 	GPS_send_start_seq();
 	init_adc_sensor();
-
-	uint32_t trigrtm = 0, adctm[2] = {0, 0}, ultrasonictm = 0;
+	// time (in milliseconds from MCU start) for trigger, adc & power LED status; power LED blink interval
+	// blink time: (1000ms - powerLEDblink) - LED ON
+	// GPSstatus_tm - timer for blinking by GPS LED if there's no GPS after timer is good
+	// powerLEDblink - LED blinking time (depends on power level)
+	uint32_t usbkbrdtm = 0, trigrtm = 0, powerLEDtm = 0, GPSstatus_tm = 0, powerLEDblink = 1;
+	// istriggered == 1 after ANY trigger's event (set it to 1 at start to prevent false events)
+	// GPSLEDblink - GPS LED blinking
+	uint8_t  istriggered = 1, GPSLEDblink = 0;
 	while(1){
 		poll_usbkeybrd();
+		if(usbkbrdtm != msctr){ // process USB not frequently than once per 1ms
+			process_usbkbrd();
+			usbkbrdtm = msctr;
+		}
+		#ifdef ULTRASONIC
 		poll_ultrasonic();
+		#endif
 		poll_ADC();
 		if((string = check_UART2())){
 			GPS_parse_answer(string);
 		}
-		if(trigger_ms != DIDNT_TRIGGERED && trigger_ms != Timer){
-			if(msctr - trigrtm > TRIGGER_DEBOUNCE_DELAY || trigrtm > msctr){
+		if(istriggered){ // there was any trigger event
+			if(msctr - trigrtm > TRIGGER_DELAY || trigrtm > msctr){ // turn off LED & beeper
+				istriggered = 0;
+				gpio_set(LEDS_Y_PORT, LEDS_Y1_PIN);
+				gpio_set(BEEPER_PORT, BEEPER_PIN);
+				trigger_ms = DIDNT_TRIGGERED;
+				adc_ms[0] = DIDNT_TRIGGERED;
+				adc_ms[1] = DIDNT_TRIGGERED;
+				#ifdef ULTRASONIC
+				ultrasonic_ms = DIDNT_TRIGGERED;
+				#endif
+			}
+		}else{
+			if(trigger_ms != DIDNT_TRIGGERED){
 				trigrtm = msctr;
-				P("Trigger time: ");
+				istriggered = 1;
+				P("Button time: ");
 				print_time(&trigger_time, trigger_ms);
 			}
-			trigger_ms = DIDNT_TRIGGERED;
-		}
-		for(i = 0; i < ADC_CHANNEL_NUMBER; ++i){
-			if(adc_ms[i] != DIDNT_TRIGGERED && adc_ms[i] != Timer){
-				if(msctr - adctm[i] > ADC_DEBOUNCE_DELAY || adctm[i] > msctr){
-					adctm[i] = msctr;
-					P("ADC");
-					put_char_to_buf('0'+i);
-					if(adc_status[i] == ADWD_HI) P("hi");
-					else if(adc_status[i] == ADWD_LOW) P("lo");
-					P(": value = ");
-					print_int(ADC_trig_val[i]);
-					P(" (now: ");
-					print_int(ADC_value[i]);
-					P("), time = ");
+			//#if 0
+			for(i = 0; i < 2; ++i){
+				if(adc_ms[i] != DIDNT_TRIGGERED && !istriggered){
+					trigrtm = msctr;
+					istriggered = 1;
+					if(i == 0) P("Infrared");
+					else P("Laser");
+					P(" time: ");
 					print_time(&adc_time[i], adc_ms[i]);
-					//}
 				}
-				adc_ms[i] = DIDNT_TRIGGERED;
 			}
-		}
-		if(ultrasonic_ms != DIDNT_TRIGGERED && ultrasonic_ms != Timer){
-			if(msctr - ultrasonictm > ULTRASONIC_DEBOUNCE_DELAY || ultrasonictm > msctr){
-				ultrasonictm = msctr;
+			//#endif
+			#ifdef ULTRASONIC
+			if(ultrasonic_ms != DIDNT_TRIGGERED){
+				trigrtm = msctr;
+				istriggered = 1;
 				P("Ultrasonic time: ");
 				print_time(&ultrasonic_time, ultrasonic_ms);
 			}
-			ultrasonic_ms = DIDNT_TRIGGERED;
+			#endif
+			if(istriggered){ // turn on Y1 LED
+				gpio_clear(LEDS_Y_PORT, LEDS_Y1_PIN);
+				//beep(); // turn on beeper
+				gpio_clear(BEEPER_PORT, BEEPER_PIN);
+			}
+		}
+		// check 12V power level (once per 1ms)
+		if(powerLEDtm != msctr){
+			uint16_t _12V = ADC_value[2];
+			if(_12V < GOOD_POWER_LEVEL){ // insufficient power? - blink LED R2
+				// calculate blink time only if there's [was] too low level
+				if(_12V < POWER_ALRM_LEVEL || powerLEDblink){
+					powerLEDblink = GOOD_POWER_LEVEL - _12V;
+					if(powerLEDblink > 900) powerLEDblink = 900; // shadow LED not more than 0.9s
+				}
+			}else{ // power restored - LED R2 shines
+				if(powerLEDblink){
+					gpio_clear(LEDS_R_PORT, LEDS_R2_PIN);
+					powerLEDblink = 0;
+				}
+				powerLEDtm = msctr;
+			}
+			if(powerLEDblink){
+				if(GPIO_ODR(LEDS_R_PORT) & LEDS_R2_PIN){ // LED is OFF
+					if(msctr - powerLEDtm > powerLEDblink || msctr < powerLEDtm){ // turn LED ON
+						powerLEDtm = msctr;
+						gpio_clear(LEDS_R_PORT, LEDS_R2_PIN);
+					}
+				}else{
+					if(msctr - powerLEDtm > (1000 - powerLEDblink) || msctr < powerLEDtm){ // turn LED OFF
+						powerLEDtm = msctr;
+						gpio_set(LEDS_R_PORT, LEDS_R2_PIN);
+					}
+				}
+			}
+		}
+		// check GPS status to turn on/off GPS LED
+		if(current_time.H < 24){ // timer OK
+			if(GPS_status != GPS_VALID || need_sync)
+				GPSLEDblink = 1;
+			else if(GPSLEDblink){
+				GPSLEDblink = 0;
+				gpio_clear(LEDS_G_PORT, LEDS_G1_PIN); // turn ON G1 LED
+			}
+			if(GPSLEDblink){
+				if(msctr - GPSstatus_tm > 500 || msctr < GPSstatus_tm){
+					GPSstatus_tm = msctr;
+					if(GPIO_ODR(LEDS_G_PORT) & LEDS_G1_PIN){ // LED is OFF
+						gpio_clear(LEDS_G_PORT, LEDS_G1_PIN);
+					}else{
+						gpio_set(LEDS_G_PORT, LEDS_G1_PIN);
+					}
+				}
+			}
+		}else{ // something bad with timer - turn OFF G1 LED
+			if(!(GPIO_ODR(LEDS_G_PORT) & LEDS_G1_PIN)){
+				gpio_set(LEDS_G_PORT, LEDS_G1_PIN);
+			}
 		}
 	}
 }
@@ -148,7 +230,6 @@ void sys_tick_handler(){
 		STK_RVR = RVR0;
 		time_increment();
 	}
-	process_usbkbrd();
 }
 // STK_CVR - current systick val
 // STK_RVR - ticks till interrupt - 1
@@ -224,11 +305,18 @@ void print_time(curtime *Tm, uint32_t T){
 	if(T < 100) put_char_to_buf('0');
 	if(T < 10) put_char_to_buf('0');
 	print_int(T);
+	P(", ");
+	S += H*3600 + M*60;
+	print_int(S);
+	put_char_to_buf('.');
+	if(T < 100) put_char_to_buf('0');
+	if(T < 10) put_char_to_buf('0');
+	print_int(T);
 	if(GPS_status == GPS_NOT_VALID) P(" (not valid)");
 	if(need_sync) P(" need synchronisation");
 	newline();
 }
-
+/*
 void print_curtime(){
 	uint32_t T = Timer;
 	if(current_time.H < 24 && GPS_status != GPS_WAIT){
@@ -237,3 +325,4 @@ void print_curtime(){
 	}else
 		P("Waiting for satellites\n");
 }
+*/

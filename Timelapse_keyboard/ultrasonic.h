@@ -18,6 +18,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301, USA.
  */
+#ifdef ULTRASONIC
 
 #pragma once
 #ifndef __ULTRASONIC_H__
@@ -51,3 +52,4 @@ typedef enum{
 // minimal length of signal in ms
 #define ULTRASONIC_TIMEOUT  (10)
 #endif // __ULTRASONIC_H__
+#endif // ULTRASONIC
