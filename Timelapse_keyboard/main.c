@@ -65,7 +65,8 @@ void time_increment(){
 }
 
 int main(void){
-	uint8_t *string, *lastGPSans = NULL; // string from UART2 & pointer to last full GPS answer
+	uint8_t *string; // string from UART2 & pointer to last full GPS answer
+	uint8_t lastGPSans[UART_BUF_DATA_SIZE] = {0};
 	int i;
 	rcc_clock_setup_in_hse_8mhz_out_72mhz();
 	// init systick (1ms)
@@ -107,6 +108,8 @@ int main(void){
 	iwdg_set_period_ms(50); // set watchdog timeout to 50ms
 	iwdg_start();
 	while(1){
+		if(Timer == 500) // turn off PPS LED after 500ms
+			gpio_set(LEDS_Y_PORT, LEDS_Y2_PIN);
 		poll_usbkeybrd();
 		if(usbkbrdtm != msctr){ // process USB not frequently than once per 1ms
 			process_usbkbrd();
@@ -117,7 +120,7 @@ int main(void){
 		#endif
 		poll_ADC();
 		if((string = check_UART2())){
-			lastGPSans = string;
+			memcpy(lastGPSans, string, UART_BUF_DATA_SIZE);
 			GPS_parse_answer(string);
 		}
 /*
@@ -149,7 +152,7 @@ if(msctr - trigrtm > 3000){
 				istriggered = 1;
 				P("Button time: ");
 				print_time(&trigger_time, trigger_ms);
-				if(lastGPSans){
+				if(*lastGPSans){
 					P("GPS last message: ");
 					send_msg((char*)lastGPSans);
 					newline();
@@ -221,11 +224,12 @@ if(msctr - trigrtm > 3000){
 		}
 		// check GPS status to turn on/off GPS LED
 		if(current_time.H < 24){ // timer OK
-			if(GPS_status != GPS_VALID || need_sync)
+			if((GPS_status != GPS_VALID) || need_sync){
 				GPSLEDblink = 1;
-			else if(GPSLEDblink){
+			}else{
 				GPSLEDblink = 0;
-				gpio_clear(LEDS_G_PORT, LEDS_G1_PIN); // turn ON G1 LED
+				if((GPIO_ODR(LEDS_G_PORT) & LEDS_G1_PIN) == 0)
+					gpio_clear(LEDS_G_PORT, LEDS_G1_PIN); // turn ON G1 LED
 			}
 			if(GPSLEDblink){
 				if(msctr - GPSstatus_tm > 500 || msctr < GPSstatus_tm){
@@ -268,6 +272,7 @@ void exti4_isr(){
 	uint32_t t = 0, ticks;
 	static uint32_t ticksavr = 0, N = 0;
 	if(EXTI_PR & EXTI4){
+		gpio_clear(LEDS_Y_PORT, LEDS_Y2_PIN);
 		// correct
 		systick_val = STK_CVR;
 		STK_CVR = RVR0;

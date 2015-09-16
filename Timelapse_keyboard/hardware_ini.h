@@ -35,15 +35,15 @@
 void GPIO_init();
 void SysTick_init();
 
-// yellow LEDs: PA11, PA12
+// yellow LEDs: PA11, PA12; Y1- - trigr, Y2 - PPS
 #define LEDS_Y_PORT      GPIOA
 #define LEDS_Y1_PIN      GPIO13
 #define LEDS_Y2_PIN      GPIO15
-// green LEDs: PB7, PB8
+// green LEDs: PB7, PB8; G1 - GPS rdy
 #define LEDS_G_PORT      GPIOB
 #define LEDS_G1_PIN      GPIO7
 #define LEDS_G2_PIN      GPIO8
-// red LEDs: PB6, PB5
+// red LEDs: PB6, PB5; R2 - power
 #define LEDS_R_PORT      GPIOB
 #define LEDS_R1_PIN      GPIO6
 #define LEDS_R2_PIN      GPIO5

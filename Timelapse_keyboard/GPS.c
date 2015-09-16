@@ -155,7 +155,8 @@ void GPS_parse_answer(uint8_t *buf){
 	*ptr++ = 0;
 	if(*ptr == 'A'){
 		GPS_status = GPS_VALID;
-		set_time(buf);
-	}else
+	}else{
 		GPS_status = GPS_NOT_VALID;
+	}
+	set_time(buf);
 }
