@@ -161,7 +161,7 @@ static const char *usb_strings[] = {
 
 /* Buffer to be used for control requests. */
 uint8_t usbd_control_buffer[128];
-
+static int got_config = 0;
 static int hid_control_request(usbd_device *usbddev, struct usb_setup_data *req, uint8_t **buf, uint16_t *len,
 			void (**complete)(usbd_device *usbddev, struct usb_setup_data *req)){
 	(void)complete;
@@ -174,7 +174,7 @@ static int hid_control_request(usbd_device *usbddev, struct usb_setup_data *req,
 
 	*buf = (uint8_t *)hid_report_descriptor;
 	*len = sizeof(hid_report_descriptor);
-
+	got_config = 1;
 	return 1;
 }
 
@@ -209,15 +209,16 @@ void send_msg(char *msg){
 		put_char_to_buf(*(msg++));
 	}
 }
-
+/*
 void newline(){
 	put_char_to_buf('\n');
-}
+}*/
 
 /**
  * send data from keyboard buffer
  */
 void process_usbkbrd(){
+	if(!got_config) return; // don't allow sending messages until first connection - to prevent hangs
 	static uint8_t pressed = 0;
 	if(pressed){ // the keyboard was "pressed"
 		if(8 == usbd_ep_write_packet(usbd_dev, 0x81, release_key(), 8))

@@ -50,8 +50,8 @@ extern void *memcpy(void *dest, const void *src, int n);
 
 #define DIDNT_TRIGGERED (2000)
 
-// debounce delay: 1.5s
-#define TRIGGER_DELAY     (1500)
+// debounce delay: .5s
+#define TRIGGER_DELAY     (500)
 
 typedef struct{
 	uint8_t H;

@@ -36,12 +36,18 @@ typedef enum{
 
 extern adwd_stat adc_status[];
 
+// pause for noice removal
+#define ADC_NOICE_TIMEOUT  (5)
+
 // channels: 0 - IR, 1 - laser's photoresistor, 6 - 12V
 #define ADC_CHANNEL_NUMBER (3)
-// 10.8V - power alarm (resistor divider: 10kOhm : 3.0kOhm, U/100=7/20*ADC_value)
-#define POWER_ALRM_LEVEL   (3086)
+// 10.8V - power alarm (resistor divider: 10kOhm : (3.0kOhm || zener), U/100=2/5*ADC_value)
+//    (11.15Vin == 2.25Vout)
+#define POWER_ALRM_LEVEL   (2705)
+// critical voltage: approx 8V
+#define POWER_CRITICAL_LEVEL (2000)
 // 11.5V - power OK
-#define GOOD_POWER_LEVEL   (3286)
+#define GOOD_POWER_LEVEL   (2880)
 
 void init_adc_sensor();
 void poll_ADC();

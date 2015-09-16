@@ -28,6 +28,7 @@
 #include "ultrasonic.h"
 #endif
 #include "adc.h"
+#include <libopencm3/stm32/iwdg.h> // independent watchdog
 
 volatile uint32_t Timer = 0; // global timer (milliseconds)
 volatile uint32_t msctr = 0; // global milliseconds for different purposes
@@ -64,7 +65,7 @@ void time_increment(){
 }
 
 int main(void){
-	uint8_t *string;
+	uint8_t *string, *lastGPSans = NULL; // string from UART2 & pointer to last full GPS answer
 	int i;
 	rcc_clock_setup_in_hse_8mhz_out_72mhz();
 	// init systick (1ms)
@@ -86,8 +87,8 @@ int main(void){
 	UART_init(USART2); // init GPS UART
 	#ifdef ULTRASONIC
 	tim2_init(); // ultrasonic timer
-	//tim4_init(); // beeper timer
 	#endif
+	//tim4_init(); // beeper timer
 /*
 	for (i = 0; i < 0x80000; i++)
 		__asm__("nop");
@@ -103,6 +104,8 @@ int main(void){
 	// istriggered == 1 after ANY trigger's event (set it to 1 at start to prevent false events)
 	// GPSLEDblink - GPS LED blinking
 	uint8_t  istriggered = 1, GPSLEDblink = 0;
+	iwdg_set_period_ms(50); // set watchdog timeout to 50ms
+	iwdg_start();
 	while(1){
 		poll_usbkeybrd();
 		if(usbkbrdtm != msctr){ // process USB not frequently than once per 1ms
@@ -114,8 +117,20 @@ int main(void){
 		#endif
 		poll_ADC();
 		if((string = check_UART2())){
+			lastGPSans = string;
 			GPS_parse_answer(string);
 		}
+/*
+if(msctr - trigrtm > 3000){
+	trigrtm = msctr;
+	for(i = 0; i < 3; ++i){ // IR or Laser
+		P("ADC");
+		put_char_to_buf('0' + i);
+		P(" val: ");
+		print_int(ADC_value[i]);
+		newline();
+	}
+}*/
 		if(istriggered){ // there was any trigger event
 			if(msctr - trigrtm > TRIGGER_DELAY || trigrtm > msctr){ // turn off LED & beeper
 				istriggered = 0;
@@ -129,26 +144,37 @@ int main(void){
 				#endif
 			}
 		}else{
-			if(trigger_ms != DIDNT_TRIGGERED){
+			if(trigger_ms != DIDNT_TRIGGERED){ // Control Button pressed
 				trigrtm = msctr;
 				istriggered = 1;
 				P("Button time: ");
 				print_time(&trigger_time, trigger_ms);
+				if(lastGPSans){
+					P("GPS last message: ");
+					send_msg((char*)lastGPSans);
+					newline();
+				}
 			}
-			//#if 0
-			for(i = 0; i < 2; ++i){
-				if(adc_ms[i] != DIDNT_TRIGGERED && !istriggered){
+			for(i = 0; i < 2; ++i){ // IR or Laser
+				uint32_t adcms = adc_ms[i];
+				if(adcms == DIDNT_TRIGGERED) continue;
+				int32_t timediff = Timer - adcms;
+				if(timediff < 0) timediff += 1000;
+				// pause for noice removal
+				if(timediff > ADC_NOICE_TIMEOUT && !istriggered){
 					trigrtm = msctr;
 					istriggered = 1;
 					if(i == 0) P("Infrared");
 					else P("Laser");
-					P(" time: ");
-					print_time(&adc_time[i], adc_ms[i]);
+				/*	P(" trig val: ");
+					print_int(ADC_trig_val[i]);*/
+					put_char_to_buf(' ');
+					//P(" time: ");
+					print_time(&adc_time[i], adcms);
 				}
 			}
-			//#endif
 			#ifdef ULTRASONIC
-			if(ultrasonic_ms != DIDNT_TRIGGERED){
+			if(ultrasonic_ms != DIDNT_TRIGGERED && !istriggered){
 				trigrtm = msctr;
 				istriggered = 1;
 				P("Ultrasonic time: ");
@@ -168,7 +194,9 @@ int main(void){
 				// calculate blink time only if there's [was] too low level
 				if(_12V < POWER_ALRM_LEVEL || powerLEDblink){
 					powerLEDblink = GOOD_POWER_LEVEL - _12V;
-					if(powerLEDblink > 900) powerLEDblink = 900; // shadow LED not more than 0.9s
+					// critical level: power LED is almost OFF
+					if(_12V < POWER_CRITICAL_LEVEL) powerLEDblink = 990;
+					//if(powerLEDblink > 990) powerLEDblink = 990; // shadow LED not more than 0.99s
 				}
 			}else{ // power restored - LED R2 shines
 				if(powerLEDblink){
@@ -214,6 +242,7 @@ int main(void){
 				gpio_set(LEDS_G_PORT, LEDS_G1_PIN);
 			}
 		}
+	iwdg_reset(); // reset watchdog
 	}
 }
 

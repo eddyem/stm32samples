@@ -21,6 +21,7 @@
 
 #include "adc.h"
 #include "main.h"
+#include "usbkeybrd.h"
 
 uint16_t ADC_value[ADC_CHANNEL_NUMBER];    // Values of ADC
 uint16_t ADC_trig_val[2]; // -//- at trigger time
@@ -64,35 +65,63 @@ adwd_stat adc_status[ADC_CHANNEL_NUMBER] = {ADWD_MID, ADWD_MID, ADWD_MID};
 
 
 // levels for thresholding
-const uint16_t ADC_lowlevel[2] = {1800, 2700}; // signal if ADC value < lowlevel
-const uint16_t ADC_midlevel[2] = {2000, 3000}; // when transit through midlevel set status as ADWD_MID
-const uint16_t ADC_highlevel[2]= {2200, 5000}; // signal if ADC value > highlevel
+/*
+ * Infrared sensor calibration
+ * distance, cm    ADC value, ADU (+- 3%)
+ *       0             100
+ *      10            3300
+ *      20            3170
+ *      30            2400
+ *      40            1720
+ *      50            1400
+ *      60            1200
+ *      70            1100
+ *      80             980
+ *      90             860
+ *     100             760
+ *     145             490
+ *
+ * IR distance \approx 74000/ADU (cm)
+ *
+ * Laser photoresistor: 2700 ADU in laser beam, 1760 in light room, 300 when darkened
+ */
+const uint16_t ADC_lowlevel[2] = {0, 2000}; // signal if ADC value < lowlevel
+const uint16_t ADC_midlevel[2] = {400, 2500}; // when transit through midlevel set status as ADWD_MID
+const uint16_t ADC_highlevel[2]= {800, 5000}; // signal if ADC value > highlevel
 
 void poll_ADC(){
 	int i;
 	for(i = 0; i < 2; ++i){
-		if(adc_ms[i] != DIDNT_TRIGGERED) continue;
+		uint32_t adcms = adc_ms[i];
 		uint16_t val = ADC_value[i];
 		adwd_stat st = adc_status[i];
-		if(val > ADC_highlevel[i]){ // watchdog event on high level
-			if(st != ADWD_HI){
-				adc_ms[i] = Timer;
-				memcpy(&adc_time[i], &current_time, sizeof(curtime));
-				adc_status[i] = ADWD_HI;
-				ADC_trig_val[i] = val;
+		if(adcms == DIDNT_TRIGGERED){
+			if(val > ADC_highlevel[i]){ // watchdog event on high level
+				if(st != ADWD_HI){
+					adc_ms[i] = Timer;
+					memcpy(&adc_time[i], &current_time, sizeof(curtime));
+					adc_status[i] = ADWD_HI;
+					ADC_trig_val[i] = val;
+				}
+			}else if(val < ADC_lowlevel[i]){ // watchdog event on low level
+				if(st != ADWD_LOW){
+					adc_ms[i] = Timer;
+					memcpy(&adc_time[i], &current_time, sizeof(curtime));
+					adc_status[i] = ADWD_LOW;
+					ADC_trig_val[i] = val;
+				}
 			}
-		}else if(val < ADC_lowlevel[i]){ // watchdog event on low level
-			if(st != ADWD_LOW){
-				adc_ms[i] = Timer;
-				memcpy(&adc_time[i], &current_time, sizeof(curtime));
-				adc_status[i] = ADWD_LOW;
-				ADC_trig_val[i] = val;
-			}
-		}else if((st == ADWD_HI && val < ADC_midlevel[i]) ||
-				 (st == ADWD_LOW && val > ADC_midlevel[i])){
+		}
+		if((st == ADWD_HI && val < ADC_midlevel[i]) ||
+				(st == ADWD_LOW && val > ADC_midlevel[i])){
 			adc_status[i] = ADWD_MID;
-			if(adc_ms[i] == Timer) // remove noice
-				adc_ms[i] = DIDNT_TRIGGERED;
+			if(adcms != DIDNT_TRIGGERED){
+				int32_t timediff = Timer - adcms;
+				if(timediff < 0) timediff += 1000;
+				if(timediff <= ADC_NOICE_TIMEOUT){ // remove noice
+					adc_ms[i] = DIDNT_TRIGGERED;
+				}
+			}
 		}
 	}
 }

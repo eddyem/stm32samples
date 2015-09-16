@@ -36,7 +36,8 @@ void usbkeybrd_setup();
 void print_hex(uint8_t *buff, uint8_t l);
 void print_int(int32_t N);
 
-void newline();
+//void newline();
+#define newline()  do{put_char_to_buf('\n');}while(0)
 
 #define poll_usbkeybrd() usbd_poll(usbd_dev)
 
