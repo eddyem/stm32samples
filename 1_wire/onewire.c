@@ -427,10 +427,12 @@ int32_t gettemp(uint8_t *scratchpad){
 	}else{ // DS18B20
 		v = l>>4 | ((m & 7)<<4) | (m & 0x80);
 		t = ((int32_t)v) * 10L;
-		m = l & 0x0f; // add decimal
-		t += (int32_t)m; // t = v*10 + l*1.25 -> convert
-		if(m > 1) ++t; // 1->1, 2->3, 3->4, 4->5, 5->6
-		else if(m > 5) t += 2L; // 6->8, 7->9
+		m = (l & 0x0f) >> 1; // add decimal
+		// 0   0   1   1   2   2   3   3   4   4   5   5   6   6   7   7 ->
+		// 0   1   1   2   3   3   4   4   5   6   6   7   8   8   9   9
+		t += (int32_t)m; // t = v*10 + l*0.625 -> convert
+		if(m) ++t; // 1->1, 2->3, 3->4, 4->5, 5->6
+		if(m > 5) ++t; // 6->8, 7->9
 	}
 	return t;
 }
