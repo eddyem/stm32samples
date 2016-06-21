@@ -1,4 +1,5 @@
 These are my simple snippets for STM32 (compiled with libopencm3)
+Be carefull: due to API changes these projects will compile only with opencm3 from archive libopencm3.ori.tgz
 
 - 1_wire - pseudo-hardware realisation of 1-wire protocol
 - canon_lens - Canon EF lens management
