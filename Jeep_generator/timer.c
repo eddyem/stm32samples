@@ -54,8 +54,10 @@ void tim2_isr(){
     static uint16_t ctr = 0;
     if(TIM2_SR & TIM_SR_UIF){ // update interrupt
         if(ctr > pulsesLen) ctr = 0;
-        if(pulses[++ctr]) gpio_set(OUTP_PORT, OUTP_PIN);
-        else gpio_clear(OUTP_PORT, OUTP_PIN);
+        if(pulses[++ctr])
+            GPIO_BSRR(OUTP_PORT) = OUTP_PIN;
+        else
+            GPIO_BSRR(OUTP_PORT) = OUTP_PIN << 16;
         TIM2_SR = 0;
     }
 }
