@@ -59,10 +59,10 @@ uint8_t show_int(int32_t v){
 }
 
 /**
- * parce command buffer buf with length len
+ * parse command buffer buf with length len
  * return 0 if buffer processed or len if there's not enough data in buffer
  */
-int parce_incoming_buf(char *buf, int len){
+int parse_incoming_buf(char *buf, int len){
 	uint8_t command;
 	//uint32_t utmp;
 	int i = 0;

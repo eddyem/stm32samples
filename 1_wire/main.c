@@ -54,9 +54,9 @@ int main(){
 	while(1){
 		usbd_poll(usbd_dev);
 		if(usbdatalen){ // there's something in USB buffer
-			usbdatalen = parce_incoming_buf(usbdatabuf, usbdatalen);
+			usbdatalen = parse_incoming_buf(usbdatabuf, usbdatalen);
 		}
-		//check_and_parce_UART(USART1); // also check data in UART buffers
+		//check_and_parse_UART(USART1); // also check data in UART buffers
 		check_btns();
 		if(Timer - Old_timer > 999){ // one-second cycle
 			Old_timer += 1000;

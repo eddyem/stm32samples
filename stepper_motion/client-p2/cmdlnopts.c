@@ -1,5 +1,5 @@
 /*
- * cmdlnopts.c - the only function that parce cmdln args and returns glob parameters
+ * cmdlnopts.c - the only function that parse cmdln args and returns glob parameters
  *
  * Copyright 2013 Edward V. Emelianoff <eddy@sao.ru>
  *
@@ -93,13 +93,13 @@ myoption cmdlnopts[] = {
 
 
 /**
- * Parce command line options and return dynamically allocated structure
+ * Parse command line options and return dynamically allocated structure
  * 		to global parameters
  * @param argc - copy of argc from main
  * @param argv - copy of argv from main
  * @return allocated structure with global parameters
  */
-glob_pars *parce_args(int argc, char **argv){
+glob_pars *parse_args(int argc, char **argv){
 	int i;
 	void *ptr;
 	ptr = memcpy(&G, &Gdefault, sizeof(G)); assert(ptr);
@@ -107,7 +107,7 @@ glob_pars *parce_args(int argc, char **argv){
 	/// "Использование: %s [аргументы]\n\n\tГде аргументы:\n"
 	change_helpstring(_("Usage: %s [args]\n\n\tWhere args are:\n"));
 	// parse arguments
-	parceargs(&argc, &argv, cmdlnopts);
+	parseargs(&argc, &argv, cmdlnopts);
 	if(help) showhelp(-1, cmdlnopts);
 	if(argc > 0){
 		/// "Игнорирую аргумент[ы]:"

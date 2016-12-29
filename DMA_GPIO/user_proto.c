@@ -25,7 +25,7 @@
 #include "dmagpio.h"
 
 /**
- * parce command buffer buf with length len
+ * parse command buffer buf with length len
  * return 0 if buffer processed or len if there's not enough data in buffer
  */
 void parse_incoming_buf(uint8_t *buf, int *len){

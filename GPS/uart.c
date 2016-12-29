@@ -98,7 +98,7 @@ void UART_isr(uint32_t UART){
 	UART_buff *curbuff;
 	// Check if we were called because of RXNE
 	if(USART_SR(UART) & USART_SR_RXNE){
-		// parce incoming byte
+		// parse incoming byte
 		data = usart_recv(UART);
 		fill_uart_RXbuff(UART, data);
 	}

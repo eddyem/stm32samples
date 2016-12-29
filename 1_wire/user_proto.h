@@ -45,7 +45,7 @@ void prnt(uint8_t *wrd);
 void print_int(int32_t N);
 void print_hex(uint8_t *buff, uint8_t l);
 
-int parce_incoming_buf(char *buf, int len);
+int parse_incoming_buf(char *buf, int len);
 void OW_printID(uint8_t N);
 
 #endif // __USER_PROTO_H__

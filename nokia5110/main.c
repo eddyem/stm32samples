@@ -80,7 +80,7 @@ int main(){
 			}
 			usbdatalen = 0;
 		}
-		//check_and_parce_UART(USART1); // also check data in UART buffers
+		//check_and_parse_UART(USART1); // also check data in UART buffers
 		if(Timer - Old_timer > 999){ // one-second cycle
 			Old_timer += 1000;
 			//print_int(Timer / 1000);newline();

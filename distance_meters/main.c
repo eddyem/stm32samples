@@ -56,7 +56,7 @@ int main(){
 		uint32_t L;
 		usbd_poll(usbd_dev);
 		if(usbdatalen){ // there's something in USB buffer
-			usbdatalen = parce_incoming_buf(usbdatabuf, usbdatalen);
+			usbdatalen = parse_incoming_buf(usbdatabuf, usbdatalen);
 		}
 		if(AWD_flag){
 			P("Int, value = ");

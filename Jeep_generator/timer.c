@@ -23,9 +23,9 @@
 #include "user_proto.h" // for print_int
 
 // current speed
-int32_t current_RPM = 0;
+uint16_t current_RPM = 0;
 void get_RPM();
-uint16_t get_ARR(int32_t RPM);
+uint16_t get_ARR(uint32_t RPM);
 
 // pulses: 16 1/0, 4 1/1, 16 1/0, 4 0/0,
 const uint8_t pulses[] = {
@@ -58,8 +58,8 @@ void tim2_isr(){
             GPIO_BSRR(OUTP_PORT) = OUTP_PIN;
         else
             GPIO_BSRR(OUTP_PORT) = OUTP_PIN << 16;
-        TIM2_SR = 0;
     }
+    TIM2_SR = 0;
 }
 
 /**
@@ -67,14 +67,17 @@ void tim2_isr(){
  * RPM = 1/tim2_arr / 40 * 60
  */
 void get_RPM(){
-    current_RPM = 3000000 / (int32_t)TIM2_ARR;
-    current_RPM /= 2;
+    uint32_t R = 3000000 / (uint32_t)TIM2_ARR;
+    current_RPM = R/2;
+    //current_RPM = R;
+    //current_RPM >>= 1; // x/2 != x>>1, WTF?
 }
 
 // calculate TIM2_ARR by RPM
-uint16_t get_ARR(int32_t RPM){
-    int32_t R = 3000000 / RPM;
+uint16_t get_ARR(uint32_t RPM){
+    uint32_t R = 3000000 / RPM;
     R /= 2;
+    //R >>= 1;
     return (uint16_t)R;
 }
 

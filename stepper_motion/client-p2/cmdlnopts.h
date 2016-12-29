@@ -1,5 +1,5 @@
 /*
- * cmdlnopts.h - comand line options for parceargs
+ * cmdlnopts.h - comand line options for parseargs
  *
  * Copyright 2013 Edward V. Emelianoff <eddy@sao.ru>
  *
@@ -23,7 +23,7 @@
 #ifndef __CMDLNOPTS_H__
 #define __CMDLNOPTS_H__
 
-#include "parceargs.h"
+#include "parseargs.h"
 
 /*
  * here are some typedef's for global data
@@ -35,6 +35,6 @@ typedef struct{
 	double relmove;         // move relative current position
 }glob_pars;
 
-glob_pars *parce_args(int argc, char **argv);
+glob_pars *parse_args(int argc, char **argv);
 
 #endif // __CMDLNOPTS_H__

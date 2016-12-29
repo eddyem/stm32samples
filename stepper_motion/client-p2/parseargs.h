@@ -1,5 +1,5 @@
 /*
- * parceargs.h - headers for parcing command line arguments
+ * parseargs.h - headers for parcing command line arguments
  *
  * Copyright 2013 Edward V. Emelianoff <eddy@sao.ru>
  *
@@ -19,8 +19,8 @@
  * MA 02110-1301, USA.
  */
 #pragma once
-#ifndef __PARCEARGS_H__
-#define __PARCEARGS_H__
+#ifndef __PARSEARGS_H__
+#define __PARSEARGS_H__
 
 #include <stdbool.h>// bool
 #include <stdlib.h>
@@ -48,7 +48,7 @@ typedef  bool(*argfn)(void *arg, int N);
  * 		int iarg;
  * 		myoption opts[] = {
  * 		{"value", 1, NULL, 'v', arg_int, &iarg, "char val"}, ..., end_option};
- * 		..(parce args)..
+ * 		..(parse args)..
  * 		charg = (char) iarg;
  */
 typedef enum {
@@ -58,7 +58,7 @@ typedef enum {
 	arg_double,		// double
 	arg_float,		// float
 	arg_string,		// char *
-	arg_function	// parce_args will run function `bool (*fn)(char *optarg, int N)`
+	arg_function	// parse_args will run function `bool (*fn)(char *optarg, int N)`
 } argtype;
 
 /*
@@ -67,7 +67,7 @@ typedef enum {
  * 		conversion depends on .type
  *
  * ATTENTION: string `help` prints through macro PRNT(), bu default it is gettext,
- * but you can redefine it before `#include "parceargs.h"`
+ * but you can redefine it before `#include "parseargs.h"`
  *
  * if arg is string, then value wil be strdup'ed like that:
  * 		char *str;
@@ -99,8 +99,8 @@ typedef struct{
 extern const char *__progname;
 
 void showhelp(int oindex, myoption *options);
-void parceargs(int *argc, char ***argv, myoption *options);
+void parseargs(int *argc, char ***argv, myoption *options);
 void change_helpstring(char *s);
 bool myatod(void *num, const char *str, argtype t);
 
-#endif // __PARCEARGS_H__
+#endif // __PARSEARGS_H__

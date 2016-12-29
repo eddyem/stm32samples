@@ -1,5 +1,5 @@
 /*
- * parceargs.c - parcing command line arguments & print help
+ * parseargs.c - parsing command line arguments & print help
  *
  * Copyright 2013 Edward V. Emelianoff <eddy@sao.ru>
  *
@@ -27,7 +27,7 @@
 #include <limits.h> // INT_MAX & so on
 #include <libintl.h>// gettext
 #include <ctype.h>	// isalpha
-#include "parceargs.h"
+#include "parseargs.h"
 
 // macro to print help messages
 #ifndef PRNT
@@ -135,7 +135,7 @@ int get_optind(int opt, myoption *options){
 }
 
 /**
- * Parce command line arguments
+ * Parse command line arguments
  * ! If arg is string, then value will be strdup'ed!
  *
  * @param argc (io) - address of argc of main(), return value of argc stay after `getopt`
@@ -146,7 +146,7 @@ int get_optind(int opt, myoption *options){
  *
  * @exit: in case of error this function show help & make `exit(-1)`
   */
-void parceargs(int *argc, char ***argv, myoption *options){
+void parseargs(int *argc, char ***argv, myoption *options){
 	char *short_options, *soptr;
 	struct option *long_options, *loptr;
 	size_t optsize, i;
@@ -247,7 +247,7 @@ void parceargs(int *argc, char ***argv, myoption *options){
  */
 void showhelp(int oindex, myoption *options){
 	// ATTENTION: string `help` prints through macro PRNT(), by default it is gettext,
-	// but you can redefine it before `#include "parceargs.h"`
+	// but you can redefine it before `#include "parseargs.h"`
 	int max_opt_len = 0; // max len of options substring - for right indentation
 	const int bufsz = 255;
 	char buf[bufsz+1];

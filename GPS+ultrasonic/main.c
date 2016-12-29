@@ -95,7 +95,7 @@ int main(){
 		poll_ultrasonic();
 		poll_ADC();
 		if(usbdatalen){ // there's something in USB buffer
-			usbdatalen = parce_incoming_buf(usbdatabuf, usbdatalen);
+			usbdatalen = parse_incoming_buf(usbdatabuf, usbdatalen);
 		}
 		if((string = check_UART2())){
 		//	P(string);

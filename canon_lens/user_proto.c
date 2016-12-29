@@ -137,7 +137,7 @@ void showFval(){
 }
 
 /**
- * parce command buffer buf with length len
+ * parse command buffer buf with length len
  * fill uint8_t data buffer with readed data
  */
 void parse_incoming_buf(){

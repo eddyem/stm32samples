@@ -31,13 +31,13 @@
 //~ #define TM2_MAX_SPEED (250)
 // max & min rotation speed
 #define MAX_RPM  (6000)
-#define MIN_RPM  (180)
+#define MIN_RPM  (200)
 
 
 void tim2_init();
 void increase_speed();
 void decrease_speed();
 
-extern int32_t current_RPM;
+extern uint16_t current_RPM;
 
 #endif // __TIMER_H__

@@ -235,7 +235,7 @@ int main(int argc, char *argv[]){
 	char buff[BUFLEN+1];
 	pthread_t motor_thread;
 	size_t L;
-	Global_parameters = parce_args(argc, argv);
+	Global_parameters = parse_args(argc, argv);
 	assert(Global_parameters != NULL);
 	if(!get_shm_block(&sdat, ClientSide) || !check_shm_block(&sdat)){
 		fprintf(stderr, "Can't get SHM block!");
