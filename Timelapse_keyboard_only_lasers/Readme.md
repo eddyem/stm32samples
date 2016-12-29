@@ -9,7 +9,7 @@ keyboard on which somebody types time of sensors' state changing
 
 #### Sensors supprorted
 * four lasers or other things, catch signal 0->1
-* simple switch-button, catch signal 1->0
+* simple switch-button, catch signal 0->1
 
 To get precision time this tool use GPS module (NEO-6M)
 

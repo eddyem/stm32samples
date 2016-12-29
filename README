@@ -10,6 +10,7 @@ Be carefull: due to API changes these projects will compile only with opencm3 fr
 - GPS - first approximation to GPS clock
 - GPS+ultrasonic - GPS-based timelapse tool allows to get precision (milliseconds) time for four types of sensors 
 - hid_mouse_keyboard - a very simple example of simultaneous STM32 work as compound USB-HID device: usb & mouse
+- Jeep_generator - krancshaft signal emulator for Jeep
 - keyboard_snippet - This snippet allows to emulate USB keyboard
 - matrix_keyboard - connect simple matrix keyboard 3x3 or 4x4 to computer as regular USB keyboard
 - nokia5110 - print on a nokia5110 display text sent by terminal  
