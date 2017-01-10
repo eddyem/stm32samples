@@ -1,8 +1,0 @@
-Jeep crankshaft signals generator
-
-Speed from 200 to 6000RPM
-Buttons "+" and "-", LEDS "MIN" and "MAX"
-
-written for chinese devboard based on STM32F103RBT6
-
-Press H for help in terminal

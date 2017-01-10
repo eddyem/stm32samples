@@ -1,8 +1,0 @@
-GPS-based timelapse tool
-Connect up to four sensors (ultrasonic, infrared, laser and simple switch)
-and get precision (milliseconds) time of their signals
-
-written for chinese devboard based on STM32F103RBT6
-
-Press H for help
-
