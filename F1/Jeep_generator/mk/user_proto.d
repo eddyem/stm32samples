@@ -1,0 +1,46 @@
+mk/user_proto.o: user_proto.c cdcacm.h \
+ /usr/local/arm-none-eabi/include/libopencm3/usb/usbd.h \
+ /usr/local/arm-none-eabi/include/libopencm3/usb/usbstd.h \
+ /usr/lib/gcc/arm-none-eabi/4.7.3/include/stdint.h \
+ /usr/lib/gcc/arm-none-eabi/4.7.3/../../../../arm-none-eabi/include/stdint.h \
+ /usr/lib/gcc/arm-none-eabi/4.7.3/../../../../arm-none-eabi/include/_ansi.h \
+ /usr/lib/gcc/arm-none-eabi/4.7.3/../../../../arm-none-eabi/include/newlib.h \
+ /usr/lib/gcc/arm-none-eabi/4.7.3/../../../../arm-none-eabi/include/sys/config.h \
+ /usr/lib/gcc/arm-none-eabi/4.7.3/../../../../arm-none-eabi/include/machine/ieeefp.h \
+ /usr/lib/gcc/arm-none-eabi/4.7.3/../../../../arm-none-eabi/include/sys/features.h \
+ /usr/local/arm-none-eabi/include/libopencm3/cm3/common.h \
+ /usr/lib/gcc/arm-none-eabi/4.7.3/include/stdbool.h main.h \
+ /usr/lib/gcc/arm-none-eabi/4.7.3/../../../../arm-none-eabi/include/stdlib.h \
+ /usr/lib/gcc/arm-none-eabi/4.7.3/../../../../arm-none-eabi/include/_ansi.h \
+ /usr/lib/gcc/arm-none-eabi/4.7.3/include/stddef.h \
+ /usr/lib/gcc/arm-none-eabi/4.7.3/../../../../arm-none-eabi/include/sys/reent.h \
+ /usr/lib/gcc/arm-none-eabi/4.7.3/../../../../arm-none-eabi/include/sys/_types.h \
+ /usr/lib/gcc/arm-none-eabi/4.7.3/../../../../arm-none-eabi/include/machine/_types.h \
+ /usr/lib/gcc/arm-none-eabi/4.7.3/../../../../arm-none-eabi/include/machine/_default_types.h \
+ /usr/lib/gcc/arm-none-eabi/4.7.3/../../../../arm-none-eabi/include/sys/lock.h \
+ /usr/lib/gcc/arm-none-eabi/4.7.3/../../../../arm-none-eabi/include/machine/stdlib.h \
+ /usr/lib/gcc/arm-none-eabi/4.7.3/../../../../arm-none-eabi/include/alloca.h \
+ /usr/lib/gcc/arm-none-eabi/4.7.3/../../../../arm-none-eabi/include/string.h \
+ /usr/lib/gcc/arm-none-eabi/4.7.3/../../../../arm-none-eabi/include/sys/cdefs.h \
+ /usr/lib/gcc/arm-none-eabi/4.7.3/../../../../arm-none-eabi/include/sys/string.h \
+ /usr/local/arm-none-eabi/include/libopencm3/stm32/gpio.h \
+ /usr/local/arm-none-eabi/include/libopencm3/stm32/memorymap.h \
+ /usr/local/arm-none-eabi/include/libopencm3/stm32/f1/memorymap.h \
+ /usr/local/arm-none-eabi/include/libopencm3/cm3/memorymap.h \
+ /usr/local/arm-none-eabi/include/libopencm3/stm32/f1/gpio.h \
+ /usr/local/arm-none-eabi/include/libopencm3/stm32/common/gpio_common_all.h \
+ /usr/local/arm-none-eabi/include/libopencm3/cm3/nvic.h \
+ /usr/local/arm-none-eabi/include/libopencm3/dispatch/nvic.h \
+ /usr/local/arm-none-eabi/include/libopencm3/stm32/f1/nvic.h \
+ /usr/local/arm-none-eabi/include/libopencm3/usb/cdc.h \
+ /usr/local/arm-none-eabi/include/libopencm3/cm3/systick.h \
+ /usr/local/arm-none-eabi/include/libopencm3/stm32/rcc.h \
+ /usr/local/arm-none-eabi/include/libopencm3/stm32/f1/rcc.h \
+ /usr/local/arm-none-eabi/include/libopencm3/stm32/common/rcc_common_all.h \
+ /usr/local/arm-none-eabi/include/libopencm3/stm32/adc.h \
+ /usr/local/arm-none-eabi/include/libopencm3/stm32/f1/adc.h \
+ /usr/local/arm-none-eabi/include/libopencm3/stm32/common/adc_common_v1.h \
+ /usr/local/arm-none-eabi/include/libopencm3/stm32/timer.h \
+ /usr/local/arm-none-eabi/include/libopencm3/stm32/f1/timer.h \
+ /usr/local/arm-none-eabi/include/libopencm3/stm32/common/timer_common_all.h \
+ sync.h user_proto.h hardware_ini.h timer.h

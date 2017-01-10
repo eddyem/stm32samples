@@ -1,0 +1,94 @@
+Cmp-Mod V01 Created by CvPcb (2013-feb-26)-stable date = Чт 10 сен 2015 12:17:33
+
+BeginCmp
+TimeStamp = /55F14513;
+Reference = D1;
+ValeurCmp = LED;
+IdModule  = LED-3MM;
+EndCmp
+
+BeginCmp
+TimeStamp = /55F14969;
+Reference = D2;
+ValeurCmp = LED;
+IdModule  = LED-3MM;
+EndCmp
+
+BeginCmp
+TimeStamp = /55F14976;
+Reference = D3;
+ValeurCmp = LED;
+IdModule  = LED-3MM;
+EndCmp
+
+BeginCmp
+TimeStamp = /55F14983;
+Reference = D4;
+ValeurCmp = LED;
+IdModule  = LED-3MM;
+EndCmp
+
+BeginCmp
+TimeStamp = /55F14990;
+Reference = D5;
+ValeurCmp = LED;
+IdModule  = LED-3MM;
+EndCmp
+
+BeginCmp
+TimeStamp = /55F1499D;
+Reference = D6;
+ValeurCmp = LED;
+IdModule  = LED-3MM;
+EndCmp
+
+BeginCmp
+TimeStamp = /55F149BB;
+Reference = P1;
+ValeurCmp = CONN_7;
+IdModule  = SIL-7;
+EndCmp
+
+BeginCmp
+TimeStamp = /55F14522;
+Reference = R1;
+ValeurCmp = 100;
+IdModule  = SM0603;
+EndCmp
+
+BeginCmp
+TimeStamp = /55F1496F;
+Reference = R2;
+ValeurCmp = 100;
+IdModule  = SM0603;
+EndCmp
+
+BeginCmp
+TimeStamp = /55F1497C;
+Reference = R3;
+ValeurCmp = 100;
+IdModule  = SM0603;
+EndCmp
+
+BeginCmp
+TimeStamp = /55F14989;
+Reference = R4;
+ValeurCmp = 100;
+IdModule  = SM0603;
+EndCmp
+
+BeginCmp
+TimeStamp = /55F14996;
+Reference = R5;
+ValeurCmp = 100;
+IdModule  = SM0603;
+EndCmp
+
+BeginCmp
+TimeStamp = /55F149A3;
+Reference = R6;
+ValeurCmp = 100;
+IdModule  = SM0603;
+EndCmp
+
+EndListe

@@ -1,0 +1,8 @@
+My approach to semi-hardware 1-wire realisation based on DMA+TIM2
+
+written for chinese devboard based on STM32F103RBT6
+
+Press H for help
+
+// Still some troubles left: for example, can't read ROM; also the code isn't fully done yet
+
