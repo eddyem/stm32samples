@@ -1,0 +1,2 @@
+This is a simple USART over DMA application with hardware end of string control.
+Speed 115200. Received string echoes back in reverce order.
