@@ -1,0 +1,2 @@
+#!/bin/sh
+CFLAGS="-IF0 -Icm -DSTM32F042x6" geany -g stm32f042.c.tags F0/stm32f042x6.h F0/stm32f0.h F0/stm32f0xx.h cm/core_cm0.h cm/core_cmFunc.h cm/core_cmInstr.h cm/core_cmSimd.h startup/vector.c

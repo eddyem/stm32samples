@@ -3,3 +3,8 @@ Be carefull: due to API changes these projects will compile only with opencm3 fr
 
 F0 - for STM32F042 and STM32F030
 F1 - for STM32F103
+
+
+WARNING!!!
+arm-none-eabi-gcc from gentoo have a bug with division on F0. 
+Use toolchain from https://developer.arm.com/open-source/gnu-toolchain/gnu-rm/downloads instead!
