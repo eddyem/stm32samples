@@ -1,0 +1,5 @@
+Example for STM32F042 nucleo working with HTU-21D humidity/temperature sensor.
+Every 1 second check humidity/temperature and show values by USART.
+USART speed 115200.
+
+
