@@ -1,0 +1,9 @@
+This is a simple USART over DMA application with software end of string control.
+Speed 115200. Received string echoes back.
+run
+DEFS=-DCHECK_TMOUT make
+to add timeout 1.5s for each letter
+
+DEFS="-DCHECK_TMOUT -DTIMEOUT_MS=xx" make
+to make another timeout
+
