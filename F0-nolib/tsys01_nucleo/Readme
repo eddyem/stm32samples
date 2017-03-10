@@ -1,0 +1,5 @@
+Example for STM32F042 nucleo working with TSYS-01 temperature sensor.
+Every 5 second check temperature on two sensors with different addresses and show values by USART.
+USART speed 115200.
+
+
