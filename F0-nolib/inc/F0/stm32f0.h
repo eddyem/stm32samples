@@ -32,6 +32,9 @@
 #define NULL (0)
 #endif
 
+// some good things from CMSIS
+#define nop()   __NOP()
+
 /************************* RCC *************************/
 // reset clocking registers
 TRUE_INLINE void sysreset(void){
@@ -62,7 +65,7 @@ TRUE_INLINE void sysreset(void){
 #elif defined (STM32F091xC) || defined (STM32F098xx)
     /* Reset USART3SW[1:0], USART2SW[1:0], USART1SW[1:0], I2C1SW, CECSW and ADCSW bits */
     RCC->CFGR3 &= (uint32_t)0xFFF0FEAC;
-#elif defined (STM32F030x6) || defined (STM32F030x8) || defined (STM32F031x6) || defined (STM32F038xx) || defined (STM32F030xC)
+#elif defined (STM32F030x4) || defined (STM32F030x6) || defined (STM32F030x8) || defined (STM32F031x6) || defined (STM32F038xx) || defined (STM32F030xC)
     /* Reset USART1SW[1:0], I2C1SW and ADCSW bits */
     RCC->CFGR3 &= (uint32_t)0xFFFFFEEC;
 #elif defined (STM32F051x8) || defined (STM32F058xx)
@@ -91,7 +94,7 @@ TRUE_INLINE void sysreset(void){
     RCC->CFGR |= RCC_CFGR_PPRE_DIV1;
     /* PLL configuration = (HSI/2) * 12 = ~48 MHz */
     RCC->CFGR &= ~(RCC_CFGR_PLLSRC | RCC_CFGR_PLLMUL);
-    RCC->CFGR |= RCC_CFGR_PLLSRC_HSI_DIV2 | RCC_CFGR_PLLMUL12;
+    RCC->CFGR |= RCC_CFGR_PLLMUL12;
     /* Enable PLL */
     RCC->CR |= RCC_CR_PLLON;
     /* Wait till PLL is ready */
@@ -116,6 +119,7 @@ TRUE_INLINE void StartHSE(){
     while ((RCC->CFGR & (uint32_t)RCC_CFGR_SWS) != (uint32_t)RCC_CFGR_SWS_PLL){}
 }
 
+#if !defined (STM32F030x4) && !defined (STM32F030x6) && !defined (STM32F030x8) && !defined (STM32F031x6) && !defined (STM32F038xx) && !defined (STM32F030xC)
 TRUE_INLINE void StartHSI48(){
     // disable PLL
     RCC->CR &= ~RCC_CR_PLLON;
@@ -130,6 +134,7 @@ TRUE_INLINE void StartHSI48(){
     RCC->CFGR |= RCC_CFGR_SW_HSI48;
     while ((RCC->CFGR & (uint32_t)RCC_CFGR_SWS) != (uint32_t)RCC_CFGR_SWS_HSI48){}
 }
+#endif
 
 /************************* GPIO *************************/
 
@@ -202,7 +207,14 @@ TRUE_INLINE void StartHSI48(){
 #define TEMP30_CAL_ADDR ((uint16_t*) ((uint32_t) 0x1FFFF7B8))
 // VDDA_Actual = 3.3V * VREFINT_CAL / average vref value
 #define VREFINT_CAL_ADDR ((uint16_t*) ((uint32_t) 0x1FFFF7BA))
+#define VDD_CALIB ((uint16_t) (330))
+#define VDD_APPLI ((uint16_t) (300))
 
+/************************* USART *************************/
+
+#define USART_CR2_ADD_SHIFT     24
+// set address/character match value
+#define USART_CR2_ADD_VAL(x)        ((x) << USART_CR2_ADD_SHIFT)
 
 //#define  do{}while(0)
 

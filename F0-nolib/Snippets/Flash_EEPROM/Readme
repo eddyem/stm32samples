@@ -1,0 +1,9 @@
+EEPROM emulation in flash
+All user data stored in user_conf structure.
+
+macro/constants:
+FLASH_CONF_START_ADDR - start address of flash page used
+maxnum - maximal amount of structures in data
+
+Call function get_userconf() at the beginning of your code after base initialisation. It will copy data from last non-empty flash storage to variable the_conf (or leave the_conf empty if all flash is clean).
+Change some data in `the_conf` and after it call store_userconf() to save data in flash. This function returnc 1 in case of error. It will clear the flash page if all indexes used and store at first.

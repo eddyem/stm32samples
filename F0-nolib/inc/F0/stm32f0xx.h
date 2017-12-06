@@ -64,7 +64,7 @@
   * @{
   */
 
-#if !defined (STM32F030x6) && !defined (STM32F030x8) &&                           \
+#if !defined (STM32F030x4) && !defined (STM32F030x6) && !defined (STM32F030x8) && \
     !defined (STM32F031x6) && !defined (STM32F038xx) &&                           \
     !defined (STM32F042x6) && !defined (STM32F048xx) && !defined (STM32F070x6) && \
     !defined (STM32F051x8) && !defined (STM32F058xx) &&                           \
@@ -139,7 +139,9 @@ void WEAK usb_isr(void);
   */
 
 // arch-dependent defines
-#if defined(STM32F030x6)
+#if defined(STM32F030x4)
+  #include "stm32f030x6.h"
+#elif defined(STM32F030x6)
   #include "stm32f030x6.h"
 #elif defined(STM32F030x8)
   #include "stm32f030x8.h"
