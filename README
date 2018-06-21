@@ -8,3 +8,6 @@ F1 - for STM32F103
 WARNING!!!
 arm-none-eabi-gcc from gentoo have a bug with division on F0. 
 Use toolchain from https://developer.arm.com/open-source/gnu-toolchain/gnu-rm/downloads instead!
+
+CMSIS-headers:
+https://github.com/modm-io/cmsis-header-stm32

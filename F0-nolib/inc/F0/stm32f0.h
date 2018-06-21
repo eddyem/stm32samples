@@ -200,8 +200,8 @@ TRUE_INLINE void StartHSI48(){
 
 /************************* ADC *************************/
 /* inner termometer calibration values
- *         Temp = (Vsense - V30)/Avg_Slope + 30
- *         Avg_Slope = (V110 - V30) / (110 - 30)
+ *         Temp = (V30 - Vsense)/Avg_Slope + 30
+ *         Avg_Slope = (V30 - V110) / (110 - 30)
  */
 #define TEMP110_CAL_ADDR ((uint16_t*) ((uint32_t) 0x1FFFF7C2))
 #define TEMP30_CAL_ADDR ((uint16_t*) ((uint32_t) 0x1FFFF7B8))
@@ -215,6 +215,12 @@ TRUE_INLINE void StartHSI48(){
 #define USART_CR2_ADD_SHIFT     24
 // set address/character match value
 #define USART_CR2_ADD_VAL(x)        ((x) << USART_CR2_ADD_SHIFT)
+
+/************************* IWDG *************************/
+#define IWDG_REFRESH      (uint32_t)(0x0000AAAA)
+#define IWDG_WRITE_ACCESS (uint32_t)(0x00005555)
+#define IWDG_START        (uint32_t)(0x0000CCCC)
+
 
 //#define  do{}while(0)
 
