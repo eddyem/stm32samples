@@ -8,7 +8,7 @@ MCU			= F042x6
 # hardware definitions
 DEFS		+= -DUSARTNUM=1
 #DEFS		+= -DCHECK_TMOUT
-#DEFS		+= -DEBUG
+DEFS		+= -DEBUG
 # change this linking script depending on particular MCU model,
 # for example, if you have STM32F103VBT6, you should write:
 LDSCRIPT	= ld/stm32f042k.ld
@@ -55,7 +55,7 @@ LIB_DIR		:= $(INC_DIR)/ld
 ###############################################################################
 # C flags
 CFLAGS		+= -O2 -g -MD -D__thumb2__=1
-CFLAGS		+= -Wall -Wextra -Wshadow -Wimplicit-function-declaration
+CFLAGS		+= -Wall -Werror -Wextra -Wshadow -Wimplicit-function-declaration
 CFLAGS		+= -Wredundant-decls $(INCLUDE)
 # -Wmissing-prototypes -Wstrict-prototypes
 CFLAGS		+= -fno-common -ffunction-sections -fdata-sections

@@ -56,5 +56,6 @@ TXstatus usart_send_blocking(const char *str, int len);
 void newline();
 void usart_putchar(const char ch);
 void printu(uint32_t val);
+void printuhex(uint32_t val);
 
 #endif // __USART_H__

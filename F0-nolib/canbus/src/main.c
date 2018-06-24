@@ -53,6 +53,8 @@ void iwdg_setup(){
 
 int main(void){
     uint32_t lastT = 0;
+    uint8_t ctr, len;
+    CAN_message *can_mesg;
     int L;
     char *txt;
     sysreset();
@@ -60,12 +62,13 @@ int main(void){
     gpio_setup();
     usart_setup();
     iwdg_setup();
-    readCANaddr();
+    readCANID();
     CAN_setup();
 
     SEND("Greetings! My address is ");
-    printu(getCANaddr());
+    printuhex(getCANID());
     newline();
+
     if(RCC->CSR & RCC_CSR_IWDGRSTF){ // watchdog reset occured
         SEND("WDGRESET=1\n");
     }
@@ -81,6 +84,20 @@ int main(void){
             lastT = Tms;
         }
         can_proc();
+        if(CAN_get_status() == CAN_FIFO_OVERRUN){
+            SEND("CAN bus fifo overrun occured!\n");
+        }
+        can_mesg = CAN_messagebuf_pop();
+        if(can_mesg){ // new data in buff
+            len = can_mesg->length;
+            SEND("got message, len: "); usart_putchar('0' + len);
+            SEND(", data: ");
+            for(ctr = 0; ctr < len; ++ctr){
+                printuhex(can_mesg->data[ctr]);
+                usart_putchar(' ');
+            }
+            newline();
+        }
         if(usartrx()){ // usart1 received data, store in in buffer
             L = usart_getline(&txt);
             char _1st = txt[0];
@@ -92,11 +109,18 @@ int main(void){
                     break;
                     case 'G':
                         SEND("Can address: ");
-                        printu(getCANaddr());
+                        printuhex(getCANID());
                         newline();
                     break;
                     case 'R':
+                        SEND("Soft reset\n");
                         NVIC_SystemReset();
+                    break;
+                    case 'S':
+                        CAN_reinit();
+                        SEND("Can address: ");
+                        printuhex(getCANID());
+                        newline();
                     break;
                     case 'W':
                         SEND("Wait for reboot\n");
@@ -107,6 +131,7 @@ int main(void){
                         "'C' - send dummy byte over CAN\n"
                         "'G' - get CAN address\n"
                         "'R' - software reset\n"
+                        "'S' - reinit CAN (with new address)\n"
                         "'W' - test watchdog\n"
                         );
                     break;

@@ -26,12 +26,30 @@
 
 #include "hardware.h"
 
-void readCANaddr();
-uint8_t getCANaddr();
+typedef struct{
+    uint8_t data[8];
+    uint8_t length;
+} CAN_message;
 
+typedef enum{
+    CAN_STOP,
+    CAN_READY,
+    CAN_BUSY,
+    CAN_OK,
+    CAN_FIFO_OVERRUN
+} CAN_status;
+
+CAN_status CAN_get_status();
+
+void readCANID();
+uint16_t getCANID();
+
+void CAN_reinit();
 void CAN_setup();
 
 void can_send_dummy();
 void can_proc();
+
+CAN_message *CAN_messagebuf_pop();
 
 #endif // __CAN_H__

@@ -41,7 +41,9 @@
 #define LED1_port   GPIOC
 #define LED1_pin    (1<<14)
 
-#define LED_blink(x) pin_toggle(x ## _port, x ## _pin)
+#define LED_blink(x)    pin_toggle(x ## _port, x ## _pin)
+#define LED_on(x)       pin_clear(x ## _port, x ## _pin)
+#define LED_off(x)      pin_set(x ## _port, x ## _pin)
 
 
 // CAN address - PB14(0), PB15(1), PA8(2)

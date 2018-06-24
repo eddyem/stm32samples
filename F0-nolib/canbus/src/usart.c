@@ -218,6 +218,20 @@ void printu(uint32_t val){
     while(LINE_BUSY == usart_send_blocking(bufa, l+bpos));
 }
 
+// print 32bit unsigned int as hex
+void printuhex(uint32_t val){
+    SEND("0x");
+    uint8_t *ptr = (uint8_t*)&val + 3;
+    int i, j;
+    for(i = 0; i < 4; ++i, --ptr){
+        for(j = 1; j > -1; --j){
+            uint8_t half = (*ptr >> (4*j)) & 0x0f;
+            if(half < 10) usart_putchar(half + '0');
+            else usart_putchar(half - 10 + 'a');
+        }
+    }
+}
+
 #if USARTNUM == 2
 void dma1_channel4_5_isr(){
     if(DMA1->ISR & DMA_ISR_TCIF4){ // Tx
