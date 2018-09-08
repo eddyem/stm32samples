@@ -11,3 +11,4 @@ This directory contains examples for F0 without any library
 - uart - USART over DMA with hardware end-of-string detection
 - uart_blink - code for STM32F030F4, echo data on USART1 and blink LEDS on PA4 and PA5
 - uart_nucleo - USART over DMA for STM32F042-nucleo
+- usbcdc - CDC for STM32F042 (emulation of ch340)
