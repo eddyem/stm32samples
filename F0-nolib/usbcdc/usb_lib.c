@@ -10,11 +10,13 @@
 #define DEVICE_QALIFIER_SIZE_BYTE           (10)
 #define STRING_LANG_DESCRIPTOR_SIZE_BYTE    (4)
 
+static usb_LineCoding lineCoding = {115200, 0, 0, 8};
+
 const uint8_t USB_DeviceDescriptor[] = {
         DEVICE_DESCRIPTOR_SIZE_BYTE,   // bLength
         0x01,   // bDescriptorType - USB_DEVICE_DESC_TYPE
-        0x00,   // bcdUSB_L
-        0x02,   // bcdUSB_H
+        0x10,   // bcdUSB_L - 1.10
+        0x01,   // bcdUSB_H
         0x00,   // bDeviceClass - USB_COMM
         0x00,   // bDeviceSubClass
         0x00,   // bDeviceProtocol
@@ -24,7 +26,7 @@ const uint8_t USB_DeviceDescriptor[] = {
         0x03,   // idProduct_L
         0x23,   // idProduct_H
         0x00,   // bcdDevice_Ver_L
-        0x01,   // bcdDevice_Ver_H
+        0x03,   // bcdDevice_Ver_H
         0x01,   // iManufacturer
         0x02,   // iProduct
         0x00,   // iSerialNumber
@@ -34,8 +36,8 @@ const uint8_t USB_DeviceDescriptor[] = {
 const uint8_t USB_DeviceQualifierDescriptor[] = {
         DEVICE_QALIFIER_SIZE_BYTE,   //bLength
         0x06,   // bDescriptorType
-        0x00,   // bcdUSB_L
-        0x02,   // bcdUSB_H
+        0x10,   // bcdUSB_L
+        0x01,   // bcdUSB_H
         0x00,   // bDeviceClass
         0x00,   // bDeviceSubClass
         0x00,   // bDeviceProtocol
@@ -44,105 +46,11 @@ const uint8_t USB_DeviceQualifierDescriptor[] = {
         0x00    // Reserved
 };
 
-#if 0
 const uint8_t USB_ConfigDescriptor[] = {
         /*Configuration Descriptor*/
         0x09, /* bLength: Configuration Descriptor size */
         0x02, /* bDescriptorType: Configuration */
-        39,    /* wTotalLength:no of returned bytes */
-        0x00,
-        0x02, /* bNumInterfaces: 2 interface */
-        0x01, /* bConfigurationValue: Configuration value */
-        0x00, /* iConfiguration: Index of string descriptor describing the configuration */
-        0x80, /* bmAttributes - Bus powered */
-        0x32, /* MaxPower 100 mA */
-
-        /*---------------------------------------------------------------------------*/
-
-        /*Interface Descriptor */
-        0x09, /* bLength: Interface Descriptor size */
-        0x04, /* bDescriptorType: Interface */
-        0x00, /* bInterfaceNumber: Number of Interface */
-        0x00, /* bAlternateSetting: Alternate setting */
-        0x01, /* bNumEndpoints: One endpoints used */
-        0x02, /* bInterfaceClass: Communication Interface Class */
-        0x02, /* bInterfaceSubClass: Abstract Control Model */
-        0x01, /* bInterfaceProtocol: Common AT commands */
-        0x00, /* iInterface: */
-
-        /*Header Functional Descriptor*/
-        0x05, /* bLength: Endpoint Descriptor size */
-        0x24, /* bDescriptorType: CS_INTERFACE */
-        0x00, /* bDescriptorSubtype: Header Func Desc */
-        0x10, /* bcdCDC: spec release number */
-        0x01,
-
-        /*Call Management Functional Descriptor*/
-        0x05, /* bFunctionLength */
-        0x24, /* bDescriptorType: CS_INTERFACE */
-        0x01, /* bDescriptorSubtype: Call Management Func Desc */
-        0x00, /* bmCapabilities: D0+D1 */
-        0x01, /* bDataInterface: 1 */
-
-        /*ACM Functional Descriptor*/
-        0x04, /* bFunctionLength */
-        0x24, /* bDescriptorType: CS_INTERFACE */
-        0x02, /* bDescriptorSubtype: Abstract Control Management desc */
-        0x02, /* bmCapabilities */
-
-        /*Union Functional Descriptor*/
-        0x05, /* bFunctionLength */
-        0x24, /* bDescriptorType: CS_INTERFACE */
-        0x06, /* bDescriptorSubtype: Union func desc */
-        0x00, /* bMasterInterface: Communication class interface */
-        0x01, /* bSlaveInterface0: Data Class Interface */
-
-        /*Endpoint 2 Descriptor*/
-        0x07, /* bLength: Endpoint Descriptor size */
-        0x05, /* bDescriptorType: Endpoint */
-        0x81, /* bEndpointAddress IN1 */
-        0x03, /* bmAttributes: Interrupt */
-        0x08, /* wMaxPacketSize LO: */
-        0x00, /* wMaxPacketSize HI: */
-        0x10, /* bInterval: */
-        /*---------------------------------------------------------------------------*/
-
-        /*Data class interface descriptor*/
-        0x09, /* bLength: Endpoint Descriptor size */
-        0x04, /* bDescriptorType: */
-        0x01, /* bInterfaceNumber: Number of Interface */
-        0x00, /* bAlternateSetting: Alternate setting */
-        0x02, /* bNumEndpoints: Two endpoints used */
-        0x0A, /* bInterfaceClass: CDC */
-        0x02, /* bInterfaceSubClass: */
-        0x00, /* bInterfaceProtocol: */
-        0x00, /* iInterface: */
-
-        /*Endpoint IN2 Descriptor*/
-        0x07, /* bLength: Endpoint Descriptor size */
-        0x05, /* bDescriptorType: Endpoint */
-        0x82, /* bEndpointAddress IN2 */
-        0x02, /* bmAttributes: Bulk */
-        64,   /* wMaxPacketSize: */
-        0x00,
-        0x00, /* bInterval: ignore for Bulk transfer */
-
-        /*Endpoint OUT3 Descriptor*/
-        0x07, /* bLength: Endpoint Descriptor size */
-        0x05, /* bDescriptorType: Endpoint */
-        0x03, /* bEndpointAddress */
-        0x02, /* bmAttributes: Bulk */
-        64,   /* wMaxPacketSize: */
-        0,
-        0x00 /* bInterval: ignore for Bulk transfer */
-};
-#endif
-
-const uint8_t USB_ConfigDescriptor[] = {
-        /*Configuration Descriptor*/
-        0x09, /* bLength: Configuration Descriptor size */
-        0x02, /* bDescriptorType: Configuration */
-        53,   /* wTotalLength:no of returned bytes */
+        39,   /* wTotalLength:no of returned bytes */
         0x00,
         0x01, /* bNumInterfaces: 1 interface */
         0x01, /* bConfigurationValue: Configuration value */
@@ -158,11 +66,48 @@ const uint8_t USB_ConfigDescriptor[] = {
         0x00, /* bInterfaceNumber: Number of Interface */
         0x00, /* bAlternateSetting: Alternate setting */
         0x03, /* bNumEndpoints: 3 endpoints used */
-        0x02, /* bInterfaceClass: Communication Interface Class */
-        0x02, /* bInterfaceSubClass: Abstract Control Model */
-        0x01, /* bInterfaceProtocol: Common AT commands */
+        //0x02, /* bInterfaceClass: Communication Interface Class */
+        //0x02, /* bInterfaceSubClass: Abstract Control Model */
+        //0x01, /* bInterfaceProtocol: Common AT commands */
+    0xff,
+    0x00,
+    0x00,
         0x00, /* iInterface: */
+///////////////////////////////////////////////////
+        /*Endpoint 1 Descriptor*/
+        0x07, /* bLength: Endpoint Descriptor size */
+        0x05, /* bDescriptorType: Endpoint */
+        0x81, /* bEndpointAddress IN1 */
+        0x03, /* bmAttributes: Interrupt */
+        //0x40, /* wMaxPacketSize LO: */
+        //0x00, /* wMaxPacketSize HI: */
+    0x0a,
+    0x00,
+        //0x10, /* bInterval: */
+    0x01,
+        /*---------------------------------------------------------------------------*/
 
+        /*Endpoint OUT2 Descriptor*/
+        0x07, /* bLength: Endpoint Descriptor size */
+        0x05, /* bDescriptorType: Endpoint */
+        0x02, /* bEndpointAddress: OUT2 */
+        0x02, /* bmAttributes: Bulk */
+        0x40, /* wMaxPacketSize: */
+        0x00,
+        0x00, /* bInterval: ignore for Bulk transfer */
+
+        /*Endpoint IN3 Descriptor*/
+        0x07, /* bLength: Endpoint Descriptor size */
+        0x05, /* bDescriptorType: Endpoint */
+        //0x82, /* bEndpointAddress IN2 */
+    0x83, // IN3
+        0x02, /* bmAttributes: Bulk */
+        0x40, /* wMaxPacketSize: 64 */
+        0x00,
+        0x00, /* bInterval: ignore for Bulk transfer */
+};
+
+#if 0
         /*Header Functional Descriptor*/
         0x05, /* bLength: Endpoint Descriptor size */
         0x24, /* bDescriptorType: CS_INTERFACE */
@@ -182,35 +127,7 @@ const uint8_t USB_ConfigDescriptor[] = {
         0x24, /* bDescriptorType: CS_INTERFACE */
         0x02, /* bDescriptorSubtype: Abstract Control Management desc */
         0x02, /* bmCapabilities */
-
-        /*Endpoint 1 Descriptor*/
-        0x07, /* bLength: Endpoint Descriptor size */
-        0x05, /* bDescriptorType: Endpoint */
-        0x81, /* bEndpointAddress IN1 */
-        0x03, /* bmAttributes: Interrupt */
-        64, /* wMaxPacketSize LO: */
-        0x00, /* wMaxPacketSize HI: */
-        0x10, /* bInterval: */
-        /*---------------------------------------------------------------------------*/
-
-        /*Endpoint IN3 Descriptor*/
-        0x07, /* bLength: Endpoint Descriptor size */
-        0x05, /* bDescriptorType: Endpoint */
-        0x83, /* bEndpointAddress IN3 */
-        0x02, /* bmAttributes: Bulk */
-        64,   /* wMaxPacketSize: */
-        0x00,
-        0x00, /* bInterval: ignore for Bulk transfer */
-
-        /*Endpoint OUT2 Descriptor*/
-        0x07, /* bLength: Endpoint Descriptor size */
-        0x05, /* bDescriptorType: Endpoint */
-        0x02, /* bEndpointAddress */
-        0x02, /* bmAttributes: Bulk */
-        64,   /* wMaxPacketSize: */
-        0x00,
-        0x00 /* bInterval: ignore for Bulk transfer */
-};
+#endif
 
 const uint8_t USB_StringLangDescriptor[] = {
         STRING_LANG_DESCRIPTOR_SIZE_BYTE,   //bLength
@@ -218,12 +135,6 @@ const uint8_t USB_StringLangDescriptor[] = {
         0x09,   //wLANGID_L
         0x04    //wLANGID_H
 };
-
-//~ typedef struct{
-    //~ uint8_t  bLength;
-    //~ uint8_t  bDescriptorType;
-    //~ uint16_t bString[];
-//~ } StringDescriptor;
 
 #define _USB_STRING_(name, str)                  \
 const struct name \
@@ -241,6 +152,25 @@ _USB_STRING_(USB_StringProdDescriptor, L"TSYS01 sensors controller")
 
 usb_dev_t USB_Dev;
 ep_t endpoints[MAX_ENDPOINTS];
+
+static void EP_Readx(uint8_t number, uint8_t *buf){
+    uint32_t timeout = 100000;
+    uint16_t status, i;
+    status = USB -> EPnR[number];
+    status = SET_VALID_RX(status);
+    status = SET_NAK_TX(status);
+    status = KEEP_DTOG_TX(status);
+    status = KEEP_DTOG_RX(status);
+    USB -> EPnR[number] = status;
+    endpoints[number].rx_flag = 0;
+    while (!endpoints[number].rx_flag){
+        if (timeout) timeout--;
+        else break;
+    }
+    for (i = 0; i < endpoints[number].rx_cnt; i++){
+        buf[i] = endpoints[number].rx_buf[i];
+    }
+}
 
 /*
 bmRequestType: 76543210
@@ -260,8 +190,11 @@ uint16_t Enumerate_Handler(ep_t ep){
         if(packet->wLength < size) size = packet->wLength;
         EP_WriteIRQ(0, buf, size);
     }
+
+uint8_t _2wr = 0;
+
     if ((ep.rx_flag) && (ep.setup_flag)){
-        if (packet -> bmRequestType == 0x80){ // get device properties
+        if (packet -> bmRequestType == 0x80){ // standard device request (device to host)
             switch(packet->bRequest){
                 case GET_DESCRIPTOR:
                     switch(packet->wValue){
@@ -287,23 +220,23 @@ uint16_t Enumerate_Handler(ep_t ep){
                             wr0(USB_DeviceQualifierDescriptor, DEVICE_QALIFIER_SIZE_BYTE);
                         break;
                         default:
-                            MSG("val");
-                            printuhex(packet->wValue);
-                            newline();
+SEND("UNK_DES");
+_2wr = 1;
+                        break;
                     }
                 break;
                 case GET_STATUS:
                     EP_WriteIRQ(0, (uint8_t *)&status, 2); // send status: Bus Powered
                 break;
                 default:
-                    MSG("req");
-                    printuhex(packet->bRequest);
-                    newline();
+SEND("80:WR_REQ");
+_2wr = 1;
+                break;
             }
             //Так как мы не ожидаем приема и занимаемся только передачей, то устанавливаем
             ep.status = SET_NAK_RX(ep.status);
             ep.status = SET_VALID_TX(ep.status);
-        }else if(packet->bmRequestType == 0x00){ // set device properties
+        }else if(packet->bmRequestType == 0x00){ // standard device request (host to device)
             switch(packet->bRequest){
                 case SET_ADDRESS:
                     //Сразу присвоить адрес в DADDR нельзя, так как хост ожидает подтверждения
@@ -315,16 +248,16 @@ uint16_t Enumerate_Handler(ep_t ep){
                     USB_Dev.USB_Status = USB_CONFIGURE_STATE;
                 break;
                 default:
-                    MSG("req");
-                    printuhex(packet->bRequest);
-                    newline();
+SEND("0:WR_REQ");
+_2wr = 1;
+                break;
             }
             //отправляем подтверждение приема
             EP_WriteIRQ(0, (uint8_t *)0, 0);
             //Так как мы не ожидаем приема и занимаемся только передачей, то устанавливаем
             ep.status = SET_NAK_RX(ep.status);
             ep.status = SET_VALID_TX(ep.status);
-        }else if(packet -> bmRequestType == 0x02){
+        }else if(packet -> bmRequestType == 0x02){ // standard endpoint request (host to device)
             if (packet->bRequest == CLEAR_FEATURE){
                 //отправляем подтверждение приема
                 EP_WriteIRQ(0, (uint8_t *)0, 0);
@@ -332,13 +265,76 @@ uint16_t Enumerate_Handler(ep_t ep){
                 ep.status = SET_NAK_RX(ep.status);
                 ep.status = SET_VALID_TX(ep.status);
             }else{
-                MSG("req");
-                printuhex(packet->bRequest);
-                newline();
+SEND("02:WR_REQ");
+_2wr = 1;
             }
+        }else if((packet->bmRequestType & VENDOR_MASK_REQUEST) == VENDOR_MASK_REQUEST){ // vendor request
+SEND("vendor ");
+            if(packet->bmRequestType & 0x80){ // read
+SEND("read: ");
+                uint8_t c = '?';
+                EP_WriteIRQ(0, &c, 1);
+            }else{ // write
+SEND("write: ");
+                EP_WriteIRQ(0, (uint8_t *)0, 0);
+            }
+printuhex(packet->wValue);
+_2wr = 1;
+            ep.status = SET_NAK_RX(ep.status);
+            ep.status = SET_VALID_TX(ep.status);
+        }else if((packet->bmRequestType & 0x7f) == CONTROL_REQUEST_TYPE){ // control request
+_2wr = 1;
+            //usb_LineCoding c;
+            //uint8_t lbuf[10];
+            //usb_cdc_notification *notif = (usb_cdc_notification*) lbuf;
+            switch(packet->bRequest){
+                case GET_LINE_CODING:
+SEND("GET_LINE_CODING");
+                    EP_WriteIRQ(0, (uint8_t*)&lineCoding, sizeof(lineCoding));
+                break;
+                case SET_LINE_CODING:
+SEND("SET_LINE_CODING");
+                    EP_Readx(0, (uint8_t*)&lineCoding);
+printuhex(lineCoding.dwDTERate);
+                    //EP_WriteIRQ(0, (uint8_t*)&lineCoding, sizeof(lineCoding));
+                    //memcpy(&c, endpoints[0].rx_buf, sizeof(usb_LineCoding));
+/*SEND("len: ");
+printu(endpoints[0].rx_cnt);
+printu(endpoints[0].rx_buf[6]);
+SEND(", want baudrate: "); printuhex(c.dwDTERate);
+SEND(", charFormat: "); printu(c.bCharFormat);
+SEND(", parityType: "); printu(c.bParityType);
+SEND(", dataBits: "); printu(c.bDataBits);*/
+                break;
+                case SET_CONTROL_LINE_STATE:
+SEND("SET_CONTROL_LINE_STATE");
+                    /*
+                     * This Linux cdc_acm driver requires this to be implemented
+                     * even though it's optional in the CDC spec, and we don't
+                     * advertise it in the ACM functional descriptor.
+                     */
+                    /* We echo signals back to host as notification. *
+                    notif->bmRequestType = CONTROL_REQUEST_TYPE | 0x80;
+                    notif->bNotificationType = SET_LINE_CODING;
+                    notif->wValue = 0;
+                    notif->wIndex = 0;
+                    notif->wLength = 2;
+                    lbuf[8] = packet->wValue & 3;
+                    lbuf[9] = 0;
+                    EP_WriteIRQ(3, lbuf, 10);*/
+                    //EP_WriteIRQ(0, (uint8_t *)0, 0);
+                break;
+                case SEND_BREAK:
+SEND("SEND_BREAK");
+                break;
+                default:
+SEND("undef control req");
+            }
+            if((packet->bmRequestType & 0x80) == 0) EP_WriteIRQ(0, (uint8_t *)0, 0); // write acknowledgement
+            ep.status = SET_NAK_RX(ep.status);
+            ep.status = SET_VALID_TX(ep.status);
         }
-    } else
-    if (ep.rx_flag){    //Подтвержение приема хостом
+    } else if (ep.rx_flag){    //Подтвержение приема хостом
         //Так как потверждение от хоста завершает транзакцию
         //то сбрасываем DTOGи
         ep.status = CLEAR_DTOG_RX(ep.status);
@@ -346,8 +342,7 @@ uint16_t Enumerate_Handler(ep_t ep){
         //Так как мы ожидаем новый запрос от хоста, устанавливаем
         ep.status = SET_VALID_RX(ep.status);
         ep.status = SET_STALL_TX(ep.status);
-    } else
-    if (ep.tx_flag){    //Успешная передача пакета
+    } else if (ep.tx_flag){    //Успешная передача пакета
         //Если полученный от хоста адрес не совпадает с адресом устройства
         if ((USB -> DADDR & USB_DADDR_ADD) != USB_Dev.USB_Addr){
             //Присваиваем новый адрес устройству
@@ -363,6 +358,21 @@ uint16_t Enumerate_Handler(ep_t ep){
         ep.status = SET_VALID_RX(ep.status);
         ep.status = SET_VALID_TX(ep.status);
     }
+if(_2wr){
+    usart_putchar(' ');
+    if (ep.rx_flag) usart_putchar('r');
+    else usart_putchar('t');
+    printu(packet->wLength);
+    if(ep.setup_flag) usart_putchar('s');
+    usart_putchar(' ');
+    usart_putchar('R');
+    printu(packet->bRequest);
+    usart_putchar('V');
+    printu(packet->wValue);
+    usart_putchar('T');
+    printu(packet->bmRequestType);
+    usart_putchar('\n');
+}
     //значение ep.status будет записано в EPnR и соответвсвенно сброшены или установлены
     //соответсвующие биты
     return ep.status;

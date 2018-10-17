@@ -32,69 +32,69 @@ static uint8_t buffer[64];
 static uint8_t len, rcvflag = 0;
 
 static uint16_t EP1_Handler(ep_t ep){
-    MSG("EP1 ");
     if (ep.rx_flag){                            //Пришли новые данные
-        MSG("read");
+        MSG("read\n");
         EP_Read(1, buffer);
-        EP_WriteIRQ(1, buffer, ep.rx_cnt);
+        //EP_WriteIRQ(1, buffer, ep.rx_cnt);
         ep.status = SET_VALID_TX(ep.status);    //TX
         ep.status = KEEP_STAT_RX(ep.status);    //RX оставляем в NAK
     } else
     if (ep.tx_flag){                            //Данные успешно переданы
-        MSG("write");
+        MSG("write\n");
         ep.status = SET_VALID_RX(ep.status);    //RX в VALID
         ep.status = SET_STALL_TX(ep.status);    //TX в STALL
     }
-    MSG("; end\n");
     return ep.status;
 }
 
 // write handler
 static uint16_t EP2_Handler(ep_t ep){
-    MSG("EP2 ");
-    if (ep.rx_flag){                            //Пришли новые данные
-        MSG("read");
-        #ifdef EBUG
-        printu(ep.rx_cnt);
-        #endif
-        if(ep.rx_cnt > 2){
+    if(ep.rx_flag){
+        MSG("RX\n");
+        if(ep.rx_cnt > 0){
             len = ep.rx_cnt;
             rcvflag = 1;
             EP_Read(2, buffer);
+            buffer[len] = 0;
         }
-        //EP_WriteIRQ(3, buffer, ep.rx_cnt);
+        //Так как потверждение от хоста завершает транзакцию
+        //то сбрасываем DTOGи
+        ep.status = CLEAR_DTOG_RX(ep.status);
+        ep.status = CLEAR_DTOG_TX(ep.status);
         //Так как мы ожидаем новый запрос от хоста, устанавливаем
+        //ep.status = SET_VALID_RX(ep.status);
+        ep.status = SET_STALL_TX(ep.status);
+    }else if (ep.tx_flag){
+        MSG("TX\n");
+        ep.status = KEEP_STAT_TX(ep.status);
+      /*  //Ожидаем новый запрос, или повторное чтение данных (ошибка при передаче)
+        //поэтому Rx и Tx в VALID
         ep.status = SET_VALID_RX(ep.status);
-        //ep.status = SET_STALL_TX(ep.status);
-        //ep.status = SET_VALID_TX(ep.status);    //TX
-        //ep.status = KEEP_STAT_RX(ep.status);    //RX оставляем в NAK
-    } else
-    if (ep.tx_flag){                            //Данные успешно переданы
-        MSG("write");
-        ep.status = SET_VALID_RX(ep.status);    //RX в VALID
-        ep.status = SET_STALL_TX(ep.status);    //TX в STALL
+        ep.status = SET_STALL_TX(ep.status);*/
     }
-    MSG("; end\n");
+    ep.status = SET_VALID_RX(ep.status);
     return ep.status;
 }
 
+/*
 // read handler
 static uint16_t EP3_Handler(ep_t ep){
     MSG("EP3 ");
     if (ep.rx_flag){                            //Пришли новые данные
         MSG("read");
-        EP_Read(3, buffer);
+        //EP_Read(3, buffer);
         ep.status = SET_VALID_TX(ep.status);    //TX
         ep.status = KEEP_STAT_RX(ep.status);    //RX оставляем в NAK
     } else
     if (ep.tx_flag){                            //Данные успешно переданы
         MSG("write");
-        ep.status = SET_VALID_RX(ep.status);    //RX в VALID
-        ep.status = SET_STALL_TX(ep.status);    //TX в STALL
+        ep.status = SET_STALL_TX(ep.status);
+        //ep.status = SET_VALID_RX(ep.status);    //RX в VALID
+        //ep.status = SET_STALL_TX(ep.status);    //TX в STALL
     }
     MSG("; end\n");
     return ep.status;
-}
+}*/
 
 void USB_setup(){
     RCC->APB1ENR |= RCC_APB1ENR_CRSEN | RCC_APB1ENR_USBEN; // enable CRS (hsi48 sync) & USB
@@ -127,14 +127,15 @@ void usb_proc(){
             // free: 64   128   192   256   320   384   448   512   576   640   704
             // (first 192 free bytes are for EP0)
             EP_Init(1, EP_TYPE_INTERRUPT, 256, 320, EP1_Handler);
-            EP_Init(2, EP_TYPE_BULK, 384, 448, EP2_Handler);
-            EP_Init(3, EP_TYPE_BULK, 512, 576, EP3_Handler);
+            EP_Init(2, EP_TYPE_BULK, 384, 448, EP2_Handler); // out
+            EP_Init(3, EP_TYPE_BULK, 512, 576, EP2_Handler); // in
             usbON = 1;
         }else{
             if(rcvflag){
-                EP_Write(3, buffer, len);
                 MSG("read: ");
-                if(len > 2) while(LINE_BUSY == usart_send((char*)&buffer[2], len-2));
+                if(len) SEND((char*)buffer);
+                SEND("\nNow write the data back\n");
+                EP_Write(3, buffer, len);
                 rcvflag = 0;
             }
         }

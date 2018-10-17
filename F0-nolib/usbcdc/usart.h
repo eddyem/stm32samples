@@ -25,36 +25,36 @@
 #include "hardware.h"
 
 // input and output buffers size
-#define UARTBUFSZ  (64)
+#define UARTBUFSZI  (32)
+#define UARTBUFSZO  (512)
 // timeout between data bytes
 #ifndef TIMEOUT_MS
 #define TIMEOUT_MS (1500)
 #endif
 
 // macro for static strings
-#define SEND(str) do{}while(LINE_BUSY == usart_send_blocking(str, sizeof(str)-1))
+#define SEND(str) usart_send(str)
 
 #ifdef EBUG
 #define MSG(str)  do{SEND(__FILE__ " (L" STR(__LINE__) "): " str);}while(0)
 #else
 #define MSG(str)
 #endif
-
+/*
 typedef enum{
     ALL_OK,
-    LINE_BUSY,
-    STR_TOO_LONG
-} TXstatus;
+    LINE_BUSY
+} TXstatus;*/
 
 #define usartrx()  (linerdy)
 #define usartovr() (bufovr)
 
 extern volatile int linerdy, bufovr, txrdy;
 
+void transmit_tbuf();
 void usart_setup();
 int usart_getline(char **line);
-TXstatus usart_send(const char *str, int len);
-TXstatus usart_send_blocking(const char *str, int len);
+void usart_send(const char *str);
 void newline();
 void usart_putchar(const char ch);
 void printu(uint32_t val);

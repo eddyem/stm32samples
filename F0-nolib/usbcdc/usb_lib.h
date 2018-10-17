@@ -5,7 +5,7 @@
 #include "usb_defs.h"
 
 //Максимальное количесво конечных точек
-#define MAX_ENDPOINTS                   2
+#define MAX_ENDPOINTS                   4
 // bRequest, standard; for bmRequestType == 0x80
 #define GET_STATUS                      0x00
 #define GET_DESCRIPTOR                  0x06
@@ -21,6 +21,14 @@
 #define SET_INTERFACE                   0x0B    //не реализован
 #define SYNC_FRAME                      0x0C    //не реализован
 
+// vendor
+#define VENDOR_MASK_REQUEST             0x40
+#define VENDOR_READ_REQUEST_TYPE        0xc0
+#define VENDOR_WRITE_REQUEST_TYPE       0x40
+#define VENDOR_REQUEST                  0x01
+
+#define CONTROL_REQUEST_TYPE            0x21
+
 // Class-Specific Control Requests
 #define SEND_ENCAPSULATED_COMMAND   0x00
 #define GET_ENCAPSULATED_RESPONSE   0x01
@@ -31,6 +39,10 @@
 #define GET_LINE_CODING             0x21
 #define SET_CONTROL_LINE_STATE      0x22
 #define SEND_BREAK                  0x23
+
+// control line states
+#define CONTROL_DTR                 0x01
+#define CONTROL_RTS                 0x02
 
 /* Line Coding Structure from CDC spec 6.2.13
 struct usb_cdc_line_coding {
@@ -112,7 +124,30 @@ typedef struct __ep_t{
 typedef struct {
     uint8_t USB_Status;
     uint16_t USB_Addr;
-} usb_dev_t;
+}usb_dev_t;
+
+typedef struct {
+    uint32_t dwDTERate;
+    uint8_t bCharFormat;
+    #define USB_CDC_1_STOP_BITS   0
+    #define USB_CDC_1_5_STOP_BITS 1
+    #define USB_CDC_2_STOP_BITS   2
+    uint8_t bParityType;
+    #define USB_CDC_NO_PARITY     0
+    #define USB_CDC_ODD_PARITY    1
+    #define USB_CDC_EVEN_PARITY   2
+    #define USB_CDC_MARK_PARITY   3
+    #define USB_CDC_SPACE_PARITY  4
+    uint8_t bDataBits;
+} __attribute__ ((packed)) usb_LineCoding;
+
+typedef struct {
+    uint8_t   bmRequestType;
+    uint8_t   bNotificationType;
+    uint16_t  wValue;
+    uint16_t  wIndex;
+    uint16_t  wLength;
+} __attribute__ ((packed)) usb_cdc_notification;
 
 //Инициализация USB
 void USB_Init();

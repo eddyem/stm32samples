@@ -24,7 +24,8 @@
 #include <string.h>
 
 extern volatile uint32_t Tms;
-static int datalen[2] = {0,0}; // received data line length (including '\n')
+static volatile int idatalen[2] = {0,0}; // received data line length (including '\n')
+static volatile int odatalen[2] = {0,0};
 
 volatile int linerdy = 0,        // received data ready
     dlen = 0,           // length of data (including '\n') in current buffer
@@ -33,8 +34,8 @@ volatile int linerdy = 0,        // received data ready
 ;
 
 
-int rbufno = 0; // current rbuf number
-static char rbuf[UARTBUFSZ][2], tbuf[UARTBUFSZ]; // receive & transmit buffers
+int rbufno = 0, tbufno = 0; // current rbuf/tbuf numbers
+static char rbuf[2][UARTBUFSZI], tbuf[2][UARTBUFSZO]; // receive & transmit buffers
 static char *recvdata = NULL;
 
 /**
@@ -51,46 +52,44 @@ int usart_getline(char **line){
     return dlen;
 }
 
-TXstatus usart_send(const char *str, int len){
-    if(!txrdy) return LINE_BUSY;
-    if(len > UARTBUFSZ) return STR_TOO_LONG;
+// transmit current tbuf and swap buffers
+void transmit_tbuf(){
+    while(!txrdy); // wait for previos buffer transmission
+    register int l = odatalen[tbufno];
+    if(!l) return;
     txrdy = 0;
-    memcpy(tbuf, str, len);
+    odatalen[tbufno] = 0;
 #if USARTNUM == 2
     DMA1_Channel4->CCR &= ~DMA_CCR_EN;
-    DMA1_Channel4->CNDTR = len;
+    DMA1_Channel4->CMAR = (uint32_t) tbuf[tbufno]; // mem
+    DMA1_Channel4->CNDTR = l;
     DMA1_Channel4->CCR |= DMA_CCR_EN; // start transmission
 #elif USARTNUM == 1
     DMA1_Channel2->CCR &= ~DMA_CCR_EN;
-    DMA1_Channel2->CNDTR = len;
+    DMA1_Channel2->CMAR = (uint32_t) tbuf[tbufno]; // mem
+    DMA1_Channel2->CNDTR = l;
     DMA1_Channel2->CCR |= DMA_CCR_EN;
 #else
 #error "Not implemented"
 #endif
-    return ALL_OK;
-}
-
-TXstatus usart_send_blocking(const char *str, int len){
-    while(!txrdy);
-    int i;
-    bufovr = 0;
-    for(i = 0; i < len; ++i){
-        USARTX->TDR = *str++;
-        while(!(USARTX->ISR & USART_ISR_TXE));
-    }
-    return ALL_OK;
+    tbufno = !tbufno;
 }
 
 void usart_putchar(const char ch){
-    while(!txrdy);
-    USARTX->TDR = ch;
-    while(!(USARTX->ISR & USART_ISR_TXE));
+    if(odatalen[tbufno] == UARTBUFSZO) transmit_tbuf();
+    tbuf[tbufno][odatalen[tbufno]++] = ch;
+}
+
+void usart_send(const char *str){
+    while(*str){
+        if(odatalen[tbufno] == UARTBUFSZO) transmit_tbuf();
+        tbuf[tbufno][odatalen[tbufno]++] = *str++;
+    }
 }
 
 void newline(){
-    while(!txrdy);
-    USARTX->TDR = '\n';
-    while(!(USARTX->ISR & USART_ISR_TXE));
+    usart_putchar('\n');
+    transmit_tbuf();
 }
 
 
@@ -105,7 +104,6 @@ void usart_setup(){
     GPIOA->AFR[1] = (GPIOA->AFR[1] &~GPIO_AFRH_AFRH7) | 1 << (7 * 4); // PA15
     // DMA: Tx - Ch4
     DMA1_Channel4->CPAR = (uint32_t) &USART2->TDR; // periph
-    DMA1_Channel4->CMAR = (uint32_t) tbuf; // mem
     DMA1_Channel4->CCR |= DMA_CCR_MINC | DMA_CCR_DIR | DMA_CCR_TCIE; // 8bit, mem++, mem->per, transcompl irq
     // Tx CNDTR set @ each transmission due to data size
     NVIC_SetPriority(DMA1_Channel4_5_IRQn, 3);
@@ -166,22 +164,22 @@ void usart1_isr(){
         #ifdef CHECK_TMOUT
         if(tmout && Tms >= tmout){ // set overflow flag
             bufovr = 1;
-            datalen[rbufno] = 0;
+            idatalen[rbufno] = 0;
         }
         tmout = Tms + TIMEOUT_MS;
         if(!tmout) tmout = 1; // prevent 0
         #endif
         // read RDR clears flag
         uint8_t rb = USARTX->RDR;
-        if(datalen[rbufno] < UARTBUFSZ){ // put next char into buf
-            rbuf[rbufno][datalen[rbufno]++] = rb;
+        if(idatalen[rbufno] < UARTBUFSZI){ // put next char into buf
+            rbuf[rbufno][idatalen[rbufno]++] = rb;
             if(rb == '\n'){ // got newline - line ready
                 linerdy = 1;
-                dlen = datalen[rbufno];
+                dlen = idatalen[rbufno];
                 recvdata = rbuf[rbufno];
                 // prepare other buffer
                 rbufno = !rbufno;
-                datalen[rbufno] = 0;
+                idatalen[rbufno] = 0;
                 #ifdef CHECK_TMOUT
                 // clear timeout at line end
                 tmout = 0;
@@ -189,7 +187,7 @@ void usart1_isr(){
             }
         }else{ // buffer overrun
             bufovr = 1;
-            datalen[rbufno] = 0;
+            idatalen[rbufno] = 0;
             #ifdef CHECK_TMOUT
             tmout = 0;
             #endif
@@ -215,12 +213,13 @@ void printu(uint32_t val){
             bufa[--bpos] = bufb[i];
         }
     }
-    while(LINE_BUSY == usart_send_blocking(bufa, l+bpos));
+    bufa[l + bpos] = 0;
+    usart_send(bufa);
 }
 
 // print 32bit unsigned int as hex
 void printuhex(uint32_t val){
-    SEND("0x");
+    usart_send("0x");
     uint8_t *ptr = (uint8_t*)&val + 3;
     int i, j;
     for(i = 0; i < 4; ++i, --ptr){

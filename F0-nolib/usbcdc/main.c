@@ -86,6 +86,7 @@ int main(void){
         if(lastT > Tms || Tms - lastT > 499){
             LED_blink(LED0);
             lastT = Tms;
+            transmit_tbuf(); // non-blocking transmission of data from UART buffer every 0.5s
         }
         can_proc();
         usb_proc();
@@ -109,6 +110,9 @@ int main(void){
             if(L == 2 && txt[1] == '\n'){
                 L = 0;
                 switch(_1st){
+                    case 'f':
+                        transmit_tbuf();
+                    break;
                     case 'B':
                         can_send_broadcast();
                     break;
@@ -136,6 +140,7 @@ int main(void){
                     break;
                     default: // help
                         SEND(
+                        "'f' - flush UART buffer\n"
                         "'B' - send broadcast dummy byte\n"
                         "'C' - send dummy byte over CAN\n"
                         "'G' - get CAN address\n"
@@ -148,7 +153,8 @@ int main(void){
             }
         }
         if(L){ // text waits for sending
-            while(LINE_BUSY == usart_send(txt, L));
+            txt[L] = 0;
+            usart_send(txt);
             L = 0;
         }
     }

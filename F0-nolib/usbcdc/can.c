@@ -185,7 +185,7 @@ void can_proc(){
         CAN_setup();
     }
     LED_off(LED1);
-#ifdef EBUG
+#if 0
     static uint32_t esr, msr, tsr;
     uint32_t msr_now = CAN->MSR & 0xf;
     if(esr != CAN->ESR || msr != msr_now || tsr != CAN->TSR){
