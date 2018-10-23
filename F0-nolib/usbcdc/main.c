@@ -33,11 +33,12 @@ void sys_tick_handler(void){
 }
 
 void iwdg_setup(){
+    uint32_t tmout = 16000000;
     /* Enable the peripheral clock RTC */
     /* (1) Enable the LSI (40kHz) */
     /* (2) Wait while it is not ready */
     RCC->CSR |= RCC_CSR_LSION; /* (1) */
-    while((RCC->CSR & RCC_CSR_LSIRDY) != RCC_CSR_LSIRDY); /* (2) */
+    while((RCC->CSR & RCC_CSR_LSIRDY) != RCC_CSR_LSIRDY){if(--tmout == 0) break;} /* (2) */
     /* Configure IWDG */
     /* (1) Activate IWDG (not needed if done in option bytes) */
     /* (2) Enable write access to IWDG registers */
@@ -49,7 +50,8 @@ void iwdg_setup(){
     IWDG->KR = IWDG_WRITE_ACCESS; /* (2) */
     IWDG->PR = IWDG_PR_PR_1; /* (3) */
     IWDG->RLR = 1250; /* (4) */
-    while(IWDG->SR); /* (5) */
+    tmout = 16000000;
+    while(IWDG->SR){if(--tmout == 0) break;} /* (5) */
     IWDG->KR = IWDG_REFRESH; /* (6) */
 }
 
@@ -134,6 +136,9 @@ int main(void){
                         printuhex(getCANID());
                         newline();
                     break;
+                    case 'U':
+                        USB_send("Test string for USB\n");
+                    break;
                     case 'W':
                         SEND("Wait for reboot\n");
                         while(1){nop();};
@@ -146,11 +151,13 @@ int main(void){
                         "'G' - get CAN address\n"
                         "'R' - software reset\n"
                         "'S' - reinit CAN (with new address)\n"
+                        "'U' - send test string over USB\n"
                         "'W' - test watchdog\n"
                         );
                     break;
                 }
             }
+            transmit_tbuf();
         }
         if(L){ // text waits for sending
             txt[L] = 0;

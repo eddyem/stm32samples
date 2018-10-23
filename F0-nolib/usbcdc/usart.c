@@ -1,4 +1,4 @@
-/*us
+/*
  * usart.c
  *
  * Copyright 2017 Edward V. Emelianoff <eddy@sao.ru, edward.emelianoff@gmail.com>
@@ -54,7 +54,8 @@ int usart_getline(char **line){
 
 // transmit current tbuf and swap buffers
 void transmit_tbuf(){
-    while(!txrdy); // wait for previos buffer transmission
+    uint32_t tmout = 16000000;
+    while(!txrdy){if(--tmout == 0) break;}; // wait for previos buffer transmission
     register int l = odatalen[tbufno];
     if(!l) return;
     txrdy = 0;
@@ -81,7 +82,8 @@ void usart_putchar(const char ch){
 }
 
 void usart_send(const char *str){
-    while(*str){
+    uint32_t x = 512;
+    while(*str && --x){
         if(odatalen[tbufno] == UARTBUFSZO) transmit_tbuf();
         tbuf[tbufno][odatalen[tbufno]++] = *str++;
     }
@@ -95,6 +97,7 @@ void newline(){
 
 void usart_setup(){
 // Nucleo's USART2 connected to VCP proxy of st-link
+    uint32_t tmout = 16000000;
 #if USARTNUM == 2
     // setup pins: PA2 (Tx - AF1), PA15 (Rx - AF1)
     // AF mode (AF1)
@@ -116,7 +119,7 @@ void usart_setup(){
     USART2->BRR = 480000 / 1152;
     USART2->CR3 = USART_CR3_DMAT; // enable DMA Tx
     USART2->CR1 = USART_CR1_TE | USART_CR1_RE | USART_CR1_UE; // 1start,8data,nstop; enable Rx,Tx,USART
-    while(!(USART2->ISR & USART_ISR_TC)); // polling idle frame Transmission
+    while(!(USART2->ISR & USART_ISR_TC)){if(--tmout == 0) break;} // polling idle frame Transmission
     USART2->ICR |= USART_ICR_TCCF; // clear TC flag
     USART2->CR1 |= USART_CR1_RXNEIE;
     NVIC_EnableIRQ(USART2_IRQn);
@@ -140,7 +143,7 @@ void usart_setup(){
     USART1->BRR = 480000 / 1152;
     USART1->CR3 = USART_CR3_DMAT; // enable DMA Tx
     USART1->CR1 = USART_CR1_TE | USART_CR1_RE | USART_CR1_UE; // 1start,8data,nstop; enable Rx,Tx,USART
-    while(!(USART1->ISR & USART_ISR_TC)); // polling idle frame Transmission
+    while(!(USART1->ISR & USART_ISR_TC)){if(--tmout == 0) break;} // polling idle frame Transmission
     USART1->ICR |= USART_ICR_TCCF; // clear TC flag
     USART1->CR1 |= USART_CR1_RXNEIE;
     NVIC_EnableIRQ(USART1_IRQn);
@@ -224,10 +227,23 @@ void printuhex(uint32_t val){
     int i, j;
     for(i = 0; i < 4; ++i, --ptr){
         for(j = 1; j > -1; --j){
-            uint8_t half = (*ptr >> (4*j)) & 0x0f;
+            register uint8_t half = (*ptr >> (4*j)) & 0x0f;
             if(half < 10) usart_putchar(half + '0');
             else usart_putchar(half - 10 + 'a');
         }
+    }
+}
+
+// dump memory buffer
+void hexdump(uint8_t *arr, uint16_t len){
+    for(uint16_t l = 0; l < len; ++l, ++arr){
+        for(int16_t j = 1; j > -1; --j){
+            register uint8_t half = (*arr >> (4*j)) & 0x0f;
+            if(half < 10) usart_putchar(half + '0');
+            else usart_putchar(half - 10 + 'a');
+        }
+        if(l % 16 == 15) usart_putchar('\n');
+        else if(l & 1) usart_putchar(' ');
     }
 }
 

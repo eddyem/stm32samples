@@ -1,16 +1,44 @@
+/*
+ *                                                                                                  geany_encoding=koi8-r
+ * usb_lib.c
+ *
+ * Copyright 2018 Edward V. Emelianov <eddy@sao.ru, edward.emelianoff@gmail.com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA 02110-1301, USA.
+ *
+ */
+
 #include <stdint.h>
-#include <wchar.h>
 #include "usb_lib.h"
-#ifdef EBUG
 #include <string.h> // memcpy
 #include "usart.h"
-#endif
 
+
+#define EP0DATABUF_SIZE                     (64)
 #define DEVICE_DESCRIPTOR_SIZE_BYTE         (18)
 #define DEVICE_QALIFIER_SIZE_BYTE           (10)
 #define STRING_LANG_DESCRIPTOR_SIZE_BYTE    (4)
 
 static usb_LineCoding lineCoding = {115200, 0, 0, 8};
+static config_pack_t setup_packet;
+static uint8_t ep0databuf[EP0DATABUF_SIZE];
+static uint8_t ep0dbuflen = 0;
+uint8_t setlinecoding = 0;
+
+usb_LineCoding getLineCoding(){return lineCoding;}
 
 const uint8_t USB_DeviceDescriptor[] = {
         DEVICE_DESCRIPTOR_SIZE_BYTE,   // bLength
@@ -66,12 +94,9 @@ const uint8_t USB_ConfigDescriptor[] = {
         0x00, /* bInterfaceNumber: Number of Interface */
         0x00, /* bAlternateSetting: Alternate setting */
         0x03, /* bNumEndpoints: 3 endpoints used */
-        //0x02, /* bInterfaceClass: Communication Interface Class */
-        //0x02, /* bInterfaceSubClass: Abstract Control Model */
-        //0x01, /* bInterfaceProtocol: Common AT commands */
-    0xff,
-    0x00,
-    0x00,
+        0xff, /* bInterfaceClass */
+        0x00, /* bInterfaceSubClass */
+        0x00, /* bInterfaceProtocol */
         0x00, /* iInterface: */
 ///////////////////////////////////////////////////
         /*Endpoint 1 Descriptor*/
@@ -79,13 +104,9 @@ const uint8_t USB_ConfigDescriptor[] = {
         0x05, /* bDescriptorType: Endpoint */
         0x81, /* bEndpointAddress IN1 */
         0x03, /* bmAttributes: Interrupt */
-        //0x40, /* wMaxPacketSize LO: */
-        //0x00, /* wMaxPacketSize HI: */
-    0x0a,
-    0x00,
-        //0x10, /* bInterval: */
-    0x01,
-        /*---------------------------------------------------------------------------*/
+        0x0a, /* wMaxPacketSize LO: */
+        0x00, /* wMaxPacketSize HI: */
+        0x01, /* bInterval: */
 
         /*Endpoint OUT2 Descriptor*/
         0x07, /* bLength: Endpoint Descriptor size */
@@ -99,76 +120,64 @@ const uint8_t USB_ConfigDescriptor[] = {
         /*Endpoint IN3 Descriptor*/
         0x07, /* bLength: Endpoint Descriptor size */
         0x05, /* bDescriptorType: Endpoint */
-        //0x82, /* bEndpointAddress IN2 */
-    0x83, // IN3
+        0x83, /* bEndpointAddress IN3 */
         0x02, /* bmAttributes: Bulk */
         0x40, /* wMaxPacketSize: 64 */
         0x00,
         0x00, /* bInterval: ignore for Bulk transfer */
 };
 
-#if 0
-        /*Header Functional Descriptor*/
-        0x05, /* bLength: Endpoint Descriptor size */
-        0x24, /* bDescriptorType: CS_INTERFACE */
-        0x00, /* bDescriptorSubtype: Header Func Desc */
-        0x10, /* bcdCDC: spec release number */
-        0x01,
-
-        /*Call Management Functional Descriptor*/
-        0x05, /* bFunctionLength */
-        0x24, /* bDescriptorType: CS_INTERFACE */
-        0x01, /* bDescriptorSubtype: Call Management Func Desc */
-        0x00, /* bmCapabilities: D0+D1 */
-        0x01, /* bDataInterface: 1 */
-
-        /*ACM Functional Descriptor*/
-        0x04, /* bFunctionLength */
-        0x24, /* bDescriptorType: CS_INTERFACE */
-        0x02, /* bDescriptorSubtype: Abstract Control Management desc */
-        0x02, /* bmCapabilities */
-#endif
-
 const uint8_t USB_StringLangDescriptor[] = {
-        STRING_LANG_DESCRIPTOR_SIZE_BYTE,   //bLength
-        0x03,   //bDescriptorType
-        0x09,   //wLANGID_L
-        0x04    //wLANGID_H
+        STRING_LANG_DESCRIPTOR_SIZE_BYTE,   // bLength
+        0x03,   // bDescriptorType
+        0x09,   // wLANGID_L
+        0x04    // wLANGID_H
 };
 
-#define _USB_STRING_(name, str)                  \
-const struct name \
-{                          \
-        uint8_t  bLength;                       \
-        uint8_t  bDescriptorType;               \
-        wchar_t  bString[(sizeof(str) - 2) / 2]; \
-    \
-} \
-name = {sizeof(name), 0x03, str};
-
+// these descriptors are not used in PL2303 emulator!
 _USB_STRING_(USB_StringSerialDescriptor, L"0.01")
 _USB_STRING_(USB_StringManufacturingDescriptor, L"Russia, SAO RAS")
 _USB_STRING_(USB_StringProdDescriptor, L"TSYS01 sensors controller")
 
-usb_dev_t USB_Dev;
-ep_t endpoints[MAX_ENDPOINTS];
+static usb_dev_t USB_Dev;
+static ep_t endpoints[MAX_ENDPOINTS];
 
-static void EP_Readx(uint8_t number, uint8_t *buf){
-    uint32_t timeout = 100000;
-    uint16_t status, i;
-    status = USB -> EPnR[number];
-    status = SET_VALID_RX(status);
-    status = SET_NAK_TX(status);
-    status = KEEP_DTOG_TX(status);
-    status = KEEP_DTOG_RX(status);
-    USB -> EPnR[number] = status;
-    endpoints[number].rx_flag = 0;
-    while (!endpoints[number].rx_flag){
-        if (timeout) timeout--;
-        else break;
-    }
-    for (i = 0; i < endpoints[number].rx_cnt; i++){
-        buf[i] = endpoints[number].rx_buf[i];
+/*
+ * default handlers
+ */
+// SET_LINE_CODING
+void WEAK linecoding_handler(__attribute__((unused)) usb_LineCoding *lc){
+    #ifdef EBUG
+    SEND("Want baudrate: "); printu(lc->dwDTERate);
+    SEND(", charFormat: "); printu(lc->bCharFormat);
+    SEND(", parityType: "); printu(lc->bParityType);
+    SEND(", dataBits: "); printu(lc->bDataBits);
+    usart_putchar('\n');
+    #endif
+    setlinecoding = 1;
+}
+
+// SET_CONTROL_LINE_STATE
+void WEAK clstate_handler(__attribute__((unused)) uint16_t val){
+    #ifdef EBUG
+    SEND("change state to ");
+    printu(val);
+    usart_putchar('\n');
+    #endif
+}
+
+// SEND_BREAK
+void WEAK break_handler(){
+    MSG("Break\n");
+}
+
+// handler of vendor requests
+void WEAK vendor_handler(config_pack_t *packet){
+    if(packet->bmRequestType & 0x80){ // read
+        uint8_t c = '?';
+        EP_WriteIRQ(0, &c, 1);
+    }else{ // write ZLP
+        EP_WriteIRQ(0, (uint8_t *)0, 0);
     }
 }
 
@@ -183,21 +192,25 @@ bmRequestType: 76543210
  * @param ep - endpoint state
  * @return data written to EP0R
  */
-uint16_t Enumerate_Handler(ep_t ep){
-    config_pack_t *packet = (config_pack_t *)ep.rx_buf;
+uint16_t EP0_Handler(ep_t ep){
     uint16_t status = 0; // bus powered
+    uint16_t epstatus = ep.status; // EP0R on input -> return this value after modifications
+    static uint8_t configuration = 0; // reply for GET_CONFIGURATION (==1 if configured)
     void wr0(const uint8_t *buf, uint16_t size){
-        if(packet->wLength < size) size = packet->wLength;
+        if(setup_packet.wLength < size) size = setup_packet.wLength;
         EP_WriteIRQ(0, buf, size);
     }
-
-uint8_t _2wr = 0;
-
+#ifdef EBUG
+    uint8_t _2wr = 0;
+    #define WRITEDUMP(str)  do{MSG(str); _2wr = 1;}while(0)
+#else
+    #define WRITEDUMP(str)
+#endif
     if ((ep.rx_flag) && (ep.setup_flag)){
-        if (packet -> bmRequestType == 0x80){ // standard device request (device to host)
-            switch(packet->bRequest){
+        if (setup_packet.bmRequestType == 0x80){ // standard device request (device to host)
+            switch(setup_packet.bRequest){
                 case GET_DESCRIPTOR:
-                    switch(packet->wValue){
+                    switch(setup_packet.wValue){
                         case DEVICE_DESCRIPTOR:
                             wr0(USB_DeviceDescriptor, sizeof(USB_DeviceDescriptor));
                         break;
@@ -220,290 +233,250 @@ uint8_t _2wr = 0;
                             wr0(USB_DeviceQualifierDescriptor, DEVICE_QALIFIER_SIZE_BYTE);
                         break;
                         default:
-SEND("UNK_DES");
-_2wr = 1;
+                            WRITEDUMP("UNK_DES");
                         break;
                     }
                 break;
                 case GET_STATUS:
                     EP_WriteIRQ(0, (uint8_t *)&status, 2); // send status: Bus Powered
                 break;
+                case GET_CONFIGURATION:
+                    WRITEDUMP("GET_CONFIGURATION");
+                    EP_WriteIRQ(0, &configuration, 1);
+                break;
                 default:
-SEND("80:WR_REQ");
-_2wr = 1;
+                    WRITEDUMP("80:WR_REQ");
                 break;
             }
-            //Так как мы не ожидаем приема и занимаемся только передачей, то устанавливаем
-            ep.status = SET_NAK_RX(ep.status);
-            ep.status = SET_VALID_TX(ep.status);
-        }else if(packet->bmRequestType == 0x00){ // standard device request (host to device)
-            switch(packet->bRequest){
+            epstatus = SET_NAK_RX(epstatus);
+            epstatus = SET_VALID_TX(epstatus);
+        }else if(setup_packet.bmRequestType == 0x00){ // standard device request (host to device)
+            switch(setup_packet.bRequest){
                 case SET_ADDRESS:
-                    //Сразу присвоить адрес в DADDR нельзя, так как хост ожидает подтверждения
-                    //приема со старым адресом
-                    USB_Dev.USB_Addr = packet -> wValue;
+                    // new address will be assigned later - after  acknowlegement or request to host
+                    USB_Dev.USB_Addr = setup_packet.wValue;
                 break;
                 case SET_CONFIGURATION:
-                    //Устанавливаем состояние в "Сконфигурировано"
+                    // Now device configured
                     USB_Dev.USB_Status = USB_CONFIGURE_STATE;
+                    configuration = setup_packet.wValue;
                 break;
                 default:
-SEND("0:WR_REQ");
-_2wr = 1;
+                    WRITEDUMP("0:WR_REQ");
                 break;
             }
-            //отправляем подтверждение приема
+            // send ZLP
             EP_WriteIRQ(0, (uint8_t *)0, 0);
-            //Так как мы не ожидаем приема и занимаемся только передачей, то устанавливаем
-            ep.status = SET_NAK_RX(ep.status);
-            ep.status = SET_VALID_TX(ep.status);
-        }else if(packet -> bmRequestType == 0x02){ // standard endpoint request (host to device)
-            if (packet->bRequest == CLEAR_FEATURE){
-                //отправляем подтверждение приема
+            epstatus = SET_NAK_RX(epstatus);
+            epstatus = SET_VALID_TX(epstatus);
+        }else if(setup_packet.bmRequestType == 0x02){ // standard endpoint request (host to device)
+            if (setup_packet.bRequest == CLEAR_FEATURE){
+                // send ZLP
                 EP_WriteIRQ(0, (uint8_t *)0, 0);
-                //Так как мы не ожидаем приема и занимаемся только передачей, то устанавливаем
-                ep.status = SET_NAK_RX(ep.status);
-                ep.status = SET_VALID_TX(ep.status);
+                epstatus = SET_NAK_RX(epstatus);
+                epstatus = SET_VALID_TX(epstatus);
             }else{
-SEND("02:WR_REQ");
-_2wr = 1;
+                WRITEDUMP("02:WR_REQ");
             }
-        }else if((packet->bmRequestType & VENDOR_MASK_REQUEST) == VENDOR_MASK_REQUEST){ // vendor request
-SEND("vendor ");
-            if(packet->bmRequestType & 0x80){ // read
-SEND("read: ");
-                uint8_t c = '?';
-                EP_WriteIRQ(0, &c, 1);
-            }else{ // write
-SEND("write: ");
-                EP_WriteIRQ(0, (uint8_t *)0, 0);
-            }
-printuhex(packet->wValue);
-_2wr = 1;
-            ep.status = SET_NAK_RX(ep.status);
-            ep.status = SET_VALID_TX(ep.status);
-        }else if((packet->bmRequestType & 0x7f) == CONTROL_REQUEST_TYPE){ // control request
-_2wr = 1;
-            //usb_LineCoding c;
-            //uint8_t lbuf[10];
-            //usb_cdc_notification *notif = (usb_cdc_notification*) lbuf;
-            switch(packet->bRequest){
+        }else if((setup_packet.bmRequestType & VENDOR_MASK_REQUEST) == VENDOR_MASK_REQUEST){ // vendor request
+            vendor_handler(&setup_packet);
+            WRITEDUMP("VENDOR");
+            epstatus = SET_NAK_RX(epstatus);
+            epstatus = SET_VALID_TX(epstatus);
+        }else if((setup_packet.bmRequestType & 0x7f) == CONTROL_REQUEST_TYPE){ // control request
+            switch(setup_packet.bRequest){
                 case GET_LINE_CODING:
-SEND("GET_LINE_CODING");
                     EP_WriteIRQ(0, (uint8_t*)&lineCoding, sizeof(lineCoding));
                 break;
                 case SET_LINE_CODING:
-SEND("SET_LINE_CODING");
-                    EP_Readx(0, (uint8_t*)&lineCoding);
-printuhex(lineCoding.dwDTERate);
-                    //EP_WriteIRQ(0, (uint8_t*)&lineCoding, sizeof(lineCoding));
-                    //memcpy(&c, endpoints[0].rx_buf, sizeof(usb_LineCoding));
-/*SEND("len: ");
-printu(endpoints[0].rx_cnt);
-printu(endpoints[0].rx_buf[6]);
-SEND(", want baudrate: "); printuhex(c.dwDTERate);
-SEND(", charFormat: "); printu(c.bCharFormat);
-SEND(", parityType: "); printu(c.bParityType);
-SEND(", dataBits: "); printu(c.bDataBits);*/
                 break;
                 case SET_CONTROL_LINE_STATE:
-SEND("SET_CONTROL_LINE_STATE");
-                    /*
-                     * This Linux cdc_acm driver requires this to be implemented
-                     * even though it's optional in the CDC spec, and we don't
-                     * advertise it in the ACM functional descriptor.
-                     */
-                    /* We echo signals back to host as notification. *
-                    notif->bmRequestType = CONTROL_REQUEST_TYPE | 0x80;
-                    notif->bNotificationType = SET_LINE_CODING;
-                    notif->wValue = 0;
-                    notif->wIndex = 0;
-                    notif->wLength = 2;
-                    lbuf[8] = packet->wValue & 3;
-                    lbuf[9] = 0;
-                    EP_WriteIRQ(3, lbuf, 10);*/
-                    //EP_WriteIRQ(0, (uint8_t *)0, 0);
+                    clstate_handler(setup_packet.wValue);
                 break;
                 case SEND_BREAK:
-SEND("SEND_BREAK");
+                    break_handler();
                 break;
                 default:
-SEND("undef control req");
+                    WRITEDUMP("undef control req");
             }
-            if((packet->bmRequestType & 0x80) == 0) EP_WriteIRQ(0, (uint8_t *)0, 0); // write acknowledgement
-            ep.status = SET_NAK_RX(ep.status);
-            ep.status = SET_VALID_TX(ep.status);
+            if((setup_packet.bmRequestType & 0x80) == 0) EP_WriteIRQ(0, (uint8_t *)0, 0); // write acknowledgement
+            epstatus = SET_VALID_RX(epstatus);
+            epstatus = SET_VALID_TX(epstatus);
         }
-    } else if (ep.rx_flag){    //Подтвержение приема хостом
-        //Так как потверждение от хоста завершает транзакцию
-        //то сбрасываем DTOGи
-        ep.status = CLEAR_DTOG_RX(ep.status);
-        ep.status = CLEAR_DTOG_TX(ep.status);
-        //Так как мы ожидаем новый запрос от хоста, устанавливаем
-        ep.status = SET_VALID_RX(ep.status);
-        ep.status = SET_STALL_TX(ep.status);
-    } else if (ep.tx_flag){    //Успешная передача пакета
-        //Если полученный от хоста адрес не совпадает с адресом устройства
-        if ((USB -> DADDR & USB_DADDR_ADD) != USB_Dev.USB_Addr){
-            //Присваиваем новый адрес устройству
-            USB -> DADDR = USB_DADDR_EF | USB_Dev.USB_Addr;
-            //Устанавливаем состояние в "Адресованно"
+    }else if (ep.rx_flag){ // got data over EP0 or host acknowlegement
+        if(ep.rx_cnt){
+            if(setup_packet.bRequest == SET_LINE_CODING){
+                WRITEDUMP("SET_LINE_CODING");
+                linecoding_handler((usb_LineCoding*)ep0databuf);
+            }
+            EP_WriteIRQ(0, (uint8_t *)0, 0);
+        }
+        // Close transaction
+        epstatus = CLEAR_DTOG_RX(epstatus);
+        epstatus = CLEAR_DTOG_TX(epstatus);
+        // wait for new data from host
+        epstatus = SET_VALID_RX(epstatus);
+        epstatus = SET_STALL_TX(epstatus);
+    } else if (ep.tx_flag){ // package transmitted
+        // now we can change address after enumeration
+        if ((USB->DADDR & USB_DADDR_ADD) != USB_Dev.USB_Addr){
+            USB->DADDR = USB_DADDR_EF | USB_Dev.USB_Addr;
+            // change state to ADRESSED
             USB_Dev.USB_Status = USB_ADRESSED_STATE;
         }
-        //Конец транзакции, очищаем DTOG
-        ep.status = CLEAR_DTOG_RX(ep.status);
-        ep.status = CLEAR_DTOG_TX(ep.status);
-        //Ожидаем новый запрос, или повторное чтение данных (ошибка при передаче)
-        //поэтому Rx и Tx в VALID
-        ep.status = SET_VALID_RX(ep.status);
-        ep.status = SET_VALID_TX(ep.status);
+        // end of transaction
+        epstatus = CLEAR_DTOG_RX(epstatus);
+        epstatus = CLEAR_DTOG_TX(epstatus);
+        epstatus = SET_VALID_RX(epstatus);
+        epstatus = SET_VALID_TX(epstatus);
     }
-if(_2wr){
-    usart_putchar(' ');
-    if (ep.rx_flag) usart_putchar('r');
-    else usart_putchar('t');
-    printu(packet->wLength);
-    if(ep.setup_flag) usart_putchar('s');
-    usart_putchar(' ');
-    usart_putchar('R');
-    printu(packet->bRequest);
-    usart_putchar('V');
-    printu(packet->wValue);
-    usart_putchar('T');
-    printu(packet->bmRequestType);
-    usart_putchar('\n');
-}
-    //значение ep.status будет записано в EPnR и соответвсвенно сброшены или установлены
-    //соответсвующие биты
-    return ep.status;
+#ifdef EBUG
+    if(_2wr){
+        usart_putchar(' ');
+        if (ep.rx_flag) usart_putchar('r');
+        else usart_putchar('t');
+        printu(setup_packet.wLength);
+        if(ep.setup_flag) usart_putchar('s');
+        usart_putchar(' ');
+        usart_putchar('I');
+        printu(setup_packet.wIndex);
+        usart_putchar('V');
+        printu(setup_packet.wValue);
+        usart_putchar('R');
+        printu(setup_packet.bRequest);
+        usart_putchar('T');
+        printu(setup_packet.bmRequestType);
+        usart_putchar(' ');
+        usart_putchar('0' + ep0dbuflen);
+        usart_putchar(' ');
+        hexdump(ep0databuf, ep0dbuflen);
+        usart_putchar('\n');
+    }
+#endif
+    return epstatus;
 }
 
-/*
- * Инициализация конечной точки
- * number - номер (0...7)
- * type - тип конечной точки (EP_TYPE_BULK, EP_TYPE_CONTROL, EP_TYPE_ISO, EP_TYPE_INTERRUPT)
- * addr_tx - адрес передающего буфера в периферии USB
- * addr_rx - адрес приемного буфера в периферии USB
- * Размер приемного буфера - фиксированный 64 байта
- * uint16_t (*func)(ep_t *ep) - адрес функции обработчика событий контрольной точки (прерывания)
+/**
+ * Endpoint initialisation, size of input buffer fixed to 64 bytes
+ * @param number - EP num (0...7)
+ * @param type - EP type (EP_TYPE_BULK, EP_TYPE_CONTROL, EP_TYPE_ISO, EP_TYPE_INTERRUPT)
+ * @param addr_tx - transmission buffer address @ USB/CAN buffer
+ * @param addr_rx - reception buffer address @ USB/CAN buffer
+ * @param uint16_t (*func)(ep_t *ep) - EP handler function
  */
 void EP_Init(uint8_t number, uint8_t type, uint16_t addr_tx, uint16_t addr_rx, uint16_t (*func)(ep_t ep)){
-    USB -> EPnR[number] = (type << 9) | (number & USB_EPnR_EA);
-    USB -> EPnR[number] ^= USB_EPnR_STAT_RX | USB_EPnR_STAT_TX_1;
-    USB_BTABLE -> EP[number].USB_ADDR_TX = addr_tx;
-    USB_BTABLE -> EP[number].USB_COUNT_TX = 0;
-    USB_BTABLE -> EP[number].USB_ADDR_RX = addr_rx;
-    USB_BTABLE -> EP[number].USB_COUNT_RX = 0x8400; // buffer size (64 bytes): Table127 of RM: BL_SIZE=1, NUM_BLOCK=1
+    USB->EPnR[number] = (type << 9) | (number & USB_EPnR_EA);
+    USB->EPnR[number] ^= USB_EPnR_STAT_RX | USB_EPnR_STAT_TX_1;
+    USB_BTABLE->EP[number].USB_ADDR_TX = addr_tx;
+    USB_BTABLE->EP[number].USB_COUNT_TX = 0;
+    USB_BTABLE->EP[number].USB_ADDR_RX = addr_rx;
+    USB_BTABLE->EP[number].USB_COUNT_RX = 0x8400; // buffer size (64 bytes): Table127 of RM: BL_SIZE=1, NUM_BLOCK=1
     endpoints[number].func = func;
     endpoints[number].tx_buf = (uint16_t *)(USB_BTABLE_BASE + addr_tx);
     endpoints[number].rx_buf = (uint8_t *)(USB_BTABLE_BASE + addr_rx);
 }
 
-//Обработчик прерываний USB
+// standard IRQ handler
 void usb_isr(){
     uint8_t n;
-    if (USB -> ISTR & USB_ISTR_RESET){
+    if (USB->ISTR & USB_ISTR_RESET){
         // Reinit registers
-        USB -> CNTR = USB_CNTR_RESETM | USB_CNTR_CTRM;
-        USB -> ISTR = 0;
-        // Endpoint 0 - CONTROL (128 bytes for TX and 64 for RX)
-        EP_Init(0, EP_TYPE_CONTROL, 64, 192, Enumerate_Handler);
-        //Обнуляем адрес устройства
-        USB -> DADDR = USB_DADDR_EF;
-        //Присваиваем состояние в DEFAULT (ожидание энумерации)
+        USB->CNTR = USB_CNTR_RESETM | USB_CNTR_CTRM;
+        USB->ISTR = 0;
+        // Endpoint 0 - CONTROL
+        EP_Init(0, EP_TYPE_CONTROL, 64, 128, EP0_Handler);
+        // clear address, leave only enable bit
+        USB->DADDR = USB_DADDR_EF;
+        // state is default - wait for enumeration
         USB_Dev.USB_Status = USB_DEFAULT_STATE;
     }
-    if (USB -> ISTR & USB_ISTR_CTR){
-        //Определяем номер конечной точки, вызвавшей прерывание
-        n = USB -> ISTR & USB_ISTR_EPID;
-        //Копируем количество принятых байт
-        endpoints[n].rx_cnt = USB_BTABLE -> EP[n].USB_COUNT_RX;
-        //Копируем содержимое EPnR этой конечной точки
-        endpoints[n].status = USB -> EPnR[n];
-        //Сбрасываем флажки
-        endpoints[n].rx_flag = 0;
-        endpoints[n].tx_flag = 0;
-        endpoints[n].setup_flag = 0;
-        //Устанавливаем нужные флажки
-        if (endpoints[n].status & USB_EPnR_CTR_RX) endpoints[n].rx_flag = 1;
-        if (endpoints[n].status & USB_EPnR_SETUP) endpoints[n].setup_flag = 1;
-        if (endpoints[n].status & USB_EPnR_CTR_TX) endpoints[n].tx_flag = 1;
-        //Вызываем функцию-обработчик события конечной точки
-        //с последующей записью в регистр EPnR результата
-        endpoints[n].status = endpoints[n].func(endpoints[n]);
-        //Не меняем состояние DTOG
-        endpoints[n].status = KEEP_DTOG_TX(endpoints[n].status);
-        endpoints[n].status = KEEP_DTOG_RX(endpoints[n].status);
-        //Очищаем флаги приема и передачи
-        endpoints[n].status = CLEAR_CTR_RX(endpoints[n].status);
-        endpoints[n].status = CLEAR_CTR_TX(endpoints[n].status);
-        USB -> EPnR[n] = endpoints[n].status;
+    while(USB->ISTR & USB_ISTR_CTR){
+        // EP number
+        n = USB->ISTR & USB_ISTR_EPID;
+        // copy status register
+        uint16_t epstatus = USB->EPnR[n];
+        // Calculate flags
+        endpoints[n].rx_flag = (epstatus & USB_EPnR_CTR_RX) ? 1 : 0;
+        endpoints[n].setup_flag = (epstatus & USB_EPnR_SETUP) ? 1 : 0;
+        endpoints[n].tx_flag = (epstatus & USB_EPnR_CTR_TX) ? 1 : 0;
+        // copy received bytes amount
+        endpoints[n].rx_cnt = USB_BTABLE->EP[n].USB_COUNT_RX;
+        // check direction
+        if(USB->ISTR & USB_ISTR_DIR){ // OUT interrupt - receive data, CTR_RX==1 (if CTR_TX == 1 - two pending transactions: receive following by transmit)
+            if(n == 0){ // control endpoint
+                if(epstatus & USB_EPnR_SETUP){ // setup packet -> copy data to conf_pack
+                    memcpy(&setup_packet, endpoints[0].rx_buf, sizeof(setup_packet));
+                    ep0dbuflen = 0;
+                    // interrupt handler will be called later
+                }else if(epstatus & USB_EPnR_CTR_RX){ // data packet -> push received data to ep0databuf
+                    ep0dbuflen = endpoints[0].rx_cnt;
+                    memcpy(ep0databuf, endpoints[0].rx_buf, ep0dbuflen);
+                }
+            }
+        }else{ // IN interrupt - transmit data, only CTR_TX == 1
+            // enumeration end could be here (if EP0)
+        }
+        // prepare status field for EP handler
+        endpoints[n].status = epstatus;
+        // call EP handler (even if it will change EPnR, it should return new status)
+        epstatus = endpoints[n].func(endpoints[n]);
+        // keep DTOG state
+        epstatus = KEEP_DTOG_TX(epstatus);
+        epstatus = KEEP_DTOG_RX(epstatus);
+        // clear all RX/TX flags
+        epstatus = CLEAR_CTR_RX(epstatus);
+        epstatus = CLEAR_CTR_TX(epstatus);
+        // refresh EPnR
+        USB->EPnR[n] = epstatus;
+        USB_BTABLE->EP[n].USB_COUNT_RX = 0x8400;
     }
 }
-/*
- * Функция записи массива в буфер конечной точки (ВЫЗОВ ИЗ ПРЕРЫВАНИЯ)
- * number - номер конечной точки
- * *buf - адрес массива с записываемыми данными
- * size - размер массива
+
+/**
+ * Write data to EP buffer (called from IRQ handler)
+ * @param number - EP number
+ * @param *buf - array with data
+ * @param size - its size
  */
 void EP_WriteIRQ(uint8_t number, const uint8_t *buf, uint16_t size){
     uint8_t i;
-/*
- * ВНИМАНИЕ КОСТЫЛЬ
- * Из-за ошибки записи в область USB/CAN SRAM с 8-битным доступом
- * пришлось упаковывать массив в 16-бит, сообветственно размер делить
- * на 2, если он был четный, или делить на 2 + 1 если нечетный
- */
-    uint16_t temp = (size & 0x0001) ? (size + 1) / 2 : size / 2;
+    uint16_t N2 = (size + 1) >> 1;
+    // the buffer is 16-bit, so we should copy data as it would be uint16_t
     uint16_t *buf16 = (uint16_t *)buf;
-    for (i = 0; i < temp; i++){
+    for (i = 0; i < N2; i++){
         endpoints[number].tx_buf[i] = buf16[i];
     }
-    //Количество передаваемых байт
-    USB_BTABLE -> EP[number].USB_COUNT_TX = size;
+    USB_BTABLE->EP[number].USB_COUNT_TX = size;
 }
-/*
- * Функция записи массива в буфер конечной точки (ВЫЗОВ ИЗВНЕ ПРЕРЫВАНИЯ)
- * number - номер конечной точки
- * *buf - адрес массива с записываемыми данными
- * size - размер массива
+
+/**
+ * Write data to EP buffer (called outside IRQ handler)
+ * @param number - EP number
+ * @param *buf - array with data
+ * @param size - its size
  */
 void EP_Write(uint8_t number, const uint8_t *buf, uint16_t size){
-    uint8_t i;
-    uint16_t status = USB -> EPnR[number];
-/*
- * ВНИМАНИЕ КОСТЫЛЬ
- * Из-за ошибки записи в область USB/CAN SRAM с 8-битным доступом
- * пришлось упаковывать массив в 16-бит, сообветственно размер делить
- * на 2, если он был четный, или делить на 2 + 1 если нечетный
- */
-    uint16_t temp = (size & 0x0001) ? (size + 1) / 2 : size / 2;
-    uint16_t *buf16 = (uint16_t *)buf;
-    for (i = 0; i < temp; i++){
-        endpoints[number].tx_buf[i] = buf16[i];
-    }
-    //Количество передаваемых байт
-    USB_BTABLE -> EP[number].USB_COUNT_TX = size;
-
-    status = SET_NAK_RX(status);        //RX в NAK
-    status = SET_VALID_TX(status);      //TX в VALID
+    uint16_t status = USB->EPnR[number];
+    EP_WriteIRQ(number, buf, size);
+    status = SET_NAK_RX(status);
+    status = SET_VALID_TX(status);
     status = KEEP_DTOG_TX(status);
     status = KEEP_DTOG_RX(status);
-    USB -> EPnR[number] = status;
+    USB->EPnR[number] = status;
 }
 
 /*
- * Функция чтения массива из буфера конечной точки
- * number - номер конечной точки
- * *buf - адрес массива куда считываем данные
+ * Copy data from EP buffer into user buffer area
+ * @param *buf - user array for data
+ * @return amount of data read
  */
-void EP_Read(uint8_t number, uint8_t *buf){
-    uint16_t i;
-    for (i = 0; i < endpoints[number].rx_cnt; i++){
-        buf[i] = endpoints[number].rx_buf[i];
-    }
+int EP_Read(uint8_t number, uint8_t *buf){
+    int i = endpoints[number].rx_cnt;
+    if(i) memcpy(buf, endpoints[number].rx_buf, i);
+    return i;
 }
-//Функция получения состояния соединения USB
+
+// USB status
 uint8_t USB_GetState(){
     return USB_Dev.USB_Status;
 }

@@ -106,6 +106,7 @@ void CAN_reinit(){
 }
 
 void CAN_setup(){
+    uint32_t tmout = 16000000;
     if(CANID == 0xFFFF) readCANID();
     // Configure GPIO: PB8 - CAN_Rx, PB9 - CAN_Tx
     /* (1) Select AF mode (10) on PB8 and PB9 */
@@ -132,16 +133,17 @@ void CAN_setup(){
     CAN->MCR |= CAN_MCR_INRQ; /* (1) */
     while((CAN->MSR & CAN_MSR_INAK)!=CAN_MSR_INAK) /* (2) */
     {
-    /* add time out here for a robust application */
+        if(--tmout == 0) break;
     }
     CAN->MCR &=~ CAN_MCR_SLEEP; /* (3) */
     CAN->MCR |= CAN_MCR_ABOM;
 
     CAN->BTR |=  2 << 20 | 3 << 16 | 59 << 0; /* (4) */
     CAN->MCR &=~ CAN_MCR_INRQ; /* (5) */
+    tmout = 16000000;
     while((CAN->MSR & CAN_MSR_INAK)==CAN_MSR_INAK) /* (6) */
     {
-    /* add time out here for a robust application */
+        if(--tmout == 0) break;
     }
     CAN->FMR = CAN_FMR_FINIT; /* (7) */
     CAN->FA1R = CAN_FA1R_FACT0; /* (8) */

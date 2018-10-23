@@ -23,95 +23,67 @@
 
 #include "usb.h"
 #include "usb_lib.h"
-#ifdef EBUG
 #include "usart.h"
-#endif
 
 
-static uint8_t buffer[64];
+
+static uint8_t buffer[BUFFSIZE+1];
 static uint8_t len, rcvflag = 0;
 
+// interrupt IN handler (never used?)
 static uint16_t EP1_Handler(ep_t ep){
-    if (ep.rx_flag){                            //Пришли новые данные
-        MSG("read\n");
+    if (ep.rx_flag){
         EP_Read(1, buffer);
-        //EP_WriteIRQ(1, buffer, ep.rx_cnt);
-        ep.status = SET_VALID_TX(ep.status);    //TX
-        ep.status = KEEP_STAT_RX(ep.status);    //RX оставляем в NAK
+        ep.status = SET_VALID_TX(ep.status);
+        ep.status = KEEP_STAT_RX(ep.status);
     } else
-    if (ep.tx_flag){                            //Данные успешно переданы
-        MSG("write\n");
-        ep.status = SET_VALID_RX(ep.status);    //RX в VALID
-        ep.status = SET_STALL_TX(ep.status);    //TX в STALL
+    if (ep.tx_flag){
+        ep.status = SET_VALID_RX(ep.status);
+        ep.status = SET_STALL_TX(ep.status);
     }
     return ep.status;
 }
 
-// write handler
+// data IN/OUT handler
 static uint16_t EP2_Handler(ep_t ep){
     if(ep.rx_flag){
-        MSG("RX\n");
-        if(ep.rx_cnt > 0){
-            len = ep.rx_cnt;
+        if(ep.rx_cnt > 0 && ep.rx_cnt < BUFFSIZE){
             rcvflag = 1;
-            EP_Read(2, buffer);
+            len = EP_Read(2, buffer);
             buffer[len] = 0;
+            #ifdef EBUG
+            MSG("read: ");
+            if(len) SEND((char*)buffer);
+            #endif
         }
-        //Так как потверждение от хоста завершает транзакцию
-        //то сбрасываем DTOGи
+        // end of transaction: clear DTOGs
         ep.status = CLEAR_DTOG_RX(ep.status);
         ep.status = CLEAR_DTOG_TX(ep.status);
-        //Так как мы ожидаем новый запрос от хоста, устанавливаем
-        //ep.status = SET_VALID_RX(ep.status);
         ep.status = SET_STALL_TX(ep.status);
     }else if (ep.tx_flag){
-        MSG("TX\n");
         ep.status = KEEP_STAT_TX(ep.status);
-      /*  //Ожидаем новый запрос, или повторное чтение данных (ошибка при передаче)
-        //поэтому Rx и Tx в VALID
-        ep.status = SET_VALID_RX(ep.status);
-        ep.status = SET_STALL_TX(ep.status);*/
     }
     ep.status = SET_VALID_RX(ep.status);
     return ep.status;
 }
 
-/*
-// read handler
-static uint16_t EP3_Handler(ep_t ep){
-    MSG("EP3 ");
-    if (ep.rx_flag){                            //Пришли новые данные
-        MSG("read");
-        //EP_Read(3, buffer);
-        ep.status = SET_VALID_TX(ep.status);    //TX
-        ep.status = KEEP_STAT_RX(ep.status);    //RX оставляем в NAK
-    } else
-    if (ep.tx_flag){                            //Данные успешно переданы
-        MSG("write");
-        ep.status = SET_STALL_TX(ep.status);
-        //ep.status = SET_VALID_RX(ep.status);    //RX в VALID
-        //ep.status = SET_STALL_TX(ep.status);    //TX в STALL
-    }
-    MSG("; end\n");
-    return ep.status;
-}*/
-
 void USB_setup(){
     RCC->APB1ENR |= RCC_APB1ENR_CRSEN | RCC_APB1ENR_USBEN; // enable CRS (hsi48 sync) & USB
     RCC->CFGR3 &= ~RCC_CFGR3_USBSW; // reset USB
     RCC->CR2 |= RCC_CR2_HSI48ON; // turn ON HSI48
-    while(!(RCC->CR2 & RCC_CR2_HSI48RDY));
+    uint32_t tmout = 16000000;
+    while(!(RCC->CR2 & RCC_CR2_HSI48RDY)){if(--tmout == 0) break;}
     FLASH->ACR = FLASH_ACR_PRFTBE | FLASH_ACR_LATENCY;
     CRS->CFGR &= ~CRS_CFGR_SYNCSRC;
     CRS->CFGR |= CRS_CFGR_SYNCSRC_1; // USB SOF selected as sync source
     CRS->CR |= CRS_CR_AUTOTRIMEN; // enable auto trim
     CRS->CR |= CRS_CR_CEN; // enable freq counter & block CRS->CFGR as read-only
     RCC->CFGR |= RCC_CFGR_SW;
-    //Разрешаем прерывания по RESET и CTRM
+    // allow RESET and CTRM interrupts
     USB -> CNTR = USB_CNTR_RESETM | USB_CNTR_CTRM;
-    //Сбрасываем флаги
+    // clear flags
     USB -> ISTR = 0;
-    //Включаем подтяжку на D+
+    // and activate pullup
     USB -> BCDR |= USB_BCDR_DPPU;
     NVIC_EnableIRQ(USB_IRQn);
 }
@@ -126,20 +98,32 @@ void usb_proc(){
             // first free is 64; 768 - CAN data
             // free: 64   128   192   256   320   384   448   512   576   640   704
             // (first 192 free bytes are for EP0)
-            EP_Init(1, EP_TYPE_INTERRUPT, 256, 320, EP1_Handler);
-            EP_Init(2, EP_TYPE_BULK, 384, 448, EP2_Handler); // out
-            EP_Init(3, EP_TYPE_BULK, 512, 576, EP2_Handler); // in
+            EP_Init(1, EP_TYPE_INTERRUPT, 192, 192, EP1_Handler);
+            EP_Init(2, EP_TYPE_BULK, 256, 256, EP2_Handler); // OUT - receive data
+            EP_Init(3, EP_TYPE_BULK, 320, 320, EP2_Handler); // IN - transmit data
             usbON = 1;
         }else{
             if(rcvflag){
-                MSG("read: ");
-                if(len) SEND((char*)buffer);
-                SEND("\nNow write the data back\n");
-                EP_Write(3, buffer, len);
+                /*
+                 * don't process received data here: if it would come too fast you will loose a part
+                 * It would be a good idea to collect incoming data in greater buffer and process it
+                 * later (EX: echo "text" > /dev/ttyUSB1 will split into two writings!
+                 */
                 rcvflag = 0;
+            }
+            if(SETLINECODING()){
+                SEND("got new linecoding");
+                CLRLINECODING();
             }
         }
     }else{
         usbON = 0;
     }
+}
+
+void USB_send(char *buf){
+    uint16_t l = 0;
+    char *p = buf;
+    while(*p++) ++l;
+    EP_Write(3, (uint8_t*)buf, l);
 }

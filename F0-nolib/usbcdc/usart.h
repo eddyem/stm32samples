@@ -40,11 +40,6 @@
 #else
 #define MSG(str)
 #endif
-/*
-typedef enum{
-    ALL_OK,
-    LINE_BUSY
-} TXstatus;*/
 
 #define usartrx()  (linerdy)
 #define usartovr() (bufovr)
@@ -59,5 +54,6 @@ void newline();
 void usart_putchar(const char ch);
 void printu(uint32_t val);
 void printuhex(uint32_t val);
+void hexdump(uint8_t *arr, uint16_t len);
 
 #endif // __USART_H__
