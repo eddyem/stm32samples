@@ -1,29 +1,26 @@
-BINARY		= usbcan
+BINARY		= blink
 BOOTPORT	?= /dev/ttyUSB0
-BOOTSPEED	?= 57600
+BOOTSPEED	?= 115200
 # MCU FAMILY
-FAMILY		= F0
+FAMILY		?= F1
 # MCU code
-MCU			= F042x6
-# hardware definitions
-DEFS		+= -DUSARTNUM=1
-#DEFS		+= -DCHECK_TMOUT
-#DEFS		+= -DEBUG
+MCU			?= F103xB
+#density (stm32f10x.h, lines 70-84)
+DENSITY 	?= MD
+DEFS		= -DEBUG
 # change this linking script depending on particular MCU model,
 # for example, if you have STM32F103VBT6, you should write:
-LDSCRIPT	= ld/stm32f042k.ld
+LDSCRIPT	?= ld/stm32f103xB.ld
 
 INDEPENDENT_HEADERS=
 
 FP_FLAGS	?= -msoft-float
-ASM_FLAGS	= -mthumb -mcpu=cortex-m0 -march=armv6-m -mtune=cortex-m0
+ASM_FLAGS	?= -mthumb -mcpu=cortex-m3 -mfix-cortex-m3-ldrd
 ARCH_FLAGS	= $(ASM_FLAGS) $(FP_FLAGS)
 
 ###############################################################################
 # Executables
-OPREFIX		?= /opt/bin/arm-none-eabi
-#PREFIX		?= /usr/x86_64-pc-linux-gnu/arm-none-eabi/gcc-bin/7.3.0/arm-none-eabi
-PREFIX		?= $(OPREFIX)
+PREFIX		?= arm-none-eabi
 
 RM			:= rm -f
 RMDIR		:= rmdir
@@ -31,12 +28,11 @@ CC			:= $(PREFIX)-gcc
 LD			:= $(PREFIX)-gcc
 AR			:= $(PREFIX)-ar
 AS			:= $(PREFIX)-as
-OBJCOPY		:= $(OPREFIX)-objcopy
-OBJDUMP		:= $(OPREFIX)-objdump
-GDB			:= $(OPREFIX)-gdb
+OBJCOPY		:= $(PREFIX)-objcopy
+OBJDUMP		:= $(PREFIX)-objdump
+GDB			:= $(PREFIX)-gdb
 STFLASH		:= $(shell which st-flash)
 STBOOT		:= $(shell which stm32flash)
-DFUUTIL		:= $(shell which dfu-util)
 
 ###############################################################################
 # Source files
@@ -50,14 +46,14 @@ DEPS		:= $(OBJS:.o=.d)
 
 INC_DIR ?= ../inc
 
-INCLUDE 	:= -I$(INC_DIR)/F0 -I$(INC_DIR)/cm
+INCLUDE 	:= -I$(INC_DIR)/Fx -I$(INC_DIR)/cm
 LIB_DIR		:= $(INC_DIR)/ld
 
 ###############################################################################
 # C flags
 CFLAGS		+= -O2 -g -MD -D__thumb2__=1
 CFLAGS		+= -Wall -Werror -Wextra -Wshadow -Wimplicit-function-declaration
-CFLAGS		+= -Wredundant-decls $(INCLUDE)
+CFLAGS		+= -Wredundant-decls
 # -Wmissing-prototypes -Wstrict-prototypes
 CFLAGS		+= -fno-common -ffunction-sections -fdata-sections
 
@@ -75,7 +71,7 @@ LDFLAGS		+= -Wl,--gc-sections
 LDLIBS		+= -Wl,--start-group -lc -lgcc -Wl,--end-group
 LDLIBS		+= $(shell $(CC) $(CFLAGS) -print-libgcc-file-name)
 
-DEFS		+= -DSTM32$(FAMILY) -DSTM32$(MCU)
+DEFS		+= -DSTM32$(FAMILY) -DSTM32$(MCU) -DSTM32F10X_$(DENSITY)
 
 #.SUFFIXES: .elf .bin .hex .srec .list .map .images
 #.SECONDEXPANSION:
@@ -128,12 +124,9 @@ $(ELF): $(OBJDIR) $(OBJS)
 
 clean:
 	@echo "  CLEAN"
-	$(RM) $(OBJS) $(DEPS) $(ELF) $(HEX) $(LIST) $(OBJDIR)/*.map *.d
+	$(RM) $(OBJS) $(DEPS) $(ELF) $(HEX) $(LIST) $(OBJDIR)/*.map
 	@rmdir $(OBJDIR) 2>/dev/null || true
 
-dfuboot: $(BIN)
-	@echo "  LOAD  $(BIN) THROUGH DFU"
-	$(DFUUTIL) -a0 -D $(BIN) -s 0x08000000
 
 flash: $(BIN)
 	@echo "  FLASH  $(BIN)"
@@ -143,7 +136,8 @@ boot: $(BIN)
 	@echo "  LOAD $(BIN) through bootloader"
 	$(STBOOT) -b$(BOOTSPEED) $(BOOTPORT) -w $(BIN)
 
-gentags:
-	CFLAGS="$(CFLAGS) $(DEFS)" geany -g $(BINARY).c.tags *[hc] 2>/dev/null
+dfuboot: $(BIN)
+	@echo "  LOAD  $(BIN) THROUGH DFU"
+	$(DFUUTIL) -a0 -D $(BIN) -s 0x08000000
 
-.PHONY: clean flash boot gentags
+.PHONY: clean flash boot

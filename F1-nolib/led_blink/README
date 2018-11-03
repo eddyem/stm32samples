@@ -1,0 +1,3 @@
+Toggle LEDs (PB8/PB9) on STM32F103 development board depending on buttons PC0,PC1:
+- no jumper == 'SOS' in Morze
+- with jumper - blink with period of 4 seconds

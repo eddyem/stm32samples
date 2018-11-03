@@ -1,4 +1,4 @@
-BINARY		= usbcan
+BINARY		= ch340emul
 BOOTPORT	?= /dev/ttyUSB0
 BOOTSPEED	?= 57600
 # MCU FAMILY

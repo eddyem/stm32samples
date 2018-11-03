@@ -230,18 +230,25 @@ CAN_status can_send(uint8_t *msg, uint8_t len, uint16_t target_id){
     switch(len){
         case 8:
             hb |= (uint32_t)msg[7] << 24;
+            __attribute__((fallthrough));
         case 7:
             hb |= (uint32_t)msg[6] << 16;
+            __attribute__((fallthrough));
         case 6:
             hb |= (uint32_t)msg[5] << 8;
+            __attribute__((fallthrough));
         case 5:
             hb |= (uint32_t)msg[4];
+            __attribute__((fallthrough));
         case 4:
             lb |= (uint32_t)msg[3] << 24;
+            __attribute__((fallthrough));
         case 3:
             lb |= (uint32_t)msg[2] << 16;
+            __attribute__((fallthrough));
         case 2:
             lb |= (uint32_t)msg[1] << 8;
+            __attribute__((fallthrough));
         default:
             lb |= (uint32_t)msg[0];
     }
@@ -292,18 +299,25 @@ static void can_process_fifo(uint8_t fifo_num){
             switch(len){
                 case 8:
                     dat[7] = hb>>24;
+                    __attribute__((fallthrough));
                 case 7:
                     dat[6] = (hb>>16) & 0xff;
+                    __attribute__((fallthrough));
                 case 6:
                     dat[5] = (hb>>8) & 0xff;
+                    __attribute__((fallthrough));
                 case 5:
                     dat[4] = hb & 0xff;
+                    __attribute__((fallthrough));
                 case 4:
                     dat[3] = lb>>24;
+                    __attribute__((fallthrough));
                 case 3:
                     dat[2] = (lb>>16) & 0xff;
+                    __attribute__((fallthrough));
                 case 2:
                     dat[1] = (lb>>8) & 0xff;
+                    __attribute__((fallthrough));
                 case 1:
                     dat[0] = lb & 0xff;
             }
