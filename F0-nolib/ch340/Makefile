@@ -22,7 +22,6 @@ ARCH_FLAGS	= $(ASM_FLAGS) $(FP_FLAGS)
 ###############################################################################
 # Executables
 OPREFIX		?= /opt/bin/arm-none-eabi
-#PREFIX		?= /usr/x86_64-pc-linux-gnu/arm-none-eabi/gcc-bin/7.3.0/arm-none-eabi
 PREFIX		?= $(OPREFIX)
 
 RM			:= rm -f

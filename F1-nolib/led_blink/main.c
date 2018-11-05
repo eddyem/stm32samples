@@ -29,7 +29,7 @@ void sys_tick_handler(void){
 }
 
 // SysTick is 24 bit counter, so 16777215 - max value!!!
-// After HSE is ON it works @9MHz (????)
+// After HSE is ON it works @72MHz (or remove SysTick_CTRL_CLKSOURCE_Msk @ SysTick_Config for 8MHz)
 static void systick_setup(uint32_t xms){
     static uint32_t curms = 0;
     if(curms == xms) return;
