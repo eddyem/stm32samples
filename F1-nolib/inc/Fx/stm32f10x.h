@@ -3434,6 +3434,30 @@ typedef struct
 #define  DMA_IFCR_CHTIF7                     ((uint32_t)0x04000000)        /*!< Channel 7 Half Transfer clear */
 #define  DMA_IFCR_CTEIF7                     ((uint32_t)0x08000000)        /*!< Channel 7 Transfer Error clear */
 
+#define  DMA_CCR_EN                          ((uint16_t)0x0001)            /*!< Channel enable*/
+#define  DMA_CCR_TCIE                        ((uint16_t)0x0002)            /*!< Transfer complete interrupt enable */
+#define  DMA_CCR_HTIE                        ((uint16_t)0x0004)            /*!< Half Transfer interrupt enable */
+#define  DMA_CCR_TEIE                        ((uint16_t)0x0008)            /*!< Transfer error interrupt enable */
+#define  DMA_CCR_DIR                         ((uint16_t)0x0010)            /*!< Data transfer direction */
+#define  DMA_CCR_CIRC                        ((uint16_t)0x0020)            /*!< Circular mode */
+#define  DMA_CCR_PINC                        ((uint16_t)0x0040)            /*!< Peripheral increment mode */
+#define  DMA_CCR_MINC                        ((uint16_t)0x0080)            /*!< Memory increment mode */
+
+#define  DMA_CCR_PSIZE                       ((uint16_t)0x0300)            /*!< PSIZE[1:0] bits (Peripheral size) */
+#define  DMA_CCR_PSIZE_0                     ((uint16_t)0x0100)            /*!< Bit 0 */
+#define  DMA_CCR_PSIZE_1                     ((uint16_t)0x0200)            /*!< Bit 1 */
+
+#define  DMA_CCR_MSIZE                       ((uint16_t)0x0C00)            /*!< MSIZE[1:0] bits (Memory size) */
+#define  DMA_CCR_MSIZE_0                     ((uint16_t)0x0400)            /*!< Bit 0 */
+#define  DMA_CCR_MSIZE_1                     ((uint16_t)0x0800)            /*!< Bit 1 */
+
+#define  DMA_CCR_PL                          ((uint16_t)0x3000)            /*!< PL[1:0] bits(Channel Priority level) */
+#define  DMA_CCR_PL_0                        ((uint16_t)0x1000)            /*!< Bit 0 */
+#define  DMA_CCR_PL_1                        ((uint16_t)0x2000)            /*!< Bit 1 */
+
+#define  DMA_CCR_MEM2MEM                     ((uint16_t)0x4000)            /*!< Memory to memory mode */
+
+
 /*******************  Bit definition for DMA_CCR1 register  *******************/
 #define  DMA_CCR1_EN                         ((uint16_t)0x0001)            /*!< Channel enable*/
 #define  DMA_CCR1_TCIE                       ((uint16_t)0x0002)            /*!< Transfer complete interrupt enable */

@@ -22,6 +22,9 @@
 #include "stm32f1.h"
 #include "usart.h"
 
+// debounce pause (ms - 1)
+#define DEBOUNCE_PAUSE      (9)
+
 static volatile uint32_t Tms = 0; // milliseconds from last reset
 
 // Called when systick fires
@@ -38,6 +41,47 @@ static void gpio_setup(void){
     // Set buttons (PC0/1) as inputs with weak pullups 
     GPIOC->ODR = 3; // pullups for PC0/1
     GPIOC->CRL = CRL(0, CNF_PUDINPUT|MODE_INPUT) | CRL(1, CNF_PUDINPUT|MODE_INPUT);
+}
+
+typedef enum{
+     BTN_PRESSED
+    ,BTN_RELEASED
+    ,BTN_DEBOUNCE
+    ,BTN_RELAX
+} button_state;
+
+button_state check_state(uint8_t N){
+    static uint32_t tlast[2] = {0,0};
+    static button_state oldstate[2] = {BTN_RELEASED, BTN_RELEASED};
+    button_state s = BTN_RELAX;
+    uint8_t b = pin_read(GPIOC, N+1); // == 1 if button released
+    if(b){ 
+        switch(oldstate[N]){
+            case BTN_PRESSED: // debounce pause for DEBOUNCE_PAUSE ms
+                s = oldstate[N] = BTN_DEBOUNCE;
+                tlast[N] = Tms;
+            break;
+            case BTN_DEBOUNCE: // check debounce pause
+                if(Tms - tlast[N] > DEBOUNCE_PAUSE){
+                    s = oldstate[N] = BTN_RELEASED;
+                }
+            break;
+            default: // BTN_RELEASED - do nothing -> return BTN_RELAX
+                ;
+        }
+    }else{
+        switch(oldstate[N]){
+            case BTN_RELEASED: 
+                s = BTN_PRESSED; // button was just pressed
+                __attribute__((fallthrough)); // change oldstate too
+            case BTN_DEBOUNCE: // change old state to BTN_PRESSED again
+                oldstate[N] = BTN_PRESSED; // returned state still relax
+            break;
+            default: // BTN_PRESSED before - do nothing
+                ;
+        }
+    }
+    return s;
 }
 
 int main(){
@@ -97,6 +141,26 @@ int main(){
             usart_send(txt);
             transmit_tbuf();
             L = 0;
+        }
+        for(int i = 0; i < 2; ++i){
+            const char *st = NULL; 
+            switch(check_state(i)){
+                case BTN_PRESSED:
+                    st = "pressed";
+                break;
+                case BTN_RELEASED:
+                    st = "released";
+                break;
+                default:
+                    ; // nothing 
+            }
+            if(st){
+                SEND("The button");
+                usart_putchar('2' + i);
+                SEND(" was ");
+                SEND(st);
+                newline();
+            }
         }
 
         /*

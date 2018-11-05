@@ -24,8 +24,8 @@
 #define __USART_H__
 
 // input and output buffers size
-#define UARTBUFSZI  (32)
-#define UARTBUFSZO  (512)
+#define UARTBUFSZI  (16)
+#define UARTBUFSZO  (32)
 // timeout between data bytes
 #ifndef TIMEOUT_MS
 #define TIMEOUT_MS (1500)

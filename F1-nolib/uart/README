@@ -1,5 +1,4 @@
-Toggle LEDs (PB8/PB9) on STM32F103 development board depending on buttons PC0,PC1:
-- no buttons pressed == 'SOS' in Morze @ LED D1
-- Button S2 pressed - D1 blinks with period of 5s
-- Button S1 pressed - D2 blinks with period of 1s
-
+Toggle LED PB9 on STM32F103 development board once per second
+Allow to turn on/off LED PB8 depending on user commands over USART (0/1) and check its state (s)
+Show information in USART console about S2/S3 buttons pressed
+USART: 115200 8n1
