@@ -36,7 +36,7 @@
 double t0; // start time
 
 FILE *fout = NULL; // file for messages duplicating
-char *comdev = "/dev/ttyACM0";
+char *comdev = "/dev/ttyUSB0";
 int BAUD_RATE = B115200;
 struct termio oldtty, tty; // TTY flags
 struct termios oldt, newt; // terminal flags

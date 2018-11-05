@@ -10,3 +10,7 @@
 */mk/*
 .hg*
 .dropbox.attr
+*.sublime-project
+*.sublime-workspace 
+F1/client-term/client
+*.bk

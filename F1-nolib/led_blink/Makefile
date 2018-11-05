@@ -8,7 +8,7 @@ MCU			?= F103xB
 # density (stm32f10x.h, lines 70-84)
 DENSITY 	?= MD
 # change this linking script depending on particular MCU model,
-LDSCRIPT	?= ld/stm32f103xB.ld
+LDSCRIPT	?= stm32f103xB.ld
 # debug
 DEFS		= -DEBUG
 

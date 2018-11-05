@@ -8,7 +8,7 @@ MCU			= F030x4
 DEFS		= -DEBUG
 # change this linking script depending on particular MCU model,
 # for example, if you have STM32F103VBT6, you should write:
-LDSCRIPT	= ld/stm32f030f.ld
+LDSCRIPT	= stm32f030f.ld
 
 INDEPENDENT_HEADERS=
 
