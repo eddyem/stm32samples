@@ -23,41 +23,73 @@
  * used by the startup code generator (vector.c) to set the initial values for
  * the interrupt handling routines to the chip family specific _isr weak
  * symbols. */
+#define NVIC_WWDG_IRQ 0
+#define NVIC_PVD_IRQ 1
+#define NVIC_RTC_IRQ 2
+#define NVIC_FLASH_IRQ 3
+#define NVIC_RCC_IRQ 4
+#define NVIC_EXTI0_1_IRQ 5
+#define NVIC_EXTI2_3_IRQ 6
+#define NVIC_EXTI4_15_IRQ 7
+#define NVIC_TSC_IRQ 8
+#define NVIC_DMA1_CHANNEL1_IRQ 9
+#define NVIC_DMA1_CHANNEL2_3_IRQ 10
+#define NVIC_DMA1_CHANNEL4_5_IRQ 11
+#define NVIC_ADC_COMP_IRQ 12
+#define NVIC_TIM1_BRK_UP_TRG_COM_IRQ 13
+#define NVIC_TIM1_CC_IRQ 14
+#define NVIC_TIM2_IRQ 15
+#define NVIC_TIM3_IRQ 16
+#define NVIC_TIM6_DAC_IRQ 17
+#define NVIC_TIM7_IRQ 18
+#define NVIC_TIM14_IRQ 19
+#define NVIC_TIM15_IRQ 20
+#define NVIC_TIM16_IRQ 21
+#define NVIC_TIM17_IRQ 22
+#define NVIC_I2C1_IRQ 23
+#define NVIC_I2C2_IRQ 24
+#define NVIC_SPI1_IRQ 25
+#define NVIC_SPI2_IRQ 26
+#define NVIC_USART1_IRQ 27
+#define NVIC_USART2_IRQ 28
+#define NVIC_USART3_4_IRQ 29
+#define NVIC_CEC_CAN_IRQ 30
+#define NVIC_USB_IRQ 31
 #define NVIC_IRQ_COUNT 32
 
 #define F0_IRQ_HANDLERS \
-    wwdg_isr, \
-    pvd_isr, \
-    rtc_isr, \
-    flash_isr, \
-    rcc_isr, \
-    exti0_1_isr, \
-    exti2_3_isr, \
-    exti4_15_isr, \
-    tsc_isr, \
-    dma1_channel1_isr, \
-    dma1_channel2_3_isr, \
-    dma1_channel4_5_isr, \
-    adc_comp_isr, \
-    tim1_brk_up_trg_com_isr, \
-    tim1_cc_isr, \
-    tim2_isr, \
-    tim3_isr, \
-    tim6_dac_isr, \
-    tim7_isr, \
-    tim14_isr, \
-    tim15_isr, \
-    tim16_isr, \
-    tim17_isr, \
-    i2c1_isr, \
-    i2c2_isr, \
-    spi1_isr, \
-    spi2_isr, \
-    usart1_isr, \
-    usart2_isr, \
-    usart3_4_isr, \
-    cec_can_isr, \
-    usb_isr
+    [NVIC_WWDG_IRQ] = wwdg_isr, \
+    [NVIC_PVD_IRQ] = pvd_isr, \
+    [NVIC_RTC_IRQ] = rtc_isr, \
+    [NVIC_FLASH_IRQ] = flash_isr, \
+    [NVIC_RCC_IRQ] = rcc_isr, \
+    [NVIC_EXTI0_1_IRQ] = exti0_1_isr, \
+    [NVIC_EXTI2_3_IRQ] = exti2_3_isr, \
+    [NVIC_EXTI4_15_IRQ] = exti4_15_isr, \
+    [NVIC_TSC_IRQ] = tsc_isr, \
+    [NVIC_DMA1_CHANNEL1_IRQ] = dma1_channel1_isr, \
+    [NVIC_DMA1_CHANNEL2_3_IRQ] = dma1_channel2_3_isr, \
+    [NVIC_DMA1_CHANNEL4_5_IRQ] = dma1_channel4_5_isr, \
+    [NVIC_ADC_COMP_IRQ] = adc_comp_isr, \
+    [NVIC_TIM1_BRK_UP_TRG_COM_IRQ] = tim1_brk_up_trg_com_isr, \
+    [NVIC_TIM1_CC_IRQ] = tim1_cc_isr, \
+    [NVIC_TIM2_IRQ] = tim2_isr, \
+    [NVIC_TIM3_IRQ] = tim3_isr, \
+    [NVIC_TIM6_DAC_IRQ] = tim6_dac_isr, \
+    [NVIC_TIM7_IRQ] = tim7_isr, \
+    [NVIC_TIM14_IRQ] = tim14_isr, \
+    [NVIC_TIM15_IRQ] = tim15_isr, \
+    [NVIC_TIM16_IRQ] = tim16_isr, \
+    [NVIC_TIM17_IRQ] = tim17_isr, \
+    [NVIC_I2C1_IRQ] = i2c1_isr, \
+    [NVIC_I2C2_IRQ] = i2c2_isr, \
+    [NVIC_SPI1_IRQ] = spi1_isr, \
+    [NVIC_SPI2_IRQ] = spi2_isr, \
+    [NVIC_USART1_IRQ] = usart1_isr, \
+    [NVIC_USART2_IRQ] = usart2_isr, \
+    [NVIC_USART3_4_IRQ] = usart3_4_isr, \
+    [NVIC_CEC_CAN_IRQ] = cec_can_isr, \
+    [NVIC_USB_IRQ] = usb_isr
 
 typedef void (*vector_table_entry_t)(void);
 typedef void (*funcp_t) (void);

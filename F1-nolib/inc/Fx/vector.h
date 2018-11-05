@@ -22,14 +22,6 @@
 #ifndef VECTOR_H
 #define VECTOR_H 
 
-typedef void (*vector_table_entry_t)(void);
-typedef void (*funcp_t) (void);
-/* Symbols exported by the linker script(s): */
-extern unsigned _data_loadaddr, _data, _edata, _ebss, _stack;
-extern funcp_t __preinit_array_start, __preinit_array_end;
-extern funcp_t __init_array_start, __init_array_end;
-extern funcp_t __fini_array_start, __fini_array_end;
-
 #ifndef WEAK
 #define WEAK __attribute__((weak))
 #endif

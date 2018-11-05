@@ -1,106 +1,87 @@
 /*
- * This file is part of the libopencm3 project.
- *
- * Copyright (C) 2009 Uwe Hermann <uwe@hermann-uwe.de>
- *
- * This library is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this library.  If not, see <http://www.gnu.org/licenses/>.
- */
+********************************************************************************
+*                                                                              *
+* Copyright (c) 2017 Andrea Loi                                                *
+*                                                                              *
+* Permission is hereby granted, free of charge, to any person obtaining a      *
+* copy of this software and associated documentation files (the "Software"),   *
+* to deal in the Software without restriction, including without limitation    *
+* the rights to use, copy, modify, merge, publish, distribute, sublicense,     *
+* and/or sell copies of the Software, and to permit persons to whom the        *
+* Software is furnished to do so, subject to the following conditions:         *
+*                                                                              *
+* The above copyright notice and this permission notice shall be included      *
+* in all copies or substantial portions of the Software.                       *
+*                                                                              *
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR   *
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,     *
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL      *
+* THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER   *
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING      *
+* FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER          *
+* DEALINGS IN THE SOFTWARE.                                                    *
+*                                                                              *
+********************************************************************************
+*/
 
-/* Generic linker script for STM32 targets using libopencm3. */
 
-/* Memory regions must be defined in the ld script which includes this one. */
 
-/* Enforce emmition of the vector table. */
-EXTERN (vector_table)
+/******************************************************************************/
+/*          DON'T EDIT THIS FILE UNLESS YOU KNOW WHAT YOU'RE DOING!           */
+/******************************************************************************/
 
-/* Define the entry point of the output file. */
+/* _isrvectors_tend =    0x00000150; - different for different series */
+
 ENTRY(reset_handler)
 
-/* Define sections. */
-SECTIONS
-{
-	.text : {
-		*(.vectors)	/* Vector table */
-		*(.text*)	/* Program code */
-		. = ALIGN(4);
-		*(.rodata*)	/* Read-only data */
-		. = ALIGN(4);
-	} >rom
+SECTIONS {
+  .vector_table 0x08000000 :
+  {
+    _sisrvectors = .;
+    KEEP(*(.vector_table))
+    /* ASSERT(. == _isrvectors_tend, "The vector table needs to be 84 elements long!"); */
+    _eisrvectors = .;
+  } >rom
 
-	/* C++ Static constructors/destructors, also used for __attribute__
-	 * ((constructor)) and the likes */
-	.preinit_array : {
-		. = ALIGN(4);
-		__preinit_array_start = .;
-		KEEP (*(.preinit_array))
-		__preinit_array_end = .;
-	} >rom
-	.init_array : {
-		. = ALIGN(4);
-		__init_array_start = .;
-		KEEP (*(SORT(.init_array.*)))
-		KEEP (*(.init_array))
-		__init_array_end = .;
-	} >rom
-	.fini_array : {
-		. = ALIGN(4);
-		__fini_array_start = .;
-		KEEP (*(.fini_array))
-		KEEP (*(SORT(.fini_array.*)))
-		__fini_array_end = .;
-	} >rom
+  .text :
+  {
+    . = ALIGN(4);
+    _stext = .;
+    *(.text*)
+    *(.rodata*)
+    . = ALIGN(4);
+    _etext = .;
+  } >rom
+  
+  .ARM.extab :
+  {
+    *(.ARM.extab* .gnu.linkonce.armextab.*)
+  } >rom
+  
+  .ARM : {
+    *(.ARM.exidx*)
+  } >rom
+  
+  .data :
+  {
+    . = ALIGN(4);
+    _sdata = .;
+    *(.data*)
+    . = ALIGN(4);
+    _edata = .;
+  } >ram AT >rom
 
-	/*
-	 * Another section used by C++ stuff, appears when using newlib with
-	 * 64bit (long long) printf support
-	 */
-	.ARM.extab : {
-		*(.ARM.extab*)
-	} >rom
-	.ARM.exidx : {
-		__exidx_start = .;
-		*(.ARM.exidx*)
-		__exidx_end = .;
-	} >rom
+  _ldata = LOADADDR(.data);
 
-	. = ALIGN(4);
-	_etext = .;
-
-	.data : {
-		_data = .;
-		*(.data*)	/* Read-write initialized data */
-		. = ALIGN(4);
-		_edata = .;
-	} >ram AT >rom
-	_data_loadaddr = LOADADDR(.data);
-
-	.bss : {
-		*(.bss*)	/* Read-write zero initialized data */
-		*(COMMON)
-		. = ALIGN(4);
-		_ebss = .;
-	} >ram
-
-	/*
-	 * The .eh_frame section appears to be used for C++ exception handling.
-	 * You may need to fix this if you're using C++.
-	 */
-	/DISCARD/ : { *(.eh_frame) }
-
-	. = ALIGN(4);
-	end = .;
+  .bss :
+  {
+    . = ALIGN(4);
+    _sbss = .;
+    *(.bss*)
+    *(COMMON)
+    . = ALIGN(4);
+    _ebss = .;
+  } >ram
 }
 
 PROVIDE(_stack = ORIGIN(ram) + LENGTH(ram));
-

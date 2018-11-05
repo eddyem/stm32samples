@@ -11,11 +11,13 @@ DEFS		= -DEBUG
 # change this linking script depending on particular MCU model,
 # for example, if you have STM32F103VBT6, you should write:
 LDSCRIPT	?= ld/stm32f103xB.ld
+#LDSCRIPT = STM32F103C8.ld
 
 INDEPENDENT_HEADERS=
 
 FP_FLAGS	?= -msoft-float
-ASM_FLAGS	?= -mthumb -mcpu=cortex-m3 -mfix-cortex-m3-ldrd
+ASM_FLAGS	?= -mthumb -mcpu=cortex-m3 
+#-mfix-cortex-m3-ldrd
 ARCH_FLAGS	= $(ASM_FLAGS) $(FP_FLAGS)
 
 ###############################################################################
@@ -25,9 +27,10 @@ PREFIX		?= arm-none-eabi
 RM			:= rm -f
 RMDIR		:= rmdir
 CC			:= $(PREFIX)-gcc
-LD			:= $(PREFIX)-gcc
+LD			:= $(PREFIX)-ld
 AR			:= $(PREFIX)-ar
 AS			:= $(PREFIX)-as
+SIZE 		:= $(PREFIX)-size
 OBJCOPY		:= $(PREFIX)-objcopy
 OBJDUMP		:= $(PREFIX)-objdump
 GDB			:= $(PREFIX)-gdb
@@ -51,25 +54,28 @@ LIB_DIR		:= $(INC_DIR)/ld
 
 ###############################################################################
 # C flags
-CFLAGS		+= -O2 -g -MD -D__thumb2__=1
-CFLAGS		+= -Wall -Werror -Wextra -Wshadow -Wimplicit-function-declaration
-CFLAGS		+= -Wredundant-decls
+CFLAGS		+= -O0 -g
+# -MD -D__thumb2__=1
+#CFLAGS		+= -Wall -Werror -Wextra -Wshadow -Wimplicit-function-declaration
+#CFLAGS		+= -Wredundant-decls
 # -Wmissing-prototypes -Wstrict-prototypes
-CFLAGS		+= -fno-common -ffunction-sections -fdata-sections
+CFLAGS		+= -fno-common 
+#-ffunction-sections -fdata-sections
 
 ###############################################################################
 # Linker flags
-LDFLAGS		+= --static -nostartfiles
+LDFLAGS		+= -nostartfiles
+# --static
 #--specs=nano.specs
 LDFLAGS		+= -L$(LIB_DIR)
 LDFLAGS		+= -T$(LDSCRIPT)
-LDFLAGS		+= -Wl,-Map=$(OBJDIR)/$(BINARY).map
-LDFLAGS		+= -Wl,--gc-sections
+#LDFLAGS		+= -Wl,-Map=$(OBJDIR)/$(BINARY).map
+#LDFLAGS		+= -Wl,--gc-sections
 
 ###############################################################################
 # Used libraries
-LDLIBS		+= -Wl,--start-group -lc -lgcc -Wl,--end-group
-LDLIBS		+= $(shell $(CC) $(CFLAGS) -print-libgcc-file-name)
+#LDLIBS		+= -Wl,--start-group -lc -lgcc -Wl,--end-group 
+#LDLIBS		+= $(shell $(CC) $(CFLAGS) -print-libgcc-file-name)
 
 DEFS		+= -DSTM32$(FAMILY) -DSTM32$(MCU) -DSTM32F10X_$(DENSITY)
 
@@ -82,7 +88,7 @@ LIST	:= $(OBJDIR)/$(BINARY).list
 BIN		:= $(BINARY).bin
 HEX		:= $(BINARY).hex
 
-all: bin list
+all: bin list size
 
 elf: $(ELF)
 bin: $(BIN)
@@ -120,7 +126,10 @@ $(LIST): $(ELF)
 
 $(ELF): $(OBJDIR) $(OBJS)
 	@echo "  LD      $(ELF)"
-	$(LD) $(LDFLAGS) $(ARCH_FLAGS) $(OBJS) $(LDLIBS) -o $(ELF)
+	$(LD) $(LDFLAGS) $(OBJS) $(LDLIBS) -o $(ELF)
+
+size: $(ELF)
+	$(SIZE) $(ELF)    
 
 clean:
 	@echo "  CLEAN"

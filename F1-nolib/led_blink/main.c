@@ -1,7 +1,7 @@
 /*
- * systick_blink.c
+ * main.c
  *
- * Copyright 2017 Edward V. Emelianoff <eddy@sao.ru, edward.emelianoff@gmail.com>
+ * Copyright 2018 Edward V. Emelianov <eddy@sao.ru, edward.emelianoff@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,30 +21,24 @@
 
 #include "stm32f1.h"
 
-static volatile uint8_t blink_ctr = 0;
+static volatile uint32_t blink_ctr = 0;
 
 /* Called when systick fires */
 void sys_tick_handler(void){
     ++blink_ctr;
 }
 
-/*
- * Set up timer to fire every x milliseconds
- */
+// SysTick is 24 bit counter, so 16777215 - max value!!!
+// After HSE is ON it works @9MHz (????)
 static void systick_setup(uint32_t xms){
     static uint32_t curms = 0;
     if(curms == xms) return;
-    // 6MHz - HCLK/8 (due to HPRE=1 HCLK=SYSCLK)
     // this function also clears counter so it starts right away
-    SysTick_Config(6000 * xms);
+    SysTick_Config(72000 * xms);
     curms = xms;
 }
 
-
-/* set STM32 to clock by 48MHz from HSI oscillator */
-//static void clock_setup(void){
-    //StartHSE(RCC_CR_CSSON | RCC_CR_HSEBYP);
-//}
+static const uint16_t L[] = {125,100,125,100,125,200, 60,100,60,100,60,200, 125,100,125,100,125, 230};
 
 static void gpio_setup(void){
     /* Enable clocks to the GPIO subsystems (A&B) */
@@ -56,42 +50,13 @@ static void gpio_setup(void){
     GPIOC->CRL = CRL(0, CNF_PUDINPUT|MODE_INPUT) | CRL(1, CNF_PUDINPUT|MODE_INPUT);
 }
 
-static const uint16_t L[] = {125,100,125,100,125,200, 350,100,350,100,350,200, 125,100,125,100,125, 1000};
-
-int main(void){
+int main(){
     sysreset();
-   // AFIO->MAPR = AFIO_MAPR_SWJ_CFG_DISABLE; // turn off jtag and swim
-   // StartHSE();
-
-RCC->CFGR &= ~RCC_CFGR_SW; // Change System Clock to HSI
-    while ((RCC->CFGR & RCC_CFGR_SWS) != 0x00) {
-        __NOP();
-    };
-    RCC->CR &= ~RCC_CR_PLLON; // Disable Pll
-    while ((RCC->CR & RCC_CR_PLLON)) {
-        __NOP();
-    };
-    RCC->CFGR &= ~0x3C0000;
-    RCC->CFGR |= RCC_CFGR_PLLMULL4; // Set Pll Mul to 4
-    RCC->CFGR |= RCC_CFGR_USBPRE;
-    RCC->CFGR |= RCC_CFGR_PLLSRC;
-    RCC->CR |= RCC_CR_PLLON;
-    while (!(RCC->CR & RCC_CR_PLLON)) {
-        __NOP();
-    };
-    RCC->CFGR |= RCC_CFGR_SW_1; // Change System Clock to PLL
-    while ((RCC->CFGR & RCC_CFGR_SWS) != RCC_CFGR_SWS_1) {
-        __NOP();
-    };
-
+    StartHSE();
     gpio_setup();
-
-    /* 500ms ticks =>  1000ms period => 1Hz blinks */
     systick_setup(100);
-    uint8_t oldctr = blink_ctr+1;
-    pin_clear(GPIOB, 1<<8);
-    pin_clear(GPIOB, 1<<9);
-    for(int i = 0; i < 1000000; ++i) nop();
+    uint32_t oldctr = 0xff;
+    pin_clear(GPIOB, 3<<8);
     /* Do nothing in main loop */
     while (1){
         if(pin_read(GPIOC, 1) && pin_read(GPIOC, 2)){ // no buttons present - morze @ LED1 (PB9)
@@ -103,13 +68,22 @@ RCC->CFGR &= ~RCC_CFGR_SW; // Change System Clock to HSI
                 oldctr = blink_ctr;
             }
         }else{ // button pressed: turn ON given LED
-            if(pin_read(GPIOC, 1)){ // PC0 pressed (button S2)
-                pin_clear(GPIOB, 1<<8);
-            }else pin_set(GPIOB, 1<<8);
-            if(pin_read(GPIOC, 2)){ // PC1 pressed (button S3)
-                pin_clear(GPIOB, 1<<9);
+            if(pin_read(GPIOC, 1) == 0){ // PC0 pressed (button S2)
+                systick_setup(5);
+                if(blink_ctr - oldctr > 499){
+                    pin_toggle(GPIOB, 1<<9);
+                    oldctr = blink_ctr;
+                }
+            }else pin_set(GPIOB, 1<<9);
+            if(pin_read(GPIOC, 2) == 0){ // PC1 pressed (button S3)
+                systick_setup(1);
+                if(blink_ctr - oldctr > 499){
+                    pin_toggle(GPIOB, 1<<8);
+                    oldctr = blink_ctr;
+                }
             }else pin_set(GPIOB, 1<<8);
 
         }
     }
 }
+

@@ -115,9 +115,8 @@ TRUE_INLINE void StartHSE()
     /* Enable PLL2 */
     RCC->CR |= RCC_CR_PLL2ON;
     /* Wait till PLL2 is ready */
-    while((RCC->CR & RCC_CR_PLL2RDY) == 0)
-    {
-    }
+    StartUpCounter = 0;
+    while((RCC->CR & RCC_CR_PLL2RDY) == 0 && ++StartUpCounter < 1000){}
        
     /* PLL configuration: PLLCLK = PREDIV1 * 9 = 72 MHz */ 
     RCC->CFGR &= (uint32_t)~(RCC_CFGR_PLLXTPRE | RCC_CFGR_PLLSRC | RCC_CFGR_PLLMULL);
@@ -134,18 +133,16 @@ TRUE_INLINE void StartHSE()
     RCC->CR |= RCC_CR_PLLON;
 
     /* Wait till PLL is ready */
-    while((RCC->CR & RCC_CR_PLLRDY) == 0)
-    {
-    }
+    StartUpCounter = 0;
+    while((RCC->CR & RCC_CR_PLLRDY) == 0 && ++StartUpCounter < 1000){}
     
     /* Select PLL as system clock source */
     RCC->CFGR &= (uint32_t)((uint32_t)~(RCC_CFGR_SW));
     RCC->CFGR |= (uint32_t)RCC_CFGR_SW_PLL;    
 
     /* Wait till PLL is used as system clock source */
-    while ((RCC->CFGR & (uint32_t)RCC_CFGR_SWS) != (uint32_t)0x08)
-    {
-    }
+    StartUpCounter = 0;
+    while(((RCC->CFGR & (uint32_t)RCC_CFGR_SWS) != (uint32_t)0x08) && ++StartUpCounter < 1000){}
   }
   else // HSE fails to start-up
   { 

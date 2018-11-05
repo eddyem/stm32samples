@@ -1,0 +1,9 @@
+LEDs: PB8 - D2, PB9 - D1 (connected to +3.3V)
+Buttons: PC0 - S2, PC1 - S3 (no pullup/down resistors! Connected to ground)
+
+UNUSED due to JTAG: PA13, PA14, PA15, PB3, PB4.
+
+RS232 (due to jumpers @ P4):  PA9, PA10, PA2, PA3
+
+J6 - USB pullup on/off
+
