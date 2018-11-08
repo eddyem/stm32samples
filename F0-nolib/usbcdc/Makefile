@@ -11,7 +11,7 @@ DEFS		+= -DUSARTNUM=1
 #DEFS		+= -DEBUG
 # change this linking script depending on particular MCU model,
 # for example, if you have STM32F103VBT6, you should write:
-LDSCRIPT	= stm32f042k.ld
+LDSCRIPT	= ld/stm32f042k.ld
 
 INDEPENDENT_HEADERS=
 
@@ -48,7 +48,7 @@ STARTUP		= $(OBJDIR)/startup.o
 OBJS 		+= $(STARTUP)
 DEPS		:= $(OBJS:.o=.d)
 
-INC_DIR ?= ../inc
+INC_DIR ?= ../../inc
 
 INCLUDE 	:= -I$(INC_DIR)/F0 -I$(INC_DIR)/cm
 LIB_DIR		:= $(INC_DIR)/ld

@@ -136,8 +136,13 @@ int main(void){
                         printuhex(getCANID());
                         newline();
                     break;
+                    case 'T':
+                        SEND("Time (ms): ");
+                        printu(Tms);
+                        newline();
+                    break;
                     case 'U':
-                        USB_send("Test string for USB\n");
+                        USB_send("Test string for USB; a very long string that don't fit into one 64-byte buffer, what will be with it?\n");
                     break;
                     case 'W':
                         SEND("Wait for reboot\n");
@@ -151,6 +156,7 @@ int main(void){
                         "'G' - get CAN address\n"
                         "'R' - software reset\n"
                         "'S' - reinit CAN (with new address)\n"
+                        "'T' - gen time from start (ms)"
                         "'U' - send test string over USB\n"
                         "'W' - test watchdog\n"
                         );
@@ -162,6 +168,7 @@ int main(void){
         if(L){ // text waits for sending
             txt[L] = 0;
             usart_send(txt);
+            USB_send(txt);
             L = 0;
         }
     }

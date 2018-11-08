@@ -83,7 +83,7 @@ const uint8_t USB_ConfigDescriptor[] = {
         0x01, /* bNumInterfaces: 1 interface */
         0x01, /* bConfigurationValue: Configuration value */
         0x00, /* iConfiguration: Index of string descriptor describing the configuration */
-        0x80, /* bmAttributes - Bus powered */
+        0xa0, /* bmAttributes - Bus powered, Remote wakeup */
         0x32, /* MaxPower 100 mA */
 
         /*---------------------------------------------------------------------------*/
@@ -127,17 +127,11 @@ const uint8_t USB_ConfigDescriptor[] = {
         0x00, /* bInterval: ignore for Bulk transfer */
 };
 
-const uint8_t USB_StringLangDescriptor[] = {
-        STRING_LANG_DESCRIPTOR_SIZE_BYTE,   // bLength
-        0x03,   // bDescriptorType
-        0x09,   // wLANGID_L
-        0x04    // wLANGID_H
-};
-
+_USB_LANG_ID_(LANG_US);
 // these descriptors are not used in PL2303 emulator!
-_USB_STRING_(USB_StringSerialDescriptor, L"0.01")
-_USB_STRING_(USB_StringManufacturingDescriptor, L"Russia, SAO RAS")
-_USB_STRING_(USB_StringProdDescriptor, L"TSYS01 sensors controller")
+_USB_STRING_(USB_StringSerialDescriptor, u"0")
+_USB_STRING_(USB_StringManufacturingDescriptor, u"Prolific Technology Inc.")
+_USB_STRING_(USB_StringProdDescriptor, u"USB-Serial Controller")
 
 static usb_dev_t USB_Dev;
 static ep_t endpoints[MAX_ENDPOINTS];
@@ -173,8 +167,26 @@ void WEAK break_handler(){
 
 // handler of vendor requests
 void WEAK vendor_handler(config_pack_t *packet){
+    SEND("Vendor, reqt=");
+    printuhex(packet->bmRequestType);
+    SEND(", wval=");
+    printuhex(packet->wValue);
+    usart_putchar('\n');
     if(packet->bmRequestType & 0x80){ // read
-        uint8_t c = '?';
+        uint8_t c;
+        switch(packet->wValue){
+            case 0x8484:
+                c = 2;
+            break;
+            case 0x0080:
+                c = 1;
+            break;
+            case 0x8686:
+                c = 0xaa;
+            break;
+            default:
+                c = 0;
+        }
         EP_WriteIRQ(0, &c, 1);
     }else{ // write ZLP
         EP_WriteIRQ(0, (uint8_t *)0, 0);
@@ -218,16 +230,30 @@ uint16_t EP0_Handler(ep_t ep){
                             wr0(USB_ConfigDescriptor, sizeof(USB_ConfigDescriptor));
                         break;
                         case STRING_LANG_DESCRIPTOR:
-                            wr0(USB_StringLangDescriptor, STRING_LANG_DESCRIPTOR_SIZE_BYTE);
+                            wr0((const uint8_t *)&USB_StringLangDescriptor, STRING_LANG_DESCRIPTOR_SIZE_BYTE);
+                            #ifdef EBUG
+                            SEND("STRING_LANG_DESCRIPTOR\n");
+                            #endif
                         break;
                         case STRING_MAN_DESCRIPTOR:
                             wr0((const uint8_t *)&USB_StringManufacturingDescriptor, USB_StringManufacturingDescriptor.bLength);
+                            #ifdef EBUG
+                            SEND("STRING_MAN_DESCRIPTOR: ");
+                            usart_sendn((char*)&USB_StringManufacturingDescriptor, USB_StringManufacturingDescriptor.bLength); usart_putchar('\n');
+                            #endif
                         break;
                         case STRING_PROD_DESCRIPTOR:
                             wr0((const uint8_t *)&USB_StringProdDescriptor, USB_StringProdDescriptor.bLength);
+                            #ifdef EBUG
+                            SEND("STRING_PROD_DESCRIPTOR: ");
+                            usart_sendn((char*)&USB_StringProdDescriptor, USB_StringProdDescriptor.bLength); usart_putchar('\n');
+                            #endif
                         break;
                         case STRING_SN_DESCRIPTOR:
                             wr0((const uint8_t *)&USB_StringSerialDescriptor, USB_StringSerialDescriptor.bLength);
+                            #ifdef EBUG
+                            SEND("STRING_SN_DESCRIPTOR\n");
+                            #endif
                         break;
                         case DEVICE_QALIFIER_DESCRIPTOR:
                             wr0(USB_DeviceQualifierDescriptor, DEVICE_QALIFIER_SIZE_BYTE);
@@ -280,7 +306,6 @@ uint16_t EP0_Handler(ep_t ep){
             }
         }else if((setup_packet.bmRequestType & VENDOR_MASK_REQUEST) == VENDOR_MASK_REQUEST){ // vendor request
             vendor_handler(&setup_packet);
-            WRITEDUMP("VENDOR");
             epstatus = SET_NAK_RX(epstatus);
             epstatus = SET_VALID_TX(epstatus);
         }else if((setup_packet.bmRequestType & 0x7f) == CONTROL_REQUEST_TYPE){ // control request

@@ -109,15 +109,28 @@
 #define EP_TYPE_ISO                     0x02
 #define EP_TYPE_INTERRUPT               0x03
 
+#define LANG_US (uint16_t)0x0409
+
 #define _USB_STRING_(name, str)                  \
-const struct name \
+static const struct name \
 {                          \
         uint8_t  bLength;                       \
         uint8_t  bDescriptorType;               \
-        wchar_t  bString[(sizeof(str) - 2) / 2]; \
+        uint16_t bString[(sizeof(str) - 2) / 2]; \
     \
 } \
 name = {sizeof(name), 0x03, str};
+
+#define _USB_LANG_ID_(lng_id)     \
+    \
+static const struct USB_StringLangDescriptor \
+{         \
+        uint8_t  bLength;         \
+        uint8_t  bDescriptorType; \
+        uint16_t bString;         \
+    \
+} \
+USB_StringLangDescriptor = {0x04, 0x03, lng_id};
 
 // EP0 configuration packet
 typedef struct {
