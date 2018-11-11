@@ -109,15 +109,28 @@
 #define EP_TYPE_ISO                     0x02
 #define EP_TYPE_INTERRUPT               0x03
 
+#define LANG_US (uint16_t)0x0409
+
 #define _USB_STRING_(name, str)                  \
-const struct name \
+static const struct name \
 {                          \
         uint8_t  bLength;                       \
         uint8_t  bDescriptorType;               \
-        wchar_t  bString[(sizeof(str) - 2) / 2]; \
+        uint16_t bString[(sizeof(str) - 2) / 2]; \
     \
 } \
 name = {sizeof(name), 0x03, str};
+
+#define _USB_LANG_ID_(lng_id)     \
+    \
+static const struct USB_StringLangDescriptor \
+{         \
+        uint8_t  bLength;         \
+        uint8_t  bDescriptorType; \
+        uint16_t bString;         \
+    \
+} \
+USB_StringLangDescriptor = {0x04, 0x03, lng_id};
 
 // EP0 configuration packet
 typedef struct {
@@ -169,9 +182,7 @@ typedef struct {
     uint16_t  wLength;
 } __attribute__ ((packed)) usb_cdc_notification;
 
-extern uint8_t setlinecoding;
-#define SETLINECODING() (setlinecoding)
-#define CLRLINECODING() do{setlinecoding = 0;}while(0)
+extern ep_t endpoints[];
 
 void USB_Init();
 uint8_t USB_GetState();

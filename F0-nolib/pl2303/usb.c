@@ -24,20 +24,23 @@
 #include "usb.h"
 #include "usb_lib.h"
 #include "usart.h"
+#include <string.h> // memcpy, memmove
 
-
-
-static uint8_t buffer[BUFFSIZE+1];
-static uint8_t len, rcvflag = 0;
+// incoming buffer size
+#define IDATASZ     (256)
+static uint8_t incoming_data[IDATASZ];
+static uint8_t ovfl = 0;
+static uint16_t idatalen = 0;
+static int8_t usbON = 0; // ==1 when USB fully configured
 
 // interrupt IN handler (never used?)
 static uint16_t EP1_Handler(ep_t ep){
+    uint8_t ep0buf[11];
     if (ep.rx_flag){
-        EP_Read(1, buffer);
+        EP_Read(1, ep0buf);
         ep.status = SET_VALID_TX(ep.status);
         ep.status = KEEP_STAT_RX(ep.status);
-    } else
-    if (ep.tx_flag){
+    }else if (ep.tx_flag){
         ep.status = SET_VALID_RX(ep.status);
         ep.status = SET_STALL_TX(ep.status);
     }
@@ -46,16 +49,31 @@ static uint16_t EP1_Handler(ep_t ep){
 
 // data IN/OUT handler
 static uint16_t EP2_Handler(ep_t ep){
+    MSG("EP2\n");
     if(ep.rx_flag){
-        if(ep.rx_cnt > 0 && ep.rx_cnt < BUFFSIZE){
-            rcvflag = 1;
-            len = EP_Read(2, buffer);
-            buffer[len] = 0;
-            #ifdef EBUG
-            MSG("read: ");
-            if(len) SEND((char*)buffer);
-            #endif
+        int rd = ep.rx_cnt, rest = IDATASZ - idatalen;
+        if(rd){
+            if(rd <= rest){
+                idatalen += EP_Read(2, &incoming_data[idatalen]);
+                ovfl = 0;
+            }else{
+                ep.status = SET_NAK_RX(ep.status);
+                ovfl = 1;
+                return ep.status;
+            }
         }
+#ifdef EBUG
+        SEND("receive ");
+        printu(ep.rx_cnt);
+        SEND(" bytes, idatalen=");
+        printu(idatalen);
+        SEND(" , rest=");
+        printu(rest);
+        incoming_data[idatalen] = 0;
+        SEND(" , the buffer now:\n");
+        SEND((char*)incoming_data);
+        usart_putchar('\n');
+#endif
         // end of transaction: clear DTOGs
         ep.status = CLEAR_DTOG_RX(ep.status);
         ep.status = CLEAR_DTOG_TX(ep.status);
@@ -80,16 +98,15 @@ void USB_setup(){
     CRS->CR |= CRS_CR_CEN; // enable freq counter & block CRS->CFGR as read-only
     RCC->CFGR |= RCC_CFGR_SW;
     // allow RESET and CTRM interrupts
-    USB->CNTR = USB_CNTR_RESETM | USB_CNTR_CTRM;
+    USB -> CNTR = USB_CNTR_RESETM | USB_CNTR_CTRM;
     // clear flags
-    USB->ISTR = 0;
+    USB -> ISTR = 0;
     // and activate pullup
-    USB->BCDR |= USB_BCDR_DPPU;
+    USB -> BCDR |= USB_BCDR_DPPU;
     NVIC_EnableIRQ(USB_IRQn);
 }
 
 void usb_proc(){
-    static int8_t usbON = 0;
     if(USB_GetState() == USB_CONFIGURE_STATE){ // USB configured - activate other endpoints
         if(!usbON){ // endpoints not activated
             MSG("Configured; activate other endpoints\n");
@@ -97,23 +114,11 @@ void usb_proc(){
             // Buffer have 1024 bytes, but last 256 we use for CAN bus
             // first free is 64; 768 - CAN data
             // free: 64   128   192   256   320   384   448   512   576   640   704
-            // (first 192 free bytes are for EP0)
+            // (first 64 are control registers, up to 192 - buffer for EP0)
             EP_Init(1, EP_TYPE_INTERRUPT, 192, 192, EP1_Handler);
-            EP_Init(2, EP_TYPE_BULK, 256, 320, EP2_Handler); // IN/OUT
+            EP_Init(2, EP_TYPE_BULK, 256, 256, EP2_Handler); // OUT - receive data
+            EP_Init(3, EP_TYPE_BULK, 320, 320, EP2_Handler); // IN - transmit data
             usbON = 1;
-        }else{
-            if(rcvflag){
-                /*
-                 * don't process received data here: if it would come too fast you will loose a part
-                 * It would be a good idea to collect incoming data in greater buffer and process it
-                 * later (EX: echo "text" > /dev/ttyUSB1 will split into two writings!
-                 */
-                rcvflag = 0;
-            }
-            if(SETLINECODING()){
-                SEND("got new linecoding");
-                CLRLINECODING();
-            }
         }
     }else{
         usbON = 0;
@@ -125,4 +130,38 @@ void USB_send(char *buf){
     char *p = buf;
     while(*p++) ++l;
     EP_Write(3, (uint8_t*)buf, l);
+}
+
+/**
+ * @brief USB_receive
+ * @param buf (i) - buffer for received data
+ * @param bufsize - its size
+ * @return amount of received bytes
+ */
+int USB_receive(char *buf, int bufsize){
+    if(!bufsize || !idatalen) return 0;
+    USB->CNTR = 0;
+    int sz = (idatalen > bufsize) ? bufsize : idatalen, rest = idatalen - sz;
+    memcpy(buf, incoming_data, sz);
+    if(rest > 0){
+        memmove(incoming_data, &incoming_data[sz], rest);
+        idatalen = rest;
+    }else idatalen = 0;
+    if(ovfl){
+        EP2_Handler(endpoints[2]);
+        uint16_t epstatus = USB->EPnR[2];
+        epstatus = CLEAR_DTOG_RX(epstatus);
+        epstatus = SET_VALID_RX(epstatus);
+        USB->EPnR[2] = epstatus;
+    }
+    USB->CNTR = USB_CNTR_RESETM | USB_CNTR_CTRM;
+    return sz;
+}
+
+/**
+ * @brief USB_configured
+ * @return 1 if USB is in configured state
+ */
+int USB_configured(){
+    return usbON;
 }

@@ -50,6 +50,7 @@ void transmit_tbuf();
 void usart_setup();
 int usart_getline(char **line);
 void usart_send(const char *str);
+void usart_sendn(const char *str, uint8_t L);
 void newline();
 void usart_putchar(const char ch);
 void printu(uint32_t val);

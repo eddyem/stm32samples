@@ -89,6 +89,13 @@ void usart_send(const char *str){
     }
 }
 
+void usart_sendn(const char *str, uint8_t L){
+    for(uint8_t i = 0; i < L; ++i){
+        if(odatalen[tbufno] == UARTBUFSZO) transmit_tbuf();
+        tbuf[tbufno][odatalen[tbufno]++] = *str++;
+    }
+}
+
 void newline(){
     usart_putchar('\n');
     transmit_tbuf();
@@ -223,14 +230,20 @@ void printu(uint32_t val){
 // print 32bit unsigned int as hex
 void printuhex(uint32_t val){
     usart_send("0x");
-    uint8_t *ptr = (uint8_t*)&val + 3;
+    uint8_t *ptr = (uint8_t*)&val + 3, start = 1;
     int i, j;
     for(i = 0; i < 4; ++i, --ptr){
+        if(!*ptr && start) continue;
         for(j = 1; j > -1; --j){
+            start = 0;
             register uint8_t half = (*ptr >> (4*j)) & 0x0f;
             if(half < 10) usart_putchar(half + '0');
             else usart_putchar(half - 10 + 'a');
         }
+    }
+    if(start){
+        usart_putchar('0');
+        usart_putchar('0');
     }
 }
 

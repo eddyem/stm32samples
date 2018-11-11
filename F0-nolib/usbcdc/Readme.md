@@ -1,5 +1,3 @@
 Simple code for CAN/USB development board
+Simultaneous work of USB CDC (PL2303 emulation) and CAN
 
-
-
-USB: https://github.com/majbthrd/CDCHIDwidget/blob/master/src/main.c

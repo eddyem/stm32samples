@@ -18,7 +18,6 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301, USA.
  */
-
 #include "hardware.h"
 #include "usart.h"
 #include "usb.h"
@@ -54,19 +53,32 @@ void iwdg_setup(){
     IWDG->KR = IWDG_REFRESH; /* (6) */
 }
 
+void linecoding_handler(usb_LineCoding *lc){
+    SEND("got new linecoding:");
+    SEND(" baudrate="); printu(lc->dwDTERate);
+    SEND(", charFormat="); printu(lc->bCharFormat);
+    SEND(", parityType="); printu(lc->bParityType);
+    SEND(", dataBits="); printu(lc->bDataBits);
+    usart_putchar('\n');
+}
+
+void clstate_handler(uint16_t val){
+    SEND("change control line state to ");
+    printu(val);
+    usart_putchar('\n');
+}
+
 int main(void){
     uint32_t lastT = 0;
     int L;
     char *txt;
+    char tmpbuf[129];
     sysreset();
     SysTick_Config(6000, 1);
     gpio_setup();
     usart_setup();
-    //iwdg_setup();
     
-    SEND("Greetings! My address is ");
-    printuhex(getBRDaddr());
-    newline(); 
+    SEND("Hello!\n");
 
     if(RCC->CSR & RCC_CSR_IWDGRSTF){ // watchdog reset occured
         SEND("WDGRESET=1\n");
@@ -77,6 +89,7 @@ int main(void){
     RCC->CSR |= RCC_CSR_RMVF; // remove reset flags
 
     USB_setup();
+    //iwdg_setup();
 
     while (1){
         IWDG->KR = IWDG_REFRESH; // refresh watchdog
@@ -84,18 +97,32 @@ int main(void){
             LED_blink(LED0);
             lastT = Tms;
             transmit_tbuf(); // non-blocking transmission of data from UART buffer every 0.5s
+            /*uint8_t r = 0;
+            if((r = USB_receive(tmpbuf, 128))){
+                tmpbuf[r] = 0;
+                SEND("Received data over USB:\n");
+                SEND(tmpbuf);
+                newline();
+            }*/
         }
         usb_proc();
+        uint8_t r = 0;
+        if((r = USB_receive(tmpbuf, 128))){
+            tmpbuf[r] = 0;
+            SEND("Received data over USB:\n");
+            SEND(tmpbuf);
+            newline();
+        }
         if(usartrx()){ // usart1 received data, store in in buffer
             L = usart_getline(&txt);
             char _1st = txt[0];
             if(L == 2 && txt[1] == '\n'){
                 L = 0;
                 switch(_1st){
-                    case 'A':
-                        SEND("Board address: ");
-                        printuhex(getBRDaddr());
-                        newline();
+                    case 'C':
+                        SEND("USB ");
+                        if(!USB_configured()) SEND("dis");
+                        SEND("connected\n");
                     break;
                     case 'R':
                         SEND("Soft reset\n");
@@ -110,7 +137,7 @@ int main(void){
                     break;
                     default: // help
                         SEND(
-                        "'A' - get CAN address\n"
+                        "'C' - test is USB configured\n"
                         "'R' - software reset\n"
                         "'U' - send test string over USB\n"
                         "'W' - test watchdog\n"
