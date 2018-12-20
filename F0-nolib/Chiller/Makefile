@@ -1,17 +1,14 @@
-BINARY		= pl2303
+BINARY		= chiller
 BOOTPORT	?= /dev/ttyUSB0
-BOOTSPEED	?= 57600
+BOOTSPEED	?= 115200
 # MCU FAMILY
 FAMILY		= F0
 # MCU code
-MCU			= F042x6
-# hardware definitions
-DEFS		+= -DUSARTNUM=1
-#DEFS		+= -DCHECK_TMOUT
-#DEFS		+= -DEBUG
+MCU			= F030x4
+DEFS		= -DEBUG
 # change this linking script depending on particular MCU model,
 # for example, if you have STM32F103VBT6, you should write:
-LDSCRIPT	= stm32f042k.ld
+LDSCRIPT	= stm32f030f.ld
 
 INDEPENDENT_HEADERS=
 
@@ -21,8 +18,7 @@ ARCH_FLAGS	= $(ASM_FLAGS) $(FP_FLAGS)
 
 ###############################################################################
 # Executables
-OPREFIX		?= /opt/bin/arm-none-eabi
-PREFIX		?= $(OPREFIX)
+PREFIX		?= /opt/bin/arm-none-eabi
 
 RM			:= rm -f
 RMDIR		:= rmdir
@@ -30,12 +26,11 @@ CC			:= $(PREFIX)-gcc
 LD			:= $(PREFIX)-gcc
 AR			:= $(PREFIX)-ar
 AS			:= $(PREFIX)-as
-OBJCOPY		:= $(OPREFIX)-objcopy
-OBJDUMP		:= $(OPREFIX)-objdump
-GDB			:= $(OPREFIX)-gdb
+OBJCOPY		:= $(PREFIX)-objcopy
+OBJDUMP		:= $(PREFIX)-objdump
+GDB			:= $(PREFIX)-gdb
 STFLASH		:= $(shell which st-flash)
 STBOOT		:= $(shell which stm32flash)
-DFUUTIL		:= $(shell which dfu-util)
 
 ###############################################################################
 # Source files
@@ -106,9 +101,6 @@ $(OBJDIR)/%.o: %.c
 	@echo "  CC      $<"
 	$(CC) $(CFLAGS) $(DEFS) $(INCLUDE) $(ARCH_FLAGS) -o $@ -c $<
 
-#$(OBJDIR)/%.d: %.c $(OBJDIR)
-#	$(CC) -MM -MG $< | sed -e 's,^\([^:]*\)\.o[ ]*:,$(@D)/\1.o $(@D)/\1.d:,' >$@
-
 $(BIN): $(ELF)
 	@echo "  OBJCOPY $(BIN)"
 	$(OBJCOPY) -Obinary $(ELF) $(BIN)
@@ -127,12 +119,9 @@ $(ELF): $(OBJDIR) $(OBJS)
 
 clean:
 	@echo "  CLEAN"
-	$(RM) $(OBJS) $(DEPS) $(ELF) $(HEX) $(LIST) $(OBJDIR)/*.map 
+	$(RM) $(OBJS) $(DEPS) $(ELF) $(HEX) $(LIST) $(OBJDIR)/*.map
 	@rmdir $(OBJDIR) 2>/dev/null || true
 
-dfuboot: $(BIN)
-	@echo "  LOAD  $(BIN) THROUGH DFU"
-	$(DFUUTIL) -a0 -D $(BIN) -s 0x08000000
 
 flash: $(BIN)
 	@echo "  FLASH  $(BIN)"
@@ -142,7 +131,4 @@ boot: $(BIN)
 	@echo "  LOAD $(BIN) through bootloader"
 	$(STBOOT) -b$(BOOTSPEED) $(BOOTPORT) -w $(BIN)
 
-gentags:
-	CFLAGS="$(CFLAGS) $(DEFS)" geany -g $(BINARY).c.tags *[hc] 2>/dev/null
-
-.PHONY: clean flash boot gentags
+.PHONY: clean flash boot
