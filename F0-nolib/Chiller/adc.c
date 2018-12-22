@@ -18,57 +18,100 @@
 
 #include "adc.h"
 
-extern volatile uint32_t Tms; // time counter for 1-second Vdd measurement
-static uint32_t lastVddtime = 0; // Tms value of last Vdd measurement
-static uint32_t VddValue = 0; // value of Vdd * 100 (for more precision measurements)
-// check time of last Vdd measurement & refresh it value
-#define CHKVDDTIME() do{if(!VddValue || Tms < lastVddtime || Tms - lastVddtime > 999) getVdd();}while(0)
-
 /**
- * @brief ADC_array - array for ADC channels:
+ * @brief ADC_array - array for ADC channels with median filtering:
  * 0..3 - external NTC
  * 4 - internal Tsens
  * 5 - Vref
  */
-uint16_t ADC_array[NUMBER_OF_ADC_CHANNELS];
+uint16_t ADC_array[NUMBER_OF_ADC_CHANNELS*9];
 
+/**
+ * @brief getADCval - calculate median value for `nch` channel
+ * @param nch - number of channel
+ * @return
+ */
+uint16_t getADCval(int nch){
+    int i, addr = nch;
+    register uint16_t temp;
+#define PIX_SORT(a,b) { if ((a)>(b)) PIX_SWAP((a),(b)); }
+#define PIX_SWAP(a,b) { temp=(a);(a)=(b);(b)=temp; }
+    uint16_t p[9];
+    for(i = 0; i < 9; ++i, addr += NUMBER_OF_ADC_CHANNELS) // first we should prepare array for optmed
+        p[i] = ADC_array[addr];
+    PIX_SORT(p[1], p[2]) ; PIX_SORT(p[4], p[5]) ; PIX_SORT(p[7], p[8]) ;
+    PIX_SORT(p[0], p[1]) ; PIX_SORT(p[3], p[4]) ; PIX_SORT(p[6], p[7]) ;
+    PIX_SORT(p[1], p[2]) ; PIX_SORT(p[4], p[5]) ; PIX_SORT(p[7], p[8]) ;
+    PIX_SORT(p[0], p[3]) ; PIX_SORT(p[5], p[8]) ; PIX_SORT(p[4], p[7]) ;
+    PIX_SORT(p[3], p[6]) ; PIX_SORT(p[1], p[4]) ; PIX_SORT(p[2], p[5]) ;
+    PIX_SORT(p[4], p[7]) ; PIX_SORT(p[4], p[2]) ; PIX_SORT(p[6], p[4]) ;
+    PIX_SORT(p[4], p[2]) ;
+    return p[4];
+#undef PIX_SORT
+#undef PIX_SWAP
+}
 
 // return MCU temperature (degrees of celsius * 10)
 int32_t getMCUtemp(){
     getVdd();
     // make correction on Vdd value
-    int32_t temperature = (int32_t)ADC_array[4] * VddValue / 330;
-    temperature = (int32_t) *TEMP30_CAL_ADDR - temperature;
+//    int32_t temperature = (int32_t)ADC_array[4] * VddValue / 330;
+    int32_t ADval = getADCval(4);
+    int32_t temperature = (int32_t) *TEMP30_CAL_ADDR - ADval;
     temperature *= (int32_t)(1100 - 300);
-    temperature = temperature / (int32_t)(*TEMP30_CAL_ADDR - *TEMP110_CAL_ADDR);
+    temperature /= (int32_t)(*TEMP30_CAL_ADDR - *TEMP110_CAL_ADDR);
     temperature += 300;
     return(temperature);
 }
 
 // return Vdd * 100 (V)
 uint32_t getVdd(){
-/*    #define ARRSZ (10)
-    static uint16_t arr[ARRSZ] = {0};
-    static int arridx = 0;
-    uint32_t v = ADC_array[5];
-    int i;
-    if(arr[0] == 0){ // first run - fill all with current data
-        for(i = 0; i < ARRSZ; ++i) arr[i] = (uint16_t) v;
-    }else{
-        arr[arridx++] = v;
-        v = 0; // now v is mean
-        if(arridx > ARRSZ-1) arridx = 0;
-        // calculate mean
-        for(i = 0; i < ARRSZ; ++i){
-            v += arr[i];
-        }
-        v /= ARRSZ;
-    }*/
     uint32_t vdd = ((uint32_t) *VREFINT_CAL_ADDR) * (uint32_t)330; // 3.3V
-    //vdd /= v;
-    vdd /= ADC_array[5];
-    lastVddtime = Tms;
-    VddValue = vdd;
+    vdd /= getADCval(5);
     return vdd;
 }
 
+/**
+ * @brief getNTC - return temperature of NTC (*10 degrC)
+ * @param nch - NTC channel number (0..3)
+ * @return
+ */
+int16_t getNTC(int nch){
+#define NKNOTS  (9)
+    const int16_t ADU[NKNOTS] = {427,   468,  514,  623,  754, 910, 1087, 1295, 1538};
+    const int16_t T[NKNOTS]   = {-200, -180, -159, -116,  -72, -26,   23,   75,  132};
+    /*
+     * coefficients: 0.050477   0.045107   0.039150   0.033639   0.029785   0.027017   0.024996   0.023522   0.022514
+     * use
+     * [N D] = rat(K*10); printf("%d, ", N); printf("%d, ", D);
+     */
+    const int16_t N[NKNOTS] = {1377, 295, 258, 110, 291, 77, 1657, 191, 120};
+    const int16_t D[NKNOTS] = {2728, 654, 659, 327, 977, 285, 6629, 812, 533};
+
+    if(nch < 0 || nch > 3) return -30000;
+    uint16_t val = getADCval(nch);
+    // find interval
+    int idx = (NKNOTS+1)/2; // middle
+    while(idx > 0 && idx < NKNOTS){
+        int16_t left = ADU[idx];
+        int half = idx / 2;
+        if(val < left){
+            if(idx == 0) break;
+            if(val > ADU[idx-1]){ // found
+                --idx;
+                break;
+            }
+            idx = half;
+        }else{
+            if(idx == NKNOTS - 1) break; // more than max value
+            if(val < ADU[idx+1]) break;  // found
+            idx += half;
+        }
+    }
+    if(idx < 0) idx = 0;
+    else if(idx > NKNOTS-1) idx = NKNOTS - 1;
+    // T = Y0(idx) + K(idx) * (ADU - X0(idx));
+    int16_t valT = T[idx] + (N[idx]*(val - ADU[idx]))/D[idx];
+#undef NKNOTS
+    return valT;
+}

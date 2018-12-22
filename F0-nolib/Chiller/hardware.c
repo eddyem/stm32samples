@@ -91,7 +91,7 @@ static inline void adc_setup(){
     ADC1->CFGR1 |= ADC_CFGR1_DMAEN | ADC_CFGR1_DMACFG; /* (2) */
     DMA1_Channel1->CPAR = (uint32_t) (&(ADC1->DR)); /* (3) */
     DMA1_Channel1->CMAR = (uint32_t)(ADC_array); /* (4) */
-    DMA1_Channel1->CNDTR = NUMBER_OF_ADC_CHANNELS; /* (5) */
+    DMA1_Channel1->CNDTR = NUMBER_OF_ADC_CHANNELS * 9; /* (5) */
     DMA1_Channel1->CCR |= DMA_CCR_MINC | DMA_CCR_MSIZE_0 | DMA_CCR_PSIZE_0 | DMA_CCR_CIRC; /* (6) */
     DMA1_Channel1->CCR |= DMA_CCR_EN; /* (7) */
     ADC1->CR |= ADC_CR_ADSTART; /* start the ADC conversions */

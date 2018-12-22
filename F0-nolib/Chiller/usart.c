@@ -50,7 +50,7 @@ int put_string(const char *str){
     while(trbufidx < UARTBUFSZ - 1 && *str){
         trbuf[trbufidx++] = *str++;
     }
-    error! shouldn't be!!!
+    //error! shouldn't be!!!
     if(*str) return 1; // buffer overfull
     trbuf[trbufidx] = 0;
     return 0; // all OK
