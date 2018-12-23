@@ -79,15 +79,47 @@ static void get_ntc(const char *str){
 char *process_command(const char *command){
     const char *ptr = command;
     char *ret = NULL;
+    int32_t N;
     usart1_sendbuf(); // send buffer (if it is already filled)
     switch(*ptr++){
         case '?': // help
-            SEND("R - reset\nTx - get NTC temp\nt - get MCU temp\nV - get Vdd");
+            SEND(
+                "Cx - cooler PWM\n"
+                "Hx - heater PWM\n"
+                "Px - pump PWM\n"
+                "R - reset\n"
+                "Tx - get NTC temp\n"
+                "t - get MCU temp\n"
+                "V - get Vdd"
+                );
 #ifdef EBUG
-            SEND("d -> goto debug:");
-            SEND("\tw - test watchdog\n\tAx - get raw ADCx value");
-            SEND("\tT - show raw T values");
+            SEND("d -> goto debug:\n"
+                 "\tAx - get raw ADCx value\n"
+                 "\tT - show raw T values\n"
+                 "\tw - test watchdog"
+                 );
 #endif
+        break;
+        case 'C': // cooler PWM - TIM14CH1
+            if(getnum(ptr, &N) && N > -1 && N < 256){
+                TIM14->CCR1 = N;
+            }
+            put_string("COOLERPWM=");
+            put_int(TIM14->CCR1);
+        break;
+        case 'H': // heater PWM - TIM16CH1
+            if(getnum(ptr, &N) && N > -1 && N < 256){
+                TIM16->CCR1 = N;
+            }
+            put_string("HEATERPWM=");
+            put_int(TIM16->CCR1);
+        break;
+        case 'P': // pump PWM - TIM17CH1
+            if(getnum(ptr, &N) && N > -1 && N < 256){
+                TIM17->CCR1 = N;
+            }
+            put_string("PUMPPWM=");
+            put_int(TIM17->CCR1);
         break;
         case 'R': // reset MCU
             NVIC_SystemReset();

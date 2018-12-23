@@ -106,6 +106,7 @@ static inline void adc_setup(){
  *      PF0  - floating input   - water level alert
  *      PF1  - push-pull        - external alarm
  *      PA0..PA3 - ADC_IN0..3
+ *      PA4, PA6, PA7 - PWM outputs
  * Registers
  *      MODER  - input/output/alternate/analog (2 bit)
  *      OTYPER - 0 pushpull, 1 opendrain
@@ -120,15 +121,56 @@ static inline void adc_setup(){
 static inline void gpio_setup(){
     // Enable clocks to the GPIO subsystems
     RCC->AHBENR |= RCC_AHBENR_GPIOAEN | RCC_AHBENR_GPIOFEN;
-    GPIOA->MODER = GPIO_MODER_MODER13_O | GPIO_MODER_MODER14_O |
+    GPIOA->MODER =
+            GPIO_MODER_MODER13_O | GPIO_MODER_MODER14_O |
+            GPIO_MODER_MODER4_AF | GPIO_MODER_MODER6_AF |
+            GPIO_MODER_MODER7_AF |
             GPIO_MODER_MODER0_AI | GPIO_MODER_MODER1_AI |
             GPIO_MODER_MODER2_AI | GPIO_MODER_MODER3_AI;
-    GPIOA->OTYPER = 3 << 13; // both opendrain
+    GPIOA->OTYPER = 3 << 13; // 13/14 opendrain
     GPIOF->MODER = GPIO_MODER_MODER1_O;
+    // alternate functions:
+    // PA4 - TIM14_CH1 (AF4)
+    // PA6 - TIM16_CH1 (AF5), PA7 - TIM17_CH1 (AF5)
+    GPIOA->AFR[0] = (GPIOA->AFR[0] &~ (GPIO_AFRL_AFRL4 | GPIO_AFRL_AFRL6 | GPIO_AFRL_AFRL7)) \
+                | (4 << (4 * 4)) | (5 << (6 * 4)) | (5 << (7 * 4));
+    // PB1 - TIM3_CH4 (AF1)
+    GPIOB->AFR[0] = (GPIOB->AFR[0] &~ (GPIO_AFRL_AFRL1)) | (1 << (1 * 4));
 }
 
 static inline void timers_setup(){
-    ;
+    // timer 3 - flow sensor
+    // timer 14 - cooler PWM
+    // timer 16 - heater PWM
+    // timer 17 - pump PWM
+    RCC->APB1ENR |= RCC_APB1ENR_TIM3EN | RCC_APB1ENR_TIM14EN; // enable clocking for timers 3 and 14
+    RCC->APB2ENR |= RCC_APB2ENR_TIM16EN | RCC_APB2ENR_TIM17EN; // & timers 16/17
+    // PWM mode 1 (active -> inactive)
+    TIM14->CCMR1 = TIM_CCMR1_OC1M_2 | TIM_CCMR1_OC1M_1;
+    TIM16->CCMR1 = TIM_CCMR1_OC1M_2 | TIM_CCMR1_OC1M_1;
+    TIM17->CCMR1 = TIM_CCMR1_OC1M_2 | TIM_CCMR1_OC1M_1;
+    // frequency
+    TIM14->PSC = 59; // 0.8MHz for 3kHz PWM
+    TIM16->PSC = 18749; // 2.56kHz for 10Hz PWM
+    TIM17->PSC = 5; // 8MHz for 31kHz PWM
+    // ARR for 8-bit PWM
+    TIM14->ARR = 254;
+    TIM16->ARR = 254;
+    TIM17->ARR = 254;
+    // start in OFF state
+    // TIM14->CCR1 = 0; and so on
+    // enable main output
+    TIM14->BDTR |= TIM_BDTR_MOE;
+    TIM16->BDTR |= TIM_BDTR_MOE;
+    TIM17->BDTR |= TIM_BDTR_MOE;
+    // enable PWM output
+    TIM14->CCER = TIM_CCER_CC1E;
+    TIM16->CCER = TIM_CCER_CC1E;
+    TIM17->CCER = TIM_CCER_CC1E;
+    // enable timers
+    TIM14->CR1 |= TIM_CR1_CEN;
+    TIM16->CR1 |= TIM_CR1_CEN;
+    TIM17->CR1 |= TIM_CR1_CEN;
 }
 
 
