@@ -1,0 +1,3 @@
+(sym_lib_table
+  (lib (name Chiller_control-rescue)(type Legacy)(uri ${KIPRJMOD}/Chiller_control-rescue.lib)(options "")(descr ""))
+)
