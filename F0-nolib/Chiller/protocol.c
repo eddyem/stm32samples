@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#include "hardware.h"
 #include "protocol.h"
 #include "usart.h"
 #include "adc.h"
@@ -40,6 +41,14 @@ static void debugging_proc(const char *command){
             }
             put_string("ADC value: ");
             put_uint(getADCval(i));
+            put_string(", ");
+            usart1_sendbuf();
+        break;
+        case 'F':
+            put_string("PB_IDR, flow_cntr: ");
+            put_uint(GPIOB->IDR);
+            put_string(", ");
+            put_uint(flow_cntr);
             usart1_sendbuf();
         break;
         case 'T': // all raw T values
@@ -70,7 +79,8 @@ static void get_ntc(const char *str){
 }
 
 #define SEND(x)		usart1_send_blocking(x, 0)
-
+#define STR(a) XSTR(a)
+#define XSTR(a) #a
 /**
  * @brief process_command - command parser
  * @param command - command text (all inside [] without spaces)
@@ -79,15 +89,65 @@ static void get_ntc(const char *str){
 char *process_command(const char *command){
     const char *ptr = command;
     char *ret = NULL;
+    int32_t N;
     usart1_sendbuf(); // send buffer (if it is already filled)
     switch(*ptr++){
         case '?': // help
-            SEND("R - reset\nTx - get NTC temp\nt - get MCU temp\nV - get Vdd");
+            SEND(
+                "Ax - alarm on(1)/off(0)\n"
+                "Cx - cooler PWM\n"
+                "F - get flow sensor rate for " STR(FLOW_RATE_MS) "ms\n"
+                "Hx - heater PWM\n"
+                "L - check water level\n"
+                "Px - pump PWM\n"
+                "R - reset\n"
+                "Tx - get NTC temp\n"
+                "t - get MCU temp\n"
+                "V - get Vdd"
+                );
 #ifdef EBUG
-            SEND("d -> goto debug:");
-            SEND("\tw - test watchdog\n\tAx - get raw ADCx value");
-            SEND("\tT - show raw T values");
+            SEND("d -> goto debug:\n"
+                 "\tAx - get raw ADCx value\n"
+                 "\tF - get flow_cntr\n"
+                 "\tT - show raw T values\n"
+                 "\tw - test watchdog"
+                 );
 #endif
+        break;
+        case 'A': // turn alarm on/off
+            if(*ptr == '1') pin_set(GPIOF, 2);
+            else if(*ptr == '0')pin_clear(GPIOF, 2);
+            put_string("ALRM=");
+            put_char(pin_read(GPIOF, 2) + '0');
+        break;
+        case 'C': // cooler PWM - TIM14CH1
+            if(getnum(ptr, &N) && N > -1 && N < 256){
+                TIM14->CCR1 = N;
+            }
+            put_string("COOLERPWM=");
+            put_int(TIM14->CCR1);
+        break;
+        case 'F':
+            put_string("FLOWRATE=");
+            put_uint(flow_rate);
+        break;
+        case 'H': // heater PWM - TIM16CH1
+            if(getnum(ptr, &N) && N > -1 && N < 256){
+                TIM16->CCR1 = N;
+            }
+            put_string("HEATERPWM=");
+            put_int(TIM16->CCR1);
+        break;
+        case 'L': // water level
+            put_string("WATERLEVEL=");
+            put_char('0' + pin_read(GPIOF, 1));
+        break;
+        case 'P': // pump PWM - TIM17CH1
+            if(getnum(ptr, &N) && N > -1 && N < 256){
+                TIM17->CCR1 = N;
+            }
+            put_string("PUMPPWM=");
+            put_int(TIM17->CCR1);
         break;
         case 'R': // reset MCU
             NVIC_SystemReset();

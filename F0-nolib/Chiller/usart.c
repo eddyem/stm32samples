@@ -34,10 +34,10 @@ static uint8_t  linerdy = 0         // received data ready
 ;
 
 static int  rbufno = 0; // current rbuf number
-static char rbuf[2][UARTBUFSZ], tbuf[UARTBUFSZ]; // receive & transmit buffers
+static char rbuf[2][UARTBUFSZ+1], tbuf[UARTBUFSZ]; // receive & transmit buffers
 static char *recvdata = NULL;
 
-static char trbuf[UARTBUFSZ]; // auxiliary buffer for data transmission
+static char trbuf[UARTBUFSZ+1]; // auxiliary buffer for data transmission
 static int trbufidx = 0;
 
 int put_char(char c){
@@ -161,18 +161,19 @@ void usart1_isr(){
             }
         }
         switch(rb){
-        	case '[':
-        		datalen[rbufno] = 0;
-        		tmout = 0;
-        	break;
+            case '[':
+                datalen[rbufno] = 0;
+                tmout = 0;
+            break;
             case ']': // close command - line ready!
                 dlen = datalen[rbufno];
                 if(dlen){
-                	linerdy = 1;
-                	incmd = 0;
-                	recvdata = rbuf[rbufno];
-                	rbufno = !rbufno;
-                	datalen[rbufno] = 0;
+                    linerdy = 1;
+                    incmd = 0;
+                    recvdata = rbuf[rbufno];
+                    rbuf[rbufno][dlen] = 0;
+                    rbufno = !rbufno;
+                    datalen[rbufno] = 0;
                 }
                 tmout = 0;
             break;
@@ -256,4 +257,39 @@ TXstatus usart1_send_blocking(const char *str, int len){
     while(!(USART1->ISR & USART_ISR_TC));
     txrdy = 1;
     return ALL_OK;
+}
+
+// read `buf` and get first integer `N` in it
+// @return pointer to first non-number if all OK or NULL if first symbol isn't a space or number
+char *getnum(const char *buf, int32_t *N){
+    char c;
+    int positive = -1;
+    int32_t val = 0;
+    //usart1_send_blocking(buf, 0);
+    while((c = *buf++)){
+        if(c == '\t' || c == ' '){
+            if(positive < 0) continue; // beginning spaces
+            else break; // spaces after number
+        }
+        if(c == '-'){
+            if(positive < 0){
+                positive = 0;
+                continue;
+            }else break; // there already was `-` or number
+        }
+        if(c < '0' || c > '9') break;
+        if(positive < 0) positive = 1;
+        val = val * 10 + (int32_t)(c - '0');
+    }
+    if(positive != -1){
+        if(positive == 0){
+            if(val == 0) return NULL; // single '-'
+            val = -val;
+        }
+        *N = val;
+    }else return NULL;
+/*    usart1_sendbuf();
+    put_uint(val);
+    put_char('\n');*/
+    return (char*)buf-1;
 }

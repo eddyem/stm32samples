@@ -26,6 +26,8 @@
 #include "protocol.h"
 
 volatile uint32_t Tms = 0;
+uint16_t flow_rate = 0; // flow sensor rate
+uint16_t flow_cntr = 0; // flow sensor trigger counter
 
 // Called when systick fires
 void sys_tick_handler(void){
@@ -33,7 +35,7 @@ void sys_tick_handler(void){
 }
 
 int main(void){
-//    uint32_t lastT = 0;
+    uint32_t lastTflow = 0;
     char *txt;
     hw_setup();
     SysTick_Config(6000, 1);
@@ -47,9 +49,11 @@ int main(void){
     RCC->CSR |= RCC_CSR_RMVF; // remove reset flags
     while (1){
         IWDG->KR = IWDG_REFRESH;
-        /*if(lastT > Tms || Tms - lastT > 499){
-            lastT = Tms;
-        }*/
+        if(Tms - lastTflow > FLOW_RATE_MS){ // onse per one second check flow sensor counter
+            lastTflow = Tms;
+            flow_rate = flow_cntr;
+            flow_cntr = 0;
+        }
         if(usart1_getline(&txt)){ // usart1 received command, process it
             txt = process_command(txt);
         }else txt = NULL;

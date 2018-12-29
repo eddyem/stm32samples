@@ -20,6 +20,12 @@
 #define HARDWARE_H
 #include "stm32f0.h"
 
+// measure flow sensor data each 5 seconds
+#define FLOW_RATE_MS        4999
+extern uint16_t flow_rate, flow_cntr;
+
+extern volatile uint32_t Tms;
+
 void hw_setup(void);
 
 #endif // HARDWARE_H

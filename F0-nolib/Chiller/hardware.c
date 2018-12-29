@@ -40,7 +40,6 @@ static inline void iwdg_setup(){
     IWDG->KR = IWDG_REFRESH; /* (6) */
 }
 
-
 static inline void adc_setup(){
     uint16_t ctr = 0; // 0xfff0 - more than 1.3ms
     // Enable clocking
@@ -106,6 +105,7 @@ static inline void adc_setup(){
  *      PF0  - floating input   - water level alert
  *      PF1  - push-pull        - external alarm
  *      PA0..PA3 - ADC_IN0..3
+ *      PA4, PA6, PA7 - PWM outputs
  * Registers
  *      MODER  - input/output/alternate/analog (2 bit)
  *      OTYPER - 0 pushpull, 1 opendrain
@@ -119,19 +119,69 @@ static inline void adc_setup(){
  */
 static inline void gpio_setup(){
     // Enable clocks to the GPIO subsystems
-    RCC->AHBENR |= RCC_AHBENR_GPIOAEN | RCC_AHBENR_GPIOFEN;
-    GPIOA->MODER = GPIO_MODER_MODER13_O | GPIO_MODER_MODER14_O |
+    RCC->AHBENR |= RCC_AHBENR_GPIOAEN | RCC_AHBENR_GPIOBEN | RCC_AHBENR_GPIOFEN;
+    GPIOA->MODER =
+            GPIO_MODER_MODER13_O | GPIO_MODER_MODER14_O |
+            GPIO_MODER_MODER4_AF | GPIO_MODER_MODER6_AF |
+            GPIO_MODER_MODER7_AF |
             GPIO_MODER_MODER0_AI | GPIO_MODER_MODER1_AI |
             GPIO_MODER_MODER2_AI | GPIO_MODER_MODER3_AI;
-    GPIOA->OTYPER = 3 << 13; // both opendrain
+    RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN; // enable syscfg clock for EXTI
+    GPIOA->OTYPER = 3 << 13; // 13/14 opendrain
     GPIOF->MODER = GPIO_MODER_MODER1_O;
+    // PB1 - interrupt input
+    /* (2) Select Port B for pin 1 external interrupt by writing 0001 in EXTI1*/
+    /* (3) Configure the corresponding mask bit in the EXTI_IMR register */
+    /* (4) Configure the Trigger Selection bits of the Interrupt line on rising edge*/
+    /* (5) Configure the Trigger Selection bits of the Interrupt line on falling edge*/
+    SYSCFG->EXTICR[0] = SYSCFG_EXTICR1_EXTI1_PB; /* (2) */
+    EXTI->IMR = EXTI_IMR_MR1; /* (3) */
+    //EXTI->RTSR = 0x0000; /* (4) */
+    EXTI->FTSR = EXTI_FTSR_TR1; /* (5) */
+    /* (6) Enable Interrupt on EXTI0_1 */
+    /* (7) Set priority for EXTI0_1 */
+    NVIC_EnableIRQ(EXTI0_1_IRQn); /* (6) */
+    NVIC_SetPriority(EXTI0_1_IRQn, 3); /* (7) */
+    // alternate functions:
+    // PA4 - TIM14_CH1 (AF4)
+    // PA6 - TIM16_CH1 (AF5), PA7 - TIM17_CH1 (AF5)
+    GPIOA->AFR[0] = (GPIOA->AFR[0] &~ (GPIO_AFRL_AFRL4 | GPIO_AFRL_AFRL6 | GPIO_AFRL_AFRL7)) \
+                | (4 << (4 * 4)) | (5 << (6 * 4)) | (5 << (7 * 4));
 }
 
 static inline void timers_setup(){
-    ;
+    // timer 14 ch1 - cooler PWM
+    // timer 16 ch1 - heater PWM
+    // timer 17 ch1 - pump PWM
+    RCC->APB1ENR |= RCC_APB1ENR_TIM3EN | RCC_APB1ENR_TIM14EN; // enable clocking for timers 3 and 14
+    RCC->APB2ENR |= RCC_APB2ENR_TIM16EN | RCC_APB2ENR_TIM17EN; // & timers 16/17
+    // PWM mode 1 (active -> inactive)
+    TIM14->CCMR1 = TIM_CCMR1_OC1M_2 | TIM_CCMR1_OC1M_1;
+    TIM16->CCMR1 = TIM_CCMR1_OC1M_2 | TIM_CCMR1_OC1M_1;
+    TIM17->CCMR1 = TIM_CCMR1_OC1M_2 | TIM_CCMR1_OC1M_1;
+    // frequency
+    TIM14->PSC = 59; // 0.8MHz for 3kHz PWM
+    TIM16->PSC = 18749; // 2.56kHz for 10Hz PWM
+    TIM17->PSC = 5; // 8MHz for 31kHz PWM
+    // ARR for 8-bit PWM
+    TIM14->ARR = 254;
+    TIM16->ARR = 254;
+    TIM17->ARR = 254;
+    // start in OFF state
+    // TIM14->CCR1 = 0; and so on
+    // enable main output
+    TIM14->BDTR |= TIM_BDTR_MOE;
+    TIM16->BDTR |= TIM_BDTR_MOE;
+    TIM17->BDTR |= TIM_BDTR_MOE;
+    // enable PWM output
+    TIM14->CCER = TIM_CCER_CC1E;
+    TIM16->CCER = TIM_CCER_CC1E;
+    TIM17->CCER = TIM_CCER_CC1E;
+    // enable timers
+    TIM14->CR1 |= TIM_CR1_CEN;
+    TIM16->CR1 |= TIM_CR1_CEN;
+    TIM17->CR1 |= TIM_CR1_CEN;
 }
-
-
 
 void hw_setup(){
     sysreset();
@@ -140,4 +190,14 @@ void hw_setup(){
     timers_setup();
     USART1_config();
     iwdg_setup();
+}
+
+/*
+ * Flow sensor counter
+ */
+void exti0_1_isr(){
+    if (EXTI->PR & EXTI_PR_PR1){
+        EXTI->PR |= EXTI_PR_PR1; /* Clear the pending bit */
+        ++flow_cntr;
+    }
 }

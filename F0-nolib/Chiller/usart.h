@@ -50,5 +50,6 @@ int put_string(const char *str);
 int put_int(int32_t N);
 int put_uint(uint32_t N);
 
+char *getnum(const char *buf, int32_t *N);
 
 #endif // __USART_H__
