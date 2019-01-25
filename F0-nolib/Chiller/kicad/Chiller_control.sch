@@ -1,39 +1,6 @@
-EESchema Schematic File Version 2
-LIBS:power
-LIBS:device
-LIBS:switches
-LIBS:relays
-LIBS:motors
-LIBS:transistors
-LIBS:conn
-LIBS:linear
-LIBS:regul
-LIBS:74xx
-LIBS:cmos4000
-LIBS:adc-dac
-LIBS:memory
-LIBS:xilinx
-LIBS:microcontrollers
-LIBS:dsp
-LIBS:microchip
-LIBS:analog_switches
-LIBS:motorola
-LIBS:texas
-LIBS:intel
-LIBS:audio
-LIBS:interface
-LIBS:digital-audio
-LIBS:philips
-LIBS:display
-LIBS:cypress
-LIBS:siliconi
-LIBS:opto
-LIBS:atmel
-LIBS:contrib
-LIBS:valves
-LIBS:stm32
+EESchema Schematic File Version 4
 LIBS:Chiller_control-cache
-EELAYER 25 0
+EELAYER 29 0
 EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
@@ -48,7 +15,7 @@ Comment3 ""
 Comment4 ""
 $EndDescr
 $Comp
-L GND #PWR01
+L Chiller_control-rescue:GND #PWR01
 U 1 1 58C453C7
 P 2150 1825
 F 0 "#PWR01" H 2150 1575 50  0001 C CNN
@@ -59,7 +26,7 @@ F 3 "" H 2150 1825 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L CP C4
+L Chiller_control-rescue:CP C4
 U 1 1 58C454F6
 P 2550 1625
 F 0 "C4" H 2575 1725 50  0000 L CNN
@@ -70,7 +37,7 @@ F 3 "" H 2550 1625 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L +3.3V #PWR02
+L Chiller_control-rescue:+3.3V #PWR02
 U 1 1 58C455CB
 P 2750 1325
 F 0 "#PWR02" H 2750 1175 50  0001 C CNN
@@ -89,7 +56,7 @@ NRST
 Text Label 1050 2500 0    60   ~ 0
 BOOT0
 $Comp
-L R R1
+L Chiller_control-rescue:R R1
 U 1 1 590D30C8
 P 1050 2800
 F 0 "R1" V 1130 2800 50  0000 C CNN
@@ -100,7 +67,7 @@ F 3 "" H 1050 2800 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L C C2
+L Chiller_control-rescue:C C2
 U 1 1 590D4150
 P 1650 2800
 F 0 "C2" H 1675 2900 50  0000 L CNN
@@ -111,7 +78,7 @@ F 3 "" H 1650 2800 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L C C1
+L Chiller_control-rescue:C C1
 U 1 1 590D4832
 P 1600 3650
 F 0 "C1" H 1625 3750 50  0000 L CNN
@@ -122,7 +89,7 @@ F 3 "" H 1600 3650 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L SW_Push SW2
+L Chiller_control-rescue:SW_Push SW2
 U 1 1 5909F6B6
 P 1350 2800
 F 0 "SW2" H 1400 2900 50  0000 L CNN
@@ -133,7 +100,7 @@ F 3 "" H 1350 3000 50  0000 C CNN
 	0    1    1    0   
 $EndComp
 $Comp
-L SW_Push SW1
+L Chiller_control-rescue:SW_Push SW1
 U 1 1 590A0134
 P 1300 3650
 F 0 "SW1" H 1350 3750 50  0000 L CNN
@@ -144,7 +111,7 @@ F 3 "" H 1300 3850 50  0000 C CNN
 	0    1    1    0   
 $EndComp
 $Comp
-L GND #PWR03
+L Chiller_control-rescue:GND #PWR03
 U 1 1 590A03AF
 P 1050 3000
 F 0 "#PWR03" H 1050 2750 50  0001 C CNN
@@ -155,7 +122,7 @@ F 3 "" H 1050 3000 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L GND #PWR04
+L Chiller_control-rescue:GND #PWR04
 U 1 1 590A509B
 P 1450 3900
 F 0 "#PWR04" H 1450 3650 50  0001 C CNN
@@ -166,7 +133,7 @@ F 3 "" H 1450 3900 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L Conn_01x02 J2
+L Chiller_control-rescue:Conn_01x02 J2
 U 1 1 5A170C1F
 P 875 1325
 F 0 "J2" H 875 1525 50  0000 C CNN
@@ -177,7 +144,7 @@ F 3 "" H 875 1325 50  0001 C CNN
 	-1   0    0    -1  
 $EndComp
 $Comp
-L C C3
+L Chiller_control-rescue:C C3
 U 1 1 5A178C32
 P 1700 1475
 F 0 "C3" H 1725 1575 50  0000 L CNN
@@ -188,7 +155,7 @@ F 3 "" H 1700 1475 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L STM32F030F4Px U3
+L Chiller_control-rescue:STM32F030F4Px U3
 U 1 1 5A189F52
 P 8775 2275
 F 0 "U3" H 7175 3200 50  0000 L BNN
@@ -199,7 +166,7 @@ F 3 "" H 8775 2275 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L PWR_FLAG #FLG05
+L Chiller_control-rescue:PWR_FLAG #FLG05
 U 1 1 5A17FC22
 P 1100 1325
 F 0 "#FLG05" H 1100 1420 50  0001 C CNN
@@ -210,7 +177,7 @@ F 3 "" H 1100 1325 50  0000 C CNN
 	-1   0    0    1   
 $EndComp
 $Comp
-L +12V #PWR06
+L Chiller_control-rescue:+12V #PWR06
 U 1 1 5A17FD59
 P 1100 1325
 F 0 "#PWR06" H 1100 1175 50  0001 C CNN
@@ -221,7 +188,7 @@ F 3 "" H 1100 1325 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L C C6
+L Chiller_control-rescue:C C6
 U 1 1 5A1AB970
 P 8075 1025
 F 0 "C6" H 8100 1125 50  0000 L CNN
@@ -232,7 +199,7 @@ F 3 "" H 8075 1025 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L GND #PWR07
+L Chiller_control-rescue:GND #PWR07
 U 1 1 5A1B3C28
 P 8075 1175
 F 0 "#PWR07" H 8075 925 50  0001 C CNN
@@ -243,7 +210,7 @@ F 3 "" H 8075 1175 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L GND #PWR08
+L Chiller_control-rescue:GND #PWR08
 U 1 1 5A1B4A11
 P 8775 3225
 F 0 "#PWR08" H 8775 2975 50  0001 C CNN
@@ -254,7 +221,7 @@ F 3 "" H 8775 3225 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L +3.3V #PWR09
+L Chiller_control-rescue:+3.3V #PWR09
 U 1 1 5A1B5A75
 P 8075 825
 F 0 "#PWR09" H 8075 675 50  0001 C CNN
@@ -267,7 +234,7 @@ $EndComp
 Text Notes 725  1925 0    79   ~ 0
 +12\nGND
 $Comp
-L +3.3V #PWR010
+L Chiller_control-rescue:+3.3V #PWR010
 U 1 1 590A1E6C
 P 1350 3050
 F 0 "#PWR010" H 1350 2900 50  0001 C CNN
@@ -278,7 +245,7 @@ F 3 "" H 1350 3050 50  0000 C CNN
 	-1   0    0    1   
 $EndComp
 $Comp
-L GND #PWR011
+L Chiller_control-rescue:GND #PWR011
 U 1 1 5A283BCF
 P 1650 3000
 F 0 "#PWR011" H 1650 2750 50  0001 C CNN
@@ -289,7 +256,7 @@ F 3 "" H 1650 3000 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L LM1117-3.3 U1
+L Chiller_control-rescue:LM1117-3.3 U1
 U 1 1 5A2588E7
 P 2150 1325
 F 0 "U1" H 2000 1450 50  0000 C CNN
@@ -300,7 +267,7 @@ F 3 "" H 2150 1325 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L C C12
+L Chiller_control-rescue:C C12
 U 1 1 5A386BD0
 P 4000 2250
 F 0 "C12" H 4025 2350 50  0000 L CNN
@@ -311,7 +278,7 @@ F 3 "" H 4000 2250 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L C C5
+L Chiller_control-rescue:C C5
 U 1 1 5BEE1D09
 P 2800 1575
 F 0 "C5" H 2825 1675 50  0000 L CNN
@@ -322,7 +289,7 @@ F 3 "" H 2800 1575 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L D D1
+L Chiller_control-rescue:D D1
 U 1 1 5BEE236F
 P 1275 1325
 F 0 "D1" H 1275 1425 50  0000 C CNN
@@ -333,7 +300,7 @@ F 3 "" H 1275 1325 50  0001 C CNN
 	-1   0    0    1   
 $EndComp
 $Comp
-L GND #PWR012
+L Chiller_control-rescue:GND #PWR012
 U 1 1 5BEE2561
 P 1075 1500
 F 0 "#PWR012" H 1075 1250 50  0001 C CNN
@@ -344,7 +311,7 @@ F 3 "" H 1075 1500 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L PWR_FLAG #FLG013
+L Chiller_control-rescue:PWR_FLAG #FLG013
 U 1 1 5BEE25D3
 P 975 1500
 F 0 "#FLG013" H 975 1595 50  0001 C CNN
@@ -363,7 +330,7 @@ USART_Tx
 Text Label 10475 2575 0    60   ~ 0
 USART_Rx
 $Comp
-L L L1
+L Chiller_control-rescue:L L1
 U 1 1 5BEE7949
 P 8775 1025
 F 0 "L1" V 8725 1025 50  0000 C CNN
@@ -374,7 +341,7 @@ F 3 "" H 8775 1025 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L C C7
+L Chiller_control-rescue:C C7
 U 1 1 5BEE8065
 P 9450 1125
 F 0 "C7" H 9475 1225 50  0000 L CNN
@@ -385,7 +352,7 @@ F 3 "" H 9450 1125 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L GND #PWR014
+L Chiller_control-rescue:GND #PWR014
 U 1 1 5BEE83C2
 P 9675 975
 F 0 "#PWR014" H 9675 725 50  0001 C CNN
@@ -440,7 +407,7 @@ Ext. Alarm
 Text Notes 10825 2700 0    60   ~ 0
 TLE5205 In
 $Comp
-L R R8
+L Chiller_control-rescue:R R8
 U 1 1 5BEEA391
 P 2825 2775
 F 0 "R8" V 2905 2775 50  0000 C CNN
@@ -455,7 +422,7 @@ DigOut1
 Text Label 2600 3100 2    60   ~ 0
 DigOut2
 $Comp
-L R R6
+L Chiller_control-rescue:R R6
 U 1 1 5BEEA7BE
 P 2625 2775
 F 0 "R6" V 2705 2775 50  0000 C CNN
@@ -470,7 +437,7 @@ Text Notes 10825 2775 0    60   ~ 0
 Text Label 4000 975  2    60   ~ 0
 DigOut0
 $Comp
-L R R12
+L Chiller_control-rescue:R R12
 U 1 1 5BEEB2E1
 P 4450 1175
 F 0 "R12" V 4530 1175 50  0000 C CNN
@@ -481,7 +448,7 @@ F 3 "" H 4450 1175 50  0001 C CNN
 	0    1    1    0   
 $EndComp
 $Comp
-L R R10
+L Chiller_control-rescue:R R10
 U 1 1 5BEEB37B
 P 4150 975
 F 0 "R10" V 4230 975 50  0000 C CNN
@@ -492,7 +459,7 @@ F 3 "" H 4150 975 50  0001 C CNN
 	0    1    1    0   
 $EndComp
 $Comp
-L Q_NMOS_GSD Q1
+L Chiller_control-rescue:Q_NMOS_GSD Q1
 U 1 1 5BEEB585
 P 4500 975
 F 0 "Q1" H 4700 1025 50  0000 L CNN
@@ -505,7 +472,7 @@ $EndComp
 Text Label 2575 3650 2    60   ~ 0
 DigIn1
 $Comp
-L R R7
+L Chiller_control-rescue:R R7
 U 1 1 5BEDA6BA
 P 2725 3650
 F 0 "R7" V 2805 3650 50  0000 C CNN
@@ -518,7 +485,7 @@ $EndComp
 Text Label 3900 2100 2    60   ~ 0
 DigIn0
 $Comp
-L R R11
+L Chiller_control-rescue:R R11
 U 1 1 5BEDB615
 P 4325 2100
 F 0 "R11" V 4405 2100 50  0000 C CNN
@@ -535,7 +502,7 @@ TLE5205\nFor Peltier
 Text Notes 4425 700  2    60   ~ 0
 Ext. Alarm
 $Comp
-L Q_NMOS_GSD Q2
+L Chiller_control-rescue:Q_NMOS_GSD Q2
 U 1 1 5BEDCAD0
 P 5625 1375
 F 0 "Q2" H 5825 1425 50  0000 L CNN
@@ -546,7 +513,7 @@ F 3 "" H 5625 1375 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L R R14
+L Chiller_control-rescue:R R14
 U 1 1 5BEDD4AE
 P 5575 1600
 F 0 "R14" V 5655 1600 50  0000 C CNN
@@ -557,7 +524,7 @@ F 3 "" H 5575 1600 50  0001 C CNN
 	0    1    1    0   
 $EndComp
 $Comp
-L R R15
+L Chiller_control-rescue:R R15
 U 1 1 5BEDD8A0
 P 5725 1025
 F 0 "R15" V 5805 1025 50  0000 C CNN
@@ -568,7 +535,7 @@ F 3 "" H 5725 1025 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L +3.3V #PWR015
+L Chiller_control-rescue:+3.3V #PWR015
 U 1 1 5BEDE0EC
 P 5425 1325
 F 0 "#PWR015" H 5425 1175 50  0001 C CNN
@@ -579,7 +546,7 @@ F 3 "" H 5425 1325 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L GND #PWR016
+L Chiller_control-rescue:GND #PWR016
 U 1 1 5BEE048F
 P 5950 975
 F 0 "#PWR016" H 5950 725 50  0001 C CNN
@@ -592,7 +559,7 @@ $EndComp
 Text Notes 5300 800  0    60   ~ 0
 YF-S201C
 $Comp
-L +12V #PWR017
+L Chiller_control-rescue:+12V #PWR017
 U 1 1 5BEE1671
 P 5925 875
 F 0 "#PWR017" H 5925 725 50  0001 C CNN
@@ -605,7 +572,7 @@ $EndComp
 Text Label 5825 1600 0    60   ~ 0
 TIM3_Ch4
 $Comp
-L GND #PWR018
+L Chiller_control-rescue:GND #PWR018
 U 1 1 5BEE2D93
 P 4000 2450
 F 0 "#PWR018" H 4000 2200 50  0001 C CNN
@@ -616,7 +583,7 @@ F 3 "" H 4000 2450 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L R R13
+L Chiller_control-rescue:R R13
 U 1 1 5BEE33E1
 P 4475 1900
 F 0 "R13" V 4555 1900 50  0000 C CNN
@@ -627,7 +594,7 @@ F 3 "" H 4475 1900 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L +3.3V #PWR019
+L Chiller_control-rescue:+3.3V #PWR019
 U 1 1 5BEE4159
 P 4475 1725
 F 0 "#PWR019" H 4475 1575 50  0001 C CNN
@@ -638,7 +605,7 @@ F 3 "" H 4475 1725 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L R R9
+L Chiller_control-rescue:R R9
 U 1 1 5BEE5083
 P 2925 3500
 F 0 "R9" V 3005 3500 50  0000 C CNN
@@ -649,7 +616,7 @@ F 3 "" H 2925 3500 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L +3.3V #PWR020
+L Chiller_control-rescue:+3.3V #PWR020
 U 1 1 5BEE53EF
 P 2725 2625
 F 0 "#PWR020" H 2725 2475 50  0001 C CNN
@@ -660,7 +627,7 @@ F 3 "" H 2725 2625 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L +3.3V #PWR021
+L Chiller_control-rescue:+3.3V #PWR021
 U 1 1 5BEE7095
 P 2925 3350
 F 0 "#PWR021" H 2925 3200 50  0001 C CNN
@@ -671,7 +638,7 @@ F 3 "" H 2925 3350 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L GND #PWR022
+L Chiller_control-rescue:GND #PWR022
 U 1 1 5BEE8828
 P 4600 1200
 F 0 "#PWR022" H 4600 950 50  0001 C CNN
@@ -684,7 +651,7 @@ $EndComp
 Text Notes 10025 3750 2    60   ~ 0
 PWM
 $Comp
-L R R19
+L Chiller_control-rescue:R R19
 U 1 1 5BEEBD18
 P 10075 4475
 F 0 "R19" V 10155 4475 50  0000 C CNN
@@ -695,7 +662,7 @@ F 3 "" H 10075 4475 50  0001 C CNN
 	0    1    1    0   
 $EndComp
 $Comp
-L R R16
+L Chiller_control-rescue:R R16
 U 1 1 5BEEBD1E
 P 9775 4275
 F 0 "R16" V 9855 4275 50  0000 C CNN
@@ -706,7 +673,7 @@ F 3 "" H 9775 4275 50  0001 C CNN
 	0    1    1    0   
 $EndComp
 $Comp
-L Q_NMOS_GSD Q3
+L Chiller_control-rescue:Q_NMOS_GSD Q3
 U 1 1 5BEEBD24
 P 10125 4275
 F 0 "Q3" H 10325 4325 50  0000 L CNN
@@ -717,7 +684,7 @@ F 3 "" H 10125 4275 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L GND #PWR023
+L Chiller_control-rescue:GND #PWR023
 U 1 1 5BEEBD2B
 P 10225 4500
 F 0 "#PWR023" H 10225 4250 50  0001 C CNN
@@ -732,7 +699,7 @@ Tim14Ch1
 Text Notes 10250 4025 0    60   ~ 0
 Cooler
 $Comp
-L R R20
+L Chiller_control-rescue:R R20
 U 1 1 5BEEC934
 P 10125 5350
 F 0 "R20" V 10205 5350 50  0000 C CNN
@@ -743,7 +710,7 @@ F 3 "" H 10125 5350 50  0001 C CNN
 	0    1    1    0   
 $EndComp
 $Comp
-L R R17
+L Chiller_control-rescue:R R17
 U 1 1 5BEEC93A
 P 9825 5150
 F 0 "R17" V 9905 5150 50  0000 C CNN
@@ -754,7 +721,7 @@ F 3 "" H 9825 5150 50  0001 C CNN
 	0    1    1    0   
 $EndComp
 $Comp
-L Q_NMOS_GDS Q4
+L Chiller_control-rescue:Q_NMOS_GDS Q4
 U 1 1 5BEEC940
 P 10175 5150
 F 0 "Q4" H 10375 5200 50  0000 L CNN
@@ -765,7 +732,7 @@ F 3 "" H 10175 5150 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L GND #PWR024
+L Chiller_control-rescue:GND #PWR024
 U 1 1 5BEEC947
 P 10275 5375
 F 0 "#PWR024" H 10275 5125 50  0001 C CNN
@@ -778,7 +745,7 @@ $EndComp
 Text Notes 10300 4900 0    60   ~ 0
 Heater
 $Comp
-L R R21
+L Chiller_control-rescue:R R21
 U 1 1 5BEED557
 P 10200 6100
 F 0 "R21" V 10280 6100 50  0000 C CNN
@@ -789,7 +756,7 @@ F 3 "" H 10200 6100 50  0001 C CNN
 	0    1    1    0   
 $EndComp
 $Comp
-L R R18
+L Chiller_control-rescue:R R18
 U 1 1 5BEED55D
 P 9900 5900
 F 0 "R18" V 9980 5900 50  0000 C CNN
@@ -800,7 +767,7 @@ F 3 "" H 9900 5900 50  0001 C CNN
 	0    1    1    0   
 $EndComp
 $Comp
-L Q_NMOS_GDS Q5
+L Chiller_control-rescue:Q_NMOS_GDS Q5
 U 1 1 5BEED563
 P 10250 5900
 F 0 "Q5" H 10450 5950 50  0000 L CNN
@@ -811,7 +778,7 @@ F 3 "" H 10250 5900 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L GND #PWR025
+L Chiller_control-rescue:GND #PWR025
 U 1 1 5BEED56A
 P 10350 6125
 F 0 "#PWR025" H 10350 5875 50  0001 C CNN
@@ -830,7 +797,7 @@ TIM17_Ch1
 Text Notes 1200 4475 0    60   ~ 0
 Thermal
 $Comp
-L R R2
+L Chiller_control-rescue:R R2
 U 1 1 5BEF45BA
 P 1075 4700
 F 0 "R2" V 1155 4700 50  0000 C CNN
@@ -841,7 +808,7 @@ F 3 "" H 1075 4700 50  0001 C CNN
 	0    1    1    0   
 $EndComp
 $Comp
-L +3.3VADC #PWR026
+L Chiller_control-rescue:+3.3VADC #PWR026
 U 1 1 5BEF64D3
 P 9100 1275
 F 0 "#PWR026" H 9250 1225 50  0001 C CNN
@@ -852,7 +819,7 @@ F 3 "" H 9100 1275 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L +3.3VADC #PWR027
+L Chiller_control-rescue:+3.3VADC #PWR027
 U 1 1 5BEF6744
 P 2125 4750
 F 0 "#PWR027" H 2275 4700 50  0001 C CNN
@@ -863,7 +830,7 @@ F 3 "" H 2125 4750 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L R R3
+L Chiller_control-rescue:R R3
 U 1 1 5BEF7CBC
 P 1075 4925
 F 0 "R3" V 1155 4925 50  0000 C CNN
@@ -874,7 +841,7 @@ F 3 "" H 1075 4925 50  0001 C CNN
 	0    1    1    0   
 $EndComp
 $Comp
-L R R4
+L Chiller_control-rescue:R R4
 U 1 1 5BEF8256
 P 1075 5150
 F 0 "R4" V 1155 5150 50  0000 C CNN
@@ -885,7 +852,7 @@ F 3 "" H 1075 5150 50  0001 C CNN
 	0    1    1    0   
 $EndComp
 $Comp
-L GND #PWR028
+L Chiller_control-rescue:GND #PWR028
 U 1 1 5BEF8833
 P 725 4975
 F 0 "#PWR028" H 725 4725 50  0001 C CNN
@@ -904,7 +871,7 @@ ADC2
 Text Label 1250 5375 0    60   ~ 0
 ADC3
 $Comp
-L R R5
+L Chiller_control-rescue:R R5
 U 1 1 5BEFAAF1
 P 1075 5375
 F 0 "R5" V 1155 5375 50  0000 C CNN
@@ -915,7 +882,7 @@ F 3 "" H 1075 5375 50  0001 C CNN
 	0    1    1    0   
 $EndComp
 $Comp
-L MAX3232 U2
+L Chiller_control-rescue:MAX3232 U2
 U 1 1 5BEFC197
 P 4800 4675
 F 0 "U2" H 4700 5800 50  0000 R CNN
@@ -926,7 +893,7 @@ F 3 "" H 4800 4775 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L C C11
+L Chiller_control-rescue:C C11
 U 1 1 5BEFD47C
 P 5800 4275
 F 0 "C11" H 5825 4375 50  0000 L CNN
@@ -937,7 +904,7 @@ F 3 "" H 5800 4275 50  0001 C CNN
 	0    1    1    0   
 $EndComp
 $Comp
-L C C10
+L Chiller_control-rescue:C C10
 U 1 1 5BEFD7DB
 P 5650 3925
 F 0 "C10" H 5675 4025 50  0000 L CNN
@@ -948,7 +915,7 @@ F 3 "" H 5650 3925 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L C C13
+L Chiller_control-rescue:C C13
 U 1 1 5BEFD89D
 P 5800 4575
 F 0 "C13" H 5825 4675 50  0000 L CNN
@@ -959,7 +926,7 @@ F 3 "" H 5800 4575 50  0001 C CNN
 	0    1    1    0   
 $EndComp
 $Comp
-L C C9
+L Chiller_control-rescue:C C9
 U 1 1 5BEFF11C
 P 4950 3375
 F 0 "C9" H 4975 3475 50  0000 L CNN
@@ -970,7 +937,7 @@ F 3 "" H 4950 3375 50  0000 C CNN
 	0    1    1    0   
 $EndComp
 $Comp
-L +3.3V #PWR029
+L Chiller_control-rescue:+3.3V #PWR029
 U 1 1 5BF006EE
 P 4800 3275
 F 0 "#PWR029" H 4800 3125 50  0001 C CNN
@@ -981,7 +948,7 @@ F 3 "" H 4800 3275 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L GND #PWR030
+L Chiller_control-rescue:GND #PWR030
 U 1 1 5BF0128D
 P 5125 3450
 F 0 "#PWR030" H 5125 3200 50  0001 C CNN
@@ -992,7 +959,7 @@ F 3 "" H 5125 3450 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L GND #PWR031
+L Chiller_control-rescue:GND #PWR031
 U 1 1 5BF022E5
 P 6050 4400
 F 0 "#PWR031" H 6050 4150 50  0001 C CNN
@@ -1003,7 +970,7 @@ F 3 "" H 6050 4400 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L C C8
+L Chiller_control-rescue:C C8
 U 1 1 5BF0257F
 P 3925 3925
 F 0 "C8" H 3950 4025 50  0000 L CNN
@@ -1014,7 +981,7 @@ F 3 "" H 3925 3925 50  0000 C CNN
 	-1   0    0    1   
 $EndComp
 $Comp
-L DB9_Female J1
+L Chiller_control-rescue:DB9_Female J1
 U 1 1 5BF02D65
 P 6450 5075
 F 0 "J1" H 6450 5625 50  0000 C CNN
@@ -1031,7 +998,7 @@ USART_Tx
 Text Label 4000 5375 2    60   ~ 0
 USART_Rx
 $Comp
-L GND #PWR032
+L Chiller_control-rescue:GND #PWR032
 U 1 1 5BF0792A
 P 4800 5925
 F 0 "#PWR032" H 4800 5675 50  0001 C CNN
@@ -1050,7 +1017,7 @@ NoConn ~ 6150 5175
 NoConn ~ 6150 5275
 NoConn ~ 6150 5375
 $Comp
-L PWR_FLAG #FLG033
+L Chiller_control-rescue:PWR_FLAG #FLG033
 U 1 1 5BF0C65D
 P 9325 1275
 F 0 "#FLG033" H 9325 1370 50  0001 C CNN
@@ -1061,7 +1028,7 @@ F 3 "" H 9325 1275 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L GND #PWR034
+L Chiller_control-rescue:GND #PWR034
 U 1 1 5BF1992D
 P 6125 5500
 F 0 "#PWR034" H 6125 5250 50  0001 C CNN
@@ -1072,7 +1039,7 @@ F 3 "" H 6125 5500 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L Conn_01x02 J5
+L Chiller_control-rescue:Conn_01x02 J5
 U 1 1 5BF1B9CF
 P 10850 3975
 F 0 "J5" H 10850 4175 50  0000 C CNN
@@ -1083,7 +1050,7 @@ F 3 "" H 10850 3975 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L Conn_01x02 J6
+L Chiller_control-rescue:Conn_01x02 J6
 U 1 1 5BF1EE9B
 P 10875 4850
 F 0 "J6" H 10875 5050 50  0000 C CNN
@@ -1094,7 +1061,7 @@ F 3 "" H 10875 4850 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L Conn_01x02 J7
+L Chiller_control-rescue:Conn_01x02 J7
 U 1 1 5BF1F6CF
 P 10925 5600
 F 0 "J7" H 10925 5800 50  0000 C CNN
@@ -1105,7 +1072,7 @@ F 3 "" H 10925 5600 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L +12V #PWR035
+L Chiller_control-rescue:+12V #PWR035
 U 1 1 5BF20A89
 P 10650 3925
 F 0 "#PWR035" H 10650 3775 50  0001 C CNN
@@ -1116,7 +1083,7 @@ F 3 "" H 10650 3925 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L +12V #PWR036
+L Chiller_control-rescue:+12V #PWR036
 U 1 1 5BF21CB9
 P 10675 4800
 F 0 "#PWR036" H 10675 4650 50  0001 C CNN
@@ -1127,7 +1094,7 @@ F 3 "" H 10675 4800 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L +12V #PWR037
+L Chiller_control-rescue:+12V #PWR037
 U 1 1 5BF22482
 P 10725 5525
 F 0 "#PWR037" H 10725 5375 50  0001 C CNN
@@ -1140,7 +1107,7 @@ $EndComp
 Text Notes 5775 675  2    60   ~ 0
 Flow sensor
 $Comp
-L Conn_02x04_Odd_Even J4
+L Chiller_control-rescue:Conn_02x04_Odd_Even J4
 U 1 1 5BF2FEAE
 P 1825 4950
 F 0 "J4" H 1875 5150 50  0000 C CNN
@@ -1153,7 +1120,7 @@ $EndComp
 Text Notes 3900 3250 0    60   ~ 0
 RS-232
 $Comp
-L Conn_02x07_Odd_Even J3
+L Chiller_control-rescue:Conn_02x07_Odd_Even J3
 U 1 1 5BF41ABB
 P 1275 7050
 F 0 "J3" H 1325 7450 50  0000 C CNN
@@ -1171,7 +1138,7 @@ W.levl
 Text Label 1575 7150 0    60   ~ 0
 W.levl
 $Comp
-L GND #PWR038
+L Chiller_control-rescue:GND #PWR038
 U 1 1 5BF4C7AF
 P 725 7150
 F 0 "#PWR038" H 725 6900 50  0001 C CNN
@@ -1190,7 +1157,7 @@ TLE5205
 Text Notes 2350 6800 2    60   ~ 0
 Ext. Alarm
 $Comp
-L +3.3V #PWR039
+L Chiller_control-rescue:+3.3V #PWR039
 U 1 1 5BF508A3
 P 1750 6850
 F 0 "#PWR039" H 1750 6700 50  0001 C CNN
@@ -1201,7 +1168,7 @@ F 3 "" H 1750 6850 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L +12V #PWR040
+L Chiller_control-rescue:+12V #PWR040
 U 1 1 5BF51AF0
 P 1575 6675
 F 0 "#PWR040" H 1575 6525 50  0001 C CNN
@@ -1244,7 +1211,7 @@ Black
 NoConn ~ 5600 4775
 NoConn ~ 5600 5175
 $Comp
-L PWR_FLAG #FLG041
+L Chiller_control-rescue:PWR_FLAG #FLG041
 U 1 1 5BF7AD8F
 P 1525 1325
 F 0 "#FLG041" H 1525 1420 50  0001 C CNN
@@ -1257,11 +1224,11 @@ $EndComp
 Wire Wire Line
 	1050 3000 1050 2950
 Wire Wire Line
-	1050 2500 1050 2650
+	1050 2500 1050 2600
 Wire Wire Line
 	1650 2600 1650 2650
 Wire Wire Line
-	1050 2600 1650 2600
+	1050 2600 1350 2600
 Connection ~ 1350 2600
 Connection ~ 1050 2600
 Wire Wire Line
@@ -1270,7 +1237,7 @@ Wire Wire Line
 	1600 3450 1600 3500
 Connection ~ 1300 3450
 Wire Wire Line
-	1300 3850 1600 3850
+	1300 3850 1450 3850
 Wire Wire Line
 	1600 3850 1600 3800
 Wire Wire Line
@@ -1286,7 +1253,7 @@ Wire Notes Line
 	2000 2200 650  2200
 Connection ~ 1100 1325
 Wire Wire Line
-	2450 1325 2800 1325
+	2450 1325 2550 1325
 Connection ~ 1700 1325
 Wire Notes Line
 	625  575  625  2025
@@ -1308,11 +1275,11 @@ Wire Wire Line
 	2550 1325 2550 1475
 Connection ~ 2550 1325
 Wire Wire Line
-	8075 875  8775 875 
+	8075 875  8675 875 
 Wire Wire Line
-	2150 1625 2150 1825
+	2150 1625 2150 1775
 Wire Wire Line
-	1700 1775 2800 1775
+	1700 1775 2150 1775
 Connection ~ 2150 1775
 Wire Wire Line
 	1700 1625 1700 1775
@@ -1320,7 +1287,7 @@ Connection ~ 8075 875
 Wire Wire Line
 	1350 3050 1350 3000
 Wire Wire Line
-	1050 3450 1600 3450
+	1050 3450 1300 3450
 Wire Wire Line
 	2800 1775 2800 1725
 Connection ~ 2550 1775
@@ -1336,18 +1303,18 @@ Connection ~ 8675 875
 Wire Wire Line
 	9675 975  9450 975 
 Wire Wire Line
-	8775 1275 9450 1275
+	8775 1275 9100 1275
 Connection ~ 8775 1275
 Wire Notes Line
 	10750 1600 10750 1950
 Wire Wire Line
 	5725 1600 5725 1575
 Wire Wire Line
-	5425 1325 5425 1600
+	5425 1325 5425 1375
 Connection ~ 5425 1375
 Connection ~ 5725 1175
 Wire Wire Line
-	5725 875  6050 875 
+	5725 875  5925 875 
 Wire Wire Line
 	5725 1175 6050 1175
 Wire Wire Line
@@ -1357,7 +1324,7 @@ Wire Wire Line
 	5825 1600 5725 1600
 Connection ~ 5725 1600
 Wire Wire Line
-	3900 2100 4175 2100
+	3900 2100 4000 2100
 Wire Wire Line
 	4000 2400 4000 2450
 Wire Wire Line
@@ -1369,20 +1336,20 @@ Connection ~ 4000 2100
 Wire Wire Line
 	4475 1725 4475 1750
 Wire Wire Line
-	2625 2625 2825 2625
+	2625 2625 2725 2625
 Connection ~ 2725 2625
 Wire Wire Line
-	2600 2975 3075 2975
+	2600 2975 2625 2975
 Wire Wire Line
 	2625 2975 2625 2925
 Wire Wire Line
-	2600 3100 3075 3100
+	2600 3100 2825 3100
 Wire Wire Line
 	2825 3100 2825 2925
 Connection ~ 2625 2975
 Connection ~ 2825 3100
 Wire Wire Line
-	2875 3650 3050 3650
+	2875 3650 2925 3650
 Connection ~ 2925 3650
 Connection ~ 4600 1175
 Wire Wire Line
@@ -1410,11 +1377,11 @@ Connection ~ 9100 1275
 Wire Wire Line
 	850  5150 925  5150
 Wire Wire Line
-	850  4700 850  5375
+	850  4700 850  4925
 Wire Wire Line
 	850  4700 925  4700
 Wire Wire Line
-	725  4925 925  4925
+	725  4925 850  4925
 Connection ~ 850  4925
 Wire Wire Line
 	725  4925 725  4975
@@ -1430,7 +1397,7 @@ Connection ~ 850  5150
 Wire Wire Line
 	1225 5375 1625 5375
 Wire Wire Line
-	4800 3275 4800 3475
+	4800 3275 4800 3375
 Connection ~ 4800 3375
 Wire Wire Line
 	5125 3450 5125 3375
@@ -1445,7 +1412,7 @@ Wire Wire Line
 Wire Wire Line
 	5600 4275 5650 4275
 Wire Wire Line
-	5950 4275 5950 4575
+	5950 4275 5950 4400
 Wire Wire Line
 	6050 4400 5950 4400
 Connection ~ 5950 4400
@@ -1485,7 +1452,7 @@ Wire Wire Line
 Wire Wire Line
 	1625 4700 1625 4850
 Wire Wire Line
-	2125 4750 2125 5150
+	2125 4750 2125 4850
 Connection ~ 2125 4850
 Connection ~ 2125 5050
 Connection ~ 2125 4950
@@ -1566,9 +1533,9 @@ Wire Wire Line
 Wire Wire Line
 	5850 5075 6150 5075
 Wire Wire Line
-	1425 1325 1850 1325
+	1425 1325 1525 1325
 Wire Wire Line
-	1075 1325 1125 1325
+	1075 1325 1100 1325
 Connection ~ 1525 1325
 Wire Wire Line
 	6125 5500 6125 5475
@@ -1584,4 +1551,64 @@ Wire Wire Line
 	9975 5350 9975 5150
 Wire Wire Line
 	9925 4475 9925 4275
+Wire Wire Line
+	1350 2600 1650 2600
+Wire Wire Line
+	1050 2600 1050 2650
+Wire Wire Line
+	1300 3450 1600 3450
+Wire Wire Line
+	1450 3850 1600 3850
+Wire Wire Line
+	1100 1325 1125 1325
+Wire Wire Line
+	1700 1325 1850 1325
+Wire Wire Line
+	2550 1325 2750 1325
+Wire Wire Line
+	2150 1775 2150 1825
+Wire Wire Line
+	2150 1775 2550 1775
+Wire Wire Line
+	2550 1775 2800 1775
+Wire Wire Line
+	2750 1325 2800 1325
+Wire Wire Line
+	8675 875  8775 875 
+Wire Wire Line
+	5425 1375 5425 1600
+Wire Wire Line
+	5925 875  6050 875 
+Wire Wire Line
+	4000 2100 4175 2100
+Wire Wire Line
+	2725 2625 2825 2625
+Wire Wire Line
+	2625 2975 3075 2975
+Wire Wire Line
+	2825 3100 3075 3100
+Wire Wire Line
+	2925 3650 3050 3650
+Wire Wire Line
+	9100 1275 9325 1275
+Wire Wire Line
+	850  4925 850  5150
+Wire Wire Line
+	850  4925 925  4925
+Wire Wire Line
+	850  5150 850  5375
+Wire Wire Line
+	4800 3375 4800 3475
+Wire Wire Line
+	5950 4400 5950 4575
+Wire Wire Line
+	9325 1275 9450 1275
+Wire Wire Line
+	2125 4850 2125 4950
+Wire Wire Line
+	2125 5050 2125 5150
+Wire Wire Line
+	2125 4950 2125 5050
+Wire Wire Line
+	1525 1325 1700 1325
 $EndSCHEMATC

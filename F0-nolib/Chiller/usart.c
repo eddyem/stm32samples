@@ -41,18 +41,17 @@ static char trbuf[UARTBUFSZ+1]; // auxiliary buffer for data transmission
 static int trbufidx = 0;
 
 int put_char(char c){
-    if(trbufidx > UARTBUFSZ - 1) return 1;
+    if(trbufidx >= UARTBUFSZ - 1){
+        if(ALL_OK != usart1_sendbuf()) return 1;
+    }
     trbuf[trbufidx++] = c;
     return 0;
 }
 // write zero-terminated string
 int put_string(const char *str){
-    while(trbufidx < UARTBUFSZ - 1 && *str){
-        trbuf[trbufidx++] = *str++;
+    while(*str){
+        if(put_char(*str++)) return 1; //error! shouldn't be!!!
     }
-    //error! shouldn't be!!!
-    if(*str) return 1; // buffer overfull
-    trbuf[trbufidx] = 0;
     return 0; // all OK
 }
 /**

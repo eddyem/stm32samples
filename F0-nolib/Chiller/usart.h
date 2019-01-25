@@ -37,6 +37,10 @@ typedef enum{
 
 #define usart1ovr() (bufovr)
 
+// send constant string
+#define SEND_BLK(x)		do{while(LINE_BUSY == usart1_send_blocking(x, sizeof(x)-1));}while(0)
+#define SEND(x) 		do{while(LINE_BUSY == usart1_send(x, sizeof(x)-1));}while(0)
+
 extern uint8_t bufovr;
 
 void USART1_config();

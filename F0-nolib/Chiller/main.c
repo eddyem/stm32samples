@@ -18,33 +18,53 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301, USA.
  */
-
+#include <string.h> // memcpy
 #include "stm32f0.h"
 #include "hardware.h"
 #include "usart.h"
 #include "adc.h"
 #include "protocol.h"
+#include "mainloop.h"
 
 volatile uint32_t Tms = 0;
-uint16_t flow_rate = 0; // flow sensor rate
-uint16_t flow_cntr = 0; // flow sensor trigger counter
+volatile uint16_t flow_rate = 0; // flow sensor rate
+volatile uint16_t flow_cntr = 0; // flow sensor trigger counter
+// this variable is global as user need to clear it in protocol.c
+uint8_t crit_error = 0; // got critical error, need user acknowledgement
 
 // Called when systick fires
 void sys_tick_handler(void){
     ++Tms;
 }
 
+static void print_state(uint8_t state){
+    if(state == ST_OK){
+        put_string("OK\n");
+        return;
+    }
+    if(state & ST_CRITICAL) put_string("CRIT"); // add prefix "CRIT" for critical states
+    if(!(state & ST_OK)){ // something changed
+        if(state & ST_OFF) put_string("OFF");
+        else{
+            if(state & ST_FASTER) put_string("FASTER");
+            else put_string("SLOWER");
+        }
+    }
+    put_char('\n');
+}
+
 int main(void){
-    uint32_t lastTflow = 0;
+    uint32_t lastTflow = 0; // last flow measurement time
+    chiller_state ost = {ST_OK, ST_OK, ST_OK, ST_OK}, *st; // old & current chiller states
     char *txt;
     hw_setup();
     SysTick_Config(6000, 1);
-    usart1_send_blocking("Chiller controller v0.1\n", 0);
+    SEND_BLK("Chiller controller v0.1\n");
     if(RCC->CSR & RCC_CSR_IWDGRSTF){ // watchdog reset occured
-        usart1_send("WDGRESET=1\n", 0);
+        SEND_BLK("WDGRESET=1");
     }
     if(RCC->CSR & RCC_CSR_SFTRSTF){ // software reset occured
-        usart1_send("SOFTRESET=1\n", 0);
+        SEND_BLK("SOFTRESET=1");
     }
     RCC->CSR |= RCC_CSR_RMVF; // remove reset flags
     while (1){
@@ -53,6 +73,7 @@ int main(void){
             lastTflow = Tms;
             flow_rate = flow_cntr;
             flow_cntr = 0;
+            if(crit_error) SEND("CRITICAL=1\n");
         }
         if(usart1_getline(&txt)){ // usart1 received command, process it
             txt = process_command(txt);
@@ -62,5 +83,29 @@ int main(void){
                 IWDG->KR = IWDG_REFRESH;
             }
         }
+        IWDG->KR = IWDG_REFRESH;
+        //usart1_sendbuf();
+        st = mainloop();
+        // process state values
+        if(st->common_state != ST_OK){
+            if(st->common_state & ST_CRITICAL) crit_error = 1;
+            put_string("STATE=");
+            print_state(st->common_state);
+        }
+        // other states
+        if(st->pump_state != ST_OK){
+            put_string("PUMP=");
+            print_state(st->pump_state);
+        }
+        if(st->cooler_state != ST_OK){
+            put_string("COOLER=");
+            print_state(st->cooler_state);
+        }
+        if(st->heater_state != ST_OK){
+            put_string("HEATER=");
+            print_state(st->heater_state);
+        }
+        memcpy(&ost, st, sizeof(chiller_state));
+        usart1_sendbuf();
     }
 }

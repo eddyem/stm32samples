@@ -19,6 +19,9 @@
 #include "protocol.h"
 #include "usart.h"
 #include "adc.h"
+#include "mainloop.h"
+
+extern uint8_t crit_error;
 
 #ifdef EBUG
 /**
@@ -71,16 +74,14 @@ static void debugging_proc(const char *command){
 static void get_ntc(const char *str){
     uint8_t N = *str - '0';
     if(N > 3) return;
-    int16_t NTC = getNTC(N);
     put_string("NTC");
     put_char(*str);
     put_char('=');
-    put_int(NTC);
+    put_int(NTCval[N]);
 }
 
-#define SEND(x)		usart1_send_blocking(x, 0)
-#define STR(a) XSTR(a)
-#define XSTR(a) #a
+#define STR(a)      XSTR(a)
+#define XSTR(a)     #a
 /**
  * @brief process_command - command parser
  * @param command - command text (all inside [] without spaces)
@@ -93,20 +94,22 @@ char *process_command(const char *command){
     usart1_sendbuf(); // send buffer (if it is already filled)
     switch(*ptr++){
         case '?': // help
-            SEND(
+            SEND_BLK(
                 "Ax - alarm on(1)/off(0)\n"
                 "Cx - cooler PWM\n"
-                "F - get flow sensor rate for " STR(FLOW_RATE_MS) "ms\n"
+                "CLR- clear critical error\n"
+                "F  - get flow sensor rate for " FLOWRATESTR "s (5880 pulses per liter)\n"
                 "Hx - heater PWM\n"
-                "L - check water level\n"
+                "L  - check water level\n"
                 "Px - pump PWM\n"
-                "R - reset\n"
-                "Tx - get NTC temp\n"
-                "t - get MCU temp\n"
-                "V - get Vdd"
+                "R  - reset\n"
+                "Sx - change temperature setpoint\n"
+                "Tx - get NTC[x] temperature\n"
+                "t  - get MCU temperature (approx.)\n"
+                "V  - get Vdd"
                 );
 #ifdef EBUG
-            SEND("d -> goto debug:\n"
+            SEND_BLK("d -> goto debug:\n"
                  "\tAx - get raw ADCx value\n"
                  "\tF - get flow_cntr\n"
                  "\tT - show raw T values\n"
@@ -115,17 +118,21 @@ char *process_command(const char *command){
 #endif
         break;
         case 'A': // turn alarm on/off
-            if(*ptr == '1') pin_set(GPIOF, 2);
-            else if(*ptr == '0')pin_clear(GPIOF, 2);
+            if(*ptr == '1') ALARM_ON();
+            else if(*ptr == '0') ALARM_OFF();
             put_string("ALRM=");
-            put_char(pin_read(GPIOF, 2) + '0');
+            put_char(ALARM_STATE() + '0');
         break;
-        case 'C': // cooler PWM - TIM14CH1
+        case 'C': // "CLR" - clear critical error flag, 'C' - cooler PWM - TIM14CH1
+            if(ptr[0] == 'L' && ptr[1] == 'R' && ptr[2] == 0){
+                crit_error = 0;
+                return "CLRERR=1\n";
+            }
             if(getnum(ptr, &N) && N > -1 && N < 256){
-                TIM14->CCR1 = N;
+                SET_COOLER_PWM(N);
             }
             put_string("COOLERPWM=");
-            put_int(TIM14->CCR1);
+            put_int(GET_COOLER_PWM());
         break;
         case 'F':
             put_string("FLOWRATE=");
@@ -133,10 +140,10 @@ char *process_command(const char *command){
         break;
         case 'H': // heater PWM - TIM16CH1
             if(getnum(ptr, &N) && N > -1 && N < 256){
-                TIM16->CCR1 = N;
+                SET_HEATER_PWM(N);
             }
             put_string("HEATERPWM=");
-            put_int(TIM16->CCR1);
+            put_int(GET_HEATER_PWM());
         break;
         case 'L': // water level
             put_string("WATERLEVEL=");
@@ -144,13 +151,20 @@ char *process_command(const char *command){
         break;
         case 'P': // pump PWM - TIM17CH1
             if(getnum(ptr, &N) && N > -1 && N < 256){
-                TIM17->CCR1 = N;
+                SET_PUMP_PWM(N);
             }
             put_string("PUMPPWM=");
-            put_int(TIM17->CCR1);
+            put_int(GET_PUMP_PWM());
         break;
         case 'R': // reset MCU
             NVIC_SystemReset();
+        break;
+        case 'S':
+            if(getnum(ptr, &N) && N > OUTPUT_T_L + TEMP_TOLERANCE && N < OUTPUT_T_H - TEMP_TOLERANCE){
+                Tset = N;
+            }
+            put_string("TSET=");
+            put_int(Tset);
         break;
         case 'T': // get temperature of NTC(x)
             get_ntc(ptr);
