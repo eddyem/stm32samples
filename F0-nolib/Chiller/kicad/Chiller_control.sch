@@ -17,38 +17,38 @@ $EndDescr
 $Comp
 L Chiller_control-rescue:GND #PWR01
 U 1 1 58C453C7
-P 2150 1825
-F 0 "#PWR01" H 2150 1575 50  0001 C CNN
-F 1 "GND" H 2150 1675 50  0000 C CNN
-F 2 "" H 2150 1825 50  0000 C CNN
-F 3 "" H 2150 1825 50  0000 C CNN
-	1    2150 1825
+P 2875 1825
+F 0 "#PWR01" H 2875 1575 50  0001 C CNN
+F 1 "GND" H 2875 1675 50  0000 C CNN
+F 2 "" H 2875 1825 50  0000 C CNN
+F 3 "" H 2875 1825 50  0000 C CNN
+	1    2875 1825
 	1    0    0    -1  
 $EndComp
 $Comp
 L Chiller_control-rescue:CP C4
 U 1 1 58C454F6
-P 2550 1625
-F 0 "C4" H 2575 1725 50  0000 L CNN
-F 1 "47u" H 2575 1525 50  0000 L CNN
-F 2 "Capacitor_Tantalum_SMD.pretty:CP_Tantalum_Case-A_EIA-3216-18_Hand" H 2588 1475 50  0001 C CNN
-F 3 "" H 2550 1625 50  0000 C CNN
-	1    2550 1625
+P 3275 1625
+F 0 "C4" H 3300 1725 50  0000 L CNN
+F 1 "47u" H 3300 1525 50  0000 L CNN
+F 2 "Capacitor_Tantalum_SMD.pretty:CP_Tantalum_Case-A_EIA-3216-18_Hand" H 3313 1475 50  0001 C CNN
+F 3 "" H 3275 1625 50  0000 C CNN
+	1    3275 1625
 	1    0    0    -1  
 $EndComp
 $Comp
 L Chiller_control-rescue:+3.3V #PWR02
 U 1 1 58C455CB
-P 2750 1325
-F 0 "#PWR02" H 2750 1175 50  0001 C CNN
-F 1 "+3.3V" H 2750 1465 50  0000 C CNN
-F 2 "" H 2750 1325 50  0000 C CNN
-F 3 "" H 2750 1325 50  0000 C CNN
-	1    2750 1325
+P 3475 1325
+F 0 "#PWR02" H 3475 1175 50  0001 C CNN
+F 1 "+3.3V" H 3475 1465 50  0000 C CNN
+F 2 "" H 3475 1325 50  0000 C CNN
+F 3 "" H 3475 1325 50  0000 C CNN
+	1    3475 1325
 	1    0    0    -1  
 $EndComp
-Text Notes 875  875  0    100  ~ 0
-3.3V MCU power source\nwith short-circuit protection
+Text Notes 1125 1000 0    100  ~ 0
+5/3.3V MCU power source
 Text Notes 750  2350 0    100  ~ 0
 Bootloader init
 Text Label 1050 3450 2    60   ~ 0
@@ -72,7 +72,7 @@ U 1 1 590D4150
 P 1650 2800
 F 0 "C2" H 1675 2900 50  0000 L CNN
 F 1 "0.1" H 1675 2700 50  0000 L CNN
-F 2 "Capacitor_SMD.pretty:C_0603_HandSoldering" H 1688 2650 50  0001 C CNN
+F 2 "Capacitor_SMD:C_0603_1608Metric_Pad0.99x1.00mm_HandSolder" H 1688 2650 50  0001 C CNN
 F 3 "" H 1650 2800 50  0000 C CNN
 	1    1650 2800
 	1    0    0    -1  
@@ -83,7 +83,7 @@ U 1 1 590D4832
 P 1600 3650
 F 0 "C1" H 1625 3750 50  0000 L CNN
 F 1 "0.1" H 1625 3550 50  0000 L CNN
-F 2 "Capacitor_SMD.pretty:C_0603_HandSoldering" H 1638 3500 50  0001 C CNN
+F 2 "Capacitor_SMD:C_0603_1608Metric_Pad0.99x1.00mm_HandSolder" H 1638 3500 50  0001 C CNN
 F 3 "" H 1600 3650 50  0000 C CNN
 	1    1600 3650
 	1    0    0    -1  
@@ -146,12 +146,12 @@ $EndComp
 $Comp
 L Chiller_control-rescue:C C3
 U 1 1 5A178C32
-P 1700 1475
-F 0 "C3" H 1725 1575 50  0000 L CNN
-F 1 "0.1" H 1725 1375 50  0000 L CNN
-F 2 "Capacitor_SMD.pretty:C_0603_HandSoldering" H 1738 1325 50  0001 C CNN
-F 3 "" H 1700 1475 50  0000 C CNN
-	1    1700 1475
+P 2425 1475
+F 0 "C3" H 2450 1575 50  0000 L CNN
+F 1 "0.1" H 2450 1375 50  0000 L CNN
+F 2 "Capacitor_SMD:C_0603_1608Metric_Pad0.99x1.00mm_HandSolder" H 2463 1325 50  0001 C CNN
+F 3 "" H 2425 1475 50  0000 C CNN
+	1    2425 1475
 	1    0    0    -1  
 $EndComp
 $Comp
@@ -181,7 +181,7 @@ L Chiller_control-rescue:+12V #PWR06
 U 1 1 5A17FD59
 P 1100 1325
 F 0 "#PWR06" H 1100 1175 50  0001 C CNN
-F 1 "+12V" H 1100 1465 50  0000 C CNN
+F 1 "+12V" H 1050 1475 50  0000 C CNN
 F 2 "" H 1100 1325 50  0001 C CNN
 F 3 "" H 1100 1325 50  0001 C CNN
 	1    1100 1325
@@ -231,7 +231,7 @@ F 3 "" H 8075 825 50  0000 C CNN
 	1    8075 825 
 	1    0    0    -1  
 $EndComp
-Text Notes 725  1925 0    79   ~ 0
+Text Notes 550  1500 0    79   ~ 0
 +12\nGND
 $Comp
 L Chiller_control-rescue:+3.3V #PWR010
@@ -258,34 +258,23 @@ $EndComp
 $Comp
 L Chiller_control-rescue:LM1117-3.3 U1
 U 1 1 5A2588E7
-P 2150 1325
-F 0 "U1" H 2000 1450 50  0000 C CNN
-F 1 "LM1117-3.3" H 2150 1450 50  0000 L CNN
-F 2 "TO_SOT_Packages_SMD:SOT-223" H 2150 1325 50  0001 C CNN
-F 3 "" H 2150 1325 50  0001 C CNN
-	1    2150 1325
-	1    0    0    -1  
-$EndComp
-$Comp
-L Chiller_control-rescue:C C12
-U 1 1 5A386BD0
-P 4000 2250
-F 0 "C12" H 4025 2350 50  0000 L CNN
-F 1 "0.1" H 4025 2150 50  0000 L CNN
-F 2 "Capacitor_SMD.pretty:C_0603_HandSoldering" H 4038 2100 50  0001 C CNN
-F 3 "" H 4000 2250 50  0000 C CNN
-	1    4000 2250
+P 2875 1325
+F 0 "U1" H 2875 1525 50  0000 C CNN
+F 1 "LM1117-3.3" H 2625 1450 50  0000 L CNN
+F 2 "TO_SOT_Packages_SMD:SOT-223" H 2875 1325 50  0001 C CNN
+F 3 "" H 2875 1325 50  0001 C CNN
+	1    2875 1325
 	1    0    0    -1  
 $EndComp
 $Comp
 L Chiller_control-rescue:C C5
 U 1 1 5BEE1D09
-P 2800 1575
-F 0 "C5" H 2825 1675 50  0000 L CNN
-F 1 "0.1" H 2825 1475 50  0000 L CNN
-F 2 "Capacitor_SMD.pretty:C_0603_HandSoldering" H 2838 1425 50  0001 C CNN
-F 3 "" H 2800 1575 50  0000 C CNN
-	1    2800 1575
+P 3525 1575
+F 0 "C5" H 3550 1675 50  0000 L CNN
+F 1 "0.1" H 3550 1475 50  0000 L CNN
+F 2 "Capacitor_SMD:C_0603_1608Metric_Pad0.99x1.00mm_HandSolder" H 3563 1425 50  0001 C CNN
+F 3 "" H 3525 1575 50  0000 C CNN
+	1    3525 1575
 	1    0    0    -1  
 $EndComp
 $Comp
@@ -409,246 +398,113 @@ TLE5205 In
 $Comp
 L Chiller_control-rescue:R R8
 U 1 1 5BEEA391
-P 2825 2775
-F 0 "R8" V 2905 2775 50  0000 C CNN
-F 1 "10k" V 2825 2775 50  0000 C CNN
-F 2 "Resistors_SMD.pretty:R_0603_HandSoldering" V 2755 2775 50  0001 C CNN
-F 3 "" H 2825 2775 50  0001 C CNN
-	1    2825 2775
+P 2650 2775
+F 0 "R8" V 2730 2775 50  0000 C CNN
+F 1 "10k" V 2650 2775 50  0000 C CNN
+F 2 "Resistors_SMD.pretty:R_0603_HandSoldering" V 2580 2775 50  0001 C CNN
+F 3 "" H 2650 2775 50  0001 C CNN
+	1    2650 2775
 	1    0    0    -1  
 $EndComp
-Text Label 2600 2975 2    60   ~ 0
-DigOut1
-Text Label 2600 3100 2    60   ~ 0
-DigOut2
 $Comp
 L Chiller_control-rescue:R R6
 U 1 1 5BEEA7BE
-P 2625 2775
-F 0 "R6" V 2705 2775 50  0000 C CNN
-F 1 "10k" V 2625 2775 50  0000 C CNN
-F 2 "Resistors_SMD.pretty:R_0603_HandSoldering" V 2555 2775 50  0001 C CNN
-F 3 "" H 2625 2775 50  0001 C CNN
-	1    2625 2775
+P 2450 2775
+F 0 "R6" V 2530 2775 50  0000 C CNN
+F 1 "10k" V 2450 2775 50  0000 C CNN
+F 2 "Resistors_SMD.pretty:R_0603_HandSoldering" V 2380 2775 50  0001 C CNN
+F 3 "" H 2450 2775 50  0001 C CNN
+	1    2450 2775
 	1    0    0    -1  
 $EndComp
 Text Notes 10825 2775 0    60   ~ 0
 (opendrain)
-Text Label 4000 975  2    60   ~ 0
-DigOut0
-$Comp
-L Chiller_control-rescue:R R12
-U 1 1 5BEEB2E1
-P 4450 1175
-F 0 "R12" V 4530 1175 50  0000 C CNN
-F 1 "10k" V 4450 1175 50  0000 C CNN
-F 2 "Resistors_SMD.pretty:R_0603_HandSoldering" V 4380 1175 50  0001 C CNN
-F 3 "" H 4450 1175 50  0001 C CNN
-	1    4450 1175
-	0    1    1    0   
-$EndComp
-$Comp
-L Chiller_control-rescue:R R10
-U 1 1 5BEEB37B
-P 4150 975
-F 0 "R10" V 4230 975 50  0000 C CNN
-F 1 "510" V 4150 975 50  0000 C CNN
-F 2 "Resistors_SMD.pretty:R_0603_HandSoldering" V 4080 975 50  0001 C CNN
-F 3 "" H 4150 975 50  0001 C CNN
-	1    4150 975 
-	0    1    1    0   
-$EndComp
-$Comp
-L Chiller_control-rescue:Q_NMOS_GSD Q1
-U 1 1 5BEEB585
-P 4500 975
-F 0 "Q1" H 4700 1025 50  0000 L CNN
-F 1 "SI2300" H 4700 925 50  0000 L CNN
-F 2 "TO_SOT_Packages_SMD:SOT-23_Handsoldering" H 4700 1075 50  0001 C CNN
-F 3 "" H 4500 975 50  0001 C CNN
-	1    4500 975 
-	1    0    0    -1  
-$EndComp
-Text Label 2575 3650 2    60   ~ 0
+Text Label 2525 3700 2    60   ~ 0
 DigIn1
-$Comp
-L Chiller_control-rescue:R R7
-U 1 1 5BEDA6BA
-P 2725 3650
-F 0 "R7" V 2805 3650 50  0000 C CNN
-F 1 "47" V 2725 3650 50  0000 C CNN
-F 2 "Resistors_SMD.pretty:R_0805_HandSoldering" V 2655 3650 50  0001 C CNN
-F 3 "" H 2725 3650 50  0001 C CNN
-	1    2725 3650
-	0    1    1    0   
-$EndComp
-Text Label 3900 2100 2    60   ~ 0
-DigIn0
-$Comp
-L Chiller_control-rescue:R R11
-U 1 1 5BEDB615
-P 4325 2100
-F 0 "R11" V 4405 2100 50  0000 C CNN
-F 1 "47" V 4325 2100 50  0000 C CNN
-F 2 "Resistors_SMD.pretty:R_0805_HandSoldering" V 4255 2100 50  0001 C CNN
-F 3 "" H 4325 2100 50  0001 C CNN
-	1    4325 2100
-	0    1    1    0   
-$EndComp
-Text Notes 4250 1725 2    60   ~ 0
-Water level
-Text Notes 2525 2400 0    60   ~ 0
-TLE5205\nFor Peltier
-Text Notes 4425 700  2    60   ~ 0
-Ext. Alarm
+Text Notes 2500 2325 0    60   ~ 0
+EXT in/out
 $Comp
 L Chiller_control-rescue:Q_NMOS_GSD Q2
 U 1 1 5BEDCAD0
-P 5625 1375
-F 0 "Q2" H 5825 1425 50  0000 L CNN
-F 1 "SI2300" H 5825 1325 50  0000 L CNN
-F 2 "TO_SOT_Packages_SMD:SOT-23_Handsoldering" H 5825 1475 50  0001 C CNN
-F 3 "" H 5625 1375 50  0001 C CNN
-	1    5625 1375
+P 7825 4625
+F 0 "Q2" H 8025 4675 50  0000 L CNN
+F 1 "SI2300" H 8025 4575 50  0000 L CNN
+F 2 "TO_SOT_Packages_SMD:SOT-23_Handsoldering" H 8025 4725 50  0001 C CNN
+F 3 "" H 7825 4625 50  0001 C CNN
+	1    7825 4625
 	1    0    0    -1  
 $EndComp
 $Comp
 L Chiller_control-rescue:R R14
 U 1 1 5BEDD4AE
-P 5575 1600
-F 0 "R14" V 5655 1600 50  0000 C CNN
-F 1 "10k" V 5575 1600 50  0000 C CNN
-F 2 "Resistors_SMD.pretty:R_0603_HandSoldering" V 5505 1600 50  0001 C CNN
-F 3 "" H 5575 1600 50  0001 C CNN
-	1    5575 1600
+P 7775 4850
+F 0 "R14" V 7855 4850 50  0000 C CNN
+F 1 "10k" V 7775 4850 50  0000 C CNN
+F 2 "Resistors_SMD.pretty:R_0603_HandSoldering" V 7705 4850 50  0001 C CNN
+F 3 "" H 7775 4850 50  0001 C CNN
+	1    7775 4850
 	0    1    1    0   
 $EndComp
 $Comp
 L Chiller_control-rescue:R R15
 U 1 1 5BEDD8A0
-P 5725 1025
-F 0 "R15" V 5805 1025 50  0000 C CNN
-F 1 "10k" V 5725 1025 50  0000 C CNN
-F 2 "Resistors_SMD.pretty:R_0603_HandSoldering" V 5655 1025 50  0001 C CNN
-F 3 "" H 5725 1025 50  0001 C CNN
-	1    5725 1025
+P 7925 4275
+F 0 "R15" V 8005 4275 50  0000 C CNN
+F 1 "10k" V 7925 4275 50  0000 C CNN
+F 2 "Resistors_SMD.pretty:R_0603_HandSoldering" V 7855 4275 50  0001 C CNN
+F 3 "" H 7925 4275 50  0001 C CNN
+	1    7925 4275
 	1    0    0    -1  
 $EndComp
 $Comp
 L Chiller_control-rescue:+3.3V #PWR015
 U 1 1 5BEDE0EC
-P 5425 1325
-F 0 "#PWR015" H 5425 1175 50  0001 C CNN
-F 1 "+3.3V" H 5425 1465 50  0000 C CNN
-F 2 "" H 5425 1325 50  0000 C CNN
-F 3 "" H 5425 1325 50  0000 C CNN
-	1    5425 1325
+P 7625 4575
+F 0 "#PWR015" H 7625 4425 50  0001 C CNN
+F 1 "+3.3V" H 7625 4715 50  0000 C CNN
+F 2 "" H 7625 4575 50  0000 C CNN
+F 3 "" H 7625 4575 50  0000 C CNN
+	1    7625 4575
 	1    0    0    -1  
 $EndComp
 $Comp
 L Chiller_control-rescue:GND #PWR016
 U 1 1 5BEE048F
-P 5950 975
-F 0 "#PWR016" H 5950 725 50  0001 C CNN
-F 1 "GND" H 5950 825 50  0000 C CNN
-F 2 "" H 5950 975 50  0000 C CNN
-F 3 "" H 5950 975 50  0000 C CNN
-	1    5950 975 
+P 8500 4175
+F 0 "#PWR016" H 8500 3925 50  0001 C CNN
+F 1 "GND" H 8500 4025 50  0000 C CNN
+F 2 "" H 8500 4175 50  0000 C CNN
+F 3 "" H 8500 4175 50  0000 C CNN
+	1    8500 4175
 	1    0    0    -1  
 $EndComp
-Text Notes 5300 800  0    60   ~ 0
+Text Notes 7400 3775 0    60   ~ 0
 YF-S201C
 $Comp
 L Chiller_control-rescue:+12V #PWR017
 U 1 1 5BEE1671
-P 5925 875
-F 0 "#PWR017" H 5925 725 50  0001 C CNN
-F 1 "+12V" H 5925 1015 50  0000 C CNN
-F 2 "" H 5925 875 50  0001 C CNN
-F 3 "" H 5925 875 50  0001 C CNN
-	1    5925 875 
+P 8350 3825
+F 0 "#PWR017" H 8350 3675 50  0001 C CNN
+F 1 "+12V" H 8350 3965 50  0000 C CNN
+F 2 "" H 8350 3825 50  0001 C CNN
+F 3 "" H 8350 3825 50  0001 C CNN
+	1    8350 3825
 	1    0    0    -1  
 $EndComp
-Text Label 5825 1600 0    60   ~ 0
+Text Label 8025 4850 0    60   ~ 0
 TIM3_Ch4
-$Comp
-L Chiller_control-rescue:GND #PWR018
-U 1 1 5BEE2D93
-P 4000 2450
-F 0 "#PWR018" H 4000 2200 50  0001 C CNN
-F 1 "GND" H 4000 2300 50  0000 C CNN
-F 2 "" H 4000 2450 50  0000 C CNN
-F 3 "" H 4000 2450 50  0000 C CNN
-	1    4000 2450
-	1    0    0    -1  
-$EndComp
-$Comp
-L Chiller_control-rescue:R R13
-U 1 1 5BEE33E1
-P 4475 1900
-F 0 "R13" V 4555 1900 50  0000 C CNN
-F 1 "10k" V 4475 1900 50  0000 C CNN
-F 2 "Resistors_SMD.pretty:R_0603_HandSoldering" V 4405 1900 50  0001 C CNN
-F 3 "" H 4475 1900 50  0001 C CNN
-	1    4475 1900
-	1    0    0    -1  
-$EndComp
-$Comp
-L Chiller_control-rescue:+3.3V #PWR019
-U 1 1 5BEE4159
-P 4475 1725
-F 0 "#PWR019" H 4475 1575 50  0001 C CNN
-F 1 "+3.3V" H 4475 1865 50  0000 C CNN
-F 2 "" H 4475 1725 50  0000 C CNN
-F 3 "" H 4475 1725 50  0000 C CNN
-	1    4475 1725
-	1    0    0    -1  
-$EndComp
-$Comp
-L Chiller_control-rescue:R R9
-U 1 1 5BEE5083
-P 2925 3500
-F 0 "R9" V 3005 3500 50  0000 C CNN
-F 1 "10k" V 2925 3500 50  0000 C CNN
-F 2 "Resistors_SMD.pretty:R_0603_HandSoldering" V 2855 3500 50  0001 C CNN
-F 3 "" H 2925 3500 50  0001 C CNN
-	1    2925 3500
-	1    0    0    -1  
-$EndComp
 $Comp
 L Chiller_control-rescue:+3.3V #PWR020
 U 1 1 5BEE53EF
-P 2725 2625
-F 0 "#PWR020" H 2725 2475 50  0001 C CNN
-F 1 "+3.3V" H 2725 2765 50  0000 C CNN
-F 2 "" H 2725 2625 50  0000 C CNN
-F 3 "" H 2725 2625 50  0000 C CNN
-	1    2725 2625
+P 2550 2625
+F 0 "#PWR020" H 2550 2475 50  0001 C CNN
+F 1 "+3.3V" H 2550 2765 50  0000 C CNN
+F 2 "" H 2550 2625 50  0000 C CNN
+F 3 "" H 2550 2625 50  0000 C CNN
+	1    2550 2625
 	1    0    0    -1  
 $EndComp
-$Comp
-L Chiller_control-rescue:+3.3V #PWR021
-U 1 1 5BEE7095
-P 2925 3350
-F 0 "#PWR021" H 2925 3200 50  0001 C CNN
-F 1 "+3.3V" H 2925 3490 50  0000 C CNN
-F 2 "" H 2925 3350 50  0000 C CNN
-F 3 "" H 2925 3350 50  0000 C CNN
-	1    2925 3350
-	1    0    0    -1  
-$EndComp
-$Comp
-L Chiller_control-rescue:GND #PWR022
-U 1 1 5BEE8828
-P 4600 1200
-F 0 "#PWR022" H 4600 950 50  0001 C CNN
-F 1 "GND" H 4600 1050 50  0000 C CNN
-F 2 "" H 4600 1200 50  0000 C CNN
-F 3 "" H 4600 1200 50  0000 C CNN
-	1    4600 1200
-	1    0    0    -1  
-$EndComp
-Text Notes 10025 3750 2    60   ~ 0
+Text Notes 9575 3725 2    60   ~ 0
 PWM
 $Comp
 L Chiller_control-rescue:R R19
@@ -696,7 +552,7 @@ F 3 "" H 10225 4500 50  0000 C CNN
 $EndComp
 Text Label 9625 4275 2    60   ~ 0
 Tim14Ch1
-Text Notes 10250 4025 0    60   ~ 0
+Text Notes 10500 3725 0    60   ~ 0
 Cooler
 $Comp
 L Chiller_control-rescue:R R20
@@ -726,7 +582,7 @@ U 1 1 5BEEC940
 P 10175 5150
 F 0 "Q4" H 10375 5200 50  0000 L CNN
 F 1 "IRL3303" H 10375 5100 50  0000 L CNN
-F 2 "TO_SOT_Packages_THT:TO-220_Horizontal" H 10375 5250 50  0001 C CNN
+F 2 "TO_SOT_Packages_THT:TO-220-3_Vertical" H 10375 5250 50  0001 C CNN
 F 3 "" H 10175 5150 50  0001 C CNN
 	1    10175 5150
 	1    0    0    -1  
@@ -772,7 +628,7 @@ U 1 1 5BEED563
 P 10250 5900
 F 0 "Q5" H 10450 5950 50  0000 L CNN
 F 1 "IRL3303" H 10450 5850 50  0000 L CNN
-F 2 "TO_SOT_Packages_THT:TO-220_Horizontal" H 10450 6000 50  0001 C CNN
+F 2 "TO_SOT_Packages_THT:TO-220-3_Vertical" H 10450 6000 50  0001 C CNN
 F 3 "" H 10250 5900 50  0001 C CNN
 	1    10250 5900
 	1    0    0    -1  
@@ -794,17 +650,17 @@ Text Label 9675 5150 2    60   ~ 0
 TIM16_Ch1
 Text Label 9750 5900 2    60   ~ 0
 TIM17_Ch1
-Text Notes 1200 4475 0    60   ~ 0
+Text Notes 825  4600 0    60   ~ 0
 Thermal
 $Comp
 L Chiller_control-rescue:R R2
 U 1 1 5BEF45BA
-P 1075 4700
-F 0 "R2" V 1155 4700 50  0000 C CNN
-F 1 "1k0.1%" V 1075 4700 50  0000 C CNN
-F 2 "Resistors_SMD.pretty:R_0805_HandSoldering" V 1005 4700 50  0001 C CNN
-F 3 "" H 1075 4700 50  0001 C CNN
-	1    1075 4700
+P 1025 4925
+F 0 "R2" V 1105 4925 50  0000 C CNN
+F 1 "1k0.1%" V 1025 4925 50  0000 C CNN
+F 2 "Resistors_SMD.pretty:R_0805_HandSoldering" V 955 4925 50  0001 C CNN
+F 3 "" H 1025 4925 50  0001 C CNN
+	1    1025 4925
 	0    1    1    0   
 $EndComp
 $Comp
@@ -821,201 +677,193 @@ $EndComp
 $Comp
 L Chiller_control-rescue:+3.3VADC #PWR027
 U 1 1 5BEF6744
-P 2125 4750
-F 0 "#PWR027" H 2275 4700 50  0001 C CNN
-F 1 "+3.3VADC" H 2125 4850 50  0000 C CNN
-F 2 "" H 2125 4750 50  0001 C CNN
-F 3 "" H 2125 4750 50  0001 C CNN
-	1    2125 4750
-	1    0    0    -1  
+P 2275 5475
+F 0 "#PWR027" H 2425 5425 50  0001 C CNN
+F 1 "+3.3VADC" H 2275 5575 50  0000 C CNN
+F 2 "" H 2275 5475 50  0001 C CNN
+F 3 "" H 2275 5475 50  0001 C CNN
+	1    2275 5475
+	-1   0    0    1   
 $EndComp
 $Comp
 L Chiller_control-rescue:R R3
 U 1 1 5BEF7CBC
-P 1075 4925
-F 0 "R3" V 1155 4925 50  0000 C CNN
-F 1 "1k0.1%" V 1075 4925 50  0000 C CNN
-F 2 "Resistors_SMD.pretty:R_0805_HandSoldering" V 1005 4925 50  0001 C CNN
-F 3 "" H 1075 4925 50  0001 C CNN
-	1    1075 4925
+P 1025 5150
+F 0 "R3" V 1105 5150 50  0000 C CNN
+F 1 "1k0.1%" V 1025 5150 50  0000 C CNN
+F 2 "Resistors_SMD.pretty:R_0805_HandSoldering" V 955 5150 50  0001 C CNN
+F 3 "" H 1025 5150 50  0001 C CNN
+	1    1025 5150
 	0    1    1    0   
 $EndComp
 $Comp
 L Chiller_control-rescue:R R4
 U 1 1 5BEF8256
-P 1075 5150
-F 0 "R4" V 1155 5150 50  0000 C CNN
-F 1 "1k0.1%" V 1075 5150 50  0000 C CNN
-F 2 "Resistors_SMD.pretty:R_0805_HandSoldering" V 1005 5150 50  0001 C CNN
-F 3 "" H 1075 5150 50  0001 C CNN
-	1    1075 5150
+P 1025 5375
+F 0 "R4" V 1105 5375 50  0000 C CNN
+F 1 "1k0.1%" V 1025 5375 50  0000 C CNN
+F 2 "Resistors_SMD.pretty:R_0805_HandSoldering" V 955 5375 50  0001 C CNN
+F 3 "" H 1025 5375 50  0001 C CNN
+	1    1025 5375
 	0    1    1    0   
 $EndComp
 $Comp
 L Chiller_control-rescue:GND #PWR028
 U 1 1 5BEF8833
-P 725 4975
-F 0 "#PWR028" H 725 4725 50  0001 C CNN
-F 1 "GND" H 725 4825 50  0000 C CNN
-F 2 "" H 725 4975 50  0000 C CNN
-F 3 "" H 725 4975 50  0000 C CNN
-	1    725  4975
+P 675 5200
+F 0 "#PWR028" H 675 4950 50  0001 C CNN
+F 1 "GND" H 675 5050 50  0000 C CNN
+F 2 "" H 675 5200 50  0000 C CNN
+F 3 "" H 675 5200 50  0000 C CNN
+	1    675  5200
 	1    0    0    -1  
 $EndComp
-Text Label 1250 4700 0    60   ~ 0
-ADC0
-Text Label 1250 4925 0    60   ~ 0
-ADC1
-Text Label 1250 5150 0    60   ~ 0
-ADC2
-Text Label 1250 5375 0    60   ~ 0
-ADC3
 $Comp
 L Chiller_control-rescue:R R5
 U 1 1 5BEFAAF1
-P 1075 5375
-F 0 "R5" V 1155 5375 50  0000 C CNN
-F 1 "1k0.1%" V 1075 5375 50  0000 C CNN
-F 2 "Resistors_SMD.pretty:R_0805_HandSoldering" V 1005 5375 50  0001 C CNN
-F 3 "" H 1075 5375 50  0001 C CNN
-	1    1075 5375
+P 1025 5600
+F 0 "R5" V 1105 5600 50  0000 C CNN
+F 1 "1k0.1%" V 1025 5600 50  0000 C CNN
+F 2 "Resistors_SMD.pretty:R_0805_HandSoldering" V 955 5600 50  0001 C CNN
+F 3 "" H 1025 5600 50  0001 C CNN
+	1    1025 5600
 	0    1    1    0   
 $EndComp
 $Comp
 L Chiller_control-rescue:MAX3232 U2
 U 1 1 5BEFC197
-P 4800 4675
-F 0 "U2" H 4700 5800 50  0000 R CNN
-F 1 "MAX3232" H 4700 5725 50  0000 R CNN
-F 2 "Housings_SOIC:SOIC-16_3.9x9.9mm_Pitch1.27mm" H 4850 3625 50  0001 L CNN
-F 3 "" H 4800 4775 50  0001 C CNN
-	1    4800 4675
+P 3950 6125
+F 0 "U2" H 3850 7250 50  0000 R CNN
+F 1 "MAX3232" H 3850 7175 50  0000 R CNN
+F 2 "Housings_SOIC:SOIC-16_3.9x9.9mm_Pitch1.27mm" H 4000 5075 50  0001 L CNN
+F 3 "" H 3950 6225 50  0001 C CNN
+	1    3950 6125
 	1    0    0    -1  
 $EndComp
 $Comp
 L Chiller_control-rescue:C C11
 U 1 1 5BEFD47C
-P 5800 4275
-F 0 "C11" H 5825 4375 50  0000 L CNN
-F 1 "0.47" H 5825 4175 50  0000 L CNN
-F 2 "Capacitor_SMD.pretty:C_0805_HandSoldering" H 5838 4125 50  0001 C CNN
-F 3 "" H 5800 4275 50  0001 C CNN
-	1    5800 4275
+P 4950 5725
+F 0 "C11" H 4975 5825 50  0000 L CNN
+F 1 "0.47" H 4975 5625 50  0000 L CNN
+F 2 "Capacitor_SMD.pretty:C_0805_HandSoldering" H 4988 5575 50  0001 C CNN
+F 3 "" H 4950 5725 50  0001 C CNN
+	1    4950 5725
 	0    1    1    0   
 $EndComp
 $Comp
 L Chiller_control-rescue:C C10
 U 1 1 5BEFD7DB
-P 5650 3925
-F 0 "C10" H 5675 4025 50  0000 L CNN
-F 1 "0.47" H 5675 3825 50  0000 L CNN
-F 2 "Capacitor_SMD.pretty:C_0805_HandSoldering" H 5688 3775 50  0001 C CNN
-F 3 "" H 5650 3925 50  0001 C CNN
-	1    5650 3925
+P 4800 5375
+F 0 "C10" H 4825 5475 50  0000 L CNN
+F 1 "0.47" H 4825 5275 50  0000 L CNN
+F 2 "Capacitor_SMD.pretty:C_0805_HandSoldering" H 4838 5225 50  0001 C CNN
+F 3 "" H 4800 5375 50  0001 C CNN
+	1    4800 5375
 	1    0    0    -1  
 $EndComp
 $Comp
 L Chiller_control-rescue:C C13
 U 1 1 5BEFD89D
-P 5800 4575
-F 0 "C13" H 5825 4675 50  0000 L CNN
-F 1 "0.47" H 5825 4475 50  0000 L CNN
-F 2 "Capacitor_SMD.pretty:C_0805_HandSoldering" H 5838 4425 50  0001 C CNN
-F 3 "" H 5800 4575 50  0001 C CNN
-	1    5800 4575
+P 4950 6025
+F 0 "C13" H 4975 6125 50  0000 L CNN
+F 1 "0.47" H 4975 5925 50  0000 L CNN
+F 2 "Capacitor_SMD.pretty:C_0805_HandSoldering" H 4988 5875 50  0001 C CNN
+F 3 "" H 4950 6025 50  0001 C CNN
+	1    4950 6025
 	0    1    1    0   
 $EndComp
 $Comp
 L Chiller_control-rescue:C C9
 U 1 1 5BEFF11C
-P 4950 3375
-F 0 "C9" H 4975 3475 50  0000 L CNN
-F 1 "0.1" H 4975 3275 50  0000 L CNN
-F 2 "Capacitor_SMD.pretty:C_0603_HandSoldering" H 4988 3225 50  0001 C CNN
-F 3 "" H 4950 3375 50  0000 C CNN
-	1    4950 3375
+P 4100 4825
+F 0 "C9" H 4125 4925 50  0000 L CNN
+F 1 "0.1" H 4125 4725 50  0000 L CNN
+F 2 "Capacitor_SMD:C_0603_1608Metric_Pad0.99x1.00mm_HandSolder" H 4138 4675 50  0001 C CNN
+F 3 "" H 4100 4825 50  0000 C CNN
+	1    4100 4825
 	0    1    1    0   
 $EndComp
 $Comp
 L Chiller_control-rescue:+3.3V #PWR029
 U 1 1 5BF006EE
-P 4800 3275
-F 0 "#PWR029" H 4800 3125 50  0001 C CNN
-F 1 "+3.3V" H 4800 3415 50  0000 C CNN
-F 2 "" H 4800 3275 50  0000 C CNN
-F 3 "" H 4800 3275 50  0000 C CNN
-	1    4800 3275
+P 3950 4725
+F 0 "#PWR029" H 3950 4575 50  0001 C CNN
+F 1 "+3.3V" H 3950 4865 50  0000 C CNN
+F 2 "" H 3950 4725 50  0000 C CNN
+F 3 "" H 3950 4725 50  0000 C CNN
+	1    3950 4725
 	1    0    0    -1  
 $EndComp
 $Comp
 L Chiller_control-rescue:GND #PWR030
 U 1 1 5BF0128D
-P 5125 3450
-F 0 "#PWR030" H 5125 3200 50  0001 C CNN
-F 1 "GND" H 5125 3300 50  0000 C CNN
-F 2 "" H 5125 3450 50  0000 C CNN
-F 3 "" H 5125 3450 50  0000 C CNN
-	1    5125 3450
+P 4275 4900
+F 0 "#PWR030" H 4275 4650 50  0001 C CNN
+F 1 "GND" H 4275 4750 50  0000 C CNN
+F 2 "" H 4275 4900 50  0000 C CNN
+F 3 "" H 4275 4900 50  0000 C CNN
+	1    4275 4900
 	1    0    0    -1  
 $EndComp
 $Comp
 L Chiller_control-rescue:GND #PWR031
 U 1 1 5BF022E5
-P 6050 4400
-F 0 "#PWR031" H 6050 4150 50  0001 C CNN
-F 1 "GND" H 6050 4250 50  0000 C CNN
-F 2 "" H 6050 4400 50  0000 C CNN
-F 3 "" H 6050 4400 50  0000 C CNN
-	1    6050 4400
+P 5200 5850
+F 0 "#PWR031" H 5200 5600 50  0001 C CNN
+F 1 "GND" H 5200 5700 50  0000 C CNN
+F 2 "" H 5200 5850 50  0000 C CNN
+F 3 "" H 5200 5850 50  0000 C CNN
+	1    5200 5850
 	1    0    0    -1  
 $EndComp
 $Comp
 L Chiller_control-rescue:C C8
 U 1 1 5BF0257F
-P 3925 3925
-F 0 "C8" H 3950 4025 50  0000 L CNN
-F 1 "0.1" H 3950 3825 50  0000 L CNN
-F 2 "Capacitor_SMD.pretty:C_0603_HandSoldering" H 3963 3775 50  0001 C CNN
-F 3 "" H 3925 3925 50  0000 C CNN
-	1    3925 3925
+P 3075 5375
+F 0 "C8" H 3100 5475 50  0000 L CNN
+F 1 "0.1" H 3100 5275 50  0000 L CNN
+F 2 "Capacitor_SMD:C_0603_1608Metric_Pad0.99x1.00mm_HandSolder" H 3113 5225 50  0001 C CNN
+F 3 "" H 3075 5375 50  0000 C CNN
+	1    3075 5375
 	-1   0    0    1   
 $EndComp
 $Comp
 L Chiller_control-rescue:DB9_Female J1
 U 1 1 5BF02D65
-P 6450 5075
-F 0 "J1" H 6450 5625 50  0000 C CNN
-F 1 "DB9_Female" H 6450 4500 50  0000 C CNN
-F 2 "modules:DB9-F" H 6450 5075 50  0001 C CNN
-F 3 "" H 6450 5075 50  0001 C CNN
-	1    6450 5075
+P 5600 6525
+F 0 "J1" H 5600 7075 50  0000 C CNN
+F 1 "DB9_Female" H 5600 5950 50  0000 C CNN
+F 2 "modules:DB9-F" H 5600 6525 50  0001 C CNN
+F 3 "" H 5600 6525 50  0001 C CNN
+	1    5600 6525
 	1    0    0    -1  
 $EndComp
-Text Notes 5600 6050 0    60   ~ 0
+Text Notes 4750 7500 0    60   ~ 0
 2 - RS232-Rx\n3 - RS232-Tx\n5 - GND
-Text Label 4000 4975 2    60   ~ 0
+Text Label 3150 6425 2    60   ~ 0
 USART_Tx
-Text Label 4000 5375 2    60   ~ 0
+Text Label 3150 6825 2    60   ~ 0
 USART_Rx
 $Comp
 L Chiller_control-rescue:GND #PWR032
 U 1 1 5BF0792A
-P 4800 5925
-F 0 "#PWR032" H 4800 5675 50  0001 C CNN
-F 1 "GND" H 4800 5775 50  0000 C CNN
-F 2 "" H 4800 5925 50  0000 C CNN
-F 3 "" H 4800 5925 50  0000 C CNN
-	1    4800 5925
+P 3950 7375
+F 0 "#PWR032" H 3950 7125 50  0001 C CNN
+F 1 "GND" H 3950 7225 50  0000 C CNN
+F 2 "" H 3950 7375 50  0000 C CNN
+F 3 "" H 3950 7375 50  0000 C CNN
+	1    3950 7375
 	1    0    0    -1  
 $EndComp
-NoConn ~ 4000 5175
-NoConn ~ 4000 4775
-NoConn ~ 6150 4675
-NoConn ~ 6150 4775
-NoConn ~ 6150 4975
-NoConn ~ 6150 5175
-NoConn ~ 6150 5275
-NoConn ~ 6150 5375
+NoConn ~ 3150 6625
+NoConn ~ 3150 6225
+NoConn ~ 5300 6125
+NoConn ~ 5300 6225
+NoConn ~ 5300 6425
+NoConn ~ 5300 6625
+NoConn ~ 5300 6725
+NoConn ~ 5300 6825
 $Comp
 L Chiller_control-rescue:PWR_FLAG #FLG033
 U 1 1 5BF0C65D
@@ -1030,12 +878,12 @@ $EndComp
 $Comp
 L Chiller_control-rescue:GND #PWR034
 U 1 1 5BF1992D
-P 6125 5500
-F 0 "#PWR034" H 6125 5250 50  0001 C CNN
-F 1 "GND" H 6125 5350 50  0000 C CNN
-F 2 "" H 6125 5500 50  0000 C CNN
-F 3 "" H 6125 5500 50  0000 C CNN
-	1    6125 5500
+P 5275 6950
+F 0 "#PWR034" H 5275 6700 50  0001 C CNN
+F 1 "GND" H 5275 6800 50  0000 C CNN
+F 2 "" H 5275 6950 50  0000 C CNN
+F 3 "" H 5275 6950 50  0000 C CNN
+	1    5275 6950
 	1    0    0    -1  
 $EndComp
 $Comp
@@ -1104,37 +952,11 @@ F 3 "" H 10725 5525 50  0001 C CNN
 	1    10725 5525
 	1    0    0    -1  
 $EndComp
-Text Notes 5775 675  2    60   ~ 0
+Text Notes 7925 3675 2    60   ~ 0
 Flow sensor
-$Comp
-L Chiller_control-rescue:Conn_02x04_Odd_Even J4
-U 1 1 5BF2FEAE
-P 1825 4950
-F 0 "J4" H 1875 5150 50  0000 C CNN
-F 1 "Tsens" H 1875 4650 50  0000 C CNN
-F 2 "Connector_PinSocket_2.54mm:PinSocket_2x04_P2.54mm_Vertical" H 1825 4950 50  0001 C CNN
-F 3 "" H 1825 4950 50  0001 C CNN
-	1    1825 4950
-	1    0    0    -1  
-$EndComp
-Text Notes 3900 3250 0    60   ~ 0
+Text Notes 3050 4700 0    60   ~ 0
 RS-232
-$Comp
-L Chiller_control-rescue:Conn_02x07_Odd_Even J3
-U 1 1 5BF41ABB
-P 1275 7050
-F 0 "J3" H 1325 7450 50  0000 C CNN
-F 1 "Ext. devices" H 1325 6650 50  0000 C CNN
-F 2 "Connector_PinSocket_2.54mm:PinSocket_2x07_P2.54mm_Vertical" H 1275 7050 50  0001 C CNN
-F 3 "" H 1275 7050 50  0001 C CNN
-	1    1275 7050
-	1    0    0    -1  
-$EndComp
-NoConn ~ 1075 6750
-NoConn ~ 1075 7050
 NoConn ~ 1075 7250
-Text Label 4600 2100 0    60   ~ 0
-W.levl
 Text Label 1575 7150 0    60   ~ 0
 W.levl
 $Comp
@@ -1153,54 +975,26 @@ Water level
 Text Notes 2425 7375 2    60   ~ 0
 Flow sensor
 Text Notes 1900 7000 0    60   ~ 0
-TLE5205
-Text Notes 2350 6800 2    60   ~ 0
-Ext. Alarm
-$Comp
-L Chiller_control-rescue:+3.3V #PWR039
-U 1 1 5BF508A3
-P 1750 6850
-F 0 "#PWR039" H 1750 6700 50  0001 C CNN
-F 1 "+3.3V" H 1750 6990 50  0000 C CNN
-F 2 "" H 1750 6850 50  0000 C CNN
-F 3 "" H 1750 6850 50  0000 C CNN
-	1    1750 6850
-	1    0    0    -1  
-$EndComp
-$Comp
-L Chiller_control-rescue:+12V #PWR040
-U 1 1 5BF51AF0
-P 1575 6675
-F 0 "#PWR040" H 1575 6525 50  0001 C CNN
-F 1 "+12V" H 1575 6815 50  0000 C CNN
-F 2 "" H 1575 6675 50  0001 C CNN
-F 3 "" H 1575 6675 50  0001 C CNN
-	1    1575 6675
-	1    0    0    -1  
-$EndComp
-Text Label 4850 775  0    60   ~ 0
-Alrm
-Text Label 1075 6850 2    60   ~ 0
-Alrm
+DIG in/out
 Text Label 3075 2975 0    60   ~ 0
-In1
+Out1
 Text Label 3075 3100 0    60   ~ 0
-In2
-Text Label 3050 3650 0    60   ~ 0
-EF
+Out2
+Text Label 3050 3700 0    60   ~ 0
+IN
 Text Label 1075 6950 2    60   ~ 0
-EF
+IN
 Text Label 1575 6950 0    60   ~ 0
-In1
+Out1
 Text Label 1575 7050 0    60   ~ 0
-In2
+Out2
 Text Notes 975  6450 0    60   ~ 0
 External devices
-Text Label 6050 875  0    60   ~ 0
+Text Label 8575 4075 0    60   ~ 0
 Red
-Text Label 6050 975  0    60   ~ 0
+Text Label 8550 4175 0    60   ~ 0
 Black
-Text Label 6050 1175 0    60   ~ 0
+Text Label 8525 4475 0    60   ~ 0
 Yellow
 Text Label 1575 7350 0    60   ~ 0
 Yellow
@@ -1208,19 +1002,8 @@ Text Label 1575 7250 0    60   ~ 0
 Red
 Text Label 1075 7350 2    60   ~ 0
 Black
-NoConn ~ 5600 4775
-NoConn ~ 5600 5175
-$Comp
-L Chiller_control-rescue:PWR_FLAG #FLG041
-U 1 1 5BF7AD8F
-P 1525 1325
-F 0 "#FLG041" H 1525 1420 50  0001 C CNN
-F 1 "PWR_FLAG" H 1525 1505 50  0001 C CNN
-F 2 "" H 1525 1325 50  0000 C CNN
-F 3 "" H 1525 1325 50  0000 C CNN
-	1    1525 1325
-	-1   0    0    1   
-$EndComp
+NoConn ~ 4750 6225
+NoConn ~ 4750 6625
 Wire Wire Line
 	1050 3000 1050 2950
 Wire Wire Line
@@ -1253,16 +1036,8 @@ Wire Notes Line
 	2000 2200 650  2200
 Connection ~ 1100 1325
 Wire Wire Line
-	2450 1325 2550 1325
-Connection ~ 1700 1325
-Wire Notes Line
-	625  575  625  2025
-Wire Notes Line
-	625  2025 3475 2025
-Wire Notes Line
-	3475 2025 3475 575 
-Wire Notes Line
-	3475 575  625  575 
+	3175 1325 3275 1325
+Connection ~ 2425 1325
 Wire Wire Line
 	8675 875  8675 1275
 Wire Wire Line
@@ -1272,28 +1047,28 @@ Wire Wire Line
 Wire Wire Line
 	8075 825  8075 875 
 Wire Wire Line
-	2550 1325 2550 1475
-Connection ~ 2550 1325
+	3275 1325 3275 1475
+Connection ~ 3275 1325
 Wire Wire Line
 	8075 875  8675 875 
 Wire Wire Line
-	2150 1625 2150 1775
+	2875 1625 2875 1775
 Wire Wire Line
-	1700 1775 2150 1775
-Connection ~ 2150 1775
+	2425 1775 2875 1775
+Connection ~ 2875 1775
 Wire Wire Line
-	1700 1625 1700 1775
+	2425 1625 2425 1775
 Connection ~ 8075 875 
 Wire Wire Line
 	1350 3050 1350 3000
 Wire Wire Line
 	1050 3450 1300 3450
 Wire Wire Line
-	2800 1775 2800 1725
-Connection ~ 2550 1775
+	3525 1775 3525 1725
+Connection ~ 3275 1775
 Wire Wire Line
-	2800 1325 2800 1425
-Connection ~ 2750 1325
+	3525 1325 3525 1425
+Connection ~ 3475 1325
 Wire Wire Line
 	1075 1500 1075 1425
 Wire Wire Line
@@ -1308,64 +1083,32 @@ Connection ~ 8775 1275
 Wire Notes Line
 	10750 1600 10750 1950
 Wire Wire Line
-	5725 1600 5725 1575
+	7925 4850 7925 4825
 Wire Wire Line
-	5425 1325 5425 1375
-Connection ~ 5425 1375
-Connection ~ 5725 1175
+	7625 4575 7625 4625
+Connection ~ 7625 4625
 Wire Wire Line
-	5725 875  5925 875 
+	8025 4850 7925 4850
+Connection ~ 7925 4850
 Wire Wire Line
-	5725 1175 6050 1175
+	2450 2625 2550 2625
+Connection ~ 2550 2625
 Wire Wire Line
-	5950 975  6050 975 
-Connection ~ 5925 875 
+	2425 2975 2450 2975
 Wire Wire Line
-	5825 1600 5725 1600
-Connection ~ 5725 1600
+	2450 2975 2450 2925
 Wire Wire Line
-	3900 2100 4000 2100
+	2425 3100 2650 3100
 Wire Wire Line
-	4000 2400 4000 2450
-Wire Wire Line
-	4475 2050 4475 2100
-Wire Wire Line
-	4475 2100 4600 2100
-Connection ~ 4475 2100
-Connection ~ 4000 2100
-Wire Wire Line
-	4475 1725 4475 1750
-Wire Wire Line
-	2625 2625 2725 2625
-Connection ~ 2725 2625
-Wire Wire Line
-	2600 2975 2625 2975
-Wire Wire Line
-	2625 2975 2625 2925
-Wire Wire Line
-	2600 3100 2825 3100
-Wire Wire Line
-	2825 3100 2825 2925
-Connection ~ 2625 2975
-Connection ~ 2825 3100
-Wire Wire Line
-	2875 3650 2925 3650
-Connection ~ 2925 3650
-Connection ~ 4600 1175
-Wire Wire Line
-	4600 1200 4600 1175
-Wire Wire Line
-	4600 775  4850 775 
+	2650 3100 2650 2925
 Connection ~ 10225 4475
 Wire Wire Line
 	10225 4500 10225 4475
-Connection ~ 9925 4275
 Wire Wire Line
 	10225 4075 10650 4075
 Connection ~ 10275 5350
 Wire Wire Line
 	10275 5375 10275 5350
-Connection ~ 9975 5150
 Wire Wire Line
 	10275 4950 10675 4950
 Connection ~ 10350 6100
@@ -1375,55 +1118,49 @@ Wire Wire Line
 	10350 5700 10725 5700
 Connection ~ 9100 1275
 Wire Wire Line
-	850  5150 925  5150
+	800  5375 875  5375
 Wire Wire Line
-	850  4700 850  4925
+	800  4925 800  5150
 Wire Wire Line
-	850  4700 925  4700
+	800  4925 875  4925
 Wire Wire Line
-	725  4925 850  4925
-Connection ~ 850  4925
+	675  5150 800  5150
+Connection ~ 800  5150
 Wire Wire Line
-	725  4925 725  4975
+	675  5150 675  5200
 Wire Wire Line
-	1225 4700 1625 4700
+	1175 4925 1400 4925
 Wire Wire Line
-	1225 4925 1350 4925
+	800  5600 875  5600
+Connection ~ 800  5375
 Wire Wire Line
-	1225 5150 1350 5150
+	3950 4725 3950 4825
+Connection ~ 3950 4825
 Wire Wire Line
-	850  5375 925  5375
-Connection ~ 850  5150
+	4275 4900 4275 4825
 Wire Wire Line
-	1225 5375 1625 5375
+	4275 4825 4250 4825
 Wire Wire Line
-	4800 3275 4800 3375
-Connection ~ 4800 3375
+	4750 5225 4800 5225
 Wire Wire Line
-	5125 3450 5125 3375
+	4800 5525 4750 5525
 Wire Wire Line
-	5125 3375 5100 3375
+	4800 6025 4750 6025
 Wire Wire Line
-	5600 3775 5650 3775
+	4750 5725 4800 5725
 Wire Wire Line
-	5650 4075 5600 4075
+	5100 5725 5100 5850
 Wire Wire Line
-	5650 4575 5600 4575
+	5200 5850 5100 5850
+Connection ~ 5100 5850
 Wire Wire Line
-	5600 4275 5650 4275
+	3075 5525 3150 5525
 Wire Wire Line
-	5950 4275 5950 4400
+	3075 5225 3150 5225
 Wire Wire Line
-	6050 4400 5950 4400
-Connection ~ 5950 4400
+	5300 6325 4750 6325
 Wire Wire Line
-	3925 4075 4000 4075
-Wire Wire Line
-	3925 3775 4000 3775
-Wire Wire Line
-	6150 4875 5600 4875
-Wire Wire Line
-	4800 5925 4800 5875
+	3950 7375 3950 7325
 Connection ~ 9325 1275
 Wire Wire Line
 	10650 3925 10650 3975
@@ -1439,83 +1176,14 @@ Wire Notes Line
 	11050 6350 9075 6350
 Wire Notes Line
 	9075 6350 9075 3575
-Wire Wire Line
-	1625 5375 1625 5150
-Wire Wire Line
-	1350 5050 1625 5050
-Wire Wire Line
-	1350 5150 1350 5050
-Wire Wire Line
-	1350 4950 1625 4950
-Wire Wire Line
-	1350 4925 1350 4950
-Wire Wire Line
-	1625 4700 1625 4850
-Wire Wire Line
-	2125 4750 2125 4850
-Connection ~ 2125 4850
-Connection ~ 2125 5050
-Connection ~ 2125 4950
 Wire Notes Line
-	650  4325 2325 4325
+	2700 7550 5900 7550
 Wire Notes Line
-	2325 4325 2325 5550
+	5900 7550 5900 4500
 Wire Notes Line
-	2325 5550 650  5550
+	5900 4500 2700 4500
 Wire Notes Line
-	650  5550 650  4325
-Wire Notes Line
-	3550 6100 6750 6100
-Wire Notes Line
-	6750 6100 6750 3050
-Wire Notes Line
-	6750 3050 3550 3050
-Wire Notes Line
-	3550 3050 3550 6100
-Wire Notes Line
-	975  6900 1650 6900
-Wire Notes Line
-	975  7100 1650 7100
-Wire Notes Line
-	975  7200 1650 7200
-Wire Wire Line
-	725  7150 1075 7150
-Wire Wire Line
-	1750 6850 1575 6850
-Wire Wire Line
-	1575 6675 1575 6750
-Wire Notes Line
-	5175 575  5175 1750
-Wire Notes Line
-	5175 1750 6350 1750
-Wire Notes Line
-	6350 1750 6350 575 
-Wire Notes Line
-	6350 575  5175 575 
-Wire Notes Line
-	4925 1525 4925 2650
-Wire Notes Line
-	4925 2650 3600 2650
-Wire Notes Line
-	3600 2650 3600 1525
-Wire Notes Line
-	3600 1525 4925 1525
-Wire Notes Line
-	2200 2200 2200 3800
-Wire Notes Line
-	2200 3800 3250 3800
-Wire Notes Line
-	3250 3800 3250 2200
-Wire Notes Line
-	3250 2200 2200 2200
-Wire Notes Line
-	3600 575  3600 1425
-Wire Notes Line
-	3600 1425 5075 1425
-Wire Notes Line
-	5075 1425 5075 575 
-Wire Notes Line
-	5075 575  3600 575 
+	2700 4500 2700 7550
 Wire Notes Line
 	650  6350 650  7550
 Wire Notes Line
@@ -1525,32 +1193,19 @@ Wire Notes Line
 Wire Notes Line
 	2475 6350 650  6350
 Wire Wire Line
-	5600 4875 5600 4975
+	4750 6325 4750 6425
 Wire Wire Line
-	5600 5375 5850 5375
+	4750 6825 5000 6825
 Wire Wire Line
-	5850 5375 5850 5075
+	5000 6825 5000 6525
 Wire Wire Line
-	5850 5075 6150 5075
-Wire Wire Line
-	1425 1325 1525 1325
+	5000 6525 5300 6525
 Wire Wire Line
 	1075 1325 1100 1325
-Connection ~ 1525 1325
 Wire Wire Line
-	6125 5500 6125 5475
+	5275 6950 5275 6925
 Wire Wire Line
-	6125 5475 6150 5475
-Connection ~ 10050 5900
-Wire Wire Line
-	4300 975  4300 1175
-Connection ~ 4300 975 
-Wire Wire Line
-	10050 6100 10050 5900
-Wire Wire Line
-	9975 5350 9975 5150
-Wire Wire Line
-	9925 4475 9925 4275
+	5275 6925 5300 6925
 Wire Wire Line
 	1350 2600 1650 2600
 Wire Wire Line
@@ -1562,53 +1217,696 @@ Wire Wire Line
 Wire Wire Line
 	1100 1325 1125 1325
 Wire Wire Line
-	1700 1325 1850 1325
+	2425 1325 2575 1325
 Wire Wire Line
-	2550 1325 2750 1325
+	3275 1325 3475 1325
 Wire Wire Line
-	2150 1775 2150 1825
+	2875 1775 2875 1825
 Wire Wire Line
-	2150 1775 2550 1775
+	2875 1775 3275 1775
 Wire Wire Line
-	2550 1775 2800 1775
+	3275 1775 3525 1775
 Wire Wire Line
-	2750 1325 2800 1325
+	3475 1325 3525 1325
 Wire Wire Line
 	8675 875  8775 875 
 Wire Wire Line
-	5425 1375 5425 1600
+	7625 4625 7625 4850
 Wire Wire Line
-	5925 875  6050 875 
-Wire Wire Line
-	4000 2100 4175 2100
-Wire Wire Line
-	2725 2625 2825 2625
-Wire Wire Line
-	2625 2975 3075 2975
-Wire Wire Line
-	2825 3100 3075 3100
-Wire Wire Line
-	2925 3650 3050 3650
+	2550 2625 2650 2625
 Wire Wire Line
 	9100 1275 9325 1275
 Wire Wire Line
-	850  4925 850  5150
+	800  5150 800  5375
 Wire Wire Line
-	850  4925 925  4925
+	800  5150 875  5150
 Wire Wire Line
-	850  5150 850  5375
+	800  5375 800  5600
 Wire Wire Line
-	4800 3375 4800 3475
+	3950 4825 3950 4925
 Wire Wire Line
-	5950 4400 5950 4575
+	5100 5850 5100 6025
 Wire Wire Line
 	9325 1275 9450 1275
 Wire Wire Line
-	2125 4850 2125 4950
+	4525 2375 4700 2375
+Wire Notes Line
+	4125 850  4125 1700
+Wire Notes Line
+	4125 1800 5450 1800
+Wire Notes Line
+	4125 2925 4125 1800
+Wire Notes Line
+	5450 2925 4125 2925
+Wire Notes Line
+	5450 1800 5450 2925
 Wire Wire Line
-	2125 5050 2125 5150
+	5125 1475 5125 1450
+Connection ~ 5125 1450
 Wire Wire Line
-	2125 4950 2125 5050
+	5000 2000 5000 2025
+Connection ~ 4525 2375
+Connection ~ 5000 2375
 Wire Wire Line
-	1525 1325 1700 1325
+	5000 2375 5125 2375
+Wire Wire Line
+	5000 2325 5000 2375
+Wire Wire Line
+	4525 2675 4525 2725
+Wire Wire Line
+	4425 2375 4525 2375
+Text Label 5125 2375 0    60   ~ 0
+W.levl
+$Comp
+L Chiller_control-rescue:GND #PWR022
+U 1 1 5BEE8828
+P 5125 1475
+F 0 "#PWR022" H 5125 1225 50  0001 C CNN
+F 1 "GND" H 5125 1325 50  0000 C CNN
+F 2 "" H 5125 1475 50  0000 C CNN
+F 3 "" H 5125 1475 50  0000 C CNN
+	1    5125 1475
+	1    0    0    -1  
+$EndComp
+$Comp
+L Chiller_control-rescue:+3.3V #PWR019
+U 1 1 5BEE4159
+P 5000 2000
+F 0 "#PWR019" H 5000 1850 50  0001 C CNN
+F 1 "+3.3V" H 5000 2140 50  0000 C CNN
+F 2 "" H 5000 2000 50  0000 C CNN
+F 3 "" H 5000 2000 50  0000 C CNN
+	1    5000 2000
+	1    0    0    -1  
+$EndComp
+$Comp
+L Chiller_control-rescue:R R13
+U 1 1 5BEE33E1
+P 5000 2175
+F 0 "R13" V 5080 2175 50  0000 C CNN
+F 1 "10k" V 5000 2175 50  0000 C CNN
+F 2 "Resistors_SMD.pretty:R_0603_HandSoldering" V 4930 2175 50  0001 C CNN
+F 3 "" H 5000 2175 50  0001 C CNN
+	1    5000 2175
+	1    0    0    -1  
+$EndComp
+$Comp
+L Chiller_control-rescue:GND #PWR018
+U 1 1 5BEE2D93
+P 4525 2725
+F 0 "#PWR018" H 4525 2475 50  0001 C CNN
+F 1 "GND" H 4525 2575 50  0000 C CNN
+F 2 "" H 4525 2725 50  0000 C CNN
+F 3 "" H 4525 2725 50  0000 C CNN
+	1    4525 2725
+	1    0    0    -1  
+$EndComp
+Text Notes 4950 975  2    60   ~ 0
+Alarm Buzzer
+Text Notes 4775 2000 2    60   ~ 0
+Water level
+$Comp
+L Chiller_control-rescue:R R11
+U 1 1 5BEDB615
+P 4850 2375
+F 0 "R11" V 4930 2375 50  0000 C CNN
+F 1 "220" V 4850 2375 50  0000 C CNN
+F 2 "Resistors_SMD.pretty:R_0805_HandSoldering" V 4780 2375 50  0001 C CNN
+F 3 "" H 4850 2375 50  0001 C CNN
+	1    4850 2375
+	0    1    1    0   
+$EndComp
+Text Label 4425 2375 2    60   ~ 0
+DigIn0
+$Comp
+L Chiller_control-rescue:Q_NMOS_GSD Q1
+U 1 1 5BEEB585
+P 5025 1250
+F 0 "Q1" H 5225 1300 50  0000 L CNN
+F 1 "SI2300" H 5225 1200 50  0000 L CNN
+F 2 "TO_SOT_Packages_SMD:SOT-23_Handsoldering" H 5225 1350 50  0001 C CNN
+F 3 "" H 5025 1250 50  0001 C CNN
+	1    5025 1250
+	1    0    0    -1  
+$EndComp
+$Comp
+L Chiller_control-rescue:R R10
+U 1 1 5BEEB37B
+P 4675 1250
+F 0 "R10" V 4755 1250 50  0000 C CNN
+F 1 "510" V 4675 1250 50  0000 C CNN
+F 2 "Resistors_SMD.pretty:R_0603_HandSoldering" V 4605 1250 50  0001 C CNN
+F 3 "" H 4675 1250 50  0001 C CNN
+	1    4675 1250
+	0    1    1    0   
+$EndComp
+$Comp
+L Chiller_control-rescue:R R12
+U 1 1 5BEEB2E1
+P 4975 1450
+F 0 "R12" V 5055 1450 50  0000 C CNN
+F 1 "10k" V 4975 1450 50  0000 C CNN
+F 2 "Resistors_SMD.pretty:R_0603_HandSoldering" V 4905 1450 50  0001 C CNN
+F 3 "" H 4975 1450 50  0001 C CNN
+	1    4975 1450
+	0    1    1    0   
+$EndComp
+Text Label 4525 1250 2    60   ~ 0
+DigOut0
+$Comp
+L Chiller_control-rescue:C C12
+U 1 1 5A386BD0
+P 4525 2525
+F 0 "C12" H 4550 2625 50  0000 L CNN
+F 1 "0.1" H 4550 2425 50  0000 L CNN
+F 2 "Capacitor_SMD:C_0603_1608Metric_Pad0.99x1.00mm_HandSolder" H 4563 2375 50  0001 C CNN
+F 3 "" H 4525 2525 50  0000 C CNN
+	1    4525 2525
+	1    0    0    -1  
+$EndComp
+Connection ~ 2925 3700
+Wire Wire Line
+	2925 3700 3050 3700
+Wire Wire Line
+	2875 3700 2925 3700
+$Comp
+L Chiller_control-rescue:+3.3V #PWR021
+U 1 1 5BEE7095
+P 2925 3400
+F 0 "#PWR021" H 2925 3250 50  0001 C CNN
+F 1 "+3.3V" H 2925 3540 50  0000 C CNN
+F 2 "" H 2925 3400 50  0000 C CNN
+F 3 "" H 2925 3400 50  0000 C CNN
+	1    2925 3400
+	1    0    0    -1  
+$EndComp
+$Comp
+L Chiller_control-rescue:R R9
+U 1 1 5BEE5083
+P 2925 3550
+F 0 "R9" V 3005 3550 50  0000 C CNN
+F 1 "10k" V 2925 3550 50  0000 C CNN
+F 2 "Resistors_SMD.pretty:R_0603_HandSoldering" V 2855 3550 50  0001 C CNN
+F 3 "" H 2925 3550 50  0001 C CNN
+	1    2925 3550
+	1    0    0    -1  
+$EndComp
+$Comp
+L Chiller_control-rescue:R R7
+U 1 1 5BEDA6BA
+P 2725 3700
+F 0 "R7" V 2805 3700 50  0000 C CNN
+F 1 "220" V 2725 3700 50  0000 C CNN
+F 2 "Resistor_SMD:R_0805_2012Metric_Pad1.29x1.40mm_HandSolder" V 2655 3700 50  0001 C CNN
+F 3 "" H 2725 3700 50  0001 C CNN
+	1    2725 3700
+	0    1    1    0   
+$EndComp
+$Comp
+L Chiller_control-rescue:R R22
+U 1 1 5C509370
+P 2875 2925
+F 0 "R22" V 2955 2925 50  0000 C CNN
+F 1 "220" V 2875 2925 50  0000 C CNN
+F 2 "Resistor_SMD:R_0805_2012Metric_Pad1.29x1.40mm_HandSolder" V 2805 2925 50  0001 C CNN
+F 3 "" H 2875 2925 50  0001 C CNN
+	1    2875 2925
+	0    1    1    0   
+$EndComp
+Text Label 2425 2975 2    60   ~ 0
+DigOut1
+Text Label 2425 3100 2    60   ~ 0
+DigOut2
+$Comp
+L Chiller_control-rescue:R R23
+U 1 1 5C50F547
+P 2875 3100
+F 0 "R23" V 2955 3100 50  0000 C CNN
+F 1 "220" V 2875 3100 50  0000 C CNN
+F 2 "Resistor_SMD:R_0805_2012Metric_Pad1.29x1.40mm_HandSolder" V 2805 3100 50  0001 C CNN
+F 3 "" H 2875 3100 50  0001 C CNN
+	1    2875 3100
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	2650 3100 2725 3100
+Connection ~ 2650 3100
+Wire Wire Line
+	3025 3100 3075 3100
+Wire Wire Line
+	2450 2975 2725 2975
+Wire Wire Line
+	2725 2975 2725 2925
+Connection ~ 2450 2975
+Wire Wire Line
+	3025 2925 3025 2975
+Wire Wire Line
+	3025 2975 3075 2975
+Wire Notes Line
+	2050 2200 3300 2200
+$Comp
+L Chiller_control-rescue:CP C15
+U 1 1 5C53FDA9
+P 10225 3925
+F 0 "C15" H 10343 3971 50  0000 L CNN
+F 1 "100u" H 10343 3880 50  0000 L CNN
+F 2 "Capacitor_THT:CP_Radial_D8.0mm_P3.50mm" H 10263 3775 50  0001 C CNN
+F 3 "" H 10225 3925 50  0001 C CNN
+	1    10225 3925
+	1    0    0    -1  
+$EndComp
+Connection ~ 10225 4075
+$Comp
+L Chiller_control-rescue:+12V #PWR033
+U 1 1 5C54020D
+P 10225 3775
+F 0 "#PWR033" H 10225 3625 50  0001 C CNN
+F 1 "+12V" H 10225 3915 50  0000 C CNN
+F 2 "" H 10225 3775 50  0001 C CNN
+F 3 "" H 10225 3775 50  0001 C CNN
+	1    10225 3775
+	1    0    0    -1  
+$EndComp
+$Comp
+L Chiller_control-rescue:R R26
+U 1 1 5C5422DE
+P 8375 4475
+F 0 "R26" V 8455 4475 50  0000 C CNN
+F 1 "220" V 8375 4475 50  0000 C CNN
+F 2 "Resistor_SMD:R_0805_2012Metric_Pad1.29x1.40mm_HandSolder" V 8305 4475 50  0001 C CNN
+F 3 "" H 8375 4475 50  0001 C CNN
+	1    8375 4475
+	0    1    1    0   
+$EndComp
+Connection ~ 7925 4425
+Wire Wire Line
+	7925 4425 8075 4425
+Wire Wire Line
+	8075 4425 8075 4475
+$Comp
+L Chiller_control-rescue:C C16
+U 1 1 5C548AFE
+P 8175 4325
+F 0 "C16" H 8290 4371 50  0000 L CNN
+F 1 "1u" H 8290 4280 50  0000 L CNN
+F 2 "Capacitor_SMD:C_0805_2012Metric_Pad1.29x1.40mm_HandSolder" H 8213 4175 50  0001 C CNN
+F 3 "" H 8175 4325 50  0001 C CNN
+	1    8175 4325
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	8075 4475 8175 4475
+Wire Wire Line
+	8175 4175 8500 4175
+Wire Wire Line
+	8500 4175 8550 4175
+Connection ~ 8500 4175
+Wire Wire Line
+	8225 4475 8175 4475
+Connection ~ 8175 4475
+$Comp
+L Chiller_control-rescue:R R25
+U 1 1 5C565B8F
+P 8350 3975
+F 0 "R25" V 8430 3975 50  0000 C CNN
+F 1 "0" V 8350 3975 50  0000 C CNN
+F 2 "Resistor_SMD:R_0805_2012Metric_Pad1.29x1.40mm_HandSolder" V 8280 3975 50  0001 C CNN
+F 3 "" H 8350 3975 50  0001 C CNN
+	1    8350 3975
+	-1   0    0    1   
+$EndComp
+Wire Wire Line
+	8500 4125 8500 4075
+Wire Wire Line
+	8500 4075 8575 4075
+Wire Wire Line
+	7925 4125 8125 4125
+Connection ~ 8350 4125
+Wire Wire Line
+	8350 4125 8500 4125
+$Comp
+L Chiller_control-rescue:R R24
+U 1 1 5C56BFDC
+P 8125 3975
+F 0 "R24" V 8205 3975 50  0000 C CNN
+F 1 "0" V 8125 3975 50  0000 C CNN
+F 2 "Resistor_SMD:R_0805_2012Metric_Pad1.29x1.40mm_HandSolder" V 8055 3975 50  0001 C CNN
+F 3 "" H 8125 3975 50  0001 C CNN
+	1    8125 3975
+	-1   0    0    1   
+$EndComp
+Connection ~ 8125 4125
+Wire Wire Line
+	8125 4125 8350 4125
+$Comp
+L power:+5V #PWR041
+U 1 1 5C56C9DA
+P 8125 3825
+F 0 "#PWR041" H 8125 3675 50  0001 C CNN
+F 1 "+5V" H 8140 3998 50  0000 C CNN
+F 2 "" H 8125 3825 50  0001 C CNN
+F 3 "" H 8125 3825 50  0001 C CNN
+	1    8125 3825
+	1    0    0    -1  
+$EndComp
+$Comp
+L Regulator_Linear:L7805 U4
+U 1 1 5C573DC9
+P 1850 1325
+F 0 "U4" H 1850 1567 50  0000 C CNN
+F 1 "L7805" H 1850 1476 50  0000 C CNN
+F 2 "TO_SOT_Packages_THT:TO-220-3_Vertical" H 1875 1175 50  0001 L CIN
+F 3 "http://www.st.com/content/ccc/resource/technical/document/datasheet/41/4f/b3/b0/12/d4/47/88/CD00000444.pdf/files/CD00000444.pdf/jcr:content/translations/en.CD00000444.pdf" H 1850 1275 50  0001 C CNN
+	1    1850 1325
+	1    0    0    -1  
+$EndComp
+$Comp
+L Chiller_control-rescue:C C14
+U 1 1 5C574153
+P 1425 1475
+F 0 "C14" H 1450 1550 50  0000 L CNN
+F 1 "1u" H 1500 1400 50  0000 L CNN
+F 2 "Capacitor_SMD:C_0805_2012Metric_Pad1.29x1.40mm_HandSolder" H 1463 1325 50  0001 C CNN
+F 3 "" H 1425 1475 50  0001 C CNN
+	1    1425 1475
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	1425 1325 1550 1325
+Connection ~ 1425 1325
+$Comp
+L Chiller_control-rescue:PWR_FLAG #FLG01
+U 1 1 5C57AE5C
+P 1425 1325
+F 0 "#FLG01" H 1425 1420 50  0001 C CNN
+F 1 "PWR_FLAG" H 1425 1505 50  0001 C CNN
+F 2 "" H 1425 1325 50  0000 C CNN
+F 3 "" H 1425 1325 50  0000 C CNN
+	1    1425 1325
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	1425 1625 1425 1775
+Wire Wire Line
+	1425 1775 1850 1775
+Connection ~ 2425 1775
+Wire Wire Line
+	1850 1625 1850 1775
+Connection ~ 1850 1775
+Wire Wire Line
+	1850 1775 2425 1775
+$Comp
+L power:+5V #PWR013
+U 1 1 5C56CC29
+P 2425 1325
+F 0 "#PWR013" H 2425 1175 50  0001 C CNN
+F 1 "+5V" H 2440 1498 50  0000 C CNN
+F 2 "" H 2425 1325 50  0001 C CNN
+F 3 "" H 2425 1325 50  0001 C CNN
+	1    2425 1325
+	1    0    0    -1  
+$EndComp
+Wire Notes Line
+	500  825  3700 825 
+Wire Notes Line
+	3700 2125 500  2125
+Wire Notes Line
+	500  2125 500  825 
+Wire Notes Line
+	3700 825  3700 2125
+Wire Notes Line
+	7325 3575 8875 3575
+Wire Notes Line
+	8875 5025 7325 5025
+Wire Notes Line
+	7325 5025 7325 3575
+Wire Notes Line
+	8875 3575 8875 5025
+Text Notes 7475 4075 0    60   ~ 0
+Solder only\nR24 or R25
+$Comp
+L Chiller_control-rescue:C C18
+U 1 1 5C5C6D73
+P 1425 5850
+F 0 "C18" H 1450 5950 50  0000 L CNN
+F 1 "0.1" H 1450 5750 50  0000 L CNN
+F 2 "Capacitor_SMD:C_0603_1608Metric_Pad0.99x1.00mm_HandSolder" H 1463 5700 50  0001 C CNN
+F 3 "" H 1425 5850 50  0000 C CNN
+	1    1425 5850
+	1    0    0    -1  
+$EndComp
+$Comp
+L Chiller_control-rescue:C C20
+U 1 1 5C5D4FAB
+P 1675 5850
+F 0 "C20" H 1700 5950 50  0000 L CNN
+F 1 "0.1" H 1700 5750 50  0000 L CNN
+F 2 "Capacitor_SMD:C_0603_1608Metric_Pad0.99x1.00mm_HandSolder" H 1713 5700 50  0001 C CNN
+F 3 "" H 1675 5850 50  0000 C CNN
+	1    1675 5850
+	1    0    0    -1  
+$EndComp
+$Comp
+L Chiller_control-rescue:C C17
+U 1 1 5C5D51AF
+P 1400 4675
+F 0 "C17" H 1425 4775 50  0000 L CNN
+F 1 "0.1" H 1425 4575 50  0000 L CNN
+F 2 "Capacitor_SMD:C_0603_1608Metric_Pad0.99x1.00mm_HandSolder" H 1438 4525 50  0001 C CNN
+F 3 "" H 1400 4675 50  0000 C CNN
+	1    1400 4675
+	1    0    0    -1  
+$EndComp
+$Comp
+L Chiller_control-rescue:C C19
+U 1 1 5C5D5336
+P 1675 4675
+F 0 "C19" H 1700 4775 50  0000 L CNN
+F 1 "0.1" H 1700 4575 50  0000 L CNN
+F 2 "Capacitor_SMD:C_0603_1608Metric_Pad0.99x1.00mm_HandSolder" H 1713 4525 50  0001 C CNN
+F 3 "" H 1675 4675 50  0000 C CNN
+	1    1675 4675
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	1400 4825 1400 4925
+Wire Wire Line
+	1175 5600 1425 5600
+Connection ~ 1400 4925
+Wire Wire Line
+	1175 5375 1675 5375
+Wire Wire Line
+	1675 5375 1675 5700
+Wire Wire Line
+	1425 5700 1425 5600
+Connection ~ 1425 5600
+Wire Wire Line
+	1775 5300 1675 5300
+Wire Wire Line
+	1675 5300 1675 5375
+Connection ~ 1675 5375
+Wire Wire Line
+	1400 4925 1725 4925
+Wire Wire Line
+	1425 5600 1725 5600
+$Comp
+L Chiller_control-rescue:GND #PWR043
+U 1 1 5C61C952
+P 1900 4525
+F 0 "#PWR043" H 1900 4275 50  0001 C CNN
+F 1 "GND" H 1900 4375 50  0000 C CNN
+F 2 "" H 1900 4525 50  0000 C CNN
+F 3 "" H 1900 4525 50  0000 C CNN
+	1    1900 4525
+	1    0    0    -1  
+$EndComp
+$Comp
+L Chiller_control-rescue:GND #PWR042
+U 1 1 5C61CAAB
+P 1550 6000
+F 0 "#PWR042" H 1550 5750 50  0001 C CNN
+F 1 "GND" H 1550 5850 50  0000 C CNN
+F 2 "" H 1550 6000 50  0000 C CNN
+F 3 "" H 1550 6000 50  0000 C CNN
+	1    1550 6000
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	1425 6000 1550 6000
+Wire Wire Line
+	1550 6000 1675 6000
+Connection ~ 1550 6000
+Wire Notes Line
+	550  4475 2475 4475
+Wire Notes Line
+	2475 4475 2475 6200
+Wire Notes Line
+	2475 6200 550  6200
+Wire Notes Line
+	550  6200 550  4475
+Text Notes 3050 3500 1    60   ~ 0
+*
+Text Notes 2775 2725 1    60   ~ 0
+*
+Text Notes 2575 2725 1    60   ~ 0
+*
+Text Notes 2125 3525 0    60   ~ 0
+* Solder R6,\nR8 and R9\nif necessary
+$Comp
+L Chiller_control-rescue:C C21
+U 1 1 5C6511ED
+P 2775 3925
+F 0 "C21" H 2800 4025 50  0000 L CNN
+F 1 "0.1" H 2800 3825 50  0000 L CNN
+F 2 "Capacitor_SMD:C_0603_1608Metric_Pad0.99x1.00mm_HandSolder" H 2813 3775 50  0001 C CNN
+F 3 "" H 2775 3925 50  0000 C CNN
+	1    2775 3925
+	0    1    1    0   
+$EndComp
+$Comp
+L Chiller_control-rescue:GND #PWR044
+U 1 1 5C6593E4
+P 3000 3925
+F 0 "#PWR044" H 3000 3675 50  0001 C CNN
+F 1 "GND" H 3000 3775 50  0000 C CNN
+F 2 "" H 3000 3925 50  0000 C CNN
+F 3 "" H 3000 3925 50  0000 C CNN
+	1    3000 3925
+	1    0    0    -1  
+$EndComp
+Wire Notes Line
+	2050 4150 3300 4150
+Wire Notes Line
+	3300 2200 3300 4150
+Wire Notes Line
+	2050 2200 2050 4150
+Wire Wire Line
+	3000 3925 2925 3925
+Wire Wire Line
+	2575 3700 2575 3925
+Wire Wire Line
+	2575 3925 2625 3925
+Wire Wire Line
+	2525 3700 2575 3700
+Connection ~ 2575 3700
+Connection ~ 1675 4525
+Wire Wire Line
+	1675 4525 1900 4525
+Wire Wire Line
+	1400 4525 1675 4525
+Wire Wire Line
+	1675 4825 1675 5150
+Wire Wire Line
+	1675 5200 1775 5200
+Wire Wire Line
+	1175 5150 1675 5150
+Connection ~ 1675 5150
+Wire Wire Line
+	1675 5150 1675 5200
+Wire Wire Line
+	2150 1325 2425 1325
+Wire Wire Line
+	1775 5400 1725 5400
+Wire Wire Line
+	1725 5400 1725 5600
+$Comp
+L Connector_Generic:Conn_02x05_Odd_Even J4
+U 1 1 5C71D1DB
+P 1975 5200
+F 0 "J4" H 2025 4775 50  0000 C CNN
+F 1 "DC3-10P" H 2025 4866 50  0000 C CNN
+F 2 "Connector_IDC:IDC-Header_2x05_P2.54mm_Vertical" H 1975 5200 50  0001 C CNN
+F 3 "~" H 1975 5200 50  0001 C CNN
+	1    1975 5200
+	1    0    0    1   
+$EndComp
+NoConn ~ 1775 5000
+NoConn ~ 2275 5000
+Wire Wire Line
+	9625 4275 9625 4475
+Wire Wire Line
+	9625 4475 9925 4475
+Wire Wire Line
+	9675 5150 9675 5350
+Wire Wire Line
+	9675 5350 9975 5350
+Wire Wire Line
+	9750 5900 9750 6100
+Wire Wire Line
+	9750 6100 10050 6100
+Wire Wire Line
+	4525 1450 4825 1450
+Wire Wire Line
+	4525 1250 4525 1450
+Text Label 1425 5600 0    60   ~ 0
+ADC3
+Text Label 1400 5375 0    60   ~ 0
+ADC2
+Text Label 1400 5150 0    60   ~ 0
+ADC1
+Text Label 1400 4925 0    60   ~ 0
+ADC0
+Wire Wire Line
+	1775 5100 1725 5100
+Wire Wire Line
+	1725 5100 1725 4925
+Wire Wire Line
+	2275 5475 2275 5400
+Wire Wire Line
+	2275 5400 2275 5300
+Connection ~ 2275 5400
+Wire Wire Line
+	2275 5300 2275 5200
+Connection ~ 2275 5300
+Wire Wire Line
+	2275 5200 2275 5100
+Connection ~ 2275 5200
+$Comp
+L Connector_Generic:Conn_02x05_Odd_Even J3
+U 1 1 5C81FA0E
+P 1375 7150
+F 0 "J3" H 1425 7567 50  0000 C CNN
+F 1 "DC3-10P" H 1425 7476 50  0000 C CNN
+F 2 "Connector_IDC:IDC-Header_2x05_P2.54mm_Vertical" H 1375 7150 50  0001 C CNN
+F 3 "~" H 1375 7150 50  0001 C CNN
+	1    1375 7150
+	-1   0    0    -1  
+$EndComp
+$Comp
+L Device:Buzzer BZ1
+U 1 1 5C83133C
+P 5650 1150
+F 0 "BZ1" H 5725 1350 50  0000 C CNN
+F 1 "Buzzer" H 5654 916 50  0000 C CNN
+F 2 "Buzzer_Beeper:Buzzer_12x9.5RM7.6" V 5625 1250 50  0001 C CNN
+F 3 "~" V 5625 1250 50  0001 C CNN
+	1    5650 1150
+	1    0    0    1   
+$EndComp
+Wire Wire Line
+	5125 1050 5550 1050
+$Comp
+L Chiller_control-rescue:+3.3V #PWR05
+U 1 1 5C84A91E
+P 5550 1375
+F 0 "#PWR05" H 5550 1225 50  0001 C CNN
+F 1 "+3.3V" H 5550 1515 50  0000 C CNN
+F 2 "" H 5550 1375 50  0000 C CNN
+F 3 "" H 5550 1375 50  0000 C CNN
+	1    5550 1375
+	-1   0    0    1   
+$EndComp
+Wire Wire Line
+	5550 1250 5550 1375
+Wire Notes Line
+	5900 1700 5900 850 
+Wire Notes Line
+	4125 850  5900 850 
+Wire Notes Line
+	4125 1700 5900 1700
+Wire Wire Line
+	1075 7050 1075 7150
+Connection ~ 1075 7150
+Wire Wire Line
+	725  7150 1075 7150
 $EndSCHEMATC
