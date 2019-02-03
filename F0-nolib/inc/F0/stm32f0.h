@@ -121,18 +121,17 @@ TRUE_INLINE void StartHSE(){
 
 #if !defined (STM32F030x4) && !defined (STM32F030x6) && !defined (STM32F030x8) && !defined (STM32F031x6) && !defined (STM32F038xx) && !defined (STM32F030xC)
 TRUE_INLINE void StartHSI48(){
-    // disable PLL
-    RCC->CR &= ~RCC_CR_PLLON;
-    RCC->CR2 &= RCC_CR2_HSI48ON; // turn on HSI48
-    while((RCC->CR2 & RCC_CR2_HSI48RDY) == 0);
-    RCC->CFGR &= (uint32_t)((uint32_t)~(RCC_CFGR_PLLSRC | RCC_CFGR_PLLMUL));
-    // HSI48/2 * 2 = HSI48
-    RCC->CFGR |= (uint32_t)(RCC_CFGR_PLLSRC_HSI48_PREDIV | RCC_CFGR_PLLMUL2);
-    RCC->CR |= RCC_CR_PLLON;
-    // select HSI48 as system clock source
-    RCC->CFGR &= ~RCC_CFGR_SW;
-    RCC->CFGR |= RCC_CFGR_SW_HSI48;
-    while ((RCC->CFGR & (uint32_t)RCC_CFGR_SWS) != (uint32_t)RCC_CFGR_SWS_HSI48){}
+    RCC->APB1ENR |= RCC_APB1ENR_CRSEN | RCC_APB1ENR_USBEN; // enable CRS (hsi48 sync) & USB
+    RCC->CFGR3 &= ~RCC_CFGR3_USBSW; // reset USB
+    RCC->CR2 |= RCC_CR2_HSI48ON; // turn ON HSI48
+    uint32_t tmout = 16000000;
+    while(!(RCC->CR2 & RCC_CR2_HSI48RDY)){if(--tmout == 0) break;}
+    FLASH->ACR = FLASH_ACR_PRFTBE | FLASH_ACR_LATENCY;
+    CRS->CFGR &= ~CRS_CFGR_SYNCSRC;
+    CRS->CFGR |= CRS_CFGR_SYNCSRC_1; // USB SOF selected as sync source
+    CRS->CR |= CRS_CR_AUTOTRIMEN; // enable auto trim
+    CRS->CR |= CRS_CR_CEN; // enable freq counter & block CRS->CFGR as read-only
+    RCC->CFGR |= RCC_CFGR_SW;
 }
 #endif
 
