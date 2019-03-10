@@ -105,19 +105,19 @@ TRUE_INLINE void sysreset(void){
     /* Wait till PLL is used as system clock source */
     while ((RCC->CFGR & RCC_CFGR_SWS) != RCC_CFGR_SWS_PLL){}
 }
-
+/* wrong
 TRUE_INLINE void StartHSE(){
     // disable PLL
     RCC->CR &= ~RCC_CR_PLLON;
     RCC->CR |= RCC_CR_HSEON;
-    while ((RCC->CIR & RCC_CIR_HSERDYF) != 0);
+    while ((RCC->CIR & RCC_CIR_HSERDYF) == 0);
     RCC->CIR |= RCC_CIR_HSERDYC; // clear rdy flag
-    /* PLL configuration = (HSE) * 12 = ~48 MHz */
+    // PLL configuration = (HSE) * 12 = ~48 MHz
     RCC->CFGR &= ~(RCC_CFGR_PLLSRC | RCC_CFGR_PLLMUL);
     RCC->CFGR |= RCC_CFGR_PLLSRC_HSE_PREDIV | RCC_CFGR_PLLMUL12;
     RCC->CR |= RCC_CR_PLLON;
     while ((RCC->CFGR & (uint32_t)RCC_CFGR_SWS) != (uint32_t)RCC_CFGR_SWS_PLL){}
-}
+}       */
 
 #if !defined (STM32F030x4) && !defined (STM32F030x6) && !defined (STM32F030x8) && !defined (STM32F031x6) && !defined (STM32F038xx) && !defined (STM32F030xC)
 TRUE_INLINE void StartHSI48(){

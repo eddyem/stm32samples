@@ -1,0 +1,6 @@
+(sym_lib_table
+  (lib (name Chiller_control-rescue)(type Legacy)(uri ${KIPRJMOD}/Chiller_control-rescue.lib)(options "")(descr ""))
+  (lib (name Servo_control-rescue)(type Legacy)(uri ${KIPRJMOD}/Servo_control-rescue.lib)(options "")(descr ""))
+  (lib (name ch34x)(type Legacy)(uri ${KIPRJMOD}/ch34x.lib)(options "")(descr ""))
+  (lib (name elements)(type Legacy)(uri ${KIPRJMOD}/elements.lib)(options "")(descr ""))
+)
