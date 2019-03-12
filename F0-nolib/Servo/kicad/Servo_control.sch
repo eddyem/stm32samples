@@ -133,17 +133,6 @@ F 3 "" H 750 1125 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L Servo_control-rescue:STM32F030F4Px-Chiller_control-rescue U3
-U 1 1 5A189F52
-P 8775 2275
-F 0 "U3" H 7175 3200 50  0000 L BNN
-F 1 "STM32F030F4Px" H 10375 3200 50  0000 R BNN
-F 2 "Package_SSOP:TSSOP-20_4.4x6.5mm_P0.65mm" H 10375 3150 50  0001 R TNN
-F 3 "" H 8775 2275 50  0001 C CNN
-	1    8775 2275
-	1    0    0    -1  
-$EndComp
-$Comp
 L Servo_control-rescue:C-Chiller_control-rescue C13
 U 1 1 5A1AB970
 P 8075 1025
@@ -215,7 +204,7 @@ U 1 1 5A2588E7
 P 1200 975
 F 0 "U1" H 1200 1175 50  0000 C CNN
 F 1 "LM1117-3.3" H 950 1100 50  0000 L CNN
-F 2 "Package_TO_SOT_SMD:SOT-223" H 1200 975 50  0001 C CNN
+F 2 "Package_TO_SOT_SMD:SOT-223-3_TabPin2" H 1200 975 50  0001 C CNN
 F 3 "" H 1200 975 50  0001 C CNN
 	1    1200 975 
 	1    0    0    -1  
@@ -451,7 +440,6 @@ Wire Wire Line
 	9675 975  9450 975 
 Wire Wire Line
 	8775 1275 9100 1275
-Connection ~ 8775 1275
 Connection ~ 10225 4475
 Wire Wire Line
 	10225 4500 10225 4475
@@ -565,17 +553,6 @@ F 3 "~" V 3625 950 50  0001 C CNN
 $EndComp
 Wire Wire Line
 	3125 750  3550 750 
-$Comp
-L Servo_control-rescue:+3.3V-Chiller_control-rescue #PWR017
-U 1 1 5C84A91E
-P 3550 1075
-F 0 "#PWR017" H 3550 925 50  0001 C CNN
-F 1 "+3.3V" H 3550 1215 50  0000 C CNN
-F 2 "" H 3550 1075 50  0000 C CNN
-F 3 "" H 3550 1075 50  0000 C CNN
-	1    3550 1075
-	-1   0    0    1   
-$EndComp
 Wire Wire Line
 	3550 950  3550 1075
 Wire Notes Line
@@ -949,18 +926,10 @@ $EndComp
 Wire Wire Line
 	2675 1875 3050 1875
 Wire Wire Line
-	2700 2325 3150 2325
-Wire Wire Line
-	2700 2475 3050 2475
-Wire Wire Line
-	2700 2625 2950 2625
-Wire Wire Line
 	2700 2775 2775 2775
 Wire Wire Line
 	2775 2825 2775 2775
 Connection ~ 2775 2775
-Wire Wire Line
-	2775 2775 2850 2775
 Wire Wire Line
 	2975 2825 2975 2625
 Connection ~ 2975 2625
@@ -976,26 +945,6 @@ Wire Wire Line
 Connection ~ 3375 2325
 Wire Wire Line
 	3375 2325 3650 2325
-Wire Wire Line
-	3150 2275 3150 2325
-Connection ~ 3150 2325
-Wire Wire Line
-	3150 2325 3375 2325
-Wire Wire Line
-	3050 2275 3050 2475
-Connection ~ 3050 2475
-Wire Wire Line
-	3050 2475 3175 2475
-Wire Wire Line
-	2950 2275 2950 2625
-Connection ~ 2950 2625
-Wire Wire Line
-	2950 2625 2975 2625
-Wire Wire Line
-	2850 2275 2850 2775
-Connection ~ 2850 2775
-Wire Wire Line
-	2850 2775 3650 2775
 Wire Notes Line
 	2000 1800 3925 1800
 Wire Notes Line
@@ -1149,12 +1098,12 @@ Wire Wire Line
 $Comp
 L Servo_control-rescue:+5V-power #PWR08
 U 1 1 5C8E7AF9
-P 2175 4275
-F 0 "#PWR08" H 2175 4125 50  0001 C CNN
-F 1 "+5V" H 2190 4448 50  0000 C CNN
-F 2 "" H 2175 4275 50  0001 C CNN
-F 3 "" H 2175 4275 50  0001 C CNN
-	1    2175 4275
+P 2175 3975
+F 0 "#PWR08" H 2175 3825 50  0001 C CNN
+F 1 "+5V" H 2190 4148 50  0000 C CNN
+F 2 "" H 2175 3975 50  0001 C CNN
+F 3 "" H 2175 3975 50  0001 C CNN
+	1    2175 3975
 	1    0    0    -1  
 $EndComp
 Connection ~ 850  5050
@@ -1284,17 +1233,6 @@ F 3 "" H 2300 2800 50  0000 C CNN
 	1    2300 2800
 	1    0    0    -1  
 $EndComp
-$Comp
-L Servo_control-rescue:+3.3V-Chiller_control-rescue #PWR011
-U 1 1 5C93F2A7
-P 2350 2225
-F 0 "#PWR011" H 2350 2075 50  0001 C CNN
-F 1 "+3.3V" H 2350 2365 50  0000 C CNN
-F 2 "" H 2350 2225 50  0000 C CNN
-F 3 "" H 2350 2225 50  0000 C CNN
-	1    2350 2225
-	1    0    0    -1  
-$EndComp
 Wire Wire Line
 	2300 2300 2350 2300
 Wire Wire Line
@@ -1367,7 +1305,7 @@ L Connector_Generic:Conn_01x03 J5
 U 1 1 5C9581BA
 P 4200 2175
 F 0 "J5" H 4120 1850 50  0000 C CNN
-F 1 "Conn_01x03" H 4120 1941 50  0000 C CNN
+F 1 "Dig_In" H 4120 1941 50  0000 C CNN
 F 2 "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical" H 4200 2175 50  0001 C CNN
 F 3 "~" H 4200 2175 50  0001 C CNN
 	1    4200 2175
@@ -1404,9 +1342,9 @@ Connection ~ 4900 2175
 Wire Wire Line
 	5175 2000 5250 2000
 Connection ~ 5175 2000
-Text Label 10475 2075 0    60   ~ 0
+Text Label 10475 2675 0    60   ~ 0
 DigIn0
-Text Label 10475 2175 0    60   ~ 0
+Text Label 10475 2775 0    60   ~ 0
 DigIn1
 Text Label 5250 2175 0    60   ~ 0
 DigIn0
@@ -1420,9 +1358,9 @@ Wire Notes Line
 	5575 2575 4000 2575
 Wire Notes Line
 	4000 2575 4000 1800
-Text Label 10475 2675 0    60   ~ 0
+Text Label 10475 2075 0    60   ~ 0
 Jumper0
-Text Label 10475 2775 0    60   ~ 0
+Text Label 10475 2175 0    60   ~ 0
 Jumper1
 Text Label 4325 2950 0    60   ~ 0
 Jumper0
@@ -1536,4 +1474,131 @@ Wire Wire Line
 	1200 4650 1200 4800
 Wire Wire Line
 	1200 4800 1250 4800
+Connection ~ 8775 1275
+$Comp
+L Servo_control-rescue:STM32F030F4Px-Chiller_control-rescue U3
+U 1 1 5A189F52
+P 8775 2275
+F 0 "U3" H 7175 3200 50  0000 L BNN
+F 1 "STM32F030F4Px" H 10375 3200 50  0000 R BNN
+F 2 "Package_SSOP:TSSOP-20_4.4x6.5mm_P0.65mm" H 10375 3150 50  0001 R TNN
+F 3 "" H 8775 2275 50  0001 C CNN
+	1    8775 2275
+	1    0    0    -1  
+$EndComp
+$Comp
+L Servo_control-rescue:+3.3VADC-Chiller_control-rescue #PWR0101
+U 1 1 5C878866
+P 2350 2225
+F 0 "#PWR0101" H 2500 2175 50  0001 C CNN
+F 1 "+3.3VADC" H 2475 2325 50  0000 C CNN
+F 2 "" H 2350 2225 50  0001 C CNN
+F 3 "" H 2350 2225 50  0001 C CNN
+	1    2350 2225
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2700 2325 3050 2325
+Wire Wire Line
+	2700 2625 2850 2625
+Wire Wire Line
+	2775 2775 2900 2775
+Wire Wire Line
+	2850 2275 2850 2625
+Connection ~ 2850 2625
+Wire Wire Line
+	2850 2625 2975 2625
+Wire Wire Line
+	2950 2275 2950 2550
+Wire Wire Line
+	2950 2550 2900 2550
+Wire Wire Line
+	2900 2550 2900 2775
+Connection ~ 2900 2775
+Wire Wire Line
+	2900 2775 3650 2775
+Wire Wire Line
+	3050 2275 3050 2325
+Connection ~ 3050 2325
+Wire Wire Line
+	3050 2325 3375 2325
+Wire Wire Line
+	2700 2475 3175 2475
+Wire Wire Line
+	3175 2475 3175 2275
+Wire Wire Line
+	3150 2275 3175 2275
+$Comp
+L Servo_control-rescue:PWR_FLAG-Chiller_control-rescue #FLG0101
+U 1 1 5C8B279F
+P 2000 3975
+F 0 "#FLG0101" H 2000 4050 50  0001 C CNN
+F 1 "PWR_FLAG-Chiller_control-rescue" H 2000 4149 50  0001 C CNN
+F 2 "" H 2000 3975 50  0001 C CNN
+F 3 "" H 2000 3975 50  0001 C CNN
+	1    2000 3975
+	1    0    0    -1  
+$EndComp
+$Comp
+L Servo_control-rescue:PWR_FLAG-Chiller_control-rescue #FLG0102
+U 1 1 5C8B2AE3
+P 2250 5000
+F 0 "#FLG0102" H 2250 5075 50  0001 C CNN
+F 1 "PWR_FLAG-Chiller_control-rescue" H 2250 5174 50  0001 C CNN
+F 2 "" H 2250 5000 50  0001 C CNN
+F 3 "" H 2250 5000 50  0001 C CNN
+	1    2250 5000
+	1    0    0    -1  
+$EndComp
+Connection ~ 2250 5000
+$Comp
+L Servo_control-rescue:+5V-power #PWR0102
+U 1 1 5C885619
+P 3550 1075
+F 0 "#PWR0102" H 3550 925 50  0001 C CNN
+F 1 "+5V" H 3565 1248 50  0000 C CNN
+F 2 "" H 3550 1075 50  0001 C CNN
+F 3 "" H 3550 1075 50  0001 C CNN
+	1    3550 1075
+	-1   0    0    1   
+$EndComp
+$Comp
+L Device:D_Schottky D5
+U 1 1 5C886D5C
+P 2175 4125
+F 0 "D5" V 2129 4204 50  0000 L CNN
+F 1 "SS14" V 2175 3875 50  0000 L CNN
+F 2 "Diode_SMD:D_SMA_Handsoldering" H 2175 4125 50  0001 C CNN
+F 3 "" H 2175 4125 50  0001 C CNN
+	1    2175 4125
+	0    1    1    0   
+$EndComp
+$Comp
+L Connector_Generic:Conn_01x02 J10
+U 1 1 5C8877B6
+P 1325 3975
+F 0 "J10" H 1300 4100 50  0000 C CNN
+F 1 "5V" H 1450 3975 50  0000 C CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical" H 1325 3975 50  0001 C CNN
+F 3 "~" H 1325 3975 50  0001 C CNN
+	1    1325 3975
+	-1   0    0    -1  
+$EndComp
+$Comp
+L Servo_control-rescue:GND-Chiller_control-rescue #PWR0103
+U 1 1 5C898CBF
+P 1525 4075
+F 0 "#PWR0103" H 1525 3825 50  0001 C CNN
+F 1 "GND" H 1525 3925 50  0000 C CNN
+F 2 "" H 1525 4075 50  0000 C CNN
+F 3 "" H 1525 4075 50  0000 C CNN
+	1    1525 4075
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	1525 3975 2000 3975
+Connection ~ 2175 3975
+Connection ~ 2000 3975
+Wire Wire Line
+	2000 3975 2175 3975
 $EndSCHEMATC
