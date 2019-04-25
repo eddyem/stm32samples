@@ -26,12 +26,6 @@
 #include <string.h> // memcpy
 #include "usart.h"
 
-
-#define EP0DATABUF_SIZE                     (64)
-#define DEVICE_DESCRIPTOR_SIZE_BYTE         (18)
-#define DEVICE_QALIFIER_SIZE_BYTE           (10)
-#define STRING_LANG_DESCRIPTOR_SIZE_BYTE    (4)
-
 static usb_LineCoding lineCoding = {115200, 0, 0, 8};
 static config_pack_t setup_packet;
 static uint8_t ep0databuf[EP0DATABUF_SIZE];
@@ -40,7 +34,7 @@ static uint8_t ep0dbuflen = 0;
 usb_LineCoding getLineCoding(){return lineCoding;}
 
 const uint8_t USB_DeviceDescriptor[] = {
-        DEVICE_DESCRIPTOR_SIZE_BYTE,   // bLength
+        18,     // bLength
         0x01,   // bDescriptorType - USB_DEVICE_DESC_TYPE
         0x10,   // bcdUSB_L - 1.10
         0x01,   // bcdUSB_H
@@ -61,7 +55,7 @@ const uint8_t USB_DeviceDescriptor[] = {
 };
 
 const uint8_t USB_DeviceQualifierDescriptor[] = {
-        DEVICE_QALIFIER_SIZE_BYTE,   //bLength
+        10,     //bLength
         0x06,   // bDescriptorType
         0x10,   // bcdUSB_L
         0x01,   // bcdUSB_H
@@ -112,8 +106,8 @@ const uint8_t USB_ConfigDescriptor[] = {
         0x05, /* bDescriptorType: Endpoint */
         0x02, /* bEndpointAddress: OUT2 */
         0x02, /* bmAttributes: Bulk */
-        0x40, /* wMaxPacketSize: */
-        0x00,
+        (USB_RXBUFSZ & 0xff), /* wMaxPacketSize: 64 */
+        (USB_RXBUFSZ >> 8),
         0x00, /* bInterval: ignore for Bulk transfer */
 
         /*Endpoint IN3 Descriptor*/
@@ -121,40 +115,36 @@ const uint8_t USB_ConfigDescriptor[] = {
         0x05, /* bDescriptorType: Endpoint */
         0x83, /* bEndpointAddress IN3 */
         0x02, /* bmAttributes: Bulk */
-        0x40, /* wMaxPacketSize: 64 */
-        0x00,
+        (USB_TXBUFSZ & 0xff), /* wMaxPacketSize: 64 */
+        (USB_TXBUFSZ >> 8),
         0x00, /* bInterval: ignore for Bulk transfer */
 };
 
-_USB_LANG_ID_(LANG_US);
+_USB_LANG_ID_(USB_StringLangDescriptor, LANG_US);
 // these descriptors are not used in PL2303 emulator!
 _USB_STRING_(USB_StringSerialDescriptor, u"0")
 _USB_STRING_(USB_StringManufacturingDescriptor, u"Prolific Technology Inc.")
 _USB_STRING_(USB_StringProdDescriptor, u"USB-Serial Controller")
 
 static usb_dev_t USB_Dev;
-ep_t endpoints[MAX_ENDPOINTS];
+ep_t endpoints[ENDPOINTS_NUM];
 
 /*
  * default handlers
  */
 // SET_LINE_CODING
 void WEAK linecoding_handler(usb_LineCoding __attribute__((unused)) *lc){
-    MSG("linecoding");
+    MSG("linecoding_handler\n");
 }
 
 // SET_CONTROL_LINE_STATE
 void WEAK clstate_handler(uint16_t __attribute__((unused)) val){
-    #ifdef EBUG
-    SEND("change state to ");
-    printu(val);
-    usart_putchar('\n');
-    #endif
+    MSG("clstate_handler\n");
 }
 
 // SEND_BREAK
 void WEAK break_handler(){
-    MSG("Break\n");
+    MSG("break_handler\n");
 }
 
 // handler of vendor requests
@@ -234,7 +224,7 @@ uint16_t EP0_Handler(ep_t ep){
                             wr0((const uint8_t *)&USB_StringSerialDescriptor, USB_StringSerialDescriptor.bLength);
                         break;
                         case DEVICE_QALIFIER_DESCRIPTOR:
-                            wr0(USB_DeviceQualifierDescriptor, DEVICE_QALIFIER_SIZE_BYTE);
+                            wr0(USB_DeviceQualifierDescriptor, USB_DeviceQualifierDescriptor[0]);
                         break;
                         default:
                             WRITEDUMP("UNK_DES");
@@ -359,26 +349,41 @@ uint16_t EP0_Handler(ep_t ep){
     return epstatus;
 }
 
-// TODO: change initialisation with different buffer size! (EP0 have 8 bytes per buffer, EP1 - 10 bytes!)
-
+static uint16_t lastaddr = USB_EP0_BASEADDR;
 /**
- * Endpoint initialisation, size of input buffer fixed to 64 bytes
+ * Endpoint initialisation
+ * !!! when working with CAN bus change USB_BTABLE_SIZE to 768 !!!
  * @param number - EP num (0...7)
  * @param type - EP type (EP_TYPE_BULK, EP_TYPE_CONTROL, EP_TYPE_ISO, EP_TYPE_INTERRUPT)
- * @param addr_tx - transmission buffer address @ USB/CAN buffer
- * @param addr_rx - reception buffer address @ USB/CAN buffer
+ * @param txsz - transmission buffer size @ USB/CAN buffer
+ * @param rxsz - reception buffer size @ USB/CAN buffer
  * @param uint16_t (*func)(ep_t *ep) - EP handler function
+ * @return 0 if all OK
  */
-void EP_Init(uint8_t number, uint8_t type, uint16_t addr_tx, uint16_t addr_rx, uint16_t (*func)(ep_t ep)){
+int EP_Init(uint8_t number, uint8_t type, uint16_t txsz, uint16_t rxsz, uint16_t (*func)(ep_t ep)){
+    if(txsz > USB_BTABLE_SIZE || rxsz > USB_BTABLE_SIZE) return 1; // buffer too large
+    if(lastaddr + txsz + rxsz >= USB_BTABLE_SIZE) return 2; // out of btable
     USB->EPnR[number] = (type << 9) | (number & USB_EPnR_EA);
     USB->EPnR[number] ^= USB_EPnR_STAT_RX | USB_EPnR_STAT_TX_1;
-    USB_BTABLE->EP[number].USB_ADDR_TX = addr_tx;
+    if(rxsz & 1 || rxsz > 992) return 3; // wrong rx buffer size
+    uint16_t countrx = 0;
+    if(rxsz < 64) countrx = rxsz / 2;
+    else{
+        if(rxsz & 0x1f) return 3; // should be multiple of 32
+        countrx = 31 + rxsz / 32;
+    }
+    USB_BTABLE->EP[number].USB_ADDR_TX = lastaddr;
+    endpoints[number].tx_sz = txsz;
+    endpoints[number].tx_buf = (uint16_t *)(USB_BTABLE_BASE + lastaddr);
+    lastaddr += txsz;
     USB_BTABLE->EP[number].USB_COUNT_TX = 0;
-    USB_BTABLE->EP[number].USB_ADDR_RX = addr_rx;
-    USB_BTABLE->EP[number].USB_COUNT_RX = 0x8400; // buffer size (64 bytes): Table127 of RM: BL_SIZE=1, NUM_BLOCK=1
+    USB_BTABLE->EP[number].USB_ADDR_RX = lastaddr;
+    endpoints[number].rx_buf = (uint8_t *)(USB_BTABLE_BASE + lastaddr);
+    lastaddr += rxsz;
+    // buffer size: Table127 of RM: BL_SIZE=1, NUM_BLOCK=1
+    USB_BTABLE->EP[number].USB_COUNT_RX = countrx << 10;
     endpoints[number].func = func;
-    endpoints[number].tx_buf = (uint16_t *)(USB_BTABLE_BASE + addr_tx);
-    endpoints[number].rx_buf = (uint8_t *)(USB_BTABLE_BASE + addr_rx);
+    return 0;
 }
 
 // standard IRQ handler
@@ -389,7 +394,9 @@ void usb_isr(){
         USB->CNTR = USB_CNTR_RESETM | USB_CNTR_CTRM;
         USB->ISTR = 0;
         // Endpoint 0 - CONTROL
-        EP_Init(0, EP_TYPE_CONTROL, 64, 128, EP0_Handler);
+        // ON USB LS size of EP0 may be 8 bytes, but on FS it should be 64 bytes!
+        lastaddr = USB_EP0_BASEADDR; // roll back to beginning of buffer
+        EP_Init(0, EP_TYPE_CONTROL, USB_EP0_BUFSZ, USB_EP0_BUFSZ, EP0_Handler);
         // clear address, leave only enable bit
         USB->DADDR = USB_DADDR_EF;
         // state is default - wait for enumeration

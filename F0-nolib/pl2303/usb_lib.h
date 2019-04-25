@@ -28,8 +28,10 @@
 #include <wchar.h>
 #include "usb_defs.h"
 
+#define EP0DATABUF_SIZE                 (64)
+
 // Max EP amount (EP0 + other used)
-#define MAX_ENDPOINTS                   4
+#define ENDPOINTS_NUM                   4
 // bRequest, standard; for bmRequestType == 0x80
 #define GET_STATUS                      0x00
 #define GET_DESCRIPTOR                  0x06
@@ -121,16 +123,17 @@ static const struct name \
 } \
 name = {sizeof(name), 0x03, str};
 
-#define _USB_LANG_ID_(lng_id)     \
+#define _USB_LANG_ID_(name, lng_id)     \
     \
-static const struct USB_StringLangDescriptor \
+static const struct name \
 {         \
         uint8_t  bLength;         \
         uint8_t  bDescriptorType; \
         uint16_t bString;         \
     \
 } \
-USB_StringLangDescriptor = {0x04, 0x03, lng_id};
+name = {0x04, 0x03, lng_id};
+#define STRING_LANG_DESCRIPTOR_SIZE_BYTE    (4)
 
 // EP0 configuration packet
 typedef struct {
@@ -143,19 +146,20 @@ typedef struct {
 
 // endpoints state
 typedef struct __ep_t{
-    uint16_t *tx_buf;
-    uint8_t *rx_buf;
-    uint16_t (*func)();
-    uint16_t status;
-    unsigned rx_cnt : 10;
-    unsigned tx_flag : 1;
-    unsigned rx_flag : 1;
-    unsigned setup_flag : 1;
+    uint16_t *tx_buf;           // transmission buffer address
+    uint8_t *rx_buf;            // reception buffer address
+    uint16_t (*func)();         // endpoint action function
+    uint16_t status;            // status flags
+    unsigned tx_sz   : 10;      // Tx buffer size
+    unsigned rx_cnt  : 10;      // received data counter
+    unsigned tx_flag : 1;       // transmission flag
+    unsigned rx_flag : 1;       // reception flag
+    unsigned setup_flag : 1;    // this is setup packet (only for EP0)
 } ep_t;
 
 // USB status & its address
 typedef struct {
-    uint8_t USB_Status;
+    uint8_t  USB_Status;
     uint16_t USB_Addr;
 }usb_dev_t;
 
@@ -186,7 +190,7 @@ extern ep_t endpoints[];
 
 void USB_Init();
 uint8_t USB_GetState();
-void EP_Init(uint8_t number, uint8_t type, uint16_t addr_tx, uint16_t addr_rx, uint16_t (*func)(ep_t ep));
+int EP_Init(uint8_t number, uint8_t type, uint16_t txsz, uint16_t rxsz, uint16_t (*func)(ep_t ep));
 void EP_WriteIRQ(uint8_t number, const uint8_t *buf, uint16_t size);
 void EP_Write(uint8_t number, const uint8_t *buf, uint16_t size);
 int EP_Read(uint8_t number, uint8_t *buf);

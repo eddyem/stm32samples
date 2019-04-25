@@ -1,6 +1,6 @@
 /*
  *                                                                                                  geany_encoding=koi8-r
- * usb.c
+ * usb.c - base functions for different USB types
  *
  * Copyright 2018 Edward V. Emelianov <eddy@sao.ru, edward.emelianoff@gmail.com>
  *
@@ -48,7 +48,7 @@ static uint16_t EP1_Handler(ep_t ep){
 }
 
 // data IN/OUT handler
-static uint16_t EP2_Handler(ep_t ep){
+static uint16_t EP23_Handler(ep_t ep){
     MSG("EP2\n");
     if(ep.rx_flag){
         int rd = ep.rx_cnt, rest = IDATASZ - idatalen;
@@ -98,11 +98,11 @@ void USB_setup(){
     CRS->CR |= CRS_CR_CEN; // enable freq counter & block CRS->CFGR as read-only
     RCC->CFGR |= RCC_CFGR_SW;
     // allow RESET and CTRM interrupts
-    USB -> CNTR = USB_CNTR_RESETM | USB_CNTR_CTRM;
+    USB->CNTR = USB_CNTR_RESETM | USB_CNTR_CTRM;
     // clear flags
-    USB -> ISTR = 0;
+    USB->ISTR = 0;
     // and activate pullup
-    USB -> BCDR |= USB_BCDR_DPPU;
+    USB->BCDR |= USB_BCDR_DPPU;
     NVIC_EnableIRQ(USB_IRQn);
 }
 
@@ -111,13 +111,10 @@ void usb_proc(){
         if(!usbON){ // endpoints not activated
             MSG("Configured; activate other endpoints\n");
             // make new BULK endpoint
-            // Buffer have 1024 bytes, but last 256 we use for CAN bus
-            // first free is 64; 768 - CAN data
-            // free: 64   128   192   256   320   384   448   512   576   640   704
-            // (first 64 are control registers, up to 192 - buffer for EP0)
-            EP_Init(1, EP_TYPE_INTERRUPT, 192, 192, EP1_Handler);
-            EP_Init(2, EP_TYPE_BULK, 256, 256, EP2_Handler); // OUT - receive data
-            EP_Init(3, EP_TYPE_BULK, 320, 320, EP2_Handler); // IN - transmit data
+            // Buffer have 1024 bytes, but last 256 we use for CAN bus (30.2 of RM: USB main features)
+            EP_Init(1, EP_TYPE_INTERRUPT, 10, 0, EP1_Handler); // IN1 - transmit
+            EP_Init(2, EP_TYPE_BULK, 0, USB_RXBUFSZ, EP23_Handler); // OUT2 - receive data
+            EP_Init(3, EP_TYPE_BULK, USB_TXBUFSZ, 0, EP23_Handler); // IN3 - transmit data
             usbON = 1;
         }
     }else{
@@ -126,10 +123,15 @@ void usb_proc(){
 }
 
 void USB_send(char *buf){
-    uint16_t l = 0;
+    uint16_t l = 0, ctr = 0;
     char *p = buf;
     while(*p++) ++l;
-    EP_Write(3, (uint8_t*)buf, l);
+    while(l){
+        uint16_t s = (l > USB_TXBUFSZ) ? USB_TXBUFSZ : l;
+        EP_Write(3, (uint8_t*)&buf[ctr], s);
+        l -= s;
+        ctr += s;
+    }
 }
 
 /**
@@ -148,7 +150,7 @@ int USB_receive(char *buf, int bufsize){
         idatalen = rest;
     }else idatalen = 0;
     if(ovfl){
-        EP2_Handler(endpoints[2]);
+        EP23_Handler(endpoints[2]);
         uint16_t epstatus = USB->EPnR[2];
         epstatus = CLEAR_DTOG_RX(epstatus);
         epstatus = SET_VALID_RX(epstatus);

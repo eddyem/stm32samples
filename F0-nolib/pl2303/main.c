@@ -70,14 +70,14 @@ void clstate_handler(uint16_t val){
 
 int main(void){
     uint32_t lastT = 0;
-    int L;
+    int L = 0;
     char *txt;
     char tmpbuf[129];
     sysreset();
     SysTick_Config(6000, 1);
     gpio_setup();
     usart_setup();
-    
+
     SEND("Hello!\n");
 
     if(RCC->CSR & RCC_CSR_IWDGRSTF){ // watchdog reset occured
@@ -89,7 +89,7 @@ int main(void){
     RCC->CSR |= RCC_CSR_RMVF; // remove reset flags
 
     USB_setup();
-    //iwdg_setup();
+    iwdg_setup();
 
     while (1){
         IWDG->KR = IWDG_REFRESH; // refresh watchdog
@@ -97,13 +97,6 @@ int main(void){
             LED_blink(LED0);
             lastT = Tms;
             transmit_tbuf(); // non-blocking transmission of data from UART buffer every 0.5s
-            /*uint8_t r = 0;
-            if((r = USB_receive(tmpbuf, 128))){
-                tmpbuf[r] = 0;
-                SEND("Received data over USB:\n");
-                SEND(tmpbuf);
-                newline();
-            }*/
         }
         usb_proc();
         uint8_t r = 0;
@@ -124,11 +117,15 @@ int main(void){
                         if(!USB_configured()) SEND("dis");
                         SEND("connected\n");
                     break;
+                    case 'L':
+                        USB_send("Very long test string for USB (it's length is more than 64 bytes\n"
+                                 "This is another part of the string! Can you see all of this?\n");
+                    break;
                     case 'R':
                         SEND("Soft reset\n");
                         NVIC_SystemReset();
                     break;
-                    case 'U':
+                    case 'S':
                         USB_send("Test string for USB\n");
                     break;
                     case 'W':
@@ -137,9 +134,10 @@ int main(void){
                     break;
                     default: // help
                         SEND(
-                        "'C' - test is USB configured\n"
+                        "'C' - test if USB is configured\n"
+                        "'L' - send long string over USB\n"
                         "'R' - software reset\n"
-                        "'U' - send test string over USB\n"
+                        "'S' - send short string over USB\n"
                         "'W' - test watchdog\n"
                         );
                     break;

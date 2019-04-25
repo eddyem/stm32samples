@@ -7,6 +7,8 @@
 *.pho
 *.drl
 *.pdf
+*.svg
+*.xml
 */mk/*
 .hg*
 .dropbox.attr

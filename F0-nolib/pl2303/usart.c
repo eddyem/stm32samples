@@ -60,19 +60,10 @@ void transmit_tbuf(){
     if(!l) return;
     txrdy = 0;
     odatalen[tbufno] = 0;
-#if USARTNUM == 2
-    DMA1_Channel4->CCR &= ~DMA_CCR_EN;
-    DMA1_Channel4->CMAR = (uint32_t) tbuf[tbufno]; // mem
-    DMA1_Channel4->CNDTR = l;
-    DMA1_Channel4->CCR |= DMA_CCR_EN; // start transmission
-#elif USARTNUM == 1
-    DMA1_Channel2->CCR &= ~DMA_CCR_EN;
-    DMA1_Channel2->CMAR = (uint32_t) tbuf[tbufno]; // mem
-    DMA1_Channel2->CNDTR = l;
-    DMA1_Channel2->CCR |= DMA_CCR_EN;
-#else
-#error "Not implemented"
-#endif
+    USARTDMA->CCR &= ~DMA_CCR_EN;
+    USARTDMA->CMAR = (uint32_t) tbuf[tbufno]; // mem
+    USARTDMA->CNDTR = l;
+    USARTDMA->CCR |= DMA_CCR_EN;
     tbufno = !tbufno;
 }
 
@@ -103,8 +94,8 @@ void newline(){
 
 
 void usart_setup(){
-// Nucleo's USART2 connected to VCP proxy of st-link
     uint32_t tmout = 16000000;
+// Nucleo's USART2 connected to VCP proxy of st-link
 #if USARTNUM == 2
     // setup pins: PA2 (Tx - AF1), PA15 (Rx - AF1)
     // AF mode (AF1)
@@ -112,24 +103,7 @@ void usart_setup(){
                 | (GPIO_MODER_MODER2_AF | GPIO_MODER_MODER15_AF);
     GPIOA->AFR[0] = (GPIOA->AFR[0] &~GPIO_AFRH_AFRH2) | 1 << (2 * 4); // PA2
     GPIOA->AFR[1] = (GPIOA->AFR[1] &~GPIO_AFRH_AFRH7) | 1 << (7 * 4); // PA15
-    // DMA: Tx - Ch4
-    DMA1_Channel4->CPAR = (uint32_t) &USART2->TDR; // periph
-    DMA1_Channel4->CCR |= DMA_CCR_MINC | DMA_CCR_DIR | DMA_CCR_TCIE; // 8bit, mem++, mem->per, transcompl irq
-    // Tx CNDTR set @ each transmission due to data size
-    NVIC_SetPriority(DMA1_Channel4_5_IRQn, 3);
-    NVIC_EnableIRQ(DMA1_Channel4_5_IRQn);
-    NVIC_SetPriority(USART2_IRQn, 0);
-    // setup usart2
     RCC->APB1ENR |= RCC_APB1ENR_USART2EN; // clock
-    // oversampling by16, 115200bps (fck=48mHz)
-    //USART2_BRR = 0x1a1; // 48000000 / 115200
-    USART2->BRR = 480000 / 1152;
-    USART2->CR3 = USART_CR3_DMAT; // enable DMA Tx
-    USART2->CR1 = USART_CR1_TE | USART_CR1_RE | USART_CR1_UE; // 1start,8data,nstop; enable Rx,Tx,USART
-    while(!(USART2->ISR & USART_ISR_TC)){if(--tmout == 0) break;} // polling idle frame Transmission
-    USART2->ICR |= USART_ICR_TCCF; // clear TC flag
-    USART2->CR1 |= USART_CR1_RXNEIE;
-    NVIC_EnableIRQ(USART2_IRQn);
 // USART1 of main board
 #elif USARTNUM == 1
     // PA9 - Tx, PA10 - Rx (AF1)
@@ -137,26 +111,26 @@ void usart_setup(){
                 | (GPIO_MODER_MODER9_AF | GPIO_MODER_MODER10_AF);
     GPIOA->AFR[1] = (GPIOA->AFR[1] & ~(GPIO_AFRH_AFRH1 | GPIO_AFRH_AFRH2)) |
                 1 << (1 * 4) | 1 << (2 * 4); // PA9, PA10
-    // USART1 Tx DMA - Channel2 (default value in SYSCFG_CFGR1)
-    DMA1_Channel2->CPAR = (uint32_t) &USART1->TDR; // periph
-    DMA1_Channel2->CMAR = (uint32_t) tbuf; // mem
-    DMA1_Channel2->CCR |= DMA_CCR_MINC | DMA_CCR_DIR | DMA_CCR_TCIE; // 8bit, mem++, mem->per, transcompl irq
-    // Tx CNDTR set @ each transmission due to data size
-    NVIC_SetPriority(DMA1_Channel2_3_IRQn, 3);
-    NVIC_EnableIRQ(DMA1_Channel2_3_IRQn);
-    NVIC_SetPriority(USART1_IRQn, 0);
-    // setup usart1
     RCC->APB2ENR |= RCC_APB2ENR_USART1EN;
-    USART1->BRR = 480000 / 1152;
-    USART1->CR3 = USART_CR3_DMAT; // enable DMA Tx
-    USART1->CR1 = USART_CR1_TE | USART_CR1_RE | USART_CR1_UE; // 1start,8data,nstop; enable Rx,Tx,USART
-    while(!(USART1->ISR & USART_ISR_TC)){if(--tmout == 0) break;} // polling idle frame Transmission
-    USART1->ICR |= USART_ICR_TCCF; // clear TC flag
-    USART1->CR1 |= USART_CR1_RXNEIE;
-    NVIC_EnableIRQ(USART1_IRQn);
 #else
-#error "Not implemented"
+#error "Wrong USARTNUM"
 #endif
+    // USARTX Tx DMA
+    USARTDMA->CPAR = (uint32_t) &USARTX->TDR; // periph
+    USARTDMA->CMAR = (uint32_t) tbuf; // mem
+    USARTDMA->CCR |= DMA_CCR_MINC | DMA_CCR_DIR | DMA_CCR_TCIE; // 8bit, mem++, mem->per, transcompl irq
+    // Tx CNDTR set @ each transmission due to data size
+    NVIC_SetPriority(DMAIRQn, 3);
+    NVIC_EnableIRQ(DMAIRQn);
+    NVIC_SetPriority(USARTIRQn, 0);
+    // setup usart1
+    USARTX->BRR = 480000 / 1152;
+    USARTX->CR3 = USART_CR3_DMAT; // enable DMA Tx
+    USARTX->CR1 = USART_CR1_TE | USART_CR1_RE | USART_CR1_UE; // 1start,8data,nstop; enable Rx,Tx,USART
+    while(!(USARTX->ISR & USART_ISR_TC)){if(--tmout == 0) break;} // polling idle frame Transmission
+    USARTX->ICR |= USART_ICR_TCCF; // clear TC flag
+    USARTX->CR1 |= USART_CR1_RXNEIE;
+    NVIC_EnableIRQ(USARTIRQn);
 }
 
 #if USARTNUM == 2
@@ -165,7 +139,7 @@ void usart2_isr(){
 #elif USARTNUM == 1
 void usart1_isr(){
 #else
-#error "Not implemented"
+#error "Wrong USARTNUM"
 #endif
     #ifdef CHECK_TMOUT
     static uint32_t tmout = 0;
@@ -276,5 +250,5 @@ void dma1_channel2_3_isr(){
     }
 }
 #else
-#error "Not implemented"
+#error "Wrong USARTNUM"
 #endif

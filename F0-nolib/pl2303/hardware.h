@@ -32,6 +32,17 @@
 
 #define FORMUSART(X)    CONCAT(USART, X)
 #define USARTX          FORMUSART(USARTNUM)
+#if USARTNUM == 2
+    #define USARTDMA  DMA1_Channel4
+    #define DMAIRQn   DMA1_Channel4_5_IRQn
+    #define USARTIRQn USART2_IRQn
+#elif USARTNUM == 1
+    #define USARTDMA  DMA1_Channel2
+    #define DMAIRQn   DMA1_Channel2_3_IRQn
+    #define USARTIRQn USART1_IRQn
+#else
+#error "Wrong USARTNUM"
+#endif
 
 // LEDS: 0 - PC13, 1 - PC14
 // LED0

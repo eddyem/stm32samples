@@ -1,6 +1,6 @@
 EESchema Schematic File Version 4
 LIBS:Servo_control-cache
-EELAYER 26 0
+EELAYER 29 0
 EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
@@ -1429,7 +1429,7 @@ Wire Wire Line
 Connection ~ 4900 2525
 Connection ~ 4400 2275
 $Comp
-L Connector_Specialized:USB_B_Micro J1
+L Servo_control-rescue:USB_B_Micro-Connector_Specialized J1
 U 1 1 5C8BC41C
 P 850 4650
 F 0 "J1" H 905 5117 50  0000 C CNN

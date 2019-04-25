@@ -30,6 +30,7 @@ CC			:= $(PREFIX)-gcc
 LD			:= $(PREFIX)-gcc
 AR			:= $(PREFIX)-ar
 AS			:= $(PREFIX)-as
+SIZE 		:= $(PREFIX)-size
 OBJCOPY		:= $(OPREFIX)-objcopy
 OBJDUMP		:= $(OPREFIX)-objdump
 GDB			:= $(OPREFIX)-gdb
@@ -85,7 +86,7 @@ LIST	:= $(OBJDIR)/$(BINARY).list
 BIN		:= $(BINARY).bin
 HEX		:= $(BINARY).hex
 
-all: bin list
+all: bin list size
 
 elf: $(ELF)
 bin: $(BIN)
@@ -106,9 +107,6 @@ $(OBJDIR)/%.o: %.c
 	@echo "  CC      $<"
 	$(CC) $(CFLAGS) $(DEFS) $(INCLUDE) $(ARCH_FLAGS) -o $@ -c $<
 
-#$(OBJDIR)/%.d: %.c $(OBJDIR)
-#	$(CC) -MM -MG $< | sed -e 's,^\([^:]*\)\.o[ ]*:,$(@D)/\1.o $(@D)/\1.d:,' >$@
-
 $(BIN): $(ELF)
 	@echo "  OBJCOPY $(BIN)"
 	$(OBJCOPY) -Obinary $(ELF) $(BIN)
@@ -125,9 +123,12 @@ $(ELF): $(OBJDIR) $(OBJS)
 	@echo "  LD      $(ELF)"
 	$(LD) $(LDFLAGS) $(ARCH_FLAGS) $(OBJS) $(LDLIBS) -o $(ELF)
 
+size: $(ELF)
+	$(SIZE) $(ELF)
+
 clean:
 	@echo "  CLEAN"
-	$(RM) $(OBJS) $(DEPS) $(ELF) $(HEX) $(LIST) $(OBJDIR)/*.map 
+	$(RM) $(OBJS) $(DEPS) $(ELF) $(HEX) $(LIST) $(OBJDIR)/*.map *.d
 	@rmdir $(OBJDIR) 2>/dev/null || true
 
 dfuboot: $(BIN)
