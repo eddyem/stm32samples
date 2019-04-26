@@ -22,6 +22,7 @@
 #include "usart.h"
 #include "usb.h"
 #include "usb_lib.h"
+#include <string.h> // memcpy
 
 volatile uint32_t Tms = 0;
 
@@ -53,18 +54,62 @@ void iwdg_setup(){
     IWDG->KR = IWDG_REFRESH; /* (6) */
 }
 
-void linecoding_handler(usb_LineCoding *lc){
+static usb_LineCoding new_lc;
+static uint8_t lcchange = 0;
+static void show_new_lc(){
     SEND("got new linecoding:");
-    SEND(" baudrate="); printu(lc->dwDTERate);
-    SEND(", charFormat="); printu(lc->bCharFormat);
-    SEND(", parityType="); printu(lc->bParityType);
-    SEND(", dataBits="); printu(lc->bDataBits);
+    SEND(" baudrate="); printu(new_lc.dwDTERate);
+    SEND(", charFormat="); printu(new_lc.bCharFormat);
+    SEND(" (");
+    switch(new_lc.bCharFormat){
+        case USB_CDC_1_STOP_BITS:
+            usart_putchar('1');
+        break;
+        case USB_CDC_1_5_STOP_BITS:
+            SEND("1.5");
+        break;
+        case USB_CDC_2_STOP_BITS:
+            usart_putchar('2');
+        break;
+        default:
+            usart_putchar('?');
+    }
+    SEND(" stop bits), parityType="); printu(new_lc.bParityType);
+    SEND(" (");
+    switch(new_lc.bParityType){
+        case USB_CDC_NO_PARITY:
+            SEND("no");
+        break;
+        case USB_CDC_ODD_PARITY:
+            SEND("odd");
+        break;
+        case USB_CDC_EVEN_PARITY:
+            SEND("even");
+        break;
+        case USB_CDC_MARK_PARITY:
+            SEND("mark");
+        break;
+        case USB_CDC_SPACE_PARITY:
+            SEND("space");
+        break;
+        default:
+            SEND("unknown");
+    }
+    SEND(" parity), dataBits="); printu(new_lc.bDataBits);
     usart_putchar('\n');
+    lcchange = 0;
+}
+
+void linecoding_handler(usb_LineCoding *lc){
+    memcpy(&new_lc, lc, sizeof(usb_LineCoding));
+    lcchange = 1;
 }
 
 void clstate_handler(uint16_t val){
     SEND("change control line state to ");
     printu(val);
+    if(val & CONTROL_DTR) SEND(" (DTR)");
+    if(val & CONTROL_RTS) SEND(" (RTS)");
     usart_putchar('\n');
 }
 
@@ -120,6 +165,7 @@ int main(void){
                     case 'L':
                         USB_send("Very long test string for USB (it's length is more than 64 bytes\n"
                                  "This is another part of the string! Can you see all of this?\n");
+                        SEND("Long test sent\n");
                     break;
                     case 'R':
                         SEND("Soft reset\n");
@@ -127,6 +173,7 @@ int main(void){
                     break;
                     case 'S':
                         USB_send("Test string for USB\n");
+                        SEND("Short test sent\n");
                     break;
                     case 'W':
                         SEND("Wait for reboot\n");
@@ -149,6 +196,9 @@ int main(void){
             txt[L] = 0;
             usart_send(txt);
             L = 0;
+        }
+        if(lcchange){
+            show_new_lc();
         }
     }
     return 0;

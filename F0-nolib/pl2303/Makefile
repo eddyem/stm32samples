@@ -9,8 +9,7 @@ MCU			= F042x6
 DEFS		+= -DUSARTNUM=1
 #DEFS		+= -DCHECK_TMOUT
 #DEFS		+= -DEBUG
-# change this linking script depending on particular MCU model,
-# for example, if you have STM32F103VBT6, you should write:
+# change this linking script depending on particular MCU model
 LDSCRIPT	= stm32f042k.ld
 
 INDEPENDENT_HEADERS=
@@ -60,11 +59,13 @@ CFLAGS		+= -Wall -Werror -Wextra -Wshadow -Wimplicit-function-declaration
 CFLAGS		+= -Wredundant-decls $(INCLUDE)
 # -Wmissing-prototypes -Wstrict-prototypes
 CFLAGS		+= -fno-common -ffunction-sections -fdata-sections
+#CGLAGS		+= -fno-stack-protector
 
 ###############################################################################
 # Linker flags
 LDFLAGS		+= --static -nostartfiles
 #--specs=nano.specs
+#LDFLAGS		+=  -fno-stack-protector
 LDFLAGS		+= -L$(LIB_DIR)
 LDFLAGS		+= -T$(LDSCRIPT)
 LDFLAGS		+= -Wl,-Map=$(OBJDIR)/$(BINARY).map

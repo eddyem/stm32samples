@@ -32,6 +32,11 @@
 
 // Max EP amount (EP0 + other used)
 #define ENDPOINTS_NUM                   4
+// bmRequestType & 0x7f
+#define STANDARD_DEVICE_REQUEST_TYPE    0
+#define STANDARD_ENDPOINT_REQUEST_TYPE  2
+#define VENDOR_REQUEST_TYPE             0x40
+#define CONTROL_REQUEST_TYPE            0x21
 // bRequest, standard; for bmRequestType == 0x80
 #define GET_STATUS                      0x00
 #define GET_DESCRIPTOR                  0x06
@@ -46,21 +51,14 @@
 #define GET_INTERFACE                   0x0A    // unused
 #define SET_INTERFACE                   0x0B    // unused
 #define SYNC_FRAME                      0x0C    // unused
-
-// vendor requests
-#define VENDOR_MASK_REQUEST             0x40
-#define VENDOR_READ_REQUEST_TYPE        0xc0
-#define VENDOR_WRITE_REQUEST_TYPE       0x40
-#define VENDOR_REQUEST                  0x01
-
-#define CONTROL_REQUEST_TYPE            0x21
+#define VENDOR_REQUEST                  0x01    // unused
 
 // Class-Specific Control Requests
-#define SEND_ENCAPSULATED_COMMAND       0x00
-#define GET_ENCAPSULATED_RESPONSE       0x01
-#define SET_COMM_FEATURE                0x02
-#define GET_COMM_FEATURE                0x03
-#define CLEAR_COMM_FEATURE              0x04
+#define SEND_ENCAPSULATED_COMMAND       0x00    // unused
+#define GET_ENCAPSULATED_RESPONSE       0x01    // unused
+#define SET_COMM_FEATURE                0x02    // unused
+#define GET_COMM_FEATURE                0x03    // unused
+#define CLEAR_COMM_FEATURE              0x04    // unused
 #define SET_LINE_CODING                 0x20
 #define GET_LINE_CODING                 0x21
 #define SET_CONTROL_LINE_STATE          0x22
@@ -77,7 +75,7 @@
 #define STRING_MAN_DESCRIPTOR           0x301
 #define STRING_PROD_DESCRIPTOR          0x302
 #define STRING_SN_DESCRIPTOR            0x303
-#define DEVICE_QALIFIER_DESCRIPTOR      0x600
+#define DEVICE_QUALIFIER_DESCRIPTOR     0x600
 
 // EPnR bits manipulation
 #define CLEAR_DTOG_RX(R)                (R & USB_EPnR_DTOG_RX) ? R : (R & (~USB_EPnR_DTOG_RX))
@@ -121,7 +119,7 @@ static const struct name \
         uint16_t bString[(sizeof(str) - 2) / 2]; \
     \
 } \
-name = {sizeof(name), 0x03, str};
+name = {sizeof(name), 0x03, str}
 
 #define _USB_LANG_ID_(name, lng_id)     \
     \
@@ -132,7 +130,7 @@ static const struct name \
         uint16_t bString;         \
     \
 } \
-name = {0x04, 0x03, lng_id};
+name = {0x04, 0x03, lng_id}
 #define STRING_LANG_DESCRIPTOR_SIZE_BYTE    (4)
 
 // EP0 configuration packet

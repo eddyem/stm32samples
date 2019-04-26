@@ -27,18 +27,21 @@
 
 #include <stm32f0xx.h>
 
-#define USB_BTABLE_BASE         0x40006000
+/**
+ *                 Buffers size definition
+ **/
 // !!! when working with CAN bus change USB_BTABLE_SIZE to 768 !!!
 #define USB_BTABLE_SIZE         1024
 // first 64 bytes of USB_BTABLE are registers!
 #define USB_EP0_BASEADDR        64
-// for USB FS EP0 buffers are from 8 to 64 bytes long
-#define USB_EP0_BUFSZ           8
-// USB transmit buffer size
+// for USB FS EP0 buffers are from 8 to 64 bytes long (64 for PL2303)
+#define USB_EP0_BUFSZ           64
+// USB transmit buffer size (64 for PL2303)
 #define USB_TXBUFSZ             64
-// USB receive buffer size
+// USB receive buffer size (64 for PL2303)
 #define USB_RXBUFSZ             64
 
+#define USB_BTABLE_BASE         0x40006000
 #undef USB_BTABLE
 #define USB_BTABLE              ((USB_BtableDef *)(USB_BTABLE_BASE))
 #define USB_ISTR_EPID           0x0000000F

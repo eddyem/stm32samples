@@ -109,7 +109,7 @@ void USB_setup(){
 void usb_proc(){
     if(USB_GetState() == USB_CONFIGURE_STATE){ // USB configured - activate other endpoints
         if(!usbON){ // endpoints not activated
-            MSG("Configured; activate other endpoints\n");
+            SEND("Configure endpoints\n");
             // make new BULK endpoint
             // Buffer have 1024 bytes, but last 256 we use for CAN bus (30.2 of RM: USB main features)
             EP_Init(1, EP_TYPE_INTERRUPT, 10, 0, EP1_Handler); // IN1 - transmit
