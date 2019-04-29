@@ -148,7 +148,6 @@ typedef struct __ep_t{
     uint8_t *rx_buf;            // reception buffer address
     uint16_t (*func)();         // endpoint action function
     uint16_t status;            // status flags
-    unsigned tx_sz   : 10;      // Tx buffer size
     unsigned rx_cnt  : 10;      // received data counter
     unsigned tx_flag : 1;       // transmission flag
     unsigned rx_flag : 1;       // reception flag

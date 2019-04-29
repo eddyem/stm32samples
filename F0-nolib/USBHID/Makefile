@@ -1,4 +1,4 @@
-BINARY		= pl2303
+BINARY		= usbhid
 BOOTPORT	?= /dev/ttyUSB0
 BOOTSPEED	?= 57600
 # MCU FAMILY
@@ -8,7 +8,7 @@ MCU			= F042x6
 # hardware definitions
 DEFS		+= -DUSARTNUM=1
 #DEFS		+= -DCHECK_TMOUT
-#DEFS		+= -DEBUG
+DEFS		+= -DEBUG
 # change this linking script depending on particular MCU model
 LDSCRIPT	= stm32f042k.ld
 
@@ -104,7 +104,7 @@ $(STARTUP): $(INC_DIR)/startup/vector.c
 	$(CC) $(CFLAGS) $(DEFS) $(INCLUDE) $(ARCH_FLAGS) -o $@ -c $<
 
 $(OBJDIR)/%.o: %.c
-	@echo "  CC      $<"
+	@echo "  CC	  $<"
 	$(CC) $(CFLAGS) $(DEFS) $(INCLUDE) $(ARCH_FLAGS) -o $@ -c $<
 
 $(BIN): $(ELF)
@@ -120,7 +120,7 @@ $(LIST): $(ELF)
 	$(OBJDUMP) -S $(ELF) > $(LIST)
 
 $(ELF): $(OBJDIR) $(OBJS)
-	@echo "  LD      $(ELF)"
+	@echo "  LD	  $(ELF)"
 	$(LD) $(LDFLAGS) $(ARCH_FLAGS) $(OBJS) $(LDLIBS) -o $(ELF)
 
 size: $(ELF)

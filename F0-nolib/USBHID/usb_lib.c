@@ -28,6 +28,7 @@
 
 ep_t endpoints[ENDPOINTS_NUM];
 
+//static uint8_t set_featuring;
 static usb_dev_t USB_Dev;
 static usb_LineCoding lineCoding = {115200, 0, 0, 8};
 static config_pack_t setup_packet;
@@ -37,8 +38,8 @@ static uint8_t ep0dbuflen = 0;
 usb_LineCoding getLineCoding(){return lineCoding;}
 
 // definition of parts common for USB_DeviceDescriptor & USB_DeviceQualifierDescriptor
-#define bcdUSB_L        0x10
-#define bcdUSB_H        0x01
+#define bcdUSB_L        0x00
+#define bcdUSB_H        0x02
 #define bDeviceClass    0
 #define bDeviceSubClass 0
 #define bDeviceProtocol 0
@@ -47,21 +48,21 @@ usb_LineCoding getLineCoding(){return lineCoding;}
 static const uint8_t USB_DeviceDescriptor[] = {
         18,     // bLength
         0x01,   // bDescriptorType - Device descriptor
-        bcdUSB_L,   // bcdUSB_L - 1.10
+        bcdUSB_L,   // bcdUSB_L - 2.00
         bcdUSB_H,   // bcdUSB_H
         bDeviceClass,   // bDeviceClass - USB_COMM
         bDeviceSubClass,   // bDeviceSubClass
         bDeviceProtocol,   // bDeviceProtocol
-        USB_EP0_BUFSZ,   // bMaxPacketSize
-        0x7b,   // idVendor_L PL2303: VID=0x067b, PID=0x2303
-        0x06,   // idVendor_H
-        0x03,   // idProduct_L
-        0x23,   // idProduct_H
+        USB_EP0_BUFSZ,   // bMaxPacketSize0
+        0x5e,   // idVendor: Microsoft
+        0x04,   // idVendor_H
+        0x5c,   // idProduct: Office Keyboard (106/109)
+        0x00,   // idProduct_H
         0x00,   // bcdDevice_Ver_L
-        0x03,   // bcdDevice_Ver_H
+        0x02,   // bcdDevice_Ver_H
         0x01,   // iManufacturer
         0x02,   // iProduct
-        0x00,   // iSerialNumber
+        0x03,   // iSerialNumber
         bNumConfigurations    // bNumConfigurations
 };
 
@@ -77,114 +78,158 @@ static const uint8_t USB_DeviceQualifierDescriptor[] = {
         bNumConfigurations,   // bNumConfigurations
         0x00    // Reserved
 };
+#if 0
+static const uint8_t HID_ReportDescriptor[] = {
+    0x05, 0x01, /* Usage Page (Generic Desktop)             */
+    0x09, 0x02, /* Usage (Mouse)                            */
+    0xA1, 0x01, /* Collection (Application)                 */
+    0x09, 0x01, /*  Usage (Pointer)                         */
+    0xA1, 0x00, /*  Collection (Physical)                   */
+    0x85, 0x01,  /*   Report ID  */
+    0x05, 0x09, /*      Usage Page (Buttons)                */
+    0x19, 0x01, /*      Usage Minimum (01)                  */
+    0x29, 0x03, /*      Usage Maximum (03)                  */
+    0x15, 0x00, /*      Logical Minimum (0)                 */
+    0x25, 0x01, /*      Logical Maximum (0)                 */
+    0x95, 0x03, /*      Report Count (3)                    */
+    0x75, 0x01, /*      Report Size (1)                     */
+    0x81, 0x02, /*      Input (Data, Variable, Absolute)    */
+    0x95, 0x01, /*      Report Count (1)                    */
+    0x75, 0x05, /*      Report Size (5)                     */
+    0x81, 0x01, /*      Input (Constant)    ;5 bit padding  */
+    0x05, 0x01, /*      Usage Page (Generic Desktop)        */
+    0x09, 0x30, /*      Usage (X)                           */
+    0x09, 0x31, /*      Usage (Y)                           */
+    0x15, 0x81, /*      Logical Minimum (-127)              */
+    0x25, 0x7F, /*      Logical Maximum (127)               */
+    0x75, 0x08, /*      Report Size (8)                     */
+    0x95, 0x02, /*      Report Count (2)                    */
+    0x81, 0x06, /*      Input (Data, Variable, Relative)    */
+    0xC0, 0xC0,/* End Collection,End Collection            */
+//
+    0x09, 0x06, /*		Usage (Keyboard)                    */
+    0xA1, 0x01, /*		Collection (Application)            */
+    0x85, 0x02,  /*   Report ID  */
+    0x05, 0x07, /*  	Usage (Key codes)                   */
+    0x19, 0xE0, /*      Usage Minimum (224)                 */
+    0x29, 0xE7, /*      Usage Maximum (231)                 */
+    0x15, 0x00, /*      Logical Minimum (0)                 */
+    0x25, 0x01, /*      Logical Maximum (1)                 */
+    0x75, 0x01, /*      Report Size (1)                     */
+    0x95, 0x08, /*      Report Count (8)                    */
+    0x81, 0x02, /*      Input (Data, Variable, Absolute)    */
+    0x95, 0x01, /*      Report Count (1)                    */
+    0x75, 0x08, /*      Report Size (8)                     */
+    0x81, 0x01, /*      Input (Constant)    ;5 bit padding  */
+    0x95, 0x05, /*      Report Count (5)                    */
+    0x75, 0x01, /*      Report Size (1)                     */
+    0x05, 0x08, /*      Usage Page (Page# for LEDs)         */
+    0x19, 0x01, /*      Usage Minimum (01)                  */
+    0x29, 0x05, /*      Usage Maximum (05)                  */
+    0x91, 0x02, /*      Output (Data, Variable, Absolute)   */
+    0x95, 0x01, /*      Report Count (1)                    */
+    0x75, 0x03, /*      Report Size (3)                     */
+    0x91, 0x01, /*      Output (Constant)                   */
+    0x95, 0x06, /*      Report Count (1)                    */
+    0x75, 0x08, /*      Report Size (3)                     */
+    0x15, 0x00, /*      Logical Minimum (0)                 */
+    0x25, 0x65, /*      Logical Maximum (101)               */
+    0x05, 0x07, /*  	Usage (Key codes)                   */
+    0x19, 0x00, /*      Usage Minimum (00)                  */
+    0x29, 0x65, /*      Usage Maximum (101)                 */
+    0x81, 0x00, /*      Input (Data, Array)                 */
+    0xC0        /* 		End Collection,End Collection       */
+};
+#endif
+
+const uint8_t HID_ReportDescriptor[] = {
+    0x05, 0x01, /* Usage Page (Generic Desktop)             */
+    0x09, 0x06, /*      Usage (Keyboard)                    */
+    0xA1, 0x01, /*      Collection (Application)            */
+    0x05, 0x07, /*      Usage (Key codes)                   */
+    0x19, 0xE0, /*      Usage Minimum (224)                 */
+    0x29, 0xE7, /*      Usage Maximum (231)                 */
+    0x15, 0x00, /*      Logical Minimum (0)                 */
+    0x25, 0x01, /*      Logical Maximum (1)                 */
+    0x75, 0x01, /*      Report Size (1)                     */
+    0x95, 0x08, /*      Report Count (8)                    */
+    0x81, 0x02, /*      Input (Data, Variable, Absolute)    */
+    0x95, 0x01, /*      Report Count (1)                    */
+    0x75, 0x08, /*      Report Size (8)                     */
+    0x81, 0x01, /*      Input (Constant)    ;5 bit padding  */
+    0x95, 0x05, /*      Report Count (5)                    */
+    0x75, 0x01, /*      Report Size (1)                     */
+    0x05, 0x08, /*      Usage Page (Page# for LEDs)         */
+    0x19, 0x01, /*      Usage Minimum (01)                  */
+    0x29, 0x05, /*      Usage Maximum (05)                  */
+    0x91, 0x02, /*      Output (Data, Variable, Absolute)   */
+    0x95, 0x01, /*      Report Count (1)                    */
+    0x75, 0x03, /*      Report Size (3)                     */
+    0x91, 0x01, /*      Output (Constant)                   */
+    0x95, 0x06, /*      Report Count (1)                    */
+    0x75, 0x08, /*      Report Size (3)                     */
+    0x15, 0x00, /*      Logical Minimum (0)                 */
+    0x25, 0x65, /*      Logical Maximum (101)               */
+    0x05, 0x07, /*      Usage (Key codes)                   */
+    0x19, 0x00, /*      Usage Minimum (00)                  */
+    0x29, 0x65, /*      Usage Maximum (101)                 */
+    0x81, 0x00, /*      Input (Data, Array)                 */
+    0x09, 0x05, /*      Usage (Vendor Defined)              */
+    0x15, 0x00, /*      Logical Minimum (0))                */
+    0x26, 0xFF, 0x00, /* Logical Maximum (255))             */
+    0x75, 0x08, /*      Report Count (2))                   */
+    0x95, 0x02, /*      Report Size (8 bit))                */
+    0xB1, 0x02, /*      Feature (Data, Variable, Absolute)  */
+    0xC0        /*      End Collection,End Collection       */
+
+};
 
 static const uint8_t USB_ConfigDescriptor[] = {
         /*Configuration Descriptor*/
         0x09, /* bLength: Configuration Descriptor size */
         0x02, /* bDescriptorType: Configuration */
-        39,   /* wTotalLength:no of returned bytes */
+        34,   /* wTotalLength */
         0x00,
         0x01, /* bNumInterfaces: 1 interface */
         0x01, /* bConfigurationValue: Configuration value */
         0x00, /* iConfiguration: Index of string descriptor describing the configuration */
-        0xa0, /* bmAttributes - Bus powered, Remote wakeup */
+        0xa0, /* bmAttributes - Bus powered */
         0x32, /* MaxPower 100 mA */
-
-        /*---------------------------------------------------------------------------*/
-
         /*Interface Descriptor */
         0x09, /* bLength: Interface Descriptor size */
         0x04, /* bDescriptorType: Interface */
         0x00, /* bInterfaceNumber: Number of Interface */
         0x00, /* bAlternateSetting: Alternate setting */
-        0x03, /* bNumEndpoints: 3 endpoints used */
-        0xff, /* bInterfaceClass */
-        0x00, /* bInterfaceSubClass */
-        0x00, /* bInterfaceProtocol */
+        0x01, /* bNumEndpoints: 1 endpoint used */
+        0x03, /* bInterfaceClass: USB_CLASS_HID */
+        0x01, /* bInterfaceSubClass: boot */
+        0x01, /* bInterfaceProtocol: keyboard */
         0x00, /* iInterface: */
-///////////////////////////////////////////////////
+        /* HID device descriptor */
+        0x09, /* bLength: HID Device Descriptor size */
+        0x21, /* bDescriptorType: HID */
+        0x10, /* bcdHID: 1.10 */
+        0x01, /* bcdHIDH */
+        0x00, /* bCountryCode: Not supported */
+        0x01, /* bNumDescriptors: 1 */
+        0x22, /* bDescriptorType: Report */
+        sizeof(HID_ReportDescriptor), /* wDescriptorLength */
+        0x00, /*  wDescriptorLengthH */
         /*Endpoint 1 Descriptor*/
         0x07, /* bLength: Endpoint Descriptor size */
         0x05, /* bDescriptorType: Endpoint */
         0x81, /* bEndpointAddress IN1 */
         0x03, /* bmAttributes: Interrupt */
-        0x0a, /* wMaxPacketSize LO: */
+        USB_TXBUFSZ, /* wMaxPacketSize LO: */
         0x00, /* wMaxPacketSize HI: */
         0x01, /* bInterval: */
-
-        /*Endpoint OUT2 Descriptor*/
-        0x07, /* bLength: Endpoint Descriptor size */
-        0x05, /* bDescriptorType: Endpoint */
-        0x02, /* bEndpointAddress: OUT2 */
-        0x02, /* bmAttributes: Bulk */
-        (USB_RXBUFSZ & 0xff), /* wMaxPacketSize: 64 */
-        (USB_RXBUFSZ >> 8),
-        0x00, /* bInterval: ignore for Bulk transfer */
-
-        /*Endpoint IN3 Descriptor*/
-        0x07, /* bLength: Endpoint Descriptor size */
-        0x05, /* bDescriptorType: Endpoint */
-        0x83, /* bEndpointAddress IN3 */
-        0x02, /* bmAttributes: Bulk */
-        (USB_TXBUFSZ & 0xff), /* wMaxPacketSize: 64 */
-        (USB_TXBUFSZ >> 8),
-        0x00, /* bInterval: ignore for Bulk transfer */
 };
 
 _USB_LANG_ID_(USB_StringLangDescriptor, LANG_US);
 // these descriptors are not used in PL2303 emulator!
 _USB_STRING_(USB_StringSerialDescriptor, u"0");
-_USB_STRING_(USB_StringManufacturingDescriptor, u"Prolific Technology Inc.");
-_USB_STRING_(USB_StringProdDescriptor, u"USB-Serial Controller");
-
-/*
- * default handlers
- */
-// SET_LINE_CODING
-void WEAK linecoding_handler(usb_LineCoding __attribute__((unused)) *lc){
-    MSG("linecoding_handler\n");
-}
-
-// SET_CONTROL_LINE_STATE
-void WEAK clstate_handler(uint16_t __attribute__((unused)) val){
-    MSG("clstate_handler\n");
-}
-
-// SEND_BREAK
-void WEAK break_handler(){
-    MSG("break_handler\n");
-}
-
-// handler of vendor requests
-void WEAK vendor_handler(config_pack_t *packet){
-    if(packet->bmRequestType & 0x80){ // read
-        //SEND("Read");
-        uint8_t c;
-        switch(packet->wValue){
-            case 0x8484:
-                c = 2;
-            break;
-            case 0x0080:
-                c = 1;
-            break;
-            case 0x8686:
-                c = 0xaa;
-            break;
-            default:
-                c = 0;
-        }
-        EP_WriteIRQ(0, &c, 1);
-    }else{ // write ZLP
-        //SEND("Write");
-        EP_WriteIRQ(0, (uint8_t *)0, 0);
-    }
-    /*SEND(" vendor, reqt=");
-    printuhex(packet->bmRequestType);
-    SEND(", wval=");
-    printuhex(packet->wValue);
-    usart_putchar('\n');*/
-}
-
+_USB_STRING_(USB_StringManufacturingDescriptor, u"SAO RAS");
+_USB_STRING_(USB_StringProdDescriptor, u"HID mouse+keyboard");
 
 #ifdef EBUG
     uint8_t _2wr = 0;
@@ -200,24 +245,31 @@ static void wr0(const uint8_t *buf, uint16_t size){
 static inline void get_descriptor(){
     switch(setup_packet.wValue){
         case DEVICE_DESCRIPTOR:
+            WRITEDUMP("DEVICE_DESCRIPTOR");
             wr0(USB_DeviceDescriptor, sizeof(USB_DeviceDescriptor));
         break;
         case CONFIGURATION_DESCRIPTOR:
+            WRITEDUMP("CONFIGURATION_DESCRIPTOR");
             wr0(USB_ConfigDescriptor, sizeof(USB_ConfigDescriptor));
         break;
         case STRING_LANG_DESCRIPTOR:
+            WRITEDUMP("STRING_LANG_DESCRIPTOR");
             wr0((const uint8_t *)&USB_StringLangDescriptor, STRING_LANG_DESCRIPTOR_SIZE_BYTE);
         break;
         case STRING_MAN_DESCRIPTOR:
+            WRITEDUMP("STRING_MAN_DESCRIPTOR");
             wr0((const uint8_t *)&USB_StringManufacturingDescriptor, USB_StringManufacturingDescriptor.bLength);
         break;
         case STRING_PROD_DESCRIPTOR:
+            WRITEDUMP("STRING_PROD_DESCRIPTOR");
             wr0((const uint8_t *)&USB_StringProdDescriptor, USB_StringProdDescriptor.bLength);
         break;
         case STRING_SN_DESCRIPTOR:
+            WRITEDUMP("STRING_SN_DESCRIPTOR");
             wr0((const uint8_t *)&USB_StringSerialDescriptor, USB_StringSerialDescriptor.bLength);
         break;
         case DEVICE_QUALIFIER_DESCRIPTOR:
+            WRITEDUMP("DEVICE_QUALIFIER_DESCRIPTOR");
             wr0(USB_DeviceQualifierDescriptor, USB_DeviceQualifierDescriptor[0]);
         break;
         default:
@@ -234,6 +286,7 @@ static inline void std_d2h_req(){
             get_descriptor();
         break;
         case GET_STATUS:
+            WRITEDUMP("GET_STATUS");
             EP_WriteIRQ(0, (uint8_t *)&status, 2); // send status: Bus Powered
         break;
         case GET_CONFIGURATION:
@@ -249,10 +302,12 @@ static inline void std_d2h_req(){
 static inline void std_h2d_req(){
     switch(setup_packet.bRequest){
         case SET_ADDRESS:
+            WRITEDUMP("SET_ADDRESS");
             // new address will be assigned later - after  acknowlegement or request to host
             USB_Dev.USB_Addr = setup_packet.wValue;
         break;
         case SET_CONFIGURATION:
+            WRITEDUMP("SET_CONFIGURATION");
             // Now device configured
             USB_Dev.USB_Status = USB_CONFIGURE_STATE;
             configuration = setup_packet.wValue;
@@ -291,8 +346,20 @@ static uint16_t EP0_Handler(ep_t ep){
                 epstatus = SET_NAK_RX(epstatus);
                 epstatus = SET_VALID_TX(epstatus);
             break;
+            case STANDARD_INTERFACE_REQUEST_TYPE:
+                WRITEDUMP("IFACE ");
+                if(dev2host && setup_packet.bRequest == GET_DESCRIPTOR){
+                    if(setup_packet.wValue == HID_REPORT_DESCRIPTOR){
+                        WRITEDUMP("HID_REPORT");
+                        wr0(HID_ReportDescriptor, sizeof(HID_ReportDescriptor));
+                    }
+                }
+                epstatus = SET_NAK_RX(epstatus);
+                epstatus = SET_VALID_TX(epstatus);
+            break;
             case STANDARD_ENDPOINT_REQUEST_TYPE: // standard endpoint request
                 if (setup_packet.bRequest == CLEAR_FEATURE){
+                    //WRITEDUMP("CLEAR_FEATURE");
                     // send ZLP
                     EP_WriteIRQ(0, (uint8_t *)0, 0);
                     epstatus = SET_NAK_RX(epstatus);
@@ -301,45 +368,32 @@ static uint16_t EP0_Handler(ep_t ep){
                     WRITEDUMP("02:WR_REQ");
                 }
             break;
-            case VENDOR_REQUEST_TYPE:
-                vendor_handler(&setup_packet);
-                epstatus = SET_NAK_RX(epstatus);
-                epstatus = SET_VALID_TX(epstatus);
-            break;
             case CONTROL_REQUEST_TYPE:
-                switch(setup_packet.bRequest){
-                    case GET_LINE_CODING:
-                        EP_WriteIRQ(0, (uint8_t*)&lineCoding, sizeof(lineCoding));
-                    break;
-                    case SET_LINE_CODING: // omit this for next stage, when data will come
-                    break;
-                    case SET_CONTROL_LINE_STATE:
-                        clstate_handler(setup_packet.wValue);
-                    break;
-                    case SEND_BREAK:
-                        break_handler();
-                    break;
-                    default:
-                        WRITEDUMP("undef control req");
+                if (setup_packet.bRequest == SET_IDLE_REQUEST){
+                    EP_WriteIRQ(0, (uint8_t *)0, 0);
+                    epstatus = SET_NAK_RX(epstatus);
+                    epstatus = SET_VALID_TX(epstatus);
+                    WRITEDUMP("SET_IDLE_REQUEST");
+                } else if (setup_packet.bRequest == SET_FEAUTRE){
+                    WRITEDUMP("SET_FEAUTRE");
+                    //set_featuring = 1;
+                    epstatus = SET_VALID_RX(epstatus);
+                    epstatus = KEEP_STAT_TX(epstatus);
                 }
-                if(!dev2host) EP_WriteIRQ(0, (uint8_t *)0, 0); // write acknowledgement
-                epstatus = SET_VALID_RX(epstatus);
-                epstatus = SET_VALID_TX(epstatus);
             break;
             default:
+                WRITEDUMP("Bad request");
                 EP_WriteIRQ(0, (uint8_t *)0, 0);
                 epstatus = SET_NAK_RX(epstatus);
                 epstatus = SET_VALID_TX(epstatus);
         }
     }else if (ep.rx_flag){ // got data over EP0 or host acknowlegement
-        if(ep.rx_cnt){
-            EP_WriteIRQ(0, (uint8_t *)0, 0);
-            if(setup_packet.bRequest == SET_LINE_CODING){
-                //WRITEDUMP("SET_LINE_CODING");
-                linecoding_handler((usb_LineCoding*)ep0databuf);
-            }
-        }
+        /*if (set_featuring){
+            set_featuring = 0;
+            // here we can do something with ep.rx_buf - set_feature
+        }*/
         // Close transaction
+        hexdump(ep.rx_buf, ep.rx_cnt);
         epstatus = CLEAR_DTOG_RX(epstatus);
         epstatus = CLEAR_DTOG_TX(epstatus);
         // wait for new data from host
@@ -379,6 +433,7 @@ static uint16_t EP0_Handler(ep_t ep){
         usart_putchar(' ');
         hexdump(ep0databuf, ep0dbuflen);
         usart_putchar('\n');
+        _2wr = 0;
     }
 #endif
     return epstatus;
@@ -411,6 +466,7 @@ int EP_Init(uint8_t number, uint8_t type, uint16_t txsz, uint16_t rxsz, uint16_t
     }
     USB_BTABLE->EP[number].USB_ADDR_TX = lastaddr;
     endpoints[number].tx_buf = (uint16_t *)(USB_BTABLE_BASE + lastaddr);
+    endpoints[number].txbufsz = txsz;
     lastaddr += txsz;
     USB_BTABLE->EP[number].USB_COUNT_TX = 0;
     USB_BTABLE->EP[number].USB_ADDR_RX = lastaddr;
@@ -486,7 +542,7 @@ void usb_isr(){
  */
 void EP_WriteIRQ(uint8_t number, const uint8_t *buf, uint16_t size){
     uint8_t i;
-    if(size > USB_TXBUFSZ) size = USB_TXBUFSZ;
+    if(size > endpoints[number].txbufsz) size = endpoints[number].txbufsz;
     uint16_t N2 = (size + 1) >> 1;
     // the buffer is 16-bit, so we should copy data as it would be uint16_t
     uint16_t *buf16 = (uint16_t *)buf;
