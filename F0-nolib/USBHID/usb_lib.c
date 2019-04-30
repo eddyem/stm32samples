@@ -26,7 +26,7 @@
 #include <string.h> // memcpy
 #include "usart.h"
 
-ep_t endpoints[ENDPOINTS_NUM];
+static ep_t endpoints[ENDPOINTS_NUM];
 
 //static uint8_t set_featuring;
 static usb_dev_t USB_Dev;
@@ -78,7 +78,7 @@ static const uint8_t USB_DeviceQualifierDescriptor[] = {
         bNumConfigurations,   // bNumConfigurations
         0x00    // Reserved
 };
-#if 0
+
 static const uint8_t HID_ReportDescriptor[] = {
     0x05, 0x01, /* Usage Page (Generic Desktop)             */
     0x09, 0x02, /* Usage (Mouse)                            */
@@ -140,8 +140,8 @@ static const uint8_t HID_ReportDescriptor[] = {
     0x81, 0x00, /*      Input (Data, Array)                 */
     0xC0        /* 		End Collection,End Collection       */
 };
-#endif
 
+#if 0
 const uint8_t HID_ReportDescriptor[] = {
     0x05, 0x01, /* Usage Page (Generic Desktop)             */
     0x09, 0x06, /*      Usage (Keyboard)                    */
@@ -183,6 +183,7 @@ const uint8_t HID_ReportDescriptor[] = {
     0xC0        /*      End Collection,End Collection       */
 
 };
+#endif
 
 static const uint8_t USB_ConfigDescriptor[] = {
         /*Configuration Descriptor*/
@@ -318,6 +319,37 @@ static inline void std_h2d_req(){
     }
 }
 
+static uint16_t WriteHID_descriptor(uint16_t status){
+    uint16_t rest = sizeof(HID_ReportDescriptor);
+    uint8_t *ptr = (uint8_t*)HID_ReportDescriptor;
+    while(rest){
+        uint16_t l = rest;
+        if(l > endpoints[0].txbufsz) l = endpoints[0].txbufsz;
+        EP_WriteIRQ(0, ptr, l);
+        ptr += l;
+        rest -= l;
+        MSG("Sent\n");
+        uint8_t needzlp = (l == endpoints[0].txbufsz) ? 1 : 0;
+        if(rest || needzlp){ // send last data buffer
+            status = SET_NAK_RX(status);
+            status = SET_VALID_TX(status);
+            status = KEEP_DTOG_TX(status);
+            status = KEEP_DTOG_RX(status);
+            status = CLEAR_CTR_RX(status);
+            status = CLEAR_CTR_TX(status);
+            USB->ISTR = 0;
+            USB->EPnR[0] = status;
+            uint32_t ctr = 1000000;
+            while(--ctr && (USB->ISTR & USB_ISTR_CTR) == 0);
+            if((USB->ISTR & USB_ISTR_CTR) == 0){MSG("ERR\n")};
+            USB->ISTR = 0;
+            status = USB->EPnR[0];
+            if(needzlp) EP_WriteIRQ(0, (uint8_t*)0, 0);
+        }
+    }
+    return status;
+}
+
 /*
 bmRequestType: 76543210
 7    direction: 0 - host->device, 1 - device->host
@@ -347,11 +379,10 @@ static uint16_t EP0_Handler(ep_t ep){
                 epstatus = SET_VALID_TX(epstatus);
             break;
             case STANDARD_INTERFACE_REQUEST_TYPE:
-                WRITEDUMP("IFACE ");
                 if(dev2host && setup_packet.bRequest == GET_DESCRIPTOR){
                     if(setup_packet.wValue == HID_REPORT_DESCRIPTOR){
                         WRITEDUMP("HID_REPORT");
-                        wr0(HID_ReportDescriptor, sizeof(HID_ReportDescriptor));
+                        epstatus = WriteHID_descriptor(epstatus);
                     }
                 }
                 epstatus = SET_NAK_RX(epstatus);
@@ -393,7 +424,9 @@ static uint16_t EP0_Handler(ep_t ep){
             // here we can do something with ep.rx_buf - set_feature
         }*/
         // Close transaction
+#ifdef EBUG
         hexdump(ep.rx_buf, ep.rx_cnt);
+#endif
         epstatus = CLEAR_DTOG_RX(epstatus);
         epstatus = CLEAR_DTOG_TX(epstatus);
         // wait for new data from host
@@ -480,9 +513,9 @@ int EP_Init(uint8_t number, uint8_t type, uint16_t txsz, uint16_t rxsz, uint16_t
 
 // standard IRQ handler
 void usb_isr(){
+    // disallow interrupts
+    USB->CNTR = 0;
     if (USB->ISTR & USB_ISTR_RESET){
-        // Reinit registers
-        USB->CNTR = USB_CNTR_RESETM | USB_CNTR_CTRM;
         USB->ISTR = 0;
         // Endpoint 0 - CONTROL
         // ON USB LS size of EP0 may be 8 bytes, but on FS it should be 64 bytes!
@@ -532,6 +565,8 @@ void usb_isr(){
         // refresh EPnR
         USB->EPnR[n] = epstatus;
     }
+    // allow interrupts
+    USB->CNTR = USB_CNTR_RESETM | USB_CNTR_CTRM;
 }
 
 /**

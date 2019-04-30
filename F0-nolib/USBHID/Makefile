@@ -8,7 +8,7 @@ MCU			= F042x6
 # hardware definitions
 DEFS		+= -DUSARTNUM=1
 #DEFS		+= -DCHECK_TMOUT
-DEFS		+= -DEBUG
+#DEFS		+= -DEBUG
 # change this linking script depending on particular MCU model
 LDSCRIPT	= stm32f042k.ld
 

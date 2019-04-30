@@ -189,7 +189,7 @@ typedef struct {
     uint16_t  wLength;
 } __attribute__ ((packed)) usb_cdc_notification;
 
-extern ep_t endpoints[];
+//extern ep_t endpoints[];
 
 void USB_Init();
 uint8_t USB_GetState();
@@ -198,7 +198,6 @@ void EP_WriteIRQ(uint8_t number, const uint8_t *buf, uint16_t size);
 void EP_Write(uint8_t number, const uint8_t *buf, uint16_t size);
 int EP_Read(uint8_t number, uint8_t *buf);
 usb_LineCoding getLineCoding();
-
 
 void WEAK linecoding_handler(usb_LineCoding *lc);
 void WEAK clstate_handler(uint16_t val);

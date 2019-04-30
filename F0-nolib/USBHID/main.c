@@ -101,7 +101,7 @@ int main(void){
     RCC->CSR |= RCC_CSR_RMVF; // remove reset flags
 
     USB_setup();
-    //iwdg_setup();
+    iwdg_setup();
 
     while (1){
         IWDG->KR = IWDG_REFRESH; // refresh watchdog
@@ -123,11 +123,12 @@ int main(void){
                         SEND("connected\n");
                     break;
                     case 'K':
-                        send_word("Hello!");
+                        send_word("Hello!\n\n");
                         SEND("Write hello\n");
                     break;
                     case 'M':
                         move_mouse(100, 10);
+                        move_mouse(0,0);
                         SEND("Move mouse\n");
                     break;
                     case 'R':
