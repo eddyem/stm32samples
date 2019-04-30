@@ -74,11 +74,16 @@ void move_mouse(int8_t x, int8_t y){
  * buf[2]: reserved
  * buf[3]..buf[8] - keycodes 1..6
  */
-void send_word(char *wrd){
+void send_word(const char *wrd){
+    char last = 0;
     do{
-        USB_send(press_key(*wrd), 9);
-        USB_send(release_key(), 9);
+        // release key before pressing it again
+        if(last == *wrd) USB_send(release_key(), USB_KEYBOARD_REPORT_SIZE);
+        last = *wrd;
+        USB_send(press_key(last), USB_KEYBOARD_REPORT_SIZE);
+        IWDG->KR = IWDG_REFRESH;
     }while(*(++wrd));
+    USB_send(release_key(), USB_KEYBOARD_REPORT_SIZE);
 }
 
 int main(void){
@@ -102,13 +107,25 @@ int main(void){
 
     USB_setup();
     iwdg_setup();
-
+    //int N = 0;
     while (1){
         IWDG->KR = IWDG_REFRESH; // refresh watchdog
         if(lastT > Tms || Tms - lastT > 499){
             LED_blink(LED0);
             lastT = Tms;
             transmit_tbuf(); // non-blocking transmission of data from UART buffer every 0.5s
+            /*if(N){
+                SEND("start: ");
+                printu(Tms);
+                for(int i = 0; i < 100; ++i){
+                    IWDG->KR = IWDG_REFRESH;
+                    send_word("0123456789abcdefghi\n");
+                }
+                SEND("stop: ");
+                printu(Tms);
+                newline();
+                --N;
+            }*/
         }
         usb_proc();
         if(usartrx()){ // usart1 received data, store in in buffer
@@ -123,7 +140,8 @@ int main(void){
                         SEND("connected\n");
                     break;
                     case 'K':
-                        send_word("Hello!\n\n");
+                        send_word("Hello, weird and cruel world!\n\n");
+                        //N = 2;
                         SEND("Write hello\n");
                     break;
                     case 'M':

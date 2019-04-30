@@ -390,6 +390,7 @@ static uint16_t EP0_Handler(ep_t ep){
             break;
             case STANDARD_ENDPOINT_REQUEST_TYPE: // standard endpoint request
                 if (setup_packet.bRequest == CLEAR_FEATURE){
+                    printu(setup_packet.wValue);
                     //WRITEDUMP("CLEAR_FEATURE");
                     // send ZLP
                     EP_WriteIRQ(0, (uint8_t *)0, 0);
@@ -418,26 +419,23 @@ static uint16_t EP0_Handler(ep_t ep){
                 epstatus = SET_NAK_RX(epstatus);
                 epstatus = SET_VALID_TX(epstatus);
         }
-    }else if (ep.rx_flag){ // got data over EP0 or host acknowlegement
-        /*if (set_featuring){
-            set_featuring = 0;
-            // here we can do something with ep.rx_buf - set_feature
-        }*/
-        // Close transaction
+    }else if (ep.rx_flag || ep.tx_flag){ // got data over EP0 or host acknowlegement || package transmitted
+        if(ep.rx_flag){
+            /*if (set_featuring){
+                set_featuring = 0;
+                // here we can do something with ep.rx_buf - set_feature
+            }*/
+            // Close transaction
 #ifdef EBUG
-        hexdump(ep.rx_buf, ep.rx_cnt);
+            hexdump(ep.rx_buf, ep.rx_cnt);
 #endif
-        epstatus = CLEAR_DTOG_RX(epstatus);
-        epstatus = CLEAR_DTOG_TX(epstatus);
-        // wait for new data from host
-        epstatus = SET_VALID_RX(epstatus);
-        epstatus = SET_STALL_TX(epstatus);
-    } else if (ep.tx_flag){ // package transmitted
-        // now we can change address after enumeration
-        if ((USB->DADDR & USB_DADDR_ADD) != USB_Dev.USB_Addr){
-            USB->DADDR = USB_DADDR_EF | USB_Dev.USB_Addr;
-            // change state to ADRESSED
-            USB_Dev.USB_Status = USB_ADRESSED_STATE;
+        }else{ // tx
+            // now we can change address after enumeration
+            if ((USB->DADDR & USB_DADDR_ADD) != USB_Dev.USB_Addr){
+                USB->DADDR = USB_DADDR_EF | USB_Dev.USB_Addr;
+                // change state to ADRESSED
+                USB_Dev.USB_Status = USB_ADRESSED_STATE;
+            }
         }
         // end of transaction
         epstatus = CLEAR_DTOG_RX(epstatus);

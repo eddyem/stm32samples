@@ -21,6 +21,7 @@
  *
  */
 
+#include "keycodes.h"
 #include "usb.h"
 #include "usb_lib.h"
 #include "usart.h"
@@ -50,7 +51,7 @@ static uint16_t EP1_Handler(ep_t ep){
 #endif
         tx_succesfull = 1;
         ep.status = SET_VALID_RX(ep.status);
-        ep.status = SET_STALL_TX(ep.status);
+        ep.status = SET_VALID_TX(ep.status);
     }
     return ep.status;
 }
@@ -92,7 +93,7 @@ void usb_proc(){
     if(USB_GetState() == USB_CONFIGURE_STATE){ // USB configured - activate other endpoints
         if(!usbON){ // endpoints not activated
             SEND("Configure endpoints\n");
-            EP_Init(1, EP_TYPE_INTERRUPT, 10, 0, EP1_Handler); // IN1 - transmit
+            EP_Init(1, EP_TYPE_INTERRUPT, USB_TXBUFSZ, 0, EP1_Handler); // IN1 - transmit
             usbON = 1;
         }
     }else{
@@ -103,7 +104,7 @@ void usb_proc(){
 void USB_send(uint8_t *buf, uint16_t size){
     uint16_t ctr = 0;
     while(size){
-        uint16_t s = (size > USB_TXBUFSZ) ? USB_TXBUFSZ : size;
+        uint16_t s = (size > USB_KEYBOARD_REPORT_SIZE) ? USB_KEYBOARD_REPORT_SIZE : size;
         tx_succesfull = 0;
         EP_Write(1, (uint8_t*)&buf[ctr], s);
         if(EP_WaitTransmission()) SEND("Err\n");

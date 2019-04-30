@@ -36,7 +36,7 @@
 #define USB_EP0_BASEADDR        64
 // for USB FS EP0 buffers are from 8 to 64 bytes long (64 for PL2303)
 #define USB_EP0_BUFSZ           64
-// USB transmit buffer size
+// USB transmit buffer size (larger than keyboard report to prevent need of ZLP!)
 #define USB_TXBUFSZ             10
 
 #define USB_BTABLE_BASE         0x40006000

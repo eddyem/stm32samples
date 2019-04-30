@@ -30,6 +30,8 @@ uint8_t *set_key_buf(uint8_t MOD, uint8_t KEY);
 uint8_t *press_key_mod(char key, uint8_t mod);
 #define press_key(k)   press_key_mod(k, 0)
 
+#define USB_KEYBOARD_REPORT_SIZE    8
+
 #define MOD_CTRL	0x01
 #define MOD_SHIFT	0x02
 #define MOD_ALT		0x04
