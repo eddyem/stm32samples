@@ -179,6 +179,16 @@ IDR - input, ODR - output (or pullups management),
 #define CRH(pin, cnfmode)  ((cnfmode) << ((pin-8)*4))
 
 
+/************************* ADC *************************/
+/* inner termometer calibration values
+ *         Temp = (V25 - Vsense)/Avg_Slope + 25
+ */
+#define VREFINT_CAL_ADDR ((uint16_t*) ((uint32_t) 0x1FFFF7BA))
+
+/************************* IWDG *************************/
+#define IWDG_REFRESH      (uint32_t)(0x0000AAAA)
+#define IWDG_WRITE_ACCESS (uint32_t)(0x00005555)
+#define IWDG_START        (uint32_t)(0x0000CCCC)
 
 
 #if 0
@@ -190,7 +200,6 @@ IDR - input, ODR - output (or pullups management),
 #define TEMP110_CAL_ADDR ((uint16_t*) ((uint32_t) 0x1FFFF7C2))
 #define TEMP30_CAL_ADDR ((uint16_t*) ((uint32_t) 0x1FFFF7B8))
 // VDDA_Actual = 3.3V * VREFINT_CAL / average vref value
-#define VREFINT_CAL_ADDR ((uint16_t*) ((uint32_t) 0x1FFFF7BA))
 #define VDD_CALIB ((uint16_t) (330))
 #define VDD_APPLI ((uint16_t) (300))
 
@@ -199,11 +208,6 @@ IDR - input, ODR - output (or pullups management),
 #define USART_CR2_ADD_SHIFT     24
 // set address/character match value
 #define USART_CR2_ADD_VAL(x)        ((x) << USART_CR2_ADD_SHIFT)
-
-/************************* IWDG *************************/
-#define IWDG_REFRESH      (uint32_t)(0x0000AAAA)
-#define IWDG_WRITE_ACCESS (uint32_t)(0x00005555)
-#define IWDG_START        (uint32_t)(0x0000CCCC)
 
 
 //#define  do{}while(0)

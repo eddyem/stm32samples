@@ -31,14 +31,12 @@
 static uint8_t incoming_data[IDATASZ];
 static uint8_t ovfl = 0;
 static uint16_t idatalen = 0;
-static int8_t usbON = 0; // ==1 when USB fully configured
 static volatile uint8_t tx_succesfull = 0;
+static int8_t usbON = 0; // ==1 when USB fully configured
 
 // interrupt IN handler (never used?)
 static uint16_t EP1_Handler(ep_t ep){
-    uint8_t ep0buf[11];
     if (ep.rx_flag){
-        EP_Read(1, ep0buf);
         ep.status = SET_VALID_TX(ep.status);
         ep.status = KEEP_STAT_RX(ep.status);
     }else if (ep.tx_flag){
@@ -50,7 +48,6 @@ static uint16_t EP1_Handler(ep_t ep){
 
 // data IN/OUT handler
 static uint16_t EP23_Handler(ep_t ep){
-    MSG("EP2\n");
     if(ep.rx_flag){
         int rd = ep.rx_cnt, rest = IDATASZ - idatalen;
         if(rd){
@@ -63,18 +60,6 @@ static uint16_t EP23_Handler(ep_t ep){
                 return ep.status;
             }
         }
-#ifdef EBUG
-        SEND("receive ");
-        printu(ep.rx_cnt);
-        SEND(" bytes, idatalen=");
-        printu(idatalen);
-        SEND(" , rest=");
-        printu(rest);
-        incoming_data[idatalen] = 0;
-        SEND(" , the buffer now:\n");
-        SEND((char*)incoming_data);
-        usart_putchar('\n');
-#endif
         // end of transaction: clear DTOGs
         ep.status = CLEAR_DTOG_RX(ep.status);
         ep.status = CLEAR_DTOG_TX(ep.status);
@@ -111,7 +96,6 @@ void USB_setup(){
 void usb_proc(){
     if(USB_GetState() == USB_CONFIGURE_STATE){ // USB configured - activate other endpoints
         if(!usbON){ // endpoints not activated
-            SEND("Configure endpoints\n");
             // make new BULK endpoint
             // Buffer have 1024 bytes, but last 256 we use for CAN bus (30.2 of RM: USB main features)
             EP_Init(1, EP_TYPE_INTERRUPT, 10, 0, EP1_Handler); // IN1 - transmit
