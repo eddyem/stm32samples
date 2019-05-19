@@ -41,31 +41,32 @@ static inline void gpio_setup(){
 
 static inline void adc_setup(){
     GPIOB->CRL |= CRL(0, CNF_ANALOG|MODE_INPUT);
-    uint16_t ctr = 0; // 0xfff0 - more than 1.3ms
+    uint32_t ctr = 0;
     // Enable clocking
     RCC->APB2ENR |= RCC_APB2ENR_ADC1EN;
     RCC->CFGR &= ~(RCC_CFGR_ADCPRE);
-    RCC->CFGR |= RCC_CFGR_ADCPRE_1;
+    RCC->CFGR |= RCC_CFGR_ADCPRE_DIV8; // ADC clock = RCC / 8
     // sampling time - 239.5 cycles for channels 8, 16 and 17
     ADC1->SMPR2 = ADC_SMPR2_SMP8;
     ADC1->SMPR1 = ADC_SMPR1_SMP16 | ADC_SMPR1_SMP17;
-    // wake up ADC
-    ADC1->CR2 |= ADC_CR2_ADON;
     // we have three conversions in group -> ADC1->SQR1[L] = 2, order: 8->16->17
-    ADC1->SQR3 = 8 | (16<<5)| (17<<10);
+    ADC1->SQR3 = 8 | (16<<5) | (17<<10);
     ADC1->SQR1 = ADC_SQR1_L_1;
-    // calibration
-    ADC1->CR2 |= ADC_CR2_CAL;
-    while((ADC1->CR2 & ADC_CR2_CAL) && ++ctr < 0xfff0);
+    ADC1->CR1 |= ADC_CR1_SCAN; // scan mode
     // DMA configuration
     RCC->AHBENR |= RCC_AHBENR_DMA1EN;
     DMA1_Channel1->CPAR = (uint32_t) (&(ADC1->DR));
     DMA1_Channel1->CMAR = (uint32_t)(ADC_array);
     DMA1_Channel1->CNDTR = NUMBER_OF_ADC_CHANNELS * 9;
-    DMA1_Channel1->CCR |= DMA_CCR_MINC | DMA_CCR_MSIZE_0 | DMA_CCR_PSIZE_0 | DMA_CCR_CIRC;
-    DMA1_Channel1->CCR |= DMA_CCR_EN;
-    // continuous mode & DMA; enable vref & Tsens; start
-    ADC1->CR2 |= ADC_CR2_CONT | ADC_CR2_DMA | ADC_CR2_TSVREFE | ADC_CR2_SWSTART;
+    DMA1_Channel1->CCR |= DMA_CCR_MINC | DMA_CCR_MSIZE_0 | DMA_CCR_PSIZE_0
+                          | DMA_CCR_CIRC | DMA_CCR_PL | DMA_CCR_EN;
+    // continuous mode & DMA; enable vref & Tsens; wake up ADC
+    ADC1->CR2 |= ADC_CR2_DMA | ADC_CR2_TSVREFE | ADC_CR2_CONT | ADC_CR2_ADON;
+    // calibration
+    ADC1->CR2 |= ADC_CR2_RSTCAL;
+    while((ADC1->CR2 & ADC_CR2_RSTCAL) && ++ctr < 0xfffff);
+    ADC1->CR2 |= ADC_CR2_CAL;
+    ctr = 0; while((ADC1->CR2 & ADC_CR2_CAL) && ++ctr < 0xfffff);
     // turn ON ADC
     ADC1->CR2 |= ADC_CR2_ADON;
 }

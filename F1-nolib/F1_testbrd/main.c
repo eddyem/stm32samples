@@ -69,19 +69,10 @@ char *parse_cmd(char *buf){
         case '1':
             pin_clear(GPIOA, 1<<4);
         break;
-        case 'a':
-            printu(getADCval(0)); newline();
-            printu(getADCval(1)); newline();
-            printu(getADCval(2)); newline();
-        break;
         case 'b':
             btns[5] = GET_BTN0() + '0';
             btns[13] = GET_BTN1() + '0';
             return btns;
-        break;
-        case 'c':
-            printu((uint32_t) *VREFINT_CAL_ADDR);
-            newline();
         break;
         case 'p':
             pin_toggle(USBPU_port, USBPU_pin);

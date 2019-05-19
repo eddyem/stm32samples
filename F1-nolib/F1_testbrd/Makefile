@@ -4,18 +4,18 @@ BOOTSPEED	?= 115200
 # MCU FAMILY
 FAMILY		?= F1
 # MCU code
-MCU			?= F103xB
+MCU			?= F103x8
 # density (stm32f10x.h, lines 70-84)
 DENSITY 	?= MD
 # change this linking script depending on particular MCU model,
-LDSCRIPT	?= stm32f103xB.ld
+LDSCRIPT	?= stm32f103x8.ld
 # debug
 DEFS		= -DEBUG
 
 INDEPENDENT_HEADERS=
 
-FP_FLAGS	?= -msoft-float
-ASM_FLAGS	?= -mthumb -mcpu=cortex-m3 
+FP_FLAGS	?= -msoft-float -mfloat-abi=soft
+ASM_FLAGS	?= -mthumb -mcpu=cortex-m3 -mfix-cortex-m3-ldrd
 ARCH_FLAGS	= $(ASM_FLAGS) $(FP_FLAGS)
 
 ###############################################################################
@@ -59,17 +59,18 @@ LIB_DIR		:= $(INC_DIR)/ld
 # C flags
 CFLAGS		+= -O2 -g -D__thumb2__=1 -MD
 CFLAGS		+= -Wall -Werror -Wextra -Wshadow 
-CFLAGS		+= -fno-common -ffunction-sections -fdata-sections
+CFLAGS		+= -fno-common -ffunction-sections -fdata-sections -fno-stack-protector
+CFLAGS		+=  $(ARCH_FLAGS)
 
 ###############################################################################
 # Linker flags
-LDFLAGS		+= -nostartfiles --static
+LDFLAGS		+= -nostartfiles --static -nostdlibs 
 LDFLAGS		+= -L$(LIB_DIR) -L$(TOOLCHLIB)
 LDFLAGS		+= -T$(LDSCRIPT)
 
 ###############################################################################
 # Used libraries
-LDLIBS		+= -lc $(shell $(CC) $(CFLAGS) -print-libgcc-file-name)
+LDLIBS		+=  $(shell $(CC) $(CFLAGS) -print-libgcc-file-name)
 
 DEFS		+= -DSTM32$(FAMILY) -DSTM32$(MCU) -DSTM32F10X_$(DENSITY)
 
@@ -93,11 +94,11 @@ $(OBJDIR):
 	mkdir $(OBJDIR)
 
 $(STARTUP): $(INC_DIR)/startup/vector.c
-	$(CC) $(CFLAGS) $(DEFS) $(INCLUDE) $(ARCH_FLAGS) -o $@ -c $<
+	$(CC) $(CFLAGS) $(DEFS) $(INCLUDE) -o $@ -c $<
 
 $(OBJDIR)/%.o: %.c
 	@echo "  CC      $<"
-	$(CC) $(CFLAGS) $(DEFS) $(INCLUDE) $(ARCH_FLAGS) -o $@ -c $<
+	$(CC) $(CFLAGS) $(DEFS) $(INCLUDE) -o $@ -c $<
 
 $(BIN): $(ELF)
 	@echo "  OBJCOPY $(BIN)"

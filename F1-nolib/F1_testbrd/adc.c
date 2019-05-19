@@ -56,17 +56,15 @@ int32_t getMCUtemp(){
     // Temp = (V25 - Vsense)/Avg_Slope + 25
     // V_25 = 1.45V,  Slope = 4.3e-3
     int32_t Vsense = getVdd() * getADCval(1);
-    Vsense /= 4096;
-    int32_t temperature = 145 - Vsense;
-    temperature *= 233;
-    temperature /= 10; // convert from *100 to *10
+    int32_t temperature = 593920 - Vsense; // 593920 == 145*4096
+    temperature /= 172; // == /(4096*10*4.3e-3), 10 - to convert from *100 to *10
     temperature += 250;
     return(temperature);
 }
 
 // return Vdd * 100 (V)
 uint32_t getVdd(){
-    uint32_t vdd = ((uint32_t) *VREFINT_CAL_ADDR) * (uint32_t)300; // 3.0V
+    uint32_t vdd = 120 * 4096; // 1.2V
     vdd /= getADCval(2);
     return vdd;
 }
