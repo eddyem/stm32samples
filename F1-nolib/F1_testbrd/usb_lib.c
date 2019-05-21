@@ -23,14 +23,13 @@
 
 #include <stdint.h>
 #include "usb_lib.h"
-#include <string.h> // memcpy
 #include "usart.h"
 
-ep_t endpoints[ENDPOINTS_NUM];
+ep_t endpoints[STM32ENDPOINTS];
 
 static usb_dev_t USB_Dev;
 static usb_LineCoding lineCoding = {115200, 0, 0, 8};
-static config_pack_t setup_packet;
+config_pack_t setup_packet;
 static uint8_t ep0databuf[EP0DATABUF_SIZE];
 static uint8_t ep0dbuflen = 0;
 
@@ -264,7 +263,6 @@ static uint16_t EP0_Handler(ep_t ep){
                     std_d2h_req();
                 }else{
                     std_h2d_req();
-                    // send ZLP
                     EP_WriteIRQ(0, (uint8_t *)0, 0);
                 }
                 epstatus = SET_NAK_RX(epstatus);
@@ -272,7 +270,6 @@ static uint16_t EP0_Handler(ep_t ep){
             break;
             case STANDARD_ENDPOINT_REQUEST_TYPE: // standard endpoint request
                 if(setup_packet.bRequest == CLEAR_FEATURE){
-                    // send ZLP
                     EP_WriteIRQ(0, (uint8_t *)0, 0);
                     epstatus = SET_NAK_RX(epstatus);
                     epstatus = SET_VALID_TX(epstatus);
@@ -337,10 +334,9 @@ static uint16_t EP0_Handler(ep_t ep){
     return epstatus;
 }
 
-static uint16_t lastaddr = USB_EP0_BASEADDR;
+static uint16_t lastaddr = LASTADDR_DEFAULT;
 /**
  * Endpoint initialisation
- * !!! when working with CAN bus change USB_BTABLE_SIZE to 768 !!!
  * @param number - EP num (0...7)
  * @param type - EP type (EP_TYPE_BULK, EP_TYPE_CONTROL, EP_TYPE_ISO, EP_TYPE_INTERRUPT)
  * @param txsz - transmission buffer size @ USB/CAN buffer
@@ -349,12 +345,12 @@ static uint16_t lastaddr = USB_EP0_BASEADDR;
  * @return 0 if all OK
  */
 int EP_Init(uint8_t number, uint8_t type, uint16_t txsz, uint16_t rxsz, uint16_t (*func)(ep_t ep)){
-    if(number >= ENDPOINTS_NUM) return 4; // out of configured amount
+    if(number >= STM32ENDPOINTS) return 4; // out of configured amount
     if(txsz > USB_BTABLE_SIZE || rxsz > USB_BTABLE_SIZE) return 1; // buffer too large
     if(lastaddr + txsz + rxsz >= USB_BTABLE_SIZE) return 2; // out of btable
     USB->EPnR[number] = (type << 9) | (number & USB_EPnR_EA);
     USB->EPnR[number] ^= USB_EPnR_STAT_RX | USB_EPnR_STAT_TX_1;
-    if(rxsz & 1 || rxsz > 992) return 3; // wrong rx buffer size
+    if(rxsz & 1 || rxsz > 512) return 3; // wrong rx buffer size
     uint16_t countrx = 0;
     if(rxsz < 64) countrx = rxsz / 2;
     else{
@@ -362,18 +358,18 @@ int EP_Init(uint8_t number, uint8_t type, uint16_t txsz, uint16_t rxsz, uint16_t
         countrx = 31 + rxsz / 32;
     }
     USB_BTABLE->EP[number].USB_ADDR_TX = lastaddr;
-    endpoints[number].tx_buf = (uint16_t *)(USB_BTABLE_BASE + lastaddr);
+    endpoints[number].tx_buf = (uint16_t *)(USB_BTABLE_BASE + lastaddr*2);
     lastaddr += txsz;
     USB_BTABLE->EP[number].USB_COUNT_TX = 0;
     USB_BTABLE->EP[number].USB_ADDR_RX = lastaddr;
-    endpoints[number].rx_buf = (uint8_t *)(USB_BTABLE_BASE + lastaddr);
+    endpoints[number].rx_buf = (uint16_t *)(USB_BTABLE_BASE + lastaddr*2);
     lastaddr += rxsz;
-    // buffer size: Table127 of RM
     USB_BTABLE->EP[number].USB_COUNT_RX = countrx << 10;
     endpoints[number].func = func;
     return 0;
 }
 
+//extern int8_t dump;
 // standard IRQ handler
 void usb_isr(){
     if (USB->ISTR & USB_ISTR_RESET){
@@ -382,8 +378,10 @@ void usb_isr(){
         USB->ISTR = 0;
         // Endpoint 0 - CONTROL
         // ON USB LS size of EP0 may be 8 bytes, but on FS it should be 64 bytes!
-        lastaddr = USB_EP0_BASEADDR; // roll back to beginning of buffer
-        EP_Init(0, EP_TYPE_CONTROL, USB_EP0_BUFSZ, USB_EP0_BUFSZ, EP0_Handler);
+        lastaddr = LASTADDR_DEFAULT;
+        if(EP_Init(0, EP_TYPE_CONTROL, USB_EP0_BUFSZ, USB_EP0_BUFSZ, EP0_Handler)){
+            DBG("Err init EP0");
+        }
         // clear address, leave only enable bit
         USB->DADDR = USB_DADDR_EF;
         // state is default - wait for enumeration
@@ -394,6 +392,7 @@ void usb_isr(){
         uint8_t n = USB->ISTR & USB_ISTR_EPID;
         // copy status register
         uint16_t epstatus = USB->EPnR[n];
+    //  dump = 1;
         // Calculate flags
         endpoints[n].rx_flag = (epstatus & USB_EPnR_CTR_RX) ? 1 : 0;
         endpoints[n].setup_flag = (epstatus & USB_EPnR_SETUP) ? 1 : 0;
@@ -404,12 +403,12 @@ void usb_isr(){
         if(USB->ISTR & USB_ISTR_DIR){ // OUT interrupt - receive data, CTR_RX==1 (if CTR_TX == 1 - two pending transactions: receive following by transmit)
             if(n == 0){ // control endpoint
                 if(epstatus & USB_EPnR_SETUP){ // setup packet -> copy data to conf_pack
-                    memcpy(&setup_packet, endpoints[0].rx_buf, sizeof(setup_packet));
+                    EP_Read(0, (uint16_t*)&setup_packet);
                     ep0dbuflen = 0;
                     // interrupt handler will be called later
                 }else if(epstatus & USB_EPnR_CTR_RX){ // data packet -> push received data to ep0databuf
                     ep0dbuflen = endpoints[0].rx_cnt;
-                    memcpy(ep0databuf, endpoints[0].rx_buf, ep0dbuflen);
+                    EP_Read(0, (uint16_t*)&ep0databuf);
                 }
             }
         }else{ // IN interrupt - transmit data, only CTR_TX == 1
@@ -430,6 +429,45 @@ void usb_isr(){
     }
 }
 
+/*
+    if (USB->ISTR & USB_ISTR_PMAOVR) {
+        MSG("PMAOVR\n");
+        // Handle PMAOVR status
+    }
+    if (USB->ISTR & USB_ISTR_SUSP) {
+        MSG("SUSP\n");
+        if (USB->DADDR & 0x7f) {
+            USB->DADDR = 0;
+            USB->CNTR &= ~ 0x800;
+        }
+    }
+    if (USB->ISTR & USB_ISTR_ERR) {
+        MSG("ERR\n");
+        // Handle Error
+    }
+    if (USB->ISTR & USB_ISTR_WKUP) {
+        MSG("WKUP\n");
+        // Handle Wakeup
+    }
+    if (USB->ISTR & USB_ISTR_SOF) {
+        MSG("SOF\n");
+        // Handle SOF
+    }
+    if (USB->ISTR & USB_ISTR_ESOF) {
+        MSG("ESOF\n");
+        // Handle ESOF
+    }
+    USB->ISTR = 0;
+*/
+
+void usb_lp_can_rx0_isr(){
+    usb_isr();
+}
+
+void usb_hp_can_tx_isr(){
+    usb_isr();
+}
+
 /**
  * Write data to EP buffer (called from IRQ handler)
  * @param number - EP number
@@ -442,8 +480,9 @@ void EP_WriteIRQ(uint8_t number, const uint8_t *buf, uint16_t size){
     uint16_t N2 = (size + 1) >> 1;
     // the buffer is 16-bit, so we should copy data as it would be uint16_t
     uint16_t *buf16 = (uint16_t *)buf;
-    for (i = 0; i < N2; i++){
-        endpoints[number].tx_buf[i] = buf16[i];
+    uint32_t *out = (uint32_t *)endpoints[number].tx_buf;
+    for(i = 0; i < N2; ++i, ++out){
+        *out = buf16[i];
     }
     USB_BTABLE->EP[number].USB_COUNT_TX = size;
 }
@@ -469,13 +508,14 @@ void EP_Write(uint8_t number, const uint8_t *buf, uint16_t size){
  * @param *buf - user array for data
  * @return amount of data read
  */
-int EP_Read(uint8_t number, uint8_t *buf){
-    int n = endpoints[number].rx_cnt;
+int EP_Read(uint8_t number, uint16_t *buf){
+    int n = (endpoints[number].rx_cnt + 1) >> 1;
+    uint32_t *in = (uint32_t *)endpoints[number].rx_buf;
     if(n){
-        for(int i = 0; i < n; ++i)
-            buf[i] = endpoints[number].rx_buf[i];
+        for(int i = 0; i < n; ++i, ++in)
+            buf[i] = *(uint16_t*)in;
     }
-    return n;
+    return endpoints[number].rx_cnt;
 }
 
 // USB status

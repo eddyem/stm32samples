@@ -38,8 +38,10 @@
 
 #ifdef EBUG
 #define MSG(str)  do{SEND(__FILE__ " (L" STR(__LINE__) "): " str);}while(0)
+#define DBG(str)  do{SEND(str); usart_putchar('\n'); }while(0)
 #else
 #define MSG(str)
+#define DBG(str)
 #endif
 
 #define usartrx()  (linerdy)
@@ -57,5 +59,7 @@ char *u2str(uint32_t val);
 void printu(uint32_t val);
 void printuhex(uint32_t val);
 void hexdump(uint8_t *arr, uint16_t len);
+void hexdump16(uint16_t *arr, uint16_t len);
+void hexdump32(uint32_t *arr, uint16_t len);
 
 #endif // __USART_H__

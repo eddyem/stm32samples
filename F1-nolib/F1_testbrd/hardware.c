@@ -62,9 +62,11 @@ static inline void adc_setup(){
                           | DMA_CCR_CIRC | DMA_CCR_PL | DMA_CCR_EN;
     // continuous mode & DMA; enable vref & Tsens; wake up ADC
     ADC1->CR2 |= ADC_CR2_DMA | ADC_CR2_TSVREFE | ADC_CR2_CONT | ADC_CR2_ADON;
+    // wait for Tstab - at least 1us
+    while(++ctr < 0xff) nop();
     // calibration
     ADC1->CR2 |= ADC_CR2_RSTCAL;
-    while((ADC1->CR2 & ADC_CR2_RSTCAL) && ++ctr < 0xfffff);
+    ctr = 0; while((ADC1->CR2 & ADC_CR2_RSTCAL) && ++ctr < 0xfffff);
     ADC1->CR2 |= ADC_CR2_CAL;
     ctr = 0; while((ADC1->CR2 & ADC_CR2_CAL) && ++ctr < 0xfffff);
     // turn ON ADC

@@ -29,9 +29,10 @@
 #include "usb_defs.h"
 
 #define EP0DATABUF_SIZE                 (64)
+#define LASTADDR_DEFAULT                (STM32ENDPOINTS * 8)
 
 // Max EP amount (EP0 + other used)
-#define ENDPOINTS_NUM                   4
+//#define ENDPOINTS_NUM                   4
 // bmRequestType & 0x7f
 #define STANDARD_DEVICE_REQUEST_TYPE    0
 #define STANDARD_ENDPOINT_REQUEST_TYPE  2
@@ -145,7 +146,7 @@ typedef struct {
 // endpoints state
 typedef struct __ep_t{
     uint16_t *tx_buf;           // transmission buffer address
-    uint8_t *rx_buf;            // reception buffer address
+    uint16_t *rx_buf;           // reception buffer address
     uint16_t (*func)();         // endpoint action function
     uint16_t status;            // status flags
     unsigned rx_cnt  : 10;      // received data counter
@@ -190,9 +191,8 @@ uint8_t USB_GetState();
 int EP_Init(uint8_t number, uint8_t type, uint16_t txsz, uint16_t rxsz, uint16_t (*func)(ep_t ep));
 void EP_WriteIRQ(uint8_t number, const uint8_t *buf, uint16_t size);
 void EP_Write(uint8_t number, const uint8_t *buf, uint16_t size);
-int EP_Read(uint8_t number, uint8_t *buf);
+int EP_Read(uint8_t number, uint16_t *buf);
 usb_LineCoding getLineCoding();
-
 
 void WEAK linecoding_handler(usb_LineCoding *lc);
 void WEAK clstate_handler(uint16_t val);

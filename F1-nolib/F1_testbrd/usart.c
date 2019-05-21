@@ -52,7 +52,7 @@ int usart_getline(char **line){
 
 // transmit current tbuf and swap buffers
 void transmit_tbuf(){
-    uint32_t tmout = 16000000;
+    uint32_t tmout = 72000;
     while(!txrdy){if(--tmout == 0) return;}; // wait for previos buffer transmission
     register int l = odatalen[tbufno];
     if(!l) return;
@@ -66,14 +66,17 @@ void transmit_tbuf(){
 }
 
 void usart_putchar(const char ch){
-    if(odatalen[tbufno] == UARTBUFSZO) transmit_tbuf();
+    for(int i = 0; odatalen[tbufno] == UARTBUFSZO && i < 1024; ++i) transmit_tbuf();
     tbuf[tbufno][odatalen[tbufno]++] = ch;
 }
 
 void usart_send(const char *str){
     uint32_t x = 512;
     while(*str && --x){
-        if(odatalen[tbufno] == UARTBUFSZO) transmit_tbuf();
+        if(odatalen[tbufno] == UARTBUFSZO){
+            transmit_tbuf();
+            continue;
+        }
         tbuf[tbufno][odatalen[tbufno]++] = *str++;
     }
 }
@@ -205,6 +208,37 @@ void hexdump(uint8_t *arr, uint16_t len){
             else usart_putchar(half - 10 + 'a');
         }
         if(l % 16 == 15) usart_putchar('\n');
+        else if((l & 3) == 3) usart_putchar(' ');
+    }
+}
+
+// dump USB memory (uint16_t mapped as uint32_t); len - in uint16_t
+void hexdump16(uint16_t *arr, uint16_t len){
+    for(uint16_t l = 0; l < len; ++l, ++arr){
+        uint16_t x = arr[l];
+        for(int8_t i = 0; i < 2; ++i){
+            for(int16_t j = 1; j > -1; --j){
+                register uint8_t half = (x >> (4*j+8*i)) & 0x0f;
+                if(half < 10) usart_putchar(half + '0');
+                else usart_putchar(half - 10 + 'a');
+            }
+        }
+        if(l % 8 == 7) usart_putchar('\n');
+        else if(l & 1) usart_putchar(' ');
+    }
+}
+
+void hexdump32(uint32_t *arr, uint16_t len){
+    for(uint16_t l = 0; l < len; ++l, ++arr){
+        uint16_t x = (uint16_t)arr[l];
+        for(int8_t i = 0; i < 2; ++i){
+            for(int16_t j = 1; j > -1; --j){
+                register uint8_t half = (x >> (4*j+8*i)) & 0x0f;
+                if(half < 10) usart_putchar(half + '0');
+                else usart_putchar(half - 10 + 'a');
+            }
+        }
+        if(l % 8 == 7) usart_putchar('\n');
         else if(l & 1) usart_putchar(' ');
     }
 }

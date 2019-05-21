@@ -27,13 +27,14 @@
 
 #include <stm32f1.h>
 
+// max endpoints number
+#define STM32ENDPOINTS          8
 /**
  *                 Buffers size definition
  **/
-// !!! when working with CAN bus change USB_BTABLE_SIZE to 768 !!!
-#define USB_BTABLE_SIZE         1024
+#define USB_BTABLE_SIZE         512
 // first 64 bytes of USB_BTABLE are registers!
-#define USB_EP0_BASEADDR        64
+//#define USB_EP0_BASEADDR        64
 // for USB FS EP0 buffers are from 8 to 64 bytes long (64 for PL2303)
 #define USB_EP0_BUFSZ           64
 // USB transmit buffer size (64 for PL2303)
@@ -42,7 +43,12 @@
 #define USB_RXBUFSZ             64
 
 #define USB_BTABLE_BASE         0x40006000
+#define USB_BASE                ((uint32_t)0x40005C00)
+#define USB                     ((USB_TypeDef *) USB_BASE)
+
+#ifdef USB_BTABLE
 #undef USB_BTABLE
+#endif
 #define USB_BTABLE              ((USB_BtableDef *)(USB_BTABLE_BASE))
 #define USB_ISTR_EPID           0x0000000F
 #define USB_FNR_LSOF_0          0x00000800
@@ -71,36 +77,41 @@
 #define USB_COUNTn_NUM_BLOCK    0x00007C00
 #define USB_COUNTn_RX           0x0000003F
 
+#ifdef USB_TypeDef
 #define USB_TypeDef USB_TypeDef_custom
+#endif
 
-typedef struct{
-    __IO uint32_t EPnR[8];
-    __IO uint32_t RESERVED1;
-    __IO uint32_t RESERVED2;
-    __IO uint32_t RESERVED3;
-    __IO uint32_t RESERVED4;
-    __IO uint32_t RESERVED5;
-    __IO uint32_t RESERVED6;
-    __IO uint32_t RESERVED7;
-    __IO uint32_t RESERVED8;
+typedef struct {
+    __IO uint32_t EPnR[STM32ENDPOINTS];
+    __IO uint32_t RESERVED[STM32ENDPOINTS];
     __IO uint32_t CNTR;
     __IO uint32_t ISTR;
     __IO uint32_t FNR;
     __IO uint32_t DADDR;
     __IO uint32_t BTABLE;
-    __IO uint32_t LPMCSR;
-    __IO uint32_t BCDR;
 } USB_TypeDef;
 
+/*
 typedef struct{
     __IO uint16_t USB_ADDR_TX;
+    __IO uint16_t res1;
     __IO uint16_t USB_COUNT_TX;
+    __IO uint16_t res2;
     __IO uint16_t USB_ADDR_RX;
+    __IO uint16_t res3;
     __IO uint16_t USB_COUNT_RX;
+    __IO uint16_t res4;
+} USB_EPDATA_TypeDef;*/
+
+typedef struct{
+    __IO uint32_t USB_ADDR_TX;
+    __IO uint32_t USB_COUNT_TX;
+    __IO uint32_t USB_ADDR_RX;
+    __IO uint32_t USB_COUNT_RX;
 } USB_EPDATA_TypeDef;
 
 typedef struct{
-    __IO USB_EPDATA_TypeDef EP[8];
+    __IO USB_EPDATA_TypeDef EP[STM32ENDPOINTS];
 } USB_BtableDef;
 
 #endif // __USB_DEFS_H__

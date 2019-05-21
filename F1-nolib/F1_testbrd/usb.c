@@ -20,11 +20,9 @@
  * MA 02110-1301, USA.
  *
  */
-
 #include "usb.h"
 #include "usb_lib.h"
 #include "usart.h"
-#include <string.h> // memcpy, memmove
 
 // incoming buffer size
 #define IDATASZ     (256)
@@ -37,9 +35,13 @@ static int8_t usbON = 0; // ==1 when USB fully configured
 // interrupt IN handler (never used?)
 static uint16_t EP1_Handler(ep_t ep){
     if (ep.rx_flag){
+#ifdef EBUG
+SEND("EP1OUT: "); printu(ep.rx_cnt); usart_putchar('\n');
+#endif
         ep.status = SET_VALID_TX(ep.status);
         ep.status = KEEP_STAT_RX(ep.status);
     }else if (ep.tx_flag){
+DBG("EP1IN");
         ep.status = SET_VALID_RX(ep.status);
         ep.status = SET_STALL_TX(ep.status);
     }
@@ -52,7 +54,7 @@ static uint16_t EP23_Handler(ep_t ep){
         int rd = ep.rx_cnt, rest = IDATASZ - idatalen;
         if(rd){
             if(rd <= rest){
-                idatalen += EP_Read(2, &incoming_data[idatalen]);
+                idatalen += EP_Read(2, (uint16_t*)&incoming_data[idatalen]);
                 ovfl = 0;
             }else{
                 ep.status = SET_NAK_RX(ep.status);
@@ -73,24 +75,22 @@ static uint16_t EP23_Handler(ep_t ep){
 }
 
 void USB_setup(){
-    RCC->APB1ENR |= RCC_APB1ENR_CRSEN | RCC_APB1ENR_USBEN; // enable CRS (hsi48 sync) & USB
-    RCC->CFGR3 &= ~RCC_CFGR3_USBSW; // reset USB
-    RCC->CR2 |= RCC_CR2_HSI48ON; // turn ON HSI48
-    uint32_t tmout = 16000000;
-    while(!(RCC->CR2 & RCC_CR2_HSI48RDY)){if(--tmout == 0) break;}
-    FLASH->ACR = FLASH_ACR_PRFTBE | FLASH_ACR_LATENCY;
-    CRS->CFGR &= ~CRS_CFGR_SYNCSRC;
-    CRS->CFGR |= CRS_CFGR_SYNCSRC_1; // USB SOF selected as sync source
-    CRS->CR |= CRS_CR_AUTOTRIMEN; // enable auto trim
-    CRS->CR |= CRS_CR_CEN; // enable freq counter & block CRS->CFGR as read-only
-    RCC->CFGR |= RCC_CFGR_SW;
-    // allow RESET and CTRM interrupts
-    USB->CNTR = USB_CNTR_RESETM | USB_CNTR_CTRM;
-    // clear flags
-    USB->ISTR = 0;
-    // and activate pullup
-    USB->BCDR |= USB_BCDR_DPPU;
-    NVIC_EnableIRQ(USB_IRQn);
+    NVIC_DisableIRQ(USB_LP_CAN1_RX0_IRQn);
+    NVIC_DisableIRQ(USB_HP_CAN1_TX_IRQn);
+    RCC->APB1ENR |= RCC_APB1ENR_USBEN;
+    USB->CNTR   = USB_CNTR_FRES; // Force USB Reset
+    for(uint32_t ctr = 0; ctr < 72000; ++ctr) nop(); // wait >1ms
+    //uint32_t ctr = 0;
+    USB->CNTR   = 0;
+    USB->BTABLE = 0;
+    USB->DADDR  = 0;
+    USB->ISTR   = 0;
+    USB->CNTR   = USB_CNTR_RESETM | USB_CNTR_WKUPM; // allow only wakeup & reset interrupts
+    /*USB->CNTR = USB_CNTR_RESETM | USB_CNTR_CTRM | USB_CNTR_PMAOVRM |
+                USB_CNTR_ERRM | USB_CNTR_WKUPM | USB_CNTR_SUSPM | USB_CNTR_SOFM |
+                USB_CNTR_ESOFM;*/
+    NVIC_EnableIRQ(USB_LP_CAN1_RX0_IRQn);
+    NVIC_EnableIRQ(USB_HP_CAN1_TX_IRQn );
 }
 
 void usb_proc(){
@@ -133,9 +133,11 @@ int USB_receive(char *buf, int bufsize){
     if(!bufsize || !idatalen) return 0;
     USB->CNTR = 0;
     int sz = (idatalen > bufsize) ? bufsize : idatalen, rest = idatalen - sz;
-    memcpy(buf, incoming_data, sz);
+    for(int i = 0; i < sz; ++i) buf[i] = incoming_data[i];
     if(rest > 0){
-        memmove(incoming_data, &incoming_data[sz], rest);
+        uint8_t *ptr = &incoming_data[sz];
+        for(int i = 0; i < rest; ++i) incoming_data[i] = *ptr++;
+        //memmove(incoming_data, &incoming_data[sz], rest); - hardfault on memcpy&memmove
         idatalen = rest;
     }else idatalen = 0;
     if(ovfl){

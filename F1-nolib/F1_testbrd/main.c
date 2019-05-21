@@ -24,12 +24,8 @@
 #include "usart.h"
 #include "usb.h"
 #include "usb_lib.h"
-#include <string.h> // memcpy
 
 volatile uint32_t Tms = 0;
-
-#define USB_send(x) do{}while(0)
-
 
 /* Called when systick fires */
 void sys_tick_handler(void){
@@ -127,30 +123,29 @@ char *parse_cmd(char *buf){
     return NULL;
 }
 
-/*
 // usb getline
 char *get_USB(){
-    static char tmpbuf[129], *curptr = tmpbuf;
-    static int rest = 128;
+    static char tmpbuf[512], *curptr = tmpbuf;
+    static int rest = 511;
     int x = USB_receive(curptr, rest);
     curptr[x] = 0;
     if(!x) return NULL;
-    SEND("got: ");
-    SEND(curptr);
-    newline();
     if(curptr[x-1] == '\n'){
         curptr = tmpbuf;
-        rest = 128;
+        rest = 511;
         return tmpbuf;
     }
     curptr += x; rest -= x;
     if(rest <= 0){ // buffer overflow
+        SEND("USB buffer overflow!\n");
         curptr = tmpbuf;
-        rest = 128;
+        rest = 511;
     }
     return NULL;
-}*/
+}
 
+
+//int8_t dump = 0;
 int main(void){
     uint32_t lastT = 0, lastB = 0, LEDperiod = 499;
     sysreset();
@@ -169,26 +164,47 @@ int main(void){
     }
     RCC->CSR |= RCC_CSR_RMVF; // remove reset flags
 
-    //USB_setup();
+    USBPU_OFF();
+    USB_setup();
     iwdg_setup();
+    USBPU_ON();
 
     while (1){
         IWDG->KR = IWDG_REFRESH; // refresh watchdog
+        /*if(dump){
+            SEND("\nin buffer:\n");
+            uint16_t buf[32];
+            uint32_t *in = (uint32_t *)endpoints[0].rx_buf;
+            for(int i = 0; i < 32; ++i, ++in)
+                buf[i] = *(uint16_t*)in;
+            hexdump((uint8_t*)buf, 64);
+            SEND("\nout buffer:\n");
+            in = (uint32_t *)endpoints[0].tx_buf;
+            for(int i = 0; i < 32; ++i, ++in)
+                buf[i] = *(uint16_t*)in;
+            hexdump((uint8_t*)buf, 64);
+            SEND("Config:\n");
+            hexdump((uint8_t*)&setup_packet, sizeof(setup_packet));
+            newline();
+            hexdump16((uint16_t*)USB_BTABLE, 64);
+            newline();
+            dump = 0;
+        }*/
         if(lastT > Tms || Tms - lastT > LEDperiod){
             LED_blink(LED0);
             lastT = Tms;
             transmit_tbuf(); // non-blocking transmission of data from UART buffer every 0.5s
         }
-        //usb_proc();
+        usb_proc();
         int r = 0;
         char *txt, *ans;
-        /*if((txt = get_USB())){
+        if((txt = get_USB())){
             ans = parse_cmd(txt);
             SEND("Received data over USB:\n");
             SEND(txt);
             newline();
             if(ans) USB_send(ans);
-        }*/
+        }
         if(usartrx()){ // usart1 received data, store in in buffer
             r = usart_getline(&txt);
             if(r){

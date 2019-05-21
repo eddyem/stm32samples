@@ -42,8 +42,7 @@ DFUUTIL		:= $(shell which dfu-util)
 ###############################################################################
 # Source files
 OBJDIR 		= mk
-#SRC			:= $(wildcard *.c)
-SRC = adc.c  hardware.c  main.c  usart.c
+SRC			:= $(wildcard *.c)
 OBJS		:= $(addprefix $(OBJDIR)/, $(SRC:%.c=%.o))
 STARTUP		= $(OBJDIR)/startup.o
 OBJS 		+= $(STARTUP)
@@ -70,7 +69,7 @@ LDFLAGS		+= -T$(LDSCRIPT)
 
 ###############################################################################
 # Used libraries
-LDLIBS		+=  $(shell $(CC) $(CFLAGS) -print-libgcc-file-name)
+LDLIBS		+=  -lc $(shell $(CC) $(CFLAGS) -print-libgcc-file-name)
 
 DEFS		+= -DSTM32$(FAMILY) -DSTM32$(MCU) -DSTM32F10X_$(DENSITY)
 
