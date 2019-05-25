@@ -15,9 +15,13 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+#include "adc.h"
+#include "effects.h"
 #include "hardware.h"
 #include "usart.h"
-#include "adc.h"
+
+uint32_t sg90step = SG90DEFSTEP;
 
 static inline void iwdg_setup(){
     /* Enable the peripheral clock RTC */
@@ -99,13 +103,10 @@ static inline void adc_setup(){
 /**
  * @brief gpio_setup - setup GPIOs for external IO
  * GPIO pinout:
- *      PA5  - floating input   - Ef of TLE5205
- *      PA13 - open drain       - IN1 of TLE5205
- *      PA14 - open drain       - IN2 of TLE5205
- *      PF0  - floating input   - water level alert
- *      PF1  - push-pull        - external alarm
+ *      PF1  - open drain       - ext. LED/laser
  *      PA0..PA3 - ADC_IN0..3
- *      PA4, PA6, PA7 - PWM outputs
+ *      PA4 - open drain        - onboard LED (always ON when board works)
+ *      PB1, PA6, PA7 - Alt. F. - PWM outputs
  * Registers
  *      MODER  - input/output/alternate/analog (2 bit)
  *      OTYPER - 0 pushpull, 1 opendrain
@@ -120,67 +121,54 @@ static inline void adc_setup(){
 static inline void gpio_setup(){
     // Enable clocks to the GPIO subsystems
     RCC->AHBENR |= RCC_AHBENR_GPIOAEN | RCC_AHBENR_GPIOBEN | RCC_AHBENR_GPIOFEN;
-    GPIOA->MODER =
-            GPIO_MODER_MODER13_O | GPIO_MODER_MODER14_O |
-            GPIO_MODER_MODER4_AF | GPIO_MODER_MODER6_AF |
-            GPIO_MODER_MODER7_AF |
+    // PA6/7 - AF; PB1 - AF
+    GPIOA->MODER = GPIO_MODER_MODER6_AF | GPIO_MODER_MODER7_AF |
             GPIO_MODER_MODER0_AI | GPIO_MODER_MODER1_AI |
-            GPIO_MODER_MODER2_AI | GPIO_MODER_MODER3_AI;
-    RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN; // enable syscfg clock for EXTI
-    GPIOA->OTYPER = 3 << 13; // 13/14 opendrain
+            GPIO_MODER_MODER2_AI | GPIO_MODER_MODER3_AI |
+            GPIO_MODER_MODER4_O;
+    GPIOA->OTYPER = GPIO_OTYPER_OT_4;
+    GPIOB->MODER = GPIO_MODER_MODER1_AF;
+    //RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN; // enable syscfg clock for EXTI
+    GPIOF->ODR = 1<<1;
     GPIOF->MODER = GPIO_MODER_MODER1_O;
-    // PB1 - interrupt input
-    /* (2) Select Port B for pin 1 external interrupt by writing 0001 in EXTI1*/
-    /* (3) Configure the corresponding mask bit in the EXTI_IMR register */
-    /* (4) Configure the Trigger Selection bits of the Interrupt line on rising edge*/
-    /* (5) Configure the Trigger Selection bits of the Interrupt line on falling edge*/
-    SYSCFG->EXTICR[0] = SYSCFG_EXTICR1_EXTI1_PB; /* (2) */
-    EXTI->IMR = EXTI_IMR_MR1; /* (3) */
-    //EXTI->RTSR = 0x0000; /* (4) */
-    EXTI->FTSR = EXTI_FTSR_TR1; /* (5) */
-    /* (6) Enable Interrupt on EXTI0_1 */
-    /* (7) Set priority for EXTI0_1 */
-    NVIC_EnableIRQ(EXTI0_1_IRQn); /* (6) */
-    NVIC_SetPriority(EXTI0_1_IRQn, 3); /* (7) */
+    GPIOF->OTYPER = GPIO_OTYPER_OT_1;
     // alternate functions:
-    // PA4 - TIM14_CH1 (AF4)
-    // PA6 - TIM16_CH1 (AF5), PA7 - TIM17_CH1 (AF5)
-    GPIOA->AFR[0] = (GPIOA->AFR[0] &~ (GPIO_AFRL_AFRL4 | GPIO_AFRL_AFRL6 | GPIO_AFRL_AFRL7)) \
-                | (4 << (4 * 4)) | (5 << (6 * 4)) | (5 << (7 * 4));
+    // PA6 - TIM3_CH1, PA7 - TIM3_CH2, PB1 - TIM3_CH4 (all - AF1)
+    GPIOA->AFR[0] = (GPIOA->AFR[0] &~ (GPIO_AFRL_AFRL6 | GPIO_AFRL_AFRL7)) \
+                | (1 << (6 * 4)) | (1 << (7 * 4));
+    GPIOB->AFR[0] = (GPIOB->AFR[0] &~ (GPIO_AFRL_AFRL1)) \
+            | (1 << (1 * 4)) ;
+}
+
+// change period of PWM
+// MAX freq - 200Hz!!!
+void setTIM3T(uint32_t T){
+    if(T < 1000 || T > 65536) return;
+    TIM3->ARR = T - 1;
+    // step = ampl / freq(Hz) * 3
+    sg90step = SG90_AMPL * T;
+    sg90step >>= 18; // /262144
 }
 
 static inline void timers_setup(){
-    // timer 14 ch1 - cooler PWM
-    // timer 16 ch1 - heater PWM
-    // timer 17 ch1 - pump PWM
-    RCC->APB1ENR |= RCC_APB1ENR_TIM3EN | RCC_APB1ENR_TIM14EN; // enable clocking for timers 3 and 14
-    RCC->APB2ENR |= RCC_APB2ENR_TIM16EN | RCC_APB2ENR_TIM17EN; // & timers 16/17
-    // PWM mode 1 (active -> inactive)
-    TIM14->CCMR1 = TIM_CCMR1_OC1M_2 | TIM_CCMR1_OC1M_1;
-    TIM16->CCMR1 = TIM_CCMR1_OC1M_2 | TIM_CCMR1_OC1M_1;
-    TIM17->CCMR1 = TIM_CCMR1_OC1M_2 | TIM_CCMR1_OC1M_1;
+    // timer 3 ch1, 2, 4 PWM for three servos
+    RCC->APB1ENR |= RCC_APB1ENR_TIM3EN;
+    // PWM mode 1 (active -> inactive) on all three channels
+    TIM3->CCMR1 =   TIM_CCMR1_OC1M_2 | TIM_CCMR1_OC1M_1 |
+                    TIM_CCMR1_OC2M_2 | TIM_CCMR1_OC2M_1;
+    TIM3->CCMR2 =   TIM_CCMR2_OC4M_2 | TIM_CCMR2_OC4M_1;
     // frequency
-    TIM14->PSC = 59; // 0.8MHz for 3kHz PWM
-    TIM16->PSC = 18749; // 2.56kHz for 10Hz PWM
-    TIM17->PSC = 5; // 8MHz for 31kHz PWM
+    TIM3->PSC = 47; // 1MHz -> 1us per tick
     // ARR for 8-bit PWM
-    TIM14->ARR = 254;
-    TIM16->ARR = 254;
-    TIM17->ARR = 254;
-    // start in OFF state
-    // TIM14->CCR1 = 0; and so on
+    TIM3->ARR = 19999; // 50Hz
     // enable main output
-    TIM14->BDTR |= TIM_BDTR_MOE;
-    TIM16->BDTR |= TIM_BDTR_MOE;
-    TIM17->BDTR |= TIM_BDTR_MOE;
+    TIM3->BDTR |= TIM_BDTR_MOE;
     // enable PWM output
-    TIM14->CCER = TIM_CCER_CC1E;
-    TIM16->CCER = TIM_CCER_CC1E;
-    TIM17->CCER = TIM_CCER_CC1E;
-    // enable timers
-    TIM14->CR1 |= TIM_CR1_CEN;
-    TIM16->CR1 |= TIM_CR1_CEN;
-    TIM17->CR1 |= TIM_CR1_CEN;
+    TIM3->CCER = TIM_CCER_CC1E | TIM_CCER_CC2E | TIM_CCER_CC4E;
+    TIM3->DIER = TIM_DIER_UIE; //TIM_DIER_CC1IE | TIM_DIER_CC2IE | TIM_DIER_CC4IE;
+    // enable timer & ARR buffering
+    TIM3->CR1 |= TIM_CR1_CEN | TIM_CR1_ARPE;
+    NVIC_EnableIRQ(TIM3_IRQn);
 }
 
 void hw_setup(){
@@ -192,10 +180,79 @@ void hw_setup(){
     iwdg_setup();
 }
 
+static uint32_t target_Val[3] = {SG90_MIDPULSE, SG90_MIDPULSE, SG90_MIDPULSE};
+static uint32_t target_Speed[3] = {SG90DEFSTEP, SG90DEFSTEP, SG90DEFSTEP};
+static uint8_t onpos[3] = {0,0,0};
+volatile uint32_t *addr[3] = {&TIM3->CCR1, &TIM3->CCR2, &TIM3->CCR4};
 
+int32_t getPWM(int nch){
+    return *addr[nch];
+}
+
+// return current value
+int32_t setPWM(int nch, uint32_t val, uint32_t speed){
+    if(nch < 0 || nch > 2) return 0;
+    if(speed > 0){
+        if(speed > SG90_STEP) speed = SG90_STEP;
+        target_Speed[nch] = speed;
+    }
+    uint8_t ch = 1;
+    if(val >= SG90_MINPULSE && val <= SG90_MAXPULSE) target_Val[nch] = val;
+    else if(val == 0) target_Val[nch] = SG90_MINPULSE;
+    else if(val == 1) target_Val[nch] = SG90_MAXPULSE;
+    else if(val == 2) target_Val[nch] = SG90_MIDPULSE;
+    else ch = 0;
+    if(ch){
+        onpos[nch] = 0;
+    }
+    return *addr[nch];
+}
+
+uint8_t onposition(int nch){
+    return onpos[nch];
+}
+
+static void chkPWM(int n){
+    if(n < 0 || n > 2) return;
+    uint32_t cur = *addr[n], tg = target_Val[n];
+    if(cur == tg){
+        onpos[n] = 1;
+        return;
+    }
+    uint32_t diff = tg - cur;
+    int sign = 1;
+    if(cur > tg){
+        diff = cur - tg;
+        sign = -1;
+    }
+    if(diff > target_Speed[n]) diff = target_Speed[n];
+    *addr[n] = cur + sign*diff;
+}
+
+void tim3_isr(){
+    /*
+    if(TIM3->SR & TIM_SR_CC1IF){ // 1st channel
+        chkPWM(0);
+    }
+    if(TIM3->SR & TIM_SR_CC2IF){ // 2nd channel
+        chkPWM(1);
+    }
+    if(TIM3->SR & TIM_SR_CC4IF){ // 3rd channel
+        chkPWM(2);
+    }*/
+    if(TIM3->SR & TIM_SR_UIF){
+        chkPWM(0);
+        chkPWM(1);
+        chkPWM(2);
+    }
+    TIM3->SR = 0;
+}
+
+/*
 void exti0_1_isr(){
     if (EXTI->PR & EXTI_PR_PR1){
-        EXTI->PR |= EXTI_PR_PR1; /* Clear the pending bit */
+        EXTI->PR |= EXTI_PR_PR1; // Clear the pending bit
         ;
     }
 }
+*/

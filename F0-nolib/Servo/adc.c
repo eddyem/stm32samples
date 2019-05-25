@@ -20,7 +20,7 @@
 
 /**
  * @brief ADC_array - array for ADC channels with median filtering:
- * 0..3 - external NTC
+ * 0..3 - external channels
  * 4 - internal Tsens
  * 5 - Vref
  */

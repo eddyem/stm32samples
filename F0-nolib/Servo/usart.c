@@ -42,7 +42,8 @@ static int trbufidx = 0;
 
 int put_char(char c){
     if(trbufidx >= UARTBUFSZ - 1){
-        if(ALL_OK != usart1_sendbuf()) return 1;
+        for(int i = 0; i < 72000000 && ALL_OK != usart1_sendbuf(); ++i)
+        if(i == 72000000) return 1;
     }
     trbuf[trbufidx++] = c;
     return 0;
@@ -84,10 +85,11 @@ int put_uint(uint32_t N){
  */
 TXstatus usart1_sendbuf(){
     int len = trbufidx;
-    trbufidx = 0;
     if(len == 0) return ALL_OK;
     else if(len > UARTBUFSZ) len = UARTBUFSZ;
-    return usart1_send(trbuf, len);
+    TXstatus s = usart1_send(trbuf, len);
+    if(s == ALL_OK) trbufidx = 0;
+    return s;
 }
 
 void USART1_config(){
@@ -125,8 +127,14 @@ void USART1_config(){
     NVIC_EnableIRQ(USART1_IRQn); /* (4) */
 }
 
+#ifdef EBUG
+#define TMO 0
+#else
+#define TMO 1
+#endif
+
 void usart1_isr(){
-    static uint8_t   timeout = 1    // == 0 for human interface without timeout
+    static uint8_t   timeout = TMO  // == 0 for human interface without timeout
                     ,nctr = 0       // counter of '#' received
                     ,incmd = 0      // ==1 - inside command
                     ;
@@ -235,7 +243,7 @@ TXstatus usart1_send(const char *str, int len){
     if(len == 0) return ALL_OK;
     DMA1_Channel2->CCR &= ~DMA_CCR_EN;
     memcpy(tbuf, str, len);
-    tbuf[len++] = '\n';
+//    tbuf[len++] = '\n';
     DMA1_Channel2->CNDTR = len;
     DMA1_Channel2->CCR |= DMA_CCR_EN; // start transmission
     return ALL_OK;
@@ -252,7 +260,7 @@ TXstatus usart1_send_blocking(const char *str, int len){
         USART1->TDR = *str++;
         while(!(USART1->ISR & USART_ISR_TXE));
     }
-    USART1->TDR = '\n';
+//    USART1->TDR = '\n';
     while(!(USART1->ISR & USART_ISR_TC));
     txrdy = 1;
     return ALL_OK;

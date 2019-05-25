@@ -1,11 +1,11 @@
 Makefile
 adc.c
 adc.h
+effects.c
+effects.h
 hardware.c
 hardware.h
 main.c
-mainloop.c
-mainloop.h
 protocol.c
 protocol.h
 usart.c

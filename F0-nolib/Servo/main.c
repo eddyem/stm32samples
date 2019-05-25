@@ -19,8 +19,8 @@
  * MA 02110-1301, USA.
  */
 #include "adc.h"
+#include "effects.h"
 #include "hardware.h"
-#include "mainloop.h"
 #include "protocol.h"
 #include "usart.h"
 #include <string.h> // memcpy
@@ -38,12 +38,12 @@ int main(void){
     char *txt;
     hw_setup();
     SysTick_Config(6000, 1);
-    SEND_BLK("Servos controller v0.1\n");
+    SEND("Servos controller v0.1\n");
     if(RCC->CSR & RCC_CSR_IWDGRSTF){ // watchdog reset occured
-        SEND_BLK("WDGRESET=1");
+        SEND("WDGRESET=1\n");
     }
     if(RCC->CSR & RCC_CSR_SFTRSTF){ // software reset occured
-        SEND_BLK("SOFTRESET=1");
+        SEND("SOFTRESET=1\n");
     }
     RCC->CSR |= RCC_CSR_RMVF; // remove reset flags
     while (1){
@@ -56,7 +56,7 @@ int main(void){
                 IWDG->KR = IWDG_REFRESH;
             }
         }
-        mainloop();
+        proc_effect();
         IWDG->KR = IWDG_REFRESH;
         usart1_sendbuf();
     }
