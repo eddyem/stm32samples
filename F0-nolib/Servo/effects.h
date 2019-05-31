@@ -27,9 +27,15 @@ typedef enum{
     EFF_WIPE,
     EFF_MADWIPE,
     EFF_PENDULUM,
-    EFF_SMPENDULUM
+    EFF_SMPENDULUM,
+    EFF_DMASMALL,
+    EFF_DMAMED,
+    EFF_DMABIG,
+    EFF_DMATEST,
+    EFF_DMASTAR
 } effect_t;
 
+extern uint8_t dma_eff;
 void proc_effect();
 effect_t set_effect(int n, effect_t eff);
 

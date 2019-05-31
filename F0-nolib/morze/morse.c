@@ -53,7 +53,7 @@ uint16_t mbuff[3*MAXPINGS];
  55 (0x37) - 7   87 (0x57) - W  119 (0x77) - w  151 (0x97) - —  183 (0xb7) - ·  215 (0xd7) - ×  247 (0xf7) - ÷
  56 (0x38) - 8   88 (0x58) - X  120 (0x78) - x  152 (0x98) - ˜  184 (0xb8) - ¸  216 (0xd8) - Ø  248 (0xf8) - ø
  57 (0x39) - 9   89 (0x59) - Y  121 (0x79) - y  153 (0x99) - ™  185 (0xb9) - ¹  217 (0xd9) - Ù  249 (0xf9) - ù
- 58 (0x3a) - :   90 (0x5a) - Z  122 (0x7a) - z  154 (0x9a) - š  186 (0xba) - º  218 (0xda) - Ú  250 (0xfa) - ú
+ 58 (0x3a) - :   90 (0x5a) - Z  122 (0x7a) - z  154 (0x9a) -    186 (0xba) - º  218 (0xda) - Ú  250 (0xfa) - ú
  59 (0x3b) - ;   91 (0x5b) - [  123 (0x7b) - {  155 (0x9b) - ›  187 (0xbb) - »  219 (0xdb) - Û  251 (0xfb) - û
  60 (0x3c) - <   92 (0x5c) - \  124 (0x7c) - |  156 (0x9c) - œ  188 (0xbc) - ¼  220 (0xdc) - Ü  252 (0xfc) - ü
  61 (0x3d) - =   93 (0x5d) - ]  125 (0x7d) - }  157 (0x9d) -   189 (0xbd) - ½  221 (0xdd) - Ý  253 (0xfd) - ý
@@ -61,7 +61,7 @@ uint16_t mbuff[3*MAXPINGS];
  63 (0x3f) - ?   95 (0x5f) - _  127 (0x7f) -    159 (0x9f) - Ÿ  191 (0xbf) - ¿  223 (0xdf) - ß  255 (0xff) - ÿ
 */
 // 1 - len in pings, 2 - pings (0 - dot, 1 - dash), reverse order
-static const uint8_t ascii[] = { // sarting from space+1
+static const uint8_t ascii[] = { // starting from space+1
     6, 53, // ! -*-*--
     6, 18, // " *-**-*
     5, 29, // # [no] -*---

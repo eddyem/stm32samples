@@ -84,7 +84,8 @@ static void chPWM(const char *command){
         if(*command++ == ','){
             getnum(command, &speed);
         }
-        CCR = setPWM(n, CCR, speed);
+        //CCR =
+                setPWM(n, CCR, speed);
     }
     put_string("pulse");
     put_char('1' + n);
@@ -115,6 +116,36 @@ static void chk_effect(const char *cmd, effect_t eff, const char *name){
     }else put_string("err\n");
 }
 
+static void DMA_effect(const char *cmd){
+    int n = *cmd - '1';
+    if(n < 0 || n > 4){
+        put_string("Wrong DMA eff. number\n");
+        return;
+    }
+    put_string("DMA effect ");
+    put_char(*cmd);
+    put_string(" enabled\n");
+    switch(n){
+        case 0:
+            set_effect(0, EFF_DMASMALL);
+        break;
+        case 1:
+            set_effect(0, EFF_DMAMED);
+        break;
+        case 2:
+            set_effect(0, EFF_DMABIG);
+        break;
+        case 3:
+            set_effect(0, EFF_DMATEST);
+        break;
+        case 4:
+            set_effect(0, EFF_DMASTAR);
+        break;
+        default:
+        break;
+    }
+}
+
 /**
  * @brief process_command - command parser
  * @param command - command text (all inside [] without spaces)
@@ -127,7 +158,8 @@ char *process_command(const char *command){
         case '?': // help
             SEND_BLK(
                 "1-3[pos[,speed]]- set/get xth pulse length (us) (0,1,2 - min, max, mid)\n"
-                "fx - servo period (us)"
+                "fx - servo period (us)\n"
+                "Dx - DMA effect x\n"
                 "Mn - set Mad Wipe effect\n"
                 "Pn - set Pendulum effect\n"
                 "R  - reset\n"
@@ -150,6 +182,9 @@ char *process_command(const char *command){
         break;
         case 'f':
             set_servoT(++command);
+        break;
+        case 'D':
+            DMA_effect(++command);
         break;
         case 'M':
             chk_effect(command, EFF_MADWIPE, "mad wipe");

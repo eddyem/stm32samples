@@ -168,6 +168,14 @@ static inline void timers_setup(){
     TIM3->DIER = TIM_DIER_UIE; //TIM_DIER_CC1IE | TIM_DIER_CC2IE | TIM_DIER_CC4IE;
     // enable timer & ARR buffering
     TIM3->CR1 |= TIM_CR1_CEN | TIM_CR1_ARPE;
+    RCC->AHBENR |= RCC_AHBENR_DMA1EN;
+    // DMA for more effects (channel 3 -> TIM3_UP)
+    DMA1_Channel3->CPAR = (uint32_t)(&(TIM3->DMAR)); // each writing to DMAR will change next register
+    // memsiz 16bit, psiz 32bit, memincrement, from memory, circulate
+    DMA1_Channel3->CCR |=  DMA_CCR_MSIZE_0 | DMA_CCR_PSIZE_1
+                       | DMA_CCR_MINC | DMA_CCR_DIR | DMA_CCR_CIRC;
+    TIM3->DCR = (1 << 8) | // DBL=1 -- two transfers
+                 (((uint32_t)&TIM3->CCR1 - (uint32_t)&TIM3->CR1) >> 2); // reg = (DBA + TIM3->CR1)/4
     NVIC_EnableIRQ(TIM3_IRQn);
 }
 
@@ -241,9 +249,11 @@ void tim3_isr(){
         chkPWM(2);
     }*/
     if(TIM3->SR & TIM_SR_UIF){
-        chkPWM(0);
-        chkPWM(1);
-        chkPWM(2);
+        if(!dma_eff){
+            chkPWM(0);
+            chkPWM(1);
+            chkPWM(2);
+        }
     }
     TIM3->SR = 0;
 }
