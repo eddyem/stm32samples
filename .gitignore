@@ -8,6 +8,7 @@
 *.drl
 *.pdf
 *.svg
+*.ods
 *.xml
 */mk/*
 .hg*
