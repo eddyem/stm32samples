@@ -55,13 +55,13 @@ void usart_putchar(int n, char ch);
 char *u2str(uint32_t val);
 void printu(int n, uint32_t val);
 void printuhex(int n, uint32_t val);
+int getnum(const char *buf, int32_t *N);
 
-#ifdef EBUG
+#if defined EBUG || defined USART1PROXY
 void newline();
+#endif
+#ifdef EBUG
 void hexdump(uint8_t *arr, uint16_t len);
 #endif
-/*
-void hexdump16(uint16_t *arr, uint16_t len);
-void hexdump32(uint32_t *arr, uint16_t len);
-*/
+
 #endif // __USART_H__

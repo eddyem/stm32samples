@@ -21,8 +21,12 @@
 #include "usb.h"
 #include <string.h>
 
+volatile uint32_t Timer; // milliseconds counter
 curtime current_time = TMNOTINI;
 volatile int need_sync = 1;
+
+// SysTick->LOAD values for all milliseconds (RVR0) and last millisecond (RVR1)
+static uint32_t RVR0 = SYSTICK_DEFLOAD, RVR1 = SYSTICK_DEFLOAD;
 
 static inline uint8_t atou(const char *b){
     return (b[0]-'0')*10 + b[1]-'0';
@@ -34,6 +38,22 @@ void set_time(const char *buf){
     current_time.H = H;
     current_time.M = atou(&buf[2]);
     current_time.S = atou(&buf[4]);
+}
+
+/**
+ * @brief time_increment - increment system timer by systick
+ */
+void time_increment(){
+    Timer = 0;
+    if(current_time.H == 25) return; // Time not initialized
+    if(++current_time.S == 60){
+        current_time.S = 0;
+        if(++current_time.M == 60){
+            current_time.M = 0;
+            if(++current_time.H == 24)
+                current_time.H = 0;
+        }
+    }
 }
 
 /**
@@ -89,4 +109,55 @@ char *get_time(curtime *Tm, uint32_t T){
 uint32_t get_millis(){
     // TODO: calculate right millis
     return Tms % 1000; // temporary gag
+}
+
+void systick_correction(){
+    uint32_t t = 0, ticks;
+    static uint32_t ticksavr = 0, N = 0, last_corr_time = 0;
+    // correct
+    int32_t systick_val = SysTick->VAL;
+    // SysTick->LOAD values for all milliseconds (RVR0) and last millisecond (RVR1)
+    SysTick->VAL = RVR0;
+    int32_t timer_val = Timer;
+    Timer = 0;
+    // RVR -> SysTick->LOAD
+    systick_val = SysTick->LOAD + 1 - systick_val; // Systick counts down!
+    if(timer_val < 10) timer_val += 1000; // our closks go faster than real
+    else if(timer_val < 990){ // something wrong
+        RVR0 = RVR1 = SYSTICK_DEFLOAD;
+        SysTick->LOAD = RVR0;
+        need_sync = 1;
+        goto theend;
+    }else
+        time_increment(); // ms counter less than 1000 - we need to increment time
+    t = current_time.H * 3600 + current_time.M * 60 + current_time.S;
+    if(t - last_corr_time == 1){ // PPS interval == 1s
+        ticks = systick_val + (timer_val-1)*(RVR0 + 1) + RVR1 + 1;
+        ++N;
+        ticksavr += ticks;
+        if(N > 20){
+            ticks = ticksavr / N;
+            RVR0 = ticks / 1000 - 1; // main RVR value
+            SysTick->LOAD = RVR0;
+            RVR1 = RVR0 + ticks % 1000; // last millisecond RVR value (with fine correction)
+            N = 0;
+            ticksavr = 0;
+            need_sync = 0;
+        }
+    }else{
+        N = 0;
+        ticksavr = 0;
+    }
+theend:
+    last_corr_time = t;
+}
+
+void increment_timer(){
+    ++Timer;
+    if(Timer == 999){
+        SysTick->LOAD = RVR1;
+    }else if(Timer == 1000){
+        SysTick->LOAD = RVR0;
+        time_increment();
+    }
 }

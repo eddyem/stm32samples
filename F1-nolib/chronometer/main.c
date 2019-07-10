@@ -21,6 +21,7 @@
 
 //#include "adc.h"
 #include "GPS.h"
+#include "flash.h"
 #include "hardware.h"
 #include "lidar.h"
 #include "str.h"
@@ -33,11 +34,13 @@
 #define VERSION "0.0.0"
 #endif
 
+// global pseudo-milliseconds counter
 volatile uint32_t Tms = 0;
 
 /* Called when systick fires */
 void sys_tick_handler(void){
     ++Tms;
+    increment_timer();
 }
 
 void iwdg_setup(){
@@ -65,8 +68,8 @@ void iwdg_setup(){
 
 #ifdef EBUG
 char *parse_cmd(char *buf){
+    int32_t N;
     static char btns[] = "BTN0=0, BTN1=0, PPS=0\n";
-    if(buf[1] != '\n') return buf;
     switch(*buf){
         case '0':
             LED_off();
@@ -79,6 +82,16 @@ char *parse_cmd(char *buf){
             btns[13] = GET_BTN1() + '0';
             btns[20] = GET_PPS() + '0';
             return btns;
+        break;
+        case 'C':
+            if(getnum(&buf[1], &N)){
+                SEND("Need a number!\n");
+            }else{
+                addNrecs(N);
+            }
+        break;
+        case 'd':
+            dump_userconf();
         break;
         case 'p':
             pin_toggle(USBPU_port, USBPU_pin);
@@ -117,10 +130,13 @@ char *parse_cmd(char *buf){
             while(1){nop();};
         break;
         default: // help
+            if(buf[1] != '\n') return buf;
             return
             "0/1 - turn on/off LED1\n"
             "'b' - get buttons's state\n"
+            "'d' - dump current user conf\n"
             "'p' - toggle USB pullup\n"
+            "'C' - store userconf for N times\n"
             "'G' - get last LIDAR distance\n"
             "'L' - send long string over USB\n"
             "'R' - software reset\n"
@@ -155,22 +171,55 @@ static char *get_USB(){
     return NULL;
 }
 
-#define CMP(a,b)  cmpstr(a, b, sizeof(b)-1)
 static void parse_USBCMD(char *cmd){
+#define CMP(a,b)  cmpstr(a, b, sizeof(b)-1)
+#define GETNUM(x) if(getnum(cmd+sizeof(x)-1, &N)) goto bad_number;
+    static uint8_t conf_modified = 0;
+    uint8_t succeed = 0;
+    int32_t N;
     if(!cmd || !*cmd) return;
     if(*cmd == '?'){ // help
         USB_send("Commands:\n"
-                 CMD_DISTMIN " - min distance threshold (cm)\n"
-                 CMD_DISTMAX " - max distance threshold (cm)\n"
+                 CMD_DISTMIN   " - min distance threshold (cm)\n"
+                 CMD_DISTMAX   " - max distance threshold (cm)\n"
                  CMD_PRINTTIME " - print time\n"
+                 CMD_STORECONF " - store new configuration in flash\n"
                  );
     }else if(CMP(cmd, CMD_PRINTTIME) == 0){
         USB_send(get_time(&current_time, get_millis()));
     }else if(CMP(cmd, CMD_DISTMIN) == 0){ // set low limit
         DBG("CMD_DISTMIN");
+        GETNUM(CMD_DISTMIN);
+        if(N < 0 || N > 0xffff) goto bad_number;
+        if(the_conf.dist_min != (uint16_t)N){
+            conf_modified = 1;
+            the_conf.dist_min = (uint16_t) N;
+            succeed = 1;
+        }
     }else if(CMP(cmd, CMD_DISTMAX) == 0){ // set low limit
         DBG("CMD_DISTMAX");
+        GETNUM(CMD_DISTMAX);
+        if(N < 0 || N > 0xffff) goto bad_number;
+        if(the_conf.dist_max != (uint16_t)N){
+            conf_modified = 1;
+            the_conf.dist_max = (uint16_t) N;
+            succeed = 1;
+        }
+    }else if(CMP(cmd, CMD_STORECONF) == 0){ // store everything
+        DBG("Store");
+        if(conf_modified){
+            if(store_userconf()){
+                USB_send("Error: can't save data!\n");
+            }else{
+                conf_modified = 0;
+                succeed = 1;
+            }
+        }
     }
+    if(succeed) USB_send("Success!\n");
+    return;
+  bad_number:
+    USB_send("Error: bad number!\n");
 }
 
 int main(void){
@@ -178,9 +227,10 @@ int main(void){
     sysreset();
     StartHSE();
     hw_setup();
+    LED1_off();
     USBPU_OFF();
     usarts_setup();
-    SysTick_Config(72000);
+    SysTick_Config(SYSTICK_DEFLOAD);
     SEND("Chronometer version " VERSION ".\n");
     if(RCC->CSR & RCC_CSR_IWDGRSTF){ // watchdog reset occured
         SEND("WDGRESET=1\n");
@@ -191,14 +241,27 @@ int main(void){
     RCC->CSR |= RCC_CSR_RMVF; // remove reset flags
 
     USB_setup();
-    //iwdg_setup();
+    iwdg_setup();
     USBPU_ON();
+    // read data stored in flash
+#ifdef EBUG
+    SEND("Old config:\n");
+    dump_userconf();
+#endif
+    //writeatend();
+    get_userconf();
+#ifdef EBUG
+    SEND("New config:\n");
+    dump_userconf();
+#endif
 
     while (1){
         IWDG->KR = IWDG_REFRESH; // refresh watchdog
         if(lastT > Tms || Tms - lastT > 499){
             if(need2startseq) GPS_send_start_seq();
             LED_blink();
+            if(GPS_status != GPS_VALID) LED1_blink();
+            else LED1_on();
             lastT = Tms;
             if(usartrx(LIDAR_USART)){
                 char *txt;
@@ -207,7 +270,7 @@ int main(void){
                     DBG(txt);
                 }
             }
-#ifdef EBUG
+#if defined EBUG || defined USART1PROXY
             transmit_tbuf(1); // non-blocking transmission of data from UART buffer every 0.5s
 #endif
             transmit_tbuf(GPS_USART);
@@ -215,23 +278,28 @@ int main(void){
         }
         usb_proc();
         int r = 0;
-        char *txt, *ans;
+        char *txt;
         if((txt = get_USB())){
             parse_USBCMD(txt);
             DBG("Received data over USB:");
             DBG(txt);
             USB_send(txt); // echo all back
         }
-#ifdef EBUG
+#if defined EBUG || defined USART1PROXY
         if(usartrx(1)){ // usart1 received data, store in in buffer
             r = usart_getline(1, &txt);
             if(r){
                 txt[r] = 0;
-                ans = parse_cmd(txt);
+#ifdef EBUG
+                char *ans = parse_cmd(txt);
                 if(ans){
+                    transmit_tbuf(1);
                     usart_send(1, ans);
                     transmit_tbuf(1);
                 }
+#else // USART1PROXY - send received data to GPS
+                usart_send(GPS_USART, txt);
+#endif
             }
         }
 #endif
@@ -251,4 +319,3 @@ int main(void){
     }
     return 0;
 }
-

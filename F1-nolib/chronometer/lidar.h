@@ -27,6 +27,9 @@
 #define LIDAR_LOWER_STREN   (10)
 // triggered distance threshold - 1 meter
 #define LIDAR_DIST_THRES    (100)
+#define LIDAR_MIN_DIST      (50)
+#define LIDAR_MAX_DIST      (1000)
+
 extern uint16_t last_lidar_dist;
 extern uint16_t lidar_triggered_dist;
 extern uint16_t last_lidar_stren;

@@ -94,7 +94,7 @@ void usart_send(int n, const char *str){
         tbuf[n][tbufno[n]][odatalen[n][tbufno[n]]++] = *str++;
     }
 }
-#ifdef EBUG
+#if defined EBUG || defined USART1PROXY
 // only for USART1
 void newline(){
     usart_putchar(1, '\n');
@@ -168,8 +168,8 @@ static void usart_setup(int n, uint32_t BRR){
 
 void usarts_setup(){
     RCC->AHBENR |= RCC_AHBENR_DMA1EN;
-#ifdef EBUG
-    usart_setup(1, 72000000 / 115200); // debug console
+#if defined EBUG || defined USART1PROXY
+    usart_setup(1, 72000000 / 115200); // debug console or GPS proxy
 #endif
     usart_setup(2, 36000000 / 9600); // GPS
     usart_setup(3, 36000000 / 115200); // LIDAR
@@ -215,7 +215,7 @@ void usart_isr(int n, USART_TypeDef *USART){
     }
 }
 
-#ifdef EBUG
+#if defined EBUG || defined USART1PROXY
 void usart1_isr(){
     usart_isr(1, USART1);
 }
@@ -310,7 +310,7 @@ void hexdump(uint8_t *arr, uint16_t len){
 }
 #endif
 
-#ifdef EBUG
+#if defined EBUG || defined USART1PROXY
 void dma1_channel4_isr(){ // USART1
     if(DMA1->ISR & DMA_ISR_TCIF4){ // Tx
         DMA1->IFCR = DMA_IFCR_CTCIF4; // clear TC flag
@@ -331,4 +331,35 @@ void dma1_channel2_isr(){ // USART3
         DMA1->IFCR = DMA_IFCR_CTCIF2; // clear TC flag
         txrdy[3] = 1;
     }
+}
+
+// read `buf` and get first integer `N` in it
+// @return 0 if all OK or 1 if there's not a number; omit spaces and '='
+int getnum(const char *buf, int32_t *N){
+    char c;
+    int positive = -1;
+    int32_t val = 0;
+    while((c = *buf++)){
+        if(c == '\t' || c == ' ' || c == '='){
+            if(positive < 0) continue; // beginning spaces
+            else break; // spaces after number
+        }
+        if(c == '-'){
+            if(positive < 0){
+                positive = 0;
+                continue;
+            }else break; // there already was `-` or number
+        }
+        if(c < '0' || c > '9') break;
+        if(positive < 0) positive = 1;
+        val = val * 10 + (int32_t)(c - '0');
+    }
+    if(positive != -1){
+        if(positive == 0){
+            if(val == 0) return 1; // single '-'
+            val = -val;
+        }
+        *N = val;
+    }else return 1;
+    return 0;
 }

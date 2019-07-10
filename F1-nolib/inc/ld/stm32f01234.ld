@@ -52,7 +52,7 @@ SECTIONS {
     . = ALIGN(4);
     _etext = .;
   } >rom
-  
+
   .ARM.extab :
   {
     *(.ARM.extab* .gnu.linkonce.armextab.*)
@@ -70,6 +70,12 @@ SECTIONS {
     . = ALIGN(4);
     _edata = .;
   } >ram AT >rom
+
+  .myvars :
+  {
+    . = ALIGN(1024);
+    KEEP(*(.myvars))
+  } > rom
 
   _ldata = LOADADDR(.data);
 

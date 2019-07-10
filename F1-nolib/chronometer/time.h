@@ -21,8 +21,11 @@
 
 #include <stm32f1.h>
 
-#define STK_RVR_DEFAULT_VAL  (8999)
-#define TIMEZONE_GMT_PLUS    (3)
+// default value for systick_config
+#define SYSTICK_DEFCONF         (72000)
+// defaul for systick->load
+#define SYSTICK_DEFLOAD         (SYSTICK_DEFCONF - 1)
+#define TIMEZONE_GMT_PLUS       (3)
 
 #define DIDNT_TRIGGERED (2000)
 
@@ -38,6 +41,7 @@ typedef struct{
 } curtime;
 
 extern volatile uint32_t Tms;
+extern volatile uint32_t Timer;
 extern curtime current_time;
 
 extern curtime trigger_time[];
@@ -48,5 +52,8 @@ extern volatile int need_sync;
 char *get_time(curtime *T, uint32_t m);
 void set_time(const char *buf);
 uint32_t get_millis(); // current milliseconds
+void time_increment();
+void systick_correction();
+void increment_timer();
 
 #endif // TIME_H__

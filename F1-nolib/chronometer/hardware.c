@@ -23,6 +23,7 @@
 
 #include "adc.h"
 #include "hardware.h"
+#include "time.h"
 #include "usart.h"
 
 static inline void gpio_setup(){
@@ -30,10 +31,10 @@ static inline void gpio_setup(){
     RCC->APB2ENR |= RCC_APB2ENR_IOPAEN | RCC_APB2ENR_IOPBEN | RCC_APB2ENR_IOPCEN | RCC_APB2ENR_AFIOEN;
     // turn off SWJ/JTAG
     AFIO->MAPR = AFIO_MAPR_SWJ_CFG_DISABLE;
-    // pullups
-    GPIOA->ODR = (1<<12)|(1<<13)|(1<<14);
-    // Set led (PB8) as opendrain output
-    GPIOB->CRH = CRH(8, CNF_ODOUTPUT|MODE_SLOW);
+    // pullups: PA1 - PPS, PA13/PA14 - buttons
+    GPIOA->ODR = (1<<12)|(1<<13)|(1<<14)|(1<<15);
+    // Set leds (PB8) as opendrain output
+    GPIOB->CRH = CRH(8, CNF_ODOUTPUT|MODE_SLOW) | CRH(9, CNF_ODOUTPUT|MODE_SLOW);
     // PPS pin (PA1) - input with weak pullup
     GPIOA->CRL = CRL(1, CNF_PUDINPUT|MODE_INPUT);
     // Set buttons (PA13/14) as inputs with weak pullups, USB pullup (PA15) - opendrain output
@@ -88,13 +89,8 @@ void hw_setup(){
 }
 
 void exti1_isr(){ // PPS - PA1
-    /*
-    if(trigger_ms[2] == DIDNT_TRIGGERED){ // prevent bounce
-        trigger_ms[2] = Timer;
-        memcpy(&trigger_time[2], &current_time, sizeof(curtime));
-    }
-    */
     DBG("exti1");
+    systick_correction();
     EXTI->PR = EXTI_PR_PR1;
 }
 

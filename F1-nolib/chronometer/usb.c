@@ -102,6 +102,10 @@ void usb_proc(){
 }
 
 void USB_send(char *buf){
+    if(!USB_configured()){
+        DBG("USB not configured");
+        return;
+    }
     uint16_t l = 0, ctr = 0;
     char *p = buf;
     while(*p++) ++l;

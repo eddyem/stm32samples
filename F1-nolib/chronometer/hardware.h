@@ -35,10 +35,13 @@
 #define CMD_ADC1MAX     "adc1max"
 #define CMD_ADC2MAX     "adc2max"
 #define CMD_PRINTTIME   "time"
+#define CMD_STORECONF   "store"
 
-// onboard LED - PB8
-#define LED_port   GPIOB
-#define LED_pin    (1<<8)
+// onboard LEDs - PB8/PB9
+#define LED0_port   GPIOB
+#define LED0_pin    (1<<8)
+#define LED1_port   GPIOB
+#define LED1_pin    (1<<9)
 
 // PPS pin - PA1
 #define PPS_port    GPIOA
@@ -55,9 +58,12 @@
 #define USBPU_ON()  pin_clear(USBPU_port, USBPU_pin)
 #define USBPU_OFF() pin_set(USBPU_port, USBPU_pin)
 
-#define LED_blink()    pin_toggle(LED_port, LED_pin)
-#define LED_on()       pin_clear(LED_port, LED_pin)
-#define LED_off()      pin_set(LED_port, LED_pin)
+#define LED_blink()    pin_toggle(LED0_port, LED0_pin)
+#define LED_on()       pin_clear(LED0_port, LED0_pin)
+#define LED_off()      pin_set(LED0_port, LED0_pin)
+#define LED1_blink()   pin_toggle(LED1_port, LED1_pin)
+#define LED1_on()      pin_clear(LED1_port, LED1_pin)
+#define LED1_off()     pin_set(LED1_port, LED1_pin)
 
 // GPS USART == USART2, LIDAR USART == USART3
 #define GPS_USART   (2)

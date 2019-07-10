@@ -16,11 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "flash.h"
 #include "lidar.h"
 #include "usart.h"
 
-uint16_t lidar_max_dist = 100;
-uint16_t lidar_min_dist = 50;
 uint16_t last_lidar_dist = 0;
 uint16_t last_lidar_stren = 0;
 uint16_t lidar_triggered_dist = 0;
@@ -35,7 +34,7 @@ void parse_lidar_data(char *txt){
         return;
     }
     if(triggered){ // check if body gone
-        if(last_lidar_dist < lidar_min_dist || last_lidar_dist > lidar_max_dist || last_lidar_dist > lidar_triggered_dist + LIDAR_DIST_THRES){
+        if(last_lidar_dist < the_conf.dist_min || last_lidar_dist > the_conf.dist_max || last_lidar_dist > lidar_triggered_dist + LIDAR_DIST_THRES){
             triggered = 0;
 #ifdef EBUG
             SEND("Untriggered! distance=");
@@ -46,7 +45,7 @@ void parse_lidar_data(char *txt){
 #endif
         }
     }else{
-        if(last_lidar_dist > lidar_min_dist && last_lidar_dist < lidar_max_dist){
+        if(last_lidar_dist > the_conf.dist_min && last_lidar_dist < the_conf.dist_max){
             triggered = 1;
             lidar_triggered_dist = last_lidar_dist;
 #ifdef EBUG

@@ -12,6 +12,8 @@ LDSCRIPT	?= stm32f103x8.ld
 DEFS		= -DVERSION=\"0.0.1\"
 # debug
 DEFS		+= -DEBUG
+# proxy GPS output over USART1
+DEFS += -DUSART1PROXY
 
 INDEPENDENT_HEADERS=
 

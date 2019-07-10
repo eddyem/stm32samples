@@ -149,7 +149,9 @@ void GPS_send_start_seq(){
  */
 void GPS_parse_answer(const char *buf){
     char *ptr;
-    DBG(buf);
+#if defined USART1PROXY
+    usart_send(1, buf); newline();
+#endif
     if(buf[1] == 'P') return; // answers to proprietary messages
     if(cmpstr(buf+3, "RMC", 3)){ // not RMC message
         need2startseq = 1;
