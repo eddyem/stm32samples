@@ -34,6 +34,9 @@
 
 #define TMNOTINI  {25,61,61}
 
+// current milliseconds
+#define get_millis()  (Timer)
+
 typedef struct{
     uint8_t H;
     uint8_t M;
@@ -51,9 +54,7 @@ extern volatile int need_sync;
 
 char *get_time(curtime *T, uint32_t m);
 void set_time(const char *buf);
-uint32_t get_millis(); // current milliseconds
 void time_increment();
 void systick_correction();
-void increment_timer();
 
 #endif // TIME_H__

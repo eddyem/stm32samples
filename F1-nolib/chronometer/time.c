@@ -18,20 +18,26 @@
 
 #include "GPS.h"
 #include "time.h"
+#ifdef EBUG
+#include "usart.h"
+#endif
 #include "usb.h"
 #include <string.h>
 
 volatile uint32_t Timer; // milliseconds counter
 curtime current_time = TMNOTINI;
-volatile int need_sync = 1;
 
-// SysTick->LOAD values for all milliseconds (RVR0) and last millisecond (RVR1)
-static uint32_t RVR0 = SYSTICK_DEFLOAD, RVR1 = SYSTICK_DEFLOAD;
+// ms counter in last correction by PPS
+static uint32_t last_corr_time = 0;
 
 static inline uint8_t atou(const char *b){
     return (b[0]-'0')*10 + b[1]-'0';
 }
 
+/**
+ * @brief set_time - set current time from GPS data
+ * @param buf - buffer with time data (HHMMSS)
+ */
 void set_time(const char *buf){
     uint8_t H = atou(buf) + TIMEZONE_GMT_PLUS;
     if(H > 23) H -= 24;
@@ -54,6 +60,10 @@ void time_increment(){
                 current_time.H = 0;
         }
     }
+#ifdef EBUG
+    SEND("time_increment():  ");
+    SEND(get_time(&current_time, 0));
+#endif
 }
 
 /**
@@ -93,9 +103,9 @@ char *get_time(curtime *Tm, uint32_t T){
         strcpy(bptr, " (not valid)");
         bptr += 12;
     }
-    if(need_sync){
-        strcpy(bptr, " need synchronisation");
-        bptr += 21;
+    if(Tms - last_corr_time > 1000){
+        strcpy(bptr, " need PPS sync");
+        bptr += 14;
     }
     *bptr++ = '\n';
     *bptr = 0;
@@ -103,15 +113,39 @@ char *get_time(curtime *Tm, uint32_t T){
 }
 
 /**
- * @brief get_millis - calculate milliseconds due to global fix parameter
- * @return milliseconds value
+ * @brief systick_correction
+ * Makes correction of system timer
+ * The default frequency of timer is 1kHz - 72000 clocks per interrupt
+ * So we check how much ticks there was for last one second - between PPS interrupts
+ * Their amount equal to M = `Timer` value x (SysTick->LOAD+1) + (SysTick->LOAD+1 - SysTick->VAL)
+ *    if `Timer` is very small, add 1000 to its value.
+ * We need 1000xN ticks instead of M
+ * if L = LOAD+1, then
+ * M = Timer*L + L - VAL; newL = L + D = M/1000
+ * 1000*D = M - 1000*L = L(Timer+1-1000) - VAL ->
+ * D = [L*(Timer-999) - VAL]/1000
+ * So correction equal to
+ *      [ (SysTick->LOAD + 1) * (Timer - 999) - SysTick->VAL ] / 1000
  */
-uint32_t get_millis(){
-    // TODO: calculate right millis
-    return Tms % 1000; // temporary gag
-}
-
 void systick_correction(){
+    SysTick->CTRL &= ~SysTick_CTRL_ENABLE_Msk; // stop systick for a while
+    int32_t systick_val = SysTick->VAL, L = SysTick->LOAD + 1, timer_val = Timer;
+    SysTick->VAL = SysTick->LOAD;
+    SysTick->CTRL |= SysTick_CTRL_ENABLE_Msk; // start it again
+    Timer = 0;
+    if(Tms - last_corr_time < 2000){ // calculate corrections only if Timer was zeroed last time
+        if(timer_val < 500) timer_val += 1000; // timer already incremented in SysTick interrupt
+        else time_increment(); // counter less than 1000 -> need to increment time
+        int32_t D = L * (timer_val - 999) - systick_val;
+        D /= 1000;
+#ifdef EBUG
+        SEND("Delta: "); if(D < 0){usart_putchar(1, '-'); printu(1, -D);} else printu(1, D); newline();
+        SEND(get_time(&current_time, 0));
+#endif
+        SysTick->LOAD += D;
+    }
+    last_corr_time = Tms;
+#if 0
     uint32_t t = 0, ticks;
     static uint32_t ticksavr = 0, N = 0, last_corr_time = 0;
     // correct
@@ -150,14 +184,6 @@ void systick_correction(){
     }
 theend:
     last_corr_time = t;
+#endif
 }
 
-void increment_timer(){
-    ++Timer;
-    if(Timer == 999){
-        SysTick->LOAD = RVR1;
-    }else if(Timer == 1000){
-        SysTick->LOAD = RVR0;
-        time_increment();
-    }
-}

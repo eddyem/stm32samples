@@ -39,8 +39,10 @@ volatile uint32_t Tms = 0;
 
 /* Called when systick fires */
 void sys_tick_handler(void){
-    ++Tms;
-    increment_timer();
+    ++Tms; // increment pseudo-milliseconds counter
+    if(++Timer == 1000){ // increment milliseconds counter
+        time_increment();
+    }
 }
 
 void iwdg_setup(){
@@ -171,57 +173,6 @@ static char *get_USB(){
     return NULL;
 }
 
-static void parse_USBCMD(char *cmd){
-#define CMP(a,b)  cmpstr(a, b, sizeof(b)-1)
-#define GETNUM(x) if(getnum(cmd+sizeof(x)-1, &N)) goto bad_number;
-    static uint8_t conf_modified = 0;
-    uint8_t succeed = 0;
-    int32_t N;
-    if(!cmd || !*cmd) return;
-    if(*cmd == '?'){ // help
-        USB_send("Commands:\n"
-                 CMD_DISTMIN   " - min distance threshold (cm)\n"
-                 CMD_DISTMAX   " - max distance threshold (cm)\n"
-                 CMD_PRINTTIME " - print time\n"
-                 CMD_STORECONF " - store new configuration in flash\n"
-                 );
-    }else if(CMP(cmd, CMD_PRINTTIME) == 0){
-        USB_send(get_time(&current_time, get_millis()));
-    }else if(CMP(cmd, CMD_DISTMIN) == 0){ // set low limit
-        DBG("CMD_DISTMIN");
-        GETNUM(CMD_DISTMIN);
-        if(N < 0 || N > 0xffff) goto bad_number;
-        if(the_conf.dist_min != (uint16_t)N){
-            conf_modified = 1;
-            the_conf.dist_min = (uint16_t) N;
-            succeed = 1;
-        }
-    }else if(CMP(cmd, CMD_DISTMAX) == 0){ // set low limit
-        DBG("CMD_DISTMAX");
-        GETNUM(CMD_DISTMAX);
-        if(N < 0 || N > 0xffff) goto bad_number;
-        if(the_conf.dist_max != (uint16_t)N){
-            conf_modified = 1;
-            the_conf.dist_max = (uint16_t) N;
-            succeed = 1;
-        }
-    }else if(CMP(cmd, CMD_STORECONF) == 0){ // store everything
-        DBG("Store");
-        if(conf_modified){
-            if(store_userconf()){
-                USB_send("Error: can't save data!\n");
-            }else{
-                conf_modified = 0;
-                succeed = 1;
-            }
-        }
-    }
-    if(succeed) USB_send("Success!\n");
-    return;
-  bad_number:
-    USB_send("Error: bad number!\n");
-}
-
 int main(void){
     uint32_t lastT = 0;
     sysreset();
@@ -230,7 +181,7 @@ int main(void){
     LED1_off();
     USBPU_OFF();
     usarts_setup();
-    SysTick_Config(SYSTICK_DEFLOAD);
+    SysTick_Config(SYSTICK_DEFCONF); // function SysTick_Config decrements argument!
     SEND("Chronometer version " VERSION ".\n");
     if(RCC->CSR & RCC_CSR_IWDGRSTF){ // watchdog reset occured
         SEND("WDGRESET=1\n");
@@ -280,10 +231,10 @@ int main(void){
         int r = 0;
         char *txt;
         if((txt = get_USB())){
-            parse_USBCMD(txt);
             DBG("Received data over USB:");
             DBG(txt);
-            USB_send(txt); // echo all back
+            if(parse_USBCMD(txt))
+                USB_send(txt); // echo back non-commands data
         }
 #if defined EBUG || defined USART1PROXY
         if(usartrx(1)){ // usart1 received data, store in in buffer

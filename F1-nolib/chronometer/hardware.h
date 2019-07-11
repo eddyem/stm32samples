@@ -26,17 +26,6 @@
 
 #include "stm32f1.h"
 
-// usb commands
-// lower and upper limits to capture
-#define CMD_DISTMIN     "distmin"
-#define CMD_DISTMAX     "distmax"
-#define CMD_ADC1MIN     "adc1min"
-#define CMD_ADC2MIN     "adc2min"
-#define CMD_ADC1MAX     "adc1max"
-#define CMD_ADC2MAX     "adc2max"
-#define CMD_PRINTTIME   "time"
-#define CMD_STORECONF   "store"
-
 // onboard LEDs - PB8/PB9
 #define LED0_port   GPIOB
 #define LED0_pin    (1<<8)

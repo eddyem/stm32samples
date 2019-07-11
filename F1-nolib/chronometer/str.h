@@ -19,7 +19,18 @@
 #ifndef STR_H__
 #define STR_H__
 
+// usb commands
+// lower and upper limits to capture
+#define CMD_DISTMIN     "distmin"
+#define CMD_DISTMAX     "distmax"
+#define CMD_ADC1MIN     "adc1min"
+#define CMD_ADC2MIN     "adc2min"
+#define CMD_ADC1MAX     "adc1max"
+#define CMD_ADC2MAX     "adc2max"
+#define CMD_PRINTTIME   "time"
+#define CMD_STORECONF   "store"
+
 int cmpstr(const char *s1, const char *s2, int n);
 char *getchr(const char *str, char symbol);
-
+int parse_USBCMD(char *cmd);
 #endif // STR_H__

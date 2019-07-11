@@ -89,8 +89,8 @@ void hw_setup(){
 }
 
 void exti1_isr(){ // PPS - PA1
-    DBG("exti1");
     systick_correction();
+    DBG("exti1");
     EXTI->PR = EXTI_PR_PR1;
 }
 
