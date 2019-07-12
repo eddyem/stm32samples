@@ -307,17 +307,14 @@ static uint16_t EP0_Handler(ep_t ep){
         }
     }else if (ep.rx_flag){ // got data over EP0 or host acknowlegement
         if(ep.rx_cnt){
-//            EP_WriteIRQ(0, (uint8_t *)0, 0);
+            //EP_WriteIRQ(0, (uint8_t *)0, 0);
             if(setup_packet.bRequest == SET_LINE_CODING){
                 linecoding_handler((usb_LineCoding*)ep0databuf);
             }
         }
-        // Close transaction
-        epstatus = CLEAR_DTOG_RX(epstatus);
-        epstatus = CLEAR_DTOG_TX(epstatus);
         // wait for new data from host
         epstatus = SET_VALID_RX(epstatus);
-        epstatus = SET_STALL_TX(epstatus);
+        epstatus = SET_VALID_TX(epstatus);
     } else if (ep.tx_flag){ // package transmitted
         // now we can change address after enumeration
         if ((USB->DADDR & USB_DADDR_ADD) != USB_Dev.USB_Addr){
