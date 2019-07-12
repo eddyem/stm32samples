@@ -333,7 +333,7 @@ static uint16_t EP0_Handler(ep_t ep){
         }
     }else if (ep.rx_flag){ // got data over EP0 or host acknowlegement
         if(ep.rx_cnt){
-            EP_WriteIRQ(0, (uint8_t *)0, 0);
+//            EP_WriteIRQ(0, (uint8_t *)0, 0);
             if(setup_packet.bRequest == SET_LINE_CODING){
                 //WRITEDUMP("SET_LINE_CODING");
                 linecoding_handler((usb_LineCoding*)ep0databuf);

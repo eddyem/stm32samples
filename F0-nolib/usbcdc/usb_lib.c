@@ -334,7 +334,7 @@ uint16_t EP0_Handler(ep_t ep){
                 WRITEDUMP("SET_LINE_CODING");
                 linecoding_handler((usb_LineCoding*)ep0databuf);
             }
-            EP_WriteIRQ(0, (uint8_t *)0, 0);
+            //EP_WriteIRQ(0, (uint8_t *)0, 0);
         }
         // Close transaction
         epstatus = CLEAR_DTOG_RX(epstatus);
