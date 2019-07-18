@@ -23,29 +23,66 @@
 
 #include "adc.h"
 #include "hardware.h"
+#include "flash.h"
 #include "time.h"
 #include "usart.h"
+
+#include <string.h> // memcpy
+
+// ports of triggers
+GPIO_TypeDef *trigport[TRIGGERS_AMOUNT] = {GPIOA, GPIOA, GPIOA};
+// pins of triggers: PA13, PA14, PA4
+uint16_t trigpin[TRIGGERS_AMOUNT] = {1<<13, 1<<14, 1<<4};
+// value of pin in `triggered` state
+uint8_t trigstate[TRIGGERS_AMOUNT];
+// time of triggers shot
+trigtime shottime[TRIGGERS_AMOUNT];
+// Tms value when they shot
+static uint32_t shotms[TRIGGERS_AMOUNT];
+// if trigger[N] shots, the bit N will be 1
+uint8_t trigger_shot = 0;
 
 static inline void gpio_setup(){
     // Enable clocks to the GPIO subsystems (PB for ADC), turn on AFIO clocking to disable SWD/JTAG
     RCC->APB2ENR |= RCC_APB2ENR_IOPAEN | RCC_APB2ENR_IOPBEN | RCC_APB2ENR_IOPCEN | RCC_APB2ENR_AFIOEN;
     // turn off SWJ/JTAG
     AFIO->MAPR = AFIO_MAPR_SWJ_CFG_DISABLE;
-    // pullups: PA1 - PPS, PA13/PA14 - buttons
-    GPIOA->ODR = (1<<12)|(1<<13)|(1<<14)|(1<<15);
+    // pullups: PA1 - PPS, PA15 - USB pullup
+    GPIOA->ODR = (1<<12)|(1<<15);
     // Set leds (PB8) as opendrain output
     GPIOB->CRH = CRH(8, CNF_ODOUTPUT|MODE_SLOW) | CRH(9, CNF_ODOUTPUT|MODE_SLOW);
     // PPS pin (PA1) - input with weak pullup
     GPIOA->CRL = CRL(1, CNF_PUDINPUT|MODE_INPUT);
-    // Set buttons (PA13/14) as inputs with weak pullups, USB pullup (PA15) - opendrain output
-    GPIOA->CRH = CRH(13, CNF_PUDINPUT|MODE_INPUT) | CRH(14, CNF_PUDINPUT|MODE_INPUT) |
-                 CRH(15, CNF_ODOUTPUT|MODE_SLOW);
+    // Set USB pullup (PA15) - opendrain output
+    GPIOA->CRH = CRH(15, CNF_ODOUTPUT|MODE_SLOW);
+    // ---------------------> config-depengent block, interrupts & pullup inputs:
+    GPIOA->CRH |= CRH(13, CNF_PUDINPUT|MODE_INPUT) | CRH(14, CNF_PUDINPUT|MODE_INPUT);
+    GPIOA->CRL |= CRL(4, CNF_PUDINPUT|MODE_INPUT);
+    // <---------------------
     // EXTI: all three EXTI are on PA -> AFIO_EXTICRx = 0
     // interrupt on pulse front: buttons - 1->0, PPS - 0->1
-    EXTI->IMR = EXTI_IMR_MR1 | EXTI_IMR_MR13 | EXTI_IMR_MR14; // unmask
+    EXTI->IMR = EXTI_IMR_MR1;
     EXTI->RTSR = EXTI_RTSR_TR1; // rising trigger
-    EXTI->FTSR = EXTI_FTSR_TR13 | EXTI_FTSR_TR14; // falling trigger
+    // PA4/PA13/PA14 - buttons
+    for(int i = 0; i < TRIGGERS_AMOUNT; ++i){
+        uint16_t pin = trigpin[i];
+        // fill trigstate array
+        uint8_t trgs = (the_conf.trigstate & (1<<i)) ? 1 : 0;
+        trigstate[i] = trgs;
+        // turn on pullups
+        if(the_conf.trig_pullups & (1<<i)) trigport[i]->ODR |= pin;
+        EXTI->IMR |= pin;
+        if(trgs){ // triggered @1 -> rising interrupt
+            EXTI->RTSR |= pin;
+        }else{ // falling interrupt
+            EXTI->FTSR |= pin;
+        }
+    }
+    // ---------------------> config-depengent block, interrupts & pullup inputs:
+    // !!! change AFIO_EXTICRx if some triggers not @GPIOA
+    NVIC_EnableIRQ(EXTI4_IRQn);
     NVIC_EnableIRQ(EXTI15_10_IRQn);
+    // <---------------------
     NVIC_EnableIRQ(EXTI1_IRQn);
 }
 
@@ -94,25 +131,49 @@ void exti1_isr(){ // PPS - PA1
     EXTI->PR = EXTI_PR_PR1;
 }
 
+static trigtime trgtm;
+static void savetrigtime(){
+    trgtm.millis = Timer;
+    memcpy(&trgtm.Time, &current_time, sizeof(curtime));
+}
+
+static void fillshotms(int i){
+    if(i < 0 || i > TRIGGERS_AMOUNT) return;
+    if(shotms[i] - Tms > (uint32_t)the_conf.trigpause[i]){
+        shotms[i] = Tms;
+        memcpy(&shottime[i], &trgtm, sizeof(trigtime));
+        trigger_shot |= 1<<i;
+    }
+}
+
+void exti4_isr(){ // PA4 - button2
+    savetrigtime();
+    fillshotms(2);
+    DBG("exti4");
+    EXTI->PR = EXTI_PR_PR4;
+}
+
 void exti15_10_isr(){ // PA13 - button0, PA14 - button1
+    savetrigtime();
     if(EXTI->PR & EXTI_PR_PR13){
-        /*
-        if(trigger_ms[0] == DIDNT_TRIGGERED){ // prevent bounce
-            trigger_ms[0] = Timer;
-            memcpy(&trigger_time[0], &current_time, sizeof(curtime));
-        }
-        */
+        fillshotms(0);
         DBG("exti13");
         EXTI->PR = EXTI_PR_PR13;
     }
     if(EXTI->PR & EXTI_PR_PR14){
-        /*
-        if(trigger_ms[3] == DIDNT_TRIGGERED){ // prevent bounce
-            trigger_ms[3] = Timer;
-            memcpy(&trigger_time[3], &current_time, sizeof(curtime));
-        }
-        */
+        fillshotms(1);
         DBG("exti14");
         EXTI->PR = EXTI_PR_PR14;
     }
+}
+
+/**
+ * @brief gettrig - get trigger state
+ * @return 1 if trigger active or 0
+ */
+uint8_t gettrig(uint8_t N){
+    if(N >= TRIGGERS_AMOUNT) return 0;
+    uint8_t curval = (trigport[N]->IDR & trigpin[N]) ? 1 : 0;
+    if(curval == trigstate[N]) return 1;
+    else return 0;
 }

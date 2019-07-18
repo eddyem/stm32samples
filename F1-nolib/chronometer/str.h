@@ -19,6 +19,9 @@
 #ifndef STR_H__
 #define STR_H__
 
+#include "stm32f1.h"
+#include "hardware.h"
+
 // usb commands
 // lower and upper limits to capture
 #define CMD_DISTMIN     "distmin"
@@ -29,8 +32,18 @@
 #define CMD_ADC2MAX     "adc2max"
 #define CMD_PRINTTIME   "time"
 #define CMD_STORECONF   "store"
+#define CMD_GPSSTR      "gpsstring"
+#define CMD_PULLUP      "pullup"
+#define CMD_SHOWCONF    "showconf"
+#define CMD_TRIGLVL     "triglevel"
+#define CMD_TRGPAUSE    "trigpause"
+#define CMD_TRGTIME     "trigtime"
+
+extern uint8_t showGPSstr;
 
 int cmpstr(const char *s1, const char *s2, int n);
 char *getchr(const char *str, char symbol);
 int parse_USBCMD(char *cmd);
+void show_trigger_shot(uint8_t trigger_shot);
+
 #endif // STR_H__

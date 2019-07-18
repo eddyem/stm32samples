@@ -72,15 +72,8 @@ void time_increment(){
 char *get_time(curtime *Tm, uint32_t T){
     static char buf[64];
     char *bstart = &buf[5], *bptr = bstart;
-    /*
-    void putint(int i){ // put integer from 0 to 99 into buffer with leading zeros
-        if(i > 9){
-            *bptr++ = i/10 + '0';
-            i = i%10;
-        }else *bptr++ = '0';
-        *bptr++ = i + '0';
-    }*/
     int S = 0;
+    if(T > 999) return "Wrong time";
     if(Tm->S < 60 && Tm->M < 60 && Tm->H < 24)
         S = Tm->S + Tm->H*3600 + Tm->M*60; // seconds from day beginning
     if(!S) *(--bstart) = '0';
@@ -105,6 +98,10 @@ char *get_time(curtime *Tm, uint32_t T){
     }
     if(Tms - last_corr_time > 1000){
         strcpy(bptr, " need PPS sync");
+        bptr += 14;
+    }
+    if(GPS_status == GPS_NOTFOUND){
+        strcpy(bptr, " GPS not found");
         bptr += 14;
     }
     *bptr++ = '\n';

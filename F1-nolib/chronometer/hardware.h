@@ -25,6 +25,7 @@
 #define __HARDWARE_H__
 
 #include "stm32f1.h"
+#include "time.h"
 
 // onboard LEDs - PB8/PB9
 #define LED0_port   GPIOB
@@ -36,10 +37,14 @@
 #define PPS_port    GPIOA
 #define PPS_pin     (1<<1)
 
-// Buttons' state: PA13 (0)/PA14 (1)
-#define GET_BTN0()  ((GPIOA->IDR & (1<<13)) ? 0 : 1)
-#define GET_BTN1()  ((GPIOA->IDR & (1<<14)) ? 0 : 1)
-#define GET_PPS()   ((GPIOA->IDR & (1<<1)) ? 1 : 0)
+// PPS and triggers state
+// amount of triggers, should be less than 9
+#define TRIGGERS_AMOUNT  (3)
+extern GPIO_TypeDef *trigport[TRIGGERS_AMOUNT];
+extern uint16_t trigpin[TRIGGERS_AMOUNT];
+extern uint8_t trigstate[TRIGGERS_AMOUNT];
+uint8_t gettrig(uint8_t N);
+#define GET_PPS()       ((GPIOA->IDR & (1<<1)) ? 1 : 0)
 
 // USB pullup - PA15
 #define USBPU_port  GPIOA
@@ -57,6 +62,16 @@
 // GPS USART == USART2, LIDAR USART == USART3
 #define GPS_USART   (2)
 #define LIDAR_USART (3)
+
+typedef struct{
+    uint32_t millis;
+    curtime Time;
+} trigtime;
+
+// time of triggers shot
+extern trigtime shottime[TRIGGERS_AMOUNT];
+// if trigger[N] shots, the bit N will be 1
+extern uint8_t trigger_shot;
 
 void hw_setup();
 

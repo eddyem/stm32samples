@@ -25,21 +25,26 @@
 #define __FLASH_H__
 
 #include <stm32f1.h>
+#include "hardware.h"
 
 #define FLASH_BLOCK_SIZE    (1024)
 #define FLASH_SIZE_REG      ((uint32_t)0x1FFFF7E0)
 #define FLASH_SIZE          *((uint16_t*)FLASH_SIZE_REG)
 
-typedef struct{
+typedef struct __attribute__((packed)){
     uint16_t userconf_sz;       // "magick number"
     uint32_t dist_min;          // minimal distance for LIDAR
     uint32_t dist_max;          // maximal -//-
+    uint8_t  trig_pullups;      // trigger pullups: each bit ==0 to set OFF, ==1 to set ON pullup with given number
+    uint8_t  trigstate;         // level in `triggered` state
+    int32_t  trigpause[TRIGGERS_AMOUNT]; // pause (ms) for false shots
 } user_conf;
 
 extern user_conf the_conf;
 
 void get_userconf();
 int store_userconf();
+
 #ifdef EBUG
 void dump_userconf();
 void addNrecs(int N);

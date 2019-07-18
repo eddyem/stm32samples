@@ -16,3 +16,4 @@ Chronometer for downhill competitions
 - PA14 - TRIG1 - button1/laser/etc (EXTI)
 - PA15 - USB pullup
 
+- PB0,1,2 - free for other functions

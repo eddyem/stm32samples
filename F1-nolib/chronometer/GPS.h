@@ -28,7 +28,8 @@
 extern int need2startseq;
 
 typedef enum{
-     GPS_WAIT       // wait for satellites
+     GPS_NOTFOUND   // default status before first RMC message
+    ,GPS_WAIT       // wait for satellites
     ,GPS_NOT_VALID  // time known, but not valid
     ,GPS_VALID
 } gps_status;

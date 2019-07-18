@@ -29,7 +29,7 @@
 #define GPS_endline() do{usart_send(GPS_USART, "\r\n"); transmit_tbuf(GPS_USART); }while(0)
 #define GPS_send_string(str) do{usart_send(GPS_USART, str);}while(0)
 
-gps_status GPS_status = GPS_WAIT;
+gps_status GPS_status = GPS_NOTFOUND;
 int need2startseq = 1;
 
 static uint8_t hex(uint8_t n){

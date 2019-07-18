@@ -55,6 +55,9 @@ typedef struct{
 	.userconf_sz = sizeof(user_conf)	\
 	,.dist_min = LIDAR_MIN_DIST			\
 	,.dist_max = LIDAR_MAX_DIST			\
+    ,.trig_pullups = 0xff               \
+    ,.trigstate = 0                     \
+    ,.trigpause = {400, 400, 400}       \
 	}
 
 __attribute__((section(".myvars"))) static const flash_storage Flash_Storage = {
@@ -221,9 +224,18 @@ static int erase_flash(){
 
 #ifdef EBUG
 void dump_userconf(){
-    SEND("userconf_sz="); printu(1, the_conf.userconf_sz); newline();
-    SEND("dist_min="); printu(1, the_conf.dist_min); newline();
-    SEND("dist_max="); printu(1, the_conf.dist_max); newline();
+    SEND("userconf_sz="); printu(1, the_conf.userconf_sz);
+    SEND("\ndist_min="); printu(1, the_conf.dist_min);
+    SEND("\ndist_max="); printu(1, the_conf.dist_max);
+    SEND("\ntrig_pullups="); printuhex(1, the_conf.trig_pullups);
+    SEND("\ntrigstate="); printuhex(1, the_conf.trigstate);
+    SEND("\ntrigpause={");
+    for(int i = 0; i < TRIGGERS_AMOUNT; ++i){
+        if(i) SEND(", ");
+        printu(1, the_conf.trigpause[i]);
+    }
+    SEND("}\n");
+    transmit_tbuf(1);
 }
 
 void addNrecs(int N){

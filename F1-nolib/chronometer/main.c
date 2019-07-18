@@ -71,7 +71,7 @@ void iwdg_setup(){
 #ifdef EBUG
 char *parse_cmd(char *buf){
     int32_t N;
-    static char btns[] = "BTN0=0, BTN1=0, PPS=0\n";
+    static char btns[] = "BTN0=0, BTN1=0, BTN2=0, PPS=0\n";
     switch(*buf){
         case '0':
             LED_off();
@@ -80,9 +80,10 @@ char *parse_cmd(char *buf){
             LED_on();
         break;
         case 'b':
-            btns[5] = GET_BTN0() + '0';
-            btns[13] = GET_BTN1() + '0';
-            btns[20] = GET_PPS() + '0';
+            btns[5] = gettrig(0) + '0';
+            btns[13] = gettrig(1) + '0';
+            btns[21] = gettrig(2) + '0';
+            btns[28] = GET_PPS() + '0';
             return btns;
         break;
         case 'C':
@@ -177,11 +178,14 @@ int main(void){
     uint32_t lastT = 0;
     sysreset();
     StartHSE();
-    hw_setup();
     LED1_off();
     USBPU_OFF();
-    usarts_setup();
     SysTick_Config(SYSTICK_DEFCONF); // function SysTick_Config decrements argument!
+    // read data stored in flash
+    get_userconf();
+    // !!! hw_setup() should be the first in setup stage
+    hw_setup();
+    usarts_setup();
     SEND("Chronometer version " VERSION ".\n");
     if(RCC->CSR & RCC_CSR_IWDGRSTF){ // watchdog reset occured
         SEND("WDGRESET=1\n");
@@ -194,17 +198,6 @@ int main(void){
     USB_setup();
     iwdg_setup();
     USBPU_ON();
-    // read data stored in flash
-#ifdef EBUG
-    SEND("Old config:\n");
-    dump_userconf();
-#endif
-    //writeatend();
-    get_userconf();
-#ifdef EBUG
-    SEND("New config:\n");
-    dump_userconf();
-#endif
 
     while (1){
         IWDG->KR = IWDG_REFRESH; // refresh watchdog
@@ -227,6 +220,7 @@ int main(void){
             transmit_tbuf(GPS_USART);
             transmit_tbuf(LIDAR_USART);
         }
+        if(trigger_shot) show_trigger_shot(trigger_shot);
         usb_proc();
         int r = 0;
         char *txt;
@@ -258,6 +252,10 @@ int main(void){
             r = usart_getline(GPS_USART, &txt);
             if(r){
                 txt[r] = 0;
+                if(showGPSstr){
+                    showGPSstr = 0;
+                    USB_send(txt);
+                }
                 GPS_parse_answer(txt);
             }
         }
