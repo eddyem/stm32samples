@@ -19,7 +19,7 @@
  * MA 02110-1301, USA.
  */
 
-//#include "adc.h"
+#include "adc.h"
 #include "GPS.h"
 #include "flash.h"
 #include "hardware.h"
@@ -174,6 +174,24 @@ static char *get_USB(){
     return NULL;
 }
 
+/*
+void linecoding_handler(usb_LineCoding __attribute__((unused)) *lc){ // get/set line coding
+    DBG("linecoding_handler");
+}*/
+
+void clstate_handler(uint16_t __attribute__((unused)) val){ // lesser bits of val: DTR|RTS
+    USB_send("Chronometer version " VERSION ".\n");
+#ifdef EBUG
+    if(val & 1) DBG("RTS set");
+    if(val & 2) DBG("DTR set");
+#endif
+}
+
+/*
+void break_handler(){ // client disconnected
+    DBG("break_handler");
+}*/
+
 int main(void){
     uint32_t lastT = 0;
     sysreset();
@@ -185,7 +203,10 @@ int main(void){
     get_userconf();
     // !!! hw_setup() should be the first in setup stage
     hw_setup();
+    USB_setup();
+    USBPU_ON();
     usarts_setup();
+#ifdef EBUG
     SEND("Chronometer version " VERSION ".\n");
     if(RCC->CSR & RCC_CSR_IWDGRSTF){ // watchdog reset occured
         SEND("WDGRESET=1\n");
@@ -193,11 +214,10 @@ int main(void){
     if(RCC->CSR & RCC_CSR_SFTRSTF){ // software reset occured
         SEND("SOFTRESET=1\n");
     }
+#endif
     RCC->CSR |= RCC_CSR_RMVF; // remove reset flags
-
-    USB_setup();
     iwdg_setup();
-    USBPU_ON();
+
 
     while (1){
         IWDG->KR = IWDG_REFRESH; // refresh watchdog
@@ -265,6 +285,7 @@ int main(void){
                 parse_lidar_data(txt);
             }
         }
+        chkADCtrigger();
     }
     return 0;
 }

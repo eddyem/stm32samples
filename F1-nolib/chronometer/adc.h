@@ -25,5 +25,5 @@ extern uint16_t ADC_array[];
 int32_t getMCUtemp();
 uint32_t getVdd();
 uint16_t getADCval(int nch);
-
+void chkADCtrigger();
 #endif // ADC_H

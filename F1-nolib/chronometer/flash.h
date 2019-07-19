@@ -38,6 +38,8 @@ typedef struct __attribute__((packed)){
     uint8_t  trig_pullups;      // trigger pullups: each bit ==0 to set OFF, ==1 to set ON pullup with given number
     uint8_t  trigstate;         // level in `triggered` state
     int32_t  trigpause[TRIGGERS_AMOUNT]; // pause (ms) for false shots
+    int16_t  ADC_min;           // min&max values of ADC (shot when ADval > ADC_min && < ADC_max)
+    int16_t  ADC_max;           // !!! BOTH ARE SIGNED! so you can include 0 & 4096
 } user_conf;
 
 extern user_conf the_conf;

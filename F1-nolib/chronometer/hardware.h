@@ -38,12 +38,14 @@
 #define PPS_pin     (1<<1)
 
 // PPS and triggers state
-// amount of triggers, should be less than 9
-#define TRIGGERS_AMOUNT  (3)
-extern GPIO_TypeDef *trigport[TRIGGERS_AMOUNT];
-extern uint16_t trigpin[TRIGGERS_AMOUNT];
-extern uint8_t trigstate[TRIGGERS_AMOUNT];
+// amount of triggers, should be less than 9; 5 - 0..2 - switches, 3 - LIDAR, 4 - ADC
+#define TRIGGERS_AMOUNT  (5)
+// amount of digital triggers (on interrupts)
+#define DIGTRIG_AMOUNT   (3)
+
 uint8_t gettrig(uint8_t N);
+void fillshotms(int i);
+void savetrigtime();
 #define GET_PPS()       ((GPIOA->IDR & (1<<1)) ? 1 : 0)
 
 // USB pullup - PA15
@@ -52,12 +54,12 @@ uint8_t gettrig(uint8_t N);
 #define USBPU_ON()  pin_clear(USBPU_port, USBPU_pin)
 #define USBPU_OFF() pin_set(USBPU_port, USBPU_pin)
 
-#define LED_blink()    pin_toggle(LED0_port, LED0_pin)
-#define LED_on()       pin_clear(LED0_port, LED0_pin)
-#define LED_off()      pin_set(LED0_port, LED0_pin)
-#define LED1_blink()   pin_toggle(LED1_port, LED1_pin)
-#define LED1_on()      pin_clear(LED1_port, LED1_pin)
-#define LED1_off()     pin_set(LED1_port, LED1_pin)
+#define LED_blink()    do{if(LEDSon)pin_toggle(LED0_port, LED0_pin);}while(0)
+#define LED_on()       do{if(LEDSon)pin_clear(LED0_port, LED0_pin);}while(0)
+#define LED_off()      do{if(LEDSon)pin_set(LED0_port, LED0_pin);}while(0)
+#define LED1_blink()   do{if(LEDSon)pin_toggle(LED1_port, LED1_pin);}while(0)
+#define LED1_on()      do{if(LEDSon)pin_clear(LED1_port, LED1_pin);}while(0)
+#define LED1_off()     do{if(LEDSon)pin_set(LED1_port, LED1_pin);}while(0)
 
 // GPS USART == USART2, LIDAR USART == USART3
 #define GPS_USART   (2)
@@ -68,6 +70,8 @@ typedef struct{
     curtime Time;
 } trigtime;
 
+// turn on/off LEDs:
+extern uint8_t LEDSon;
 // time of triggers shot
 extern trigtime shottime[TRIGGERS_AMOUNT];
 // if trigger[N] shots, the bit N will be 1

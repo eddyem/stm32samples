@@ -58,6 +58,8 @@ typedef struct{
     ,.trig_pullups = 0xff               \
     ,.trigstate = 0                     \
     ,.trigpause = {400, 400, 400}       \
+    ,.ADC_min = 1024                    \
+    ,.ADC_max = 3072                    \
 	}
 
 __attribute__((section(".myvars"))) static const flash_storage Flash_Storage = {

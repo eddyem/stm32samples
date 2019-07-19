@@ -29,12 +29,13 @@
 
 #include <string.h> // memcpy
 
+uint8_t LEDSon = 1; // LEDS are working
 // ports of triggers
-GPIO_TypeDef *trigport[TRIGGERS_AMOUNT] = {GPIOA, GPIOA, GPIOA};
+static GPIO_TypeDef *trigport[DIGTRIG_AMOUNT] = {GPIOA, GPIOA, GPIOA};
 // pins of triggers: PA13, PA14, PA4
-uint16_t trigpin[TRIGGERS_AMOUNT] = {1<<13, 1<<14, 1<<4};
+static uint16_t trigpin[DIGTRIG_AMOUNT] = {1<<13, 1<<14, 1<<4};
 // value of pin in `triggered` state
-uint8_t trigstate[TRIGGERS_AMOUNT];
+static uint8_t trigstate[DIGTRIG_AMOUNT];
 // time of triggers shot
 trigtime shottime[TRIGGERS_AMOUNT];
 // Tms value when they shot
@@ -64,7 +65,7 @@ static inline void gpio_setup(){
     EXTI->IMR = EXTI_IMR_MR1;
     EXTI->RTSR = EXTI_RTSR_TR1; // rising trigger
     // PA4/PA13/PA14 - buttons
-    for(int i = 0; i < TRIGGERS_AMOUNT; ++i){
+    for(int i = 0; i < DIGTRIG_AMOUNT; ++i){
         uint16_t pin = trigpin[i];
         // fill trigstate array
         uint8_t trgs = (the_conf.trigstate & (1<<i)) ? 1 : 0;
@@ -122,7 +123,7 @@ static inline void adc_setup(){
 
 void hw_setup(){
     gpio_setup();
-    //adc_setup();
+    adc_setup();
 }
 
 void exti1_isr(){ // PPS - PA1
@@ -132,12 +133,12 @@ void exti1_isr(){ // PPS - PA1
 }
 
 static trigtime trgtm;
-static void savetrigtime(){
+void savetrigtime(){
     trgtm.millis = Timer;
     memcpy(&trgtm.Time, &current_time, sizeof(curtime));
 }
 
-static void fillshotms(int i){
+void fillshotms(int i){
     if(i < 0 || i > TRIGGERS_AMOUNT) return;
     if(shotms[i] - Tms > (uint32_t)the_conf.trigpause[i]){
         shotms[i] = Tms;
@@ -146,14 +147,14 @@ static void fillshotms(int i){
     }
 }
 
-void exti4_isr(){ // PA4 - button2
+void exti4_isr(){ // PA4 - trigger[2]
     savetrigtime();
     fillshotms(2);
     DBG("exti4");
     EXTI->PR = EXTI_PR_PR4;
 }
 
-void exti15_10_isr(){ // PA13 - button0, PA14 - button1
+void exti15_10_isr(){ // PA13 - trigger[0], PA14 - trigger[1]
     savetrigtime();
     if(EXTI->PR & EXTI_PR_PR13){
         fillshotms(0);

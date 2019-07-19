@@ -25,7 +25,7 @@ uint16_t last_lidar_stren = 0;
 uint16_t lidar_triggered_dist = 0;
 
 void parse_lidar_data(char *txt){
-    static int triggered = 0;
+    static uint8_t triggered = 0;
     last_lidar_dist = txt[2] | (txt[3] << 8);
     last_lidar_stren = txt[4] | (txt[5] << 8);
     if(last_lidar_stren < LIDAR_LOWER_STREN) return; // weak signal
@@ -46,8 +46,10 @@ void parse_lidar_data(char *txt){
         }
     }else{
         if(last_lidar_dist > the_conf.dist_min && last_lidar_dist < the_conf.dist_max){
+            savetrigtime();
             triggered = 1;
             lidar_triggered_dist = last_lidar_dist;
+            fillshotms(3);
 #ifdef EBUG
             SEND("Triggered! distance=");
             printu(1, last_lidar_dist);

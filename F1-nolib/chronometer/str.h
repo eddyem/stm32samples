@@ -26,10 +26,8 @@
 // lower and upper limits to capture
 #define CMD_DISTMIN     "distmin"
 #define CMD_DISTMAX     "distmax"
-#define CMD_ADC1MIN     "adc1min"
-#define CMD_ADC2MIN     "adc2min"
-#define CMD_ADC1MAX     "adc1max"
-#define CMD_ADC2MAX     "adc2max"
+#define CMD_ADCMIN      "adcmin"
+#define CMD_ADCMAX      "adcmax"
 #define CMD_PRINTTIME   "time"
 #define CMD_STORECONF   "store"
 #define CMD_GPSSTR      "gpsstring"
@@ -38,6 +36,10 @@
 #define CMD_TRIGLVL     "triglevel"
 #define CMD_TRGPAUSE    "trigpause"
 #define CMD_TRGTIME     "trigtime"
+#define CMD_GETVDD      "vdd"
+#define CMD_GETMCUTEMP  "mcutemp"
+#define CMD_GETADCVAL   "adcval"
+#define CMD_LEDS        "leds"
 
 extern uint8_t showGPSstr;
 

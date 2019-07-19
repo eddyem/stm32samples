@@ -17,6 +17,8 @@
  */
 
 #include "adc.h"
+#include "flash.h"
+#include "hardware.h"
 
 /**
  * @brief ADC_array - array for ADC channels with median filtering:
@@ -67,4 +69,20 @@ uint32_t getVdd(){
     uint32_t vdd = 120 * 4096; // 1.2V
     vdd /= getADCval(2);
     return vdd;
+}
+
+void chkADCtrigger(){
+    static uint8_t triggered = 0;
+    savetrigtime();
+    uint16_t val = getADCval(0);
+    if(triggered){ // check untriggered action
+        if(val < the_conf.ADC_min || val > the_conf.ADC_max){
+            triggered = 0;
+        }
+    }else{ // check if thigger shot
+        if(val > the_conf.ADC_min && val < the_conf.ADC_max){
+            triggered = 1;
+            fillshotms(4);
+        }
+    }
 }

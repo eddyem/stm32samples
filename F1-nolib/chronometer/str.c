@@ -16,6 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "adc.h"
 #include "flash.h"
 #include "str.h"
 #include "time.h"
@@ -57,18 +58,30 @@ char *getchr(const char *str, char symbol){
     return NULL;
 }
 
+#define sendu(x) do{USB_send(u2str(x));}while(0)
+
+static void sendi(int32_t I){
+    if(I < 0){
+        USB_send("-");
+        I = -I;
+    }
+    USB_send(u2str((uint32_t)I));
+}
+
 /**
  * @brief showuserconf - show configuration over USB
  */
 static void showuserconf(){
-    USB_send("\nCONFIG:\nDISTMIN="); USB_send(u2str(the_conf.dist_min));
-    USB_send("\nDISTMAX="); USB_send(u2str(the_conf.dist_max));
-    USB_send("\nPULLUPS="); USB_send(u2str(the_conf.trig_pullups));
-    USB_send("\nTRIGLVL="); USB_send(u2str(the_conf.trigstate));
+    USB_send("\nCONFIG:\nDISTMIN="); sendu(the_conf.dist_min);
+    USB_send("\nDISTMAX="); sendu(the_conf.dist_max);
+    USB_send("\nADCMIN="); sendi(the_conf.ADC_min);
+    USB_send("\nADCMAX="); sendi(the_conf.ADC_max);
+    USB_send("\nPULLUPS="); sendu(the_conf.trig_pullups);
+    USB_send("\nTRIGLVL="); sendu(the_conf.trigstate);
     USB_send("\nTRIGPAUSE={");
     for(int i = 0; i < TRIGGERS_AMOUNT; ++i){
         if(i) USB_send(", ");
-        USB_send(u2str(the_conf.trigpause[i]));
+        sendu(the_conf.trigpause[i]);
     }
     USB_send("}");
     USB_send("\nENDCONFIG\n");
@@ -89,9 +102,14 @@ int parse_USBCMD(char *cmd){
     IWDG->KR = IWDG_REFRESH;
     if(*cmd == '?'){ // help
         USB_send("Commands:\n"
+                 CMD_ADCMAX    " - max ADC value treshold for trigger\n"
+                 CMD_ADCMIN    " - min -//- (triggered when ADval>min & <max\n"
+                 CMD_GETADCVAL " - get ADC value\n"
                  CMD_DISTMIN   " - min distance threshold (cm)\n"
                  CMD_DISTMAX   " - max distance threshold (cm)\n"
                  CMD_GPSSTR    " - current GPS data string\n"
+                 CMD_LEDS      "S - turn leds on/off (1/0)\n"
+                 CMD_GETMCUTEMP " - MCU temperature\n"
                  CMD_PULLUP    "NS - triggers pullups state (N - trigger No, S - 0/1 for off/on)\n"
                  CMD_SHOWCONF  " - show current configuration\n"
                  CMD_PRINTTIME " - print time\n"
@@ -99,6 +117,7 @@ int parse_USBCMD(char *cmd){
                  CMD_TRIGLVL   "NS - working trigger N level S\n"
                  CMD_TRGPAUSE  "NP - pause (P, ms) after trigger N shots\n"
                  CMD_TRGTIME   "N - show last trigger N time\n"
+                 CMD_GETVDD    " - Vdd value\n"
                  );
     }else if(CMP(cmd, CMD_PRINTTIME) == 0){
         USB_send(get_time(&current_time, get_millis()));
@@ -132,7 +151,6 @@ int parse_USBCMD(char *cmd){
         }
     }else if(CMP(cmd, CMD_GPSSTR) == 0){ // show GPS status string
         showGPSstr = 1;
-        return 0;
     }else if(CMP(cmd, CMD_PULLUP) == 0){
         DBG("Pullups");
         cmd += sizeof(CMD_PULLUP) - 1;
@@ -159,7 +177,6 @@ int parse_USBCMD(char *cmd){
         succeed = 1;
     }else if(CMP(cmd, CMD_SHOWCONF) == 0){
         showuserconf();
-        return 0;
     }else if(CMP(cmd, CMD_TRGPAUSE) == 0){
         DBG("Trigger pause");
         cmd += sizeof(CMD_TRGPAUSE) - 1;
@@ -176,7 +193,59 @@ int parse_USBCMD(char *cmd){
         uint8_t Nt = *cmd++ - '0';
         if(Nt > TRIGGERS_AMOUNT - 1) goto bad_number;
         show_trigger_shot((uint8_t)1<<Nt);
-        return 0;
+    }else if(CMP(cmd, CMD_GETVDD) == 0){
+        USB_send("VDD=");
+        uint32_t vdd = getVdd();
+        sendu(vdd/100);
+        vdd %= 100;
+        if(vdd < 10) USB_send(".0");
+        else USB_send(".");
+        sendu(vdd);
+        USB_send("\n");
+    }else if(CMP(cmd, CMD_GETMCUTEMP) == 0){
+        int32_t t = getMCUtemp();
+        USB_send("MCUTEMP=");
+        if(t < 0){
+            t = -t;
+            USB_send("-");
+        }
+        sendu(t/10);
+        USB_send(".");
+        sendu(t%10);
+        USB_send("\n");
+    }else if(CMP(cmd, CMD_GETADCVAL) == 0){
+        USB_send("ADCVAL=");
+        sendu(getADCval(0));
+        USB_send("\n");
+    }else if(CMP(cmd, CMD_LEDS) == 0){
+        uint8_t Nt = cmd[sizeof(CMD_LEDS) - 1] - '0';
+        if(Nt > 1) goto bad_number;
+        USB_send("LEDS=");
+        if(Nt){
+            LEDSon = 1;
+            USB_send("ON\n");
+        }else{
+            LED_off();
+            LED1_off();
+            LEDSon = 0;
+            USB_send("OFF\n");
+        }
+    }else if(CMP(cmd, CMD_ADCMAX) == 0){ // set low limit
+        GETNUM(CMD_ADCMAX);
+        if(N < -4096 || N > 4096) goto bad_number;
+        if(the_conf.ADC_max != (int16_t)N){
+            conf_modified = 1;
+            the_conf.ADC_max = (int16_t) N;
+            succeed = 1;
+        }
+    }else if(CMP(cmd, CMD_ADCMIN) == 0){ // set low limit
+        GETNUM(CMD_ADCMIN);
+        if(N < -4096 || N > 4096) goto bad_number;
+        if(the_conf.ADC_min != (int16_t)N){
+            conf_modified = 1;
+            the_conf.ADC_min = (int16_t) N;
+            succeed = 1;
+        }
     }else return 1;
     IWDG->KR = IWDG_REFRESH;
     if(succeed) USB_send("Success!\n");
@@ -198,7 +267,7 @@ void show_trigger_shot(uint8_t tshot){
         else continue;
         if(trigger_shot & X) trigger_shot &= ~X;
         USB_send("TRIG");
-        USB_send(u2str(i));
+        sendu(i);
         USB_send("=");
         USB_send(get_time(&shottime[i].Time, shottime[i].millis));
         USB_send("\n");
