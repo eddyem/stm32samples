@@ -24,6 +24,7 @@
 #include "time.h"
 #include "usart.h"
 #include "str.h"
+#include "usb.h"
 #include <string.h> // memcpy
 
 #define GPS_endline() do{usart_send(GPS_USART, "\r\n"); transmit_tbuf(GPS_USART); }while(0)
@@ -128,6 +129,11 @@ void GPS_send_start_seq(){
     need2startseq = 0;
 }
 
+// send "full cold start" command to clear all almanach & location data
+void GPS_send_FullColdStart(){
+    write_with_checksum("PMTK104");
+}
+
 /**
  * Parse answer from GPS module
  *
@@ -159,6 +165,10 @@ void GPS_parse_answer(const char *buf){
     }
     if(!checksum_true(buf)){
         return; // wrong checksum
+    }
+    if(showGPSstr){
+        showGPSstr = 0;
+        USB_send(buf);
     }
     buf += 7; // skip header
     if(*buf == ','){ // time unknown

@@ -35,13 +35,14 @@
 */
 
 #include "stm32f1.h"
-#include <string.h> // memcpy
 
+#include "adc.h"
 #include "flash.h"
 #include "lidar.h"
 #ifdef EBUG
 #include "usart.h"
 #endif
+#include <string.h> // memcpy
 
 extern uint32_t _edata, _etext, _sdata;
 static int maxnum = FLASH_BLOCK_SIZE / sizeof(user_conf);
@@ -52,14 +53,14 @@ typedef struct{
 } flash_storage;
 
 #define USERCONF_INITIALIZER  { \
-	.userconf_sz = sizeof(user_conf)	\
-	,.dist_min = LIDAR_MIN_DIST			\
-	,.dist_max = LIDAR_MAX_DIST			\
-    ,.trig_pullups = 0xff               \
-    ,.trigstate = 0                     \
-    ,.trigpause = {400, 400, 400}       \
-    ,.ADC_min = 1024                    \
-    ,.ADC_max = 3072                    \
+	.userconf_sz = sizeof(user_conf)        \
+	,.dist_min = LIDAR_MIN_DIST             \
+	,.dist_max = LIDAR_MAX_DIST             \
+    ,.trig_pullups = 0xff                   \
+    ,.trigstate = 0                         \
+    ,.trigpause = {400, 400, 400, 300, 300} \
+    ,.ADC_min = ADC_MIN_VAL                 \
+    ,.ADC_max = ADC_MAX_VAL                 \
 	}
 
 __attribute__((section(".myvars"))) static const flash_storage Flash_Storage = {

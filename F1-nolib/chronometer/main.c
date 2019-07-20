@@ -86,6 +86,10 @@ char *parse_cmd(char *buf){
             btns[28] = GET_PPS() + '0';
             return btns;
         break;
+        case 'c':
+            DBG("Send cold start");
+            GPS_send_FullColdStart();
+        break;
         case 'C':
             if(getnum(&buf[1], &N)){
                 SEND("Need a number!\n");
@@ -137,6 +141,7 @@ char *parse_cmd(char *buf){
             return
             "0/1 - turn on/off LED1\n"
             "'b' - get buttons's state\n"
+            "'c' - send cold start\n"
             "'d' - dump current user conf\n"
             "'p' - toggle USB pullup\n"
             "'C' - store userconf for N times\n"
@@ -179,11 +184,17 @@ void linecoding_handler(usb_LineCoding __attribute__((unused)) *lc){ // get/set 
     DBG("linecoding_handler");
 }*/
 
-void clstate_handler(uint16_t __attribute__((unused)) val){ // lesser bits of val: DTR|RTS
+void clstate_handler(uint16_t __attribute__((unused)) val){ // lesser bits of val: RTS|DTR
     USB_send("Chronometer version " VERSION ".\n");
 #ifdef EBUG
-    if(val & 1) DBG("RTS set");
-    if(val & 2) DBG("DTR set");
+    if(val & 2){
+        DBG("RTS set");
+        USB_send("RTS set\n");
+    }
+    if(val & 1){
+        DBG("DTR set");
+        USB_send("DTR set\n");
+    }
 #endif
 }
 
@@ -272,10 +283,6 @@ int main(void){
             r = usart_getline(GPS_USART, &txt);
             if(r){
                 txt[r] = 0;
-                if(showGPSstr){
-                    showGPSstr = 0;
-                    USB_send(txt);
-                }
                 GPS_parse_answer(txt);
             }
         }

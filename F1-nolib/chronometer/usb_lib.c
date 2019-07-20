@@ -296,7 +296,10 @@ static uint16_t EP0_Handler(ep_t ep){
                     default:
                     break;
                 }
-                if(!dev2host) EP_WriteIRQ(0, (uint8_t *)0, 0); // write acknowledgement
+                // SET_CONTROL_LINE_STATE don't work! Need something to fix the BUG!
+                //if(!dev2host)
+                if(setup_packet.bRequest != GET_LINE_CODING)
+                    EP_WriteIRQ(0, (uint8_t *)0, 0); // write acknowledgement
                 epstatus = SET_VALID_RX(epstatus);
                 epstatus = SET_VALID_TX(epstatus);
             break;

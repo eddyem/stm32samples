@@ -101,13 +101,13 @@ void usb_proc(){
     }
 }
 
-void USB_send(char *buf){
+void USB_send(const char *buf){
     if(!USB_configured()){
         DBG("USB not configured");
         return;
     }
     uint16_t l = 0, ctr = 0;
-    char *p = buf;
+    const char *p = buf;
     while(*p++) ++l;
     while(l){
         uint16_t s = (l > USB_TXBUFSZ) ? USB_TXBUFSZ : l;

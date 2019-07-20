@@ -38,5 +38,6 @@ extern gps_status GPS_status;
 
 void GPS_parse_answer(const char *string);
 void GPS_send_start_seq();
+void GPS_send_FullColdStart();
 
 #endif // __GPS_H__

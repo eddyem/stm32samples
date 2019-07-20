@@ -18,6 +18,7 @@
 
 #include "adc.h"
 #include "flash.h"
+#include "GPS.h"
 #include "str.h"
 #include "time.h"
 #include "usart.h"
@@ -107,6 +108,7 @@ int parse_USBCMD(char *cmd){
                  CMD_GETADCVAL " - get ADC value\n"
                  CMD_DISTMIN   " - min distance threshold (cm)\n"
                  CMD_DISTMAX   " - max distance threshold (cm)\n"
+                 CMD_GPSRESTART " - send Full Cold Restart to GPS\n"
                  CMD_GPSSTR    " - current GPS data string\n"
                  CMD_LEDS      "S - turn leds on/off (1/0)\n"
                  CMD_GETMCUTEMP " - MCU temperature\n"
@@ -246,6 +248,9 @@ int parse_USBCMD(char *cmd){
             the_conf.ADC_min = (int16_t) N;
             succeed = 1;
         }
+    }else if(CMP(cmd, CMD_GPSRESTART) == 0){
+        USB_send("Send full cold restart to GPS\n");
+        GPS_send_FullColdStart();
     }else return 1;
     IWDG->KR = IWDG_REFRESH;
     if(succeed) USB_send("Success!\n");

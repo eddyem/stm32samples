@@ -40,6 +40,7 @@
 #define CMD_GETMCUTEMP  "mcutemp"
 #define CMD_GETADCVAL   "adcval"
 #define CMD_LEDS        "leds"
+#define CMD_GPSRESTART  "gpsrestart"
 
 extern uint8_t showGPSstr;
 
