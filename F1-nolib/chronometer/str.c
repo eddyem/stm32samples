@@ -106,6 +106,7 @@ int parse_USBCMD(char *cmd){
                  CMD_ADCMAX    " - max ADC value treshold for trigger\n"
                  CMD_ADCMIN    " - min -//- (triggered when ADval>min & <max\n"
                  CMD_GETADCVAL " - get ADC value\n"
+                 CMD_BUZZER    "S - turn buzzer ON/OFF\n"
                  CMD_DISTMIN   " - min distance threshold (cm)\n"
                  CMD_DISTMAX   " - max distance threshold (cm)\n"
                  CMD_GPSRESTART " - send Full Cold Restart to GPS\n"
@@ -227,8 +228,8 @@ int parse_USBCMD(char *cmd){
             LEDSon = 1;
             USB_send("ON\n");
         }else{
-            LED_off();
-            LED1_off();
+            LED_off();  // turn off LEDS
+            LED1_off(); // by user request
             LEDSon = 0;
             USB_send("OFF\n");
         }
@@ -251,6 +252,19 @@ int parse_USBCMD(char *cmd){
     }else if(CMP(cmd, CMD_GPSRESTART) == 0){
         USB_send("Send full cold restart to GPS\n");
         GPS_send_FullColdStart();
+    }else if(CMP(cmd, CMD_BUZZER) == 0){
+        uint8_t Nt = cmd[sizeof(CMD_BUZZER) - 1] - '0';
+        if(Nt > 1) goto bad_number;
+        USB_send("BUZZER=");
+        if(Nt){
+            BuzzerTime = 0;
+            buzzer_on = 1;
+            USB_send("ON\n");
+        }else{
+            BuzzerTime = 0;
+            buzzer_on = 0;
+            USB_send("OFF\n");
+        }
     }else return 1;
     IWDG->KR = IWDG_REFRESH;
     if(succeed) USB_send("Success!\n");

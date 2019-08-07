@@ -33,6 +33,7 @@ void parse_lidar_data(char *txt){
         lidar_triggered_dist = last_lidar_dist;
         return;
     }
+    IWDG->KR = IWDG_REFRESH;
     if(triggered){ // check if body gone
         if(last_lidar_dist < the_conf.dist_min || last_lidar_dist > the_conf.dist_max || last_lidar_dist > lidar_triggered_dist + LIDAR_DIST_THRES){
             triggered = 0;

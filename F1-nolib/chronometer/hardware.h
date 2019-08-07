@@ -33,6 +33,13 @@
 #define LED1_port   GPIOB
 #define LED1_pin    (1<<9)
 
+// buzzer (1 - active) - PC13
+extern uint8_t buzzer_on;
+#define BUZZER_port GPIOC
+#define BUZZER_pin  (1<<13)
+#define BUZZER_ON() do{if(buzzer_on)pin_set(BUZZER_port, BUZZER_pin);}while(0)
+#define BUZZER_OFF() pin_clear(BUZZER_port, BUZZER_pin)
+
 // PPS pin - PA1
 #define PPS_port    GPIOA
 #define PPS_pin     (1<<1)
@@ -56,10 +63,10 @@ void savetrigtime();
 
 #define LED_blink()    do{if(LEDSon)pin_toggle(LED0_port, LED0_pin);}while(0)
 #define LED_on()       do{if(LEDSon)pin_clear(LED0_port, LED0_pin);}while(0)
-#define LED_off()      do{if(LEDSon)pin_set(LED0_port, LED0_pin);}while(0)
+#define LED_off()      do{pin_set(LED0_port, LED0_pin);}while(0)
 #define LED1_blink()   do{if(LEDSon)pin_toggle(LED1_port, LED1_pin);}while(0)
 #define LED1_on()      do{if(LEDSon)pin_clear(LED1_port, LED1_pin);}while(0)
-#define LED1_off()     do{if(LEDSon)pin_set(LED1_port, LED1_pin);}while(0)
+#define LED1_off()     do{pin_set(LED1_port, LED1_pin);}while(0)
 
 // GPS USART == USART2, LIDAR USART == USART3
 #define GPS_USART   (2)
@@ -76,6 +83,8 @@ extern uint8_t LEDSon;
 extern trigtime shottime[TRIGGERS_AMOUNT];
 // if trigger[N] shots, the bit N will be 1
 extern uint8_t trigger_shot;
+// time when Buzzer was turned ON
+extern uint32_t BuzzerTime;
 
 void hw_setup();
 

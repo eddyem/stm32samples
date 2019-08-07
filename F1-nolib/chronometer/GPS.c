@@ -182,6 +182,8 @@ void GPS_parse_answer(const char *buf){
         GPS_status = GPS_VALID;
         set_time(buf);
     }else{
+        uint8_t goth = (buf[0]-'0')*10 + buf[1]-'0';
+        if(current_time.H != goth) set_time(buf); // set time once per hour even if it's not valid
         GPS_status = GPS_NOT_VALID;
     }
 }

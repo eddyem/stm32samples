@@ -27,9 +27,6 @@
 volatile uint32_t Timer; // milliseconds counter
 curtime current_time = TMNOTINI;
 
-// ms counter in last correction by PPS
-static uint32_t last_corr_time = 0;
-
 static inline uint8_t atou(const char *b){
     return (b[0]-'0')*10 + b[1]-'0';
 }
@@ -39,11 +36,16 @@ static inline uint8_t atou(const char *b){
  * @param buf - buffer with time data (HHMMSS)
  */
 void set_time(const char *buf){
-    uint8_t H = atou(buf) + TIMEZONE_GMT_PLUS;
+    uint8_t H = atou(buf);// + TIMEZONE_GMT_PLUS;
     if(H > 23) H -= 24;
     current_time.H = H;
     current_time.M = atou(&buf[2]);
     current_time.S = atou(&buf[4]);
+#ifdef EBUG
+    SEND("set_time, Tms: "); printu(1, Tms);
+    SEND("; Timer: "); printu(1, Timer);
+    newline();
+#endif
 }
 
 /**
@@ -64,6 +66,17 @@ void time_increment(){
     SEND("time_increment():  ");
     SEND(get_time(&current_time, 0));
 #endif
+}
+
+static char *puttwo(uint8_t N, char *buf){
+    if(N < 10){
+        *buf++ = '0';
+    }else{
+        *buf++ = N/10 + '0';
+        N %= 10;
+    }
+    *buf++ = N + '0';
+    return buf;
 }
 
 /**
@@ -92,14 +105,11 @@ char *get_time(curtime *Tm, uint32_t T){
         T %= 10;
     }else *bptr++ = '0';
     *bptr++ = T + '0';
-    if(GPS_status == GPS_NOT_VALID){
-        strcpy(bptr, " (not valid)");
-        bptr += 12;
-    }
-    if(Tms - last_corr_time > 1000){
-        strcpy(bptr, " need PPS sync");
-        bptr += 14;
-    }
+    // put current time in HH:MM:SS format into buf
+    *bptr++ = ' '; *bptr++ = '(';
+    bptr = puttwo(Tm->H, bptr); *bptr++ = ':';
+    bptr = puttwo(Tm->M, bptr); *bptr++ = ':';
+    bptr = puttwo(Tm->S, bptr); *bptr++ = ')';
     if(GPS_status == GPS_NOTFOUND){
         strcpy(bptr, " GPS not found");
         bptr += 14;
@@ -108,6 +118,13 @@ char *get_time(curtime *Tm, uint32_t T){
     *bptr = 0;
     return bstart;
 }
+
+
+#ifdef EBUG
+int32_t ticksdiff=0, timecntr=0, timerval, Tms1;
+#endif
+
+uint32_t last_corr_time = 0;
 
 /**
  * @brief systick_correction
@@ -126,61 +143,38 @@ char *get_time(curtime *Tm, uint32_t T){
  */
 void systick_correction(){
     SysTick->CTRL &= ~SysTick_CTRL_ENABLE_Msk; // stop systick for a while
-    int32_t systick_val = SysTick->VAL, L = SysTick->LOAD + 1, timer_val = Timer;
+    uint32_t systick_val = SysTick->VAL, L = SysTick->LOAD + 1;
+    int32_t timer_val = Timer;
+    timerval = Timer;
+    Tms1 = Tms;
+    Timer = 0;
     SysTick->VAL = SysTick->LOAD;
     SysTick->CTRL |= SysTick_CTRL_ENABLE_Msk; // start it again
-    Timer = 0;
-    if(Tms - last_corr_time < 2000){ // calculate corrections only if Timer was zeroed last time
-        if(timer_val < 500) timer_val += 1000; // timer already incremented in SysTick interrupt
-        else time_increment(); // counter less than 1000 -> need to increment time
-        int32_t D = L * (timer_val - 999) - systick_val;
-        D /= 1000;
+//    if(systick_val != SysTick->LOAD) ++Tms;
+    if(timer_val > 500) time_increment(); // counter greater than 500 -> need to increment time
+    if(last_corr_time){
+        if(Tms - last_corr_time < 1500){ // there was perevious PPS signal
+            int32_t D = L * (Tms - 1000 - last_corr_time) + (SysTick->LOAD - systick_val); // amount of spare ticks
+            ++timecntr;
+            ticksdiff += D;
+            uint32_t ticksabs = (ticksdiff < 0) ? -ticksdiff : ticksdiff;
+            // 10000 == 30 seconds * 1000 interrupts per second
+            if(ticksabs > 30000 && timecntr > 30){ // need correction (not more often than each 10s)
+                ticksdiff /= timecntr * 1000; // correction per one interrupt
+                SysTick->LOAD += ticksdiff;
+                timecntr = 0;
+                ticksdiff = 0;
+                last_corr_time = 0;
 #ifdef EBUG
-        SEND("Delta: "); if(D < 0){usart_putchar(1, '-'); printu(1, -D);} else printu(1, D); newline();
-        SEND(get_time(&current_time, 0));
+                SEND("Correction\n");
 #endif
-        SysTick->LOAD += D;
+            }
+        }else{
+            timecntr = 0;
+            ticksdiff = 0;
+            last_corr_time = 0;
+        }
     }
     last_corr_time = Tms;
-#if 0
-    uint32_t t = 0, ticks;
-    static uint32_t ticksavr = 0, N = 0, last_corr_time = 0;
-    // correct
-    int32_t systick_val = SysTick->VAL;
-    // SysTick->LOAD values for all milliseconds (RVR0) and last millisecond (RVR1)
-    SysTick->VAL = RVR0;
-    int32_t timer_val = Timer;
-    Timer = 0;
-    // RVR -> SysTick->LOAD
-    systick_val = SysTick->LOAD + 1 - systick_val; // Systick counts down!
-    if(timer_val < 10) timer_val += 1000; // our closks go faster than real
-    else if(timer_val < 990){ // something wrong
-        RVR0 = RVR1 = SYSTICK_DEFLOAD;
-        SysTick->LOAD = RVR0;
-        need_sync = 1;
-        goto theend;
-    }else
-        time_increment(); // ms counter less than 1000 - we need to increment time
-    t = current_time.H * 3600 + current_time.M * 60 + current_time.S;
-    if(t - last_corr_time == 1){ // PPS interval == 1s
-        ticks = systick_val + (timer_val-1)*(RVR0 + 1) + RVR1 + 1;
-        ++N;
-        ticksavr += ticks;
-        if(N > 20){
-            ticks = ticksavr / N;
-            RVR0 = ticks / 1000 - 1; // main RVR value
-            SysTick->LOAD = RVR0;
-            RVR1 = RVR0 + ticks % 1000; // last millisecond RVR value (with fine correction)
-            N = 0;
-            ticksavr = 0;
-            need_sync = 0;
-        }
-    }else{
-        N = 0;
-        ticksavr = 0;
-    }
-theend:
-    last_corr_time = t;
-#endif
 }
 

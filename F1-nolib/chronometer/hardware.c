@@ -29,6 +29,7 @@
 
 #include <string.h> // memcpy
 
+uint8_t buzzer_on = 1; // buzzer ON by default
 uint8_t LEDSon = 1; // LEDS are working
 // ports of triggers
 static GPIO_TypeDef *trigport[DIGTRIG_AMOUNT] = {GPIOA, GPIOA, GPIOA};
@@ -42,14 +43,22 @@ trigtime shottime[TRIGGERS_AMOUNT];
 static uint32_t shotms[TRIGGERS_AMOUNT];
 // if trigger[N] shots, the bit N will be 1
 uint8_t trigger_shot = 0;
+// time when Buzzer was turned ON
+uint32_t BuzzerTime = 0;
 
 static inline void gpio_setup(){
+    BUZZER_OFF(); // turn off buzzer @start
+    LED_on(); // turn ON LED0 @start
+    LED1_off(); // turn off LED1 @start
+    USBPU_OFF(); // turn off USB pullup @start
     // Enable clocks to the GPIO subsystems (PB for ADC), turn on AFIO clocking to disable SWD/JTAG
     RCC->APB2ENR |= RCC_APB2ENR_IOPAEN | RCC_APB2ENR_IOPBEN | RCC_APB2ENR_IOPCEN | RCC_APB2ENR_AFIOEN;
     // turn off SWJ/JTAG
     AFIO->MAPR = AFIO_MAPR_SWJ_CFG_DISABLE;
     // pullups: PA1 - PPS, PA15 - USB pullup
     GPIOA->ODR = (1<<12)|(1<<15);
+    // buzzer (PC13): pushpull output
+    GPIOC->CRH = CRH(13, CNF_PPOUTPUT|MODE_SLOW);
     // Set leds (PB8) as opendrain output
     GPIOB->CRH = CRH(8, CNF_ODOUTPUT|MODE_SLOW) | CRH(9, CNF_ODOUTPUT|MODE_SLOW);
     // PPS pin (PA1) - input with weak pullup
@@ -128,7 +137,7 @@ void hw_setup(){
 
 void exti1_isr(){ // PPS - PA1
     systick_correction();
-    DBG("exti1");
+    LED_off(); // turn off LED0 @ each PPS
     EXTI->PR = EXTI_PR_PR1;
 }
 
@@ -140,17 +149,18 @@ void savetrigtime(){
 
 void fillshotms(int i){
     if(i < 0 || i > TRIGGERS_AMOUNT) return;
-    if(shotms[i] - Tms > (uint32_t)the_conf.trigpause[i]){
+    if(Tms - shotms[i] > (uint32_t)the_conf.trigpause[i]){
         shotms[i] = Tms;
         memcpy(&shottime[i], &trgtm, sizeof(trigtime));
         trigger_shot |= 1<<i;
+        BuzzerTime = Tms;
+        BUZZER_ON();
     }
 }
 
 void exti4_isr(){ // PA4 - trigger[2]
     savetrigtime();
     fillshotms(2);
-    DBG("exti4");
     EXTI->PR = EXTI_PR_PR4;
 }
 
@@ -158,12 +168,10 @@ void exti15_10_isr(){ // PA13 - trigger[0], PA14 - trigger[1]
     savetrigtime();
     if(EXTI->PR & EXTI_PR_PR13){
         fillshotms(0);
-        DBG("exti13");
         EXTI->PR = EXTI_PR_PR13;
     }
     if(EXTI->PR & EXTI_PR_PR14){
         fillshotms(1);
-        DBG("exti14");
         EXTI->PR = EXTI_PR_PR14;
     }
 }
