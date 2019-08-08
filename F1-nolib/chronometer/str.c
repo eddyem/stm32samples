@@ -19,6 +19,7 @@
 #include "adc.h"
 #include "flash.h"
 #include "GPS.h"
+#include "lidar.h"
 #include "str.h"
 #include "time.h"
 #include "usart.h"
@@ -285,8 +286,14 @@ void show_trigger_shot(uint8_t tshot){
         if(tshot & X) tshot &= ~X;
         else continue;
         if(trigger_shot & X) trigger_shot &= ~X;
-        USB_send("TRIG");
-        sendu(i);
+        if(i == LIDAR_TRIGGER){
+            USB_send("LIDAR, dist=");
+            sendu(lidar_triggered_dist);
+            USB_send(", TRIG=");
+        }else{
+            USB_send("TRIG");
+            sendu(i);
+        }
         USB_send("=");
         USB_send(get_time(&shottime[i].Time, shottime[i].millis));
         USB_send("\n");

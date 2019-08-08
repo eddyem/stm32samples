@@ -46,9 +46,11 @@ extern uint8_t buzzer_on;
 
 // PPS and triggers state
 // amount of triggers, should be less than 9; 5 - 0..2 - switches, 3 - LIDAR, 4 - ADC
-#define TRIGGERS_AMOUNT  (5)
+#define TRIGGERS_AMOUNT     (5)
+// number of LIDAR trigger
+#define LIDAR_TRIGGER       (3)
 // amount of digital triggers (on interrupts)
-#define DIGTRIG_AMOUNT   (3)
+#define DIGTRIG_AMOUNT      (3)
 
 uint8_t gettrig(uint8_t N);
 void fillshotms(int i);

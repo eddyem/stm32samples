@@ -240,7 +240,7 @@ int main(void){
     }
 #endif
     RCC->CSR |= RCC_CSR_RMVF; // remove reset flags
-    //iwdg_setup();
+    iwdg_setup();
 
     while (1){
         IWDG->KR = IWDG_REFRESH; // refresh watchdog

@@ -121,8 +121,9 @@ char *get_time(curtime *Tm, uint32_t T){
 
 
 #ifdef EBUG
-int32_t ticksdiff=0, timecntr=0, timerval, Tms1;
+int32_t timerval, Tms1;
 #endif
+int32_t timecntr=0, ticksdiff=0;
 
 uint32_t last_corr_time = 0;
 
@@ -145,8 +146,10 @@ void systick_correction(){
     SysTick->CTRL &= ~SysTick_CTRL_ENABLE_Msk; // stop systick for a while
     uint32_t systick_val = SysTick->VAL, L = SysTick->LOAD + 1;
     int32_t timer_val = Timer;
+#ifdef EBUG
     timerval = Timer;
     Tms1 = Tms;
+#endif
     Timer = 0;
     SysTick->VAL = SysTick->LOAD;
     SysTick->CTRL |= SysTick_CTRL_ENABLE_Msk; // start it again
@@ -155,7 +158,9 @@ void systick_correction(){
     if(last_corr_time){
         if(Tms - last_corr_time < 1500){ // there was perevious PPS signal
             int32_t D = L * (Tms - 1000 - last_corr_time) + (SysTick->LOAD - systick_val); // amount of spare ticks
+#ifdef EBUG
             ++timecntr;
+#endif
             ticksdiff += D;
             uint32_t ticksabs = (ticksdiff < 0) ? -ticksdiff : ticksdiff;
             // 10000 == 30 seconds * 1000 interrupts per second

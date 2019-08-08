@@ -50,7 +50,7 @@ void parse_lidar_data(char *txt){
             savetrigtime();
             triggered = 1;
             lidar_triggered_dist = last_lidar_dist;
-            fillshotms(3);
+            fillshotms(LIDAR_TRIGGER);
 #ifdef EBUG
             SEND("Triggered! distance=");
             printu(1, last_lidar_dist);
