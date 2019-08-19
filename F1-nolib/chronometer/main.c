@@ -158,23 +158,26 @@ char *parse_cmd(char *buf){
 }
 #endif
 
+#define USBBUF 63
 // usb getline
 static char *get_USB(){
-    static char tmpbuf[512], *curptr = tmpbuf;
-    static int rest = 511;
+    static char tmpbuf[USBBUF+1], *curptr = tmpbuf;
+    static int rest = USBBUF;
     int x = USB_receive(curptr, rest);
-    curptr[x] = 0;
     if(!x) return NULL;
+    curptr[x] = 0;
+    USB_send(curptr); // echo
+//if(x == 1 && *curptr < 32){USB_send("\n"); USB_send(u2str(*curptr)); USB_send("\n");}
     if(curptr[x-1] == '\n'){
         curptr = tmpbuf;
-        rest = 511;
+        rest = USBBUF;
         return tmpbuf;
     }
     curptr += x; rest -= x;
     if(rest <= 0){ // buffer overflow
-        SEND("USB buffer overflow!\n");
+        //SEND("USB buffer overflow!\n");
         curptr = tmpbuf;
-        rest = 511;
+        rest = USBBUF;
     }
     return NULL;
 }
@@ -215,7 +218,6 @@ void break_handler(){ // client disconnected
 
 #ifdef EBUG
 extern int32_t ticksdiff, timecntr, timerval, Tms1;
-extern uint32_t last_corr_time;
 #endif
 
 int main(void){
@@ -245,10 +247,8 @@ int main(void){
     while (1){
         IWDG->KR = IWDG_REFRESH; // refresh watchdog
         if(Timer > 499) LED_on(); // turn ON LED0 over 0.25s after PPS pulse
-        if(BuzzerTime && Tms - BuzzerTime > 249){
-            BUZZER_OFF();
-            BuzzerTime = 0;
-        }
+        // check if triggers that was recently shot are off now
+        fillunshotms();
         if(lastT > Tms || Tms - lastT > 499){
             if(need2startseq) GPS_send_start_seq();
             IWDG->KR = IWDG_REFRESH;
@@ -301,8 +301,7 @@ int main(void){
             }
 #endif
         }
-        IWDG->KR = IWDG_REFRESH;
-        if(trigger_shot) show_trigger_shot(trigger_shot);
+        //if(trigger_shot) show_trigger_shot(trigger_shot);
         IWDG->KR = IWDG_REFRESH;
         usb_proc();
         IWDG->KR = IWDG_REFRESH;
@@ -312,7 +311,7 @@ int main(void){
             DBG("Received data over USB:");
             DBG(txt);
             if(parse_USBCMD(txt))
-                USB_send(txt); // echo back non-commands data
+                USB_send("Bad command!");
             IWDG->KR = IWDG_REFRESH;
         }
 #if defined EBUG || defined USART1PROXY
@@ -352,7 +351,7 @@ int main(void){
                 parse_lidar_data(txt);
             }
         }
-        chkADCtrigger();
+        chk_buzzer(); // should we turn off buzzer?
     }
     return 0;
 }

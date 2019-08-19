@@ -39,6 +39,7 @@ extern uint8_t buzzer_on;
 #define BUZZER_pin  (1<<13)
 #define BUZZER_ON() do{if(buzzer_on)pin_set(BUZZER_port, BUZZER_pin);}while(0)
 #define BUZZER_OFF() pin_clear(BUZZER_port, BUZZER_pin)
+#define BUZZER_GET() (pin_read(BUZZER_port, BUZZER_pin))
 
 // PPS pin - PA1
 #define PPS_port    GPIOA
@@ -49,11 +50,18 @@ extern uint8_t buzzer_on;
 #define TRIGGERS_AMOUNT     (5)
 // number of LIDAR trigger
 #define LIDAR_TRIGGER       (3)
+// number of ADC trigger
+#define ADC_TRIGGER         (4)
 // amount of digital triggers (on interrupts)
 #define DIGTRIG_AMOUNT      (3)
+// max length of trigger event (ms)
+#define MAX_TRIG_LEN        (1000)
 
+#ifdef EBUG
 uint8_t gettrig(uint8_t N);
+#endif
 void fillshotms(int i);
+void fillunshotms();
 void savetrigtime();
 #define GET_PPS()       ((GPIOA->IDR & (1<<1)) ? 1 : 0)
 
@@ -83,11 +91,12 @@ typedef struct{
 extern uint8_t LEDSon;
 // time of triggers shot
 extern trigtime shottime[TRIGGERS_AMOUNT];
+// length (in ms) of trigger event (-1 if > MAX_TRIG_LEN
+extern int16_t triglen[TRIGGERS_AMOUNT];
 // if trigger[N] shots, the bit N will be 1
 extern uint8_t trigger_shot;
-// time when Buzzer was turned ON
-extern uint32_t BuzzerTime;
 
+void chk_buzzer();
 void hw_setup();
 
 #endif // __HARDWARE_H__

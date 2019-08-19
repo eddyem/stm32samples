@@ -42,6 +42,7 @@
 #define CMD_LEDS        "leds"
 #define CMD_GPSRESTART  "gpsrestart"
 #define CMD_BUZZER      "buzzer"
+#define CMD_GPSSTAT     "gpsstat"
 
 extern uint8_t showGPSstr;
 

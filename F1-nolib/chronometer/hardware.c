@@ -24,6 +24,8 @@
 #include "adc.h"
 #include "hardware.h"
 #include "flash.h"
+#include "lidar.h"
+#include "str.h"
 #include "time.h"
 #include "usart.h"
 
@@ -41,10 +43,10 @@ static uint8_t trigstate[DIGTRIG_AMOUNT];
 trigtime shottime[TRIGGERS_AMOUNT];
 // Tms value when they shot
 static uint32_t shotms[TRIGGERS_AMOUNT];
+// trigger length (-1 if > MAX_TRIG_LEN)
+int16_t triglen[TRIGGERS_AMOUNT];
 // if trigger[N] shots, the bit N will be 1
 uint8_t trigger_shot = 0;
-// time when Buzzer was turned ON
-uint32_t BuzzerTime = 0;
 
 static inline void gpio_setup(){
     BUZZER_OFF(); // turn off buzzer @start
@@ -78,7 +80,9 @@ static inline void gpio_setup(){
         uint16_t pin = trigpin[i];
         // fill trigstate array
         uint8_t trgs = (the_conf.trigstate & (1<<i)) ? 1 : 0;
+#ifdef EBUG
         trigstate[i] = trgs;
+#endif
         // turn on pullups
         if(the_conf.trig_pullups & (1<<i)) trigport[i]->ODR |= pin;
         EXTI->IMR |= pin;
@@ -147,14 +151,49 @@ void savetrigtime(){
     memcpy(&trgtm.Time, &current_time, sizeof(curtime));
 }
 
+/**
+ * @brief fillshotms - save trigger shot time
+ * @param i - trigger number
+ */
 void fillshotms(int i){
-    if(i < 0 || i > TRIGGERS_AMOUNT) return;
+    if(i < 0 || i >= TRIGGERS_AMOUNT) return;
     if(Tms - shotms[i] > (uint32_t)the_conf.trigpause[i]){
-        shotms[i] = Tms;
         memcpy(&shottime[i], &trgtm, sizeof(trigtime));
+        shotms[i] = Tms;
         trigger_shot |= 1<<i;
-        BuzzerTime = Tms;
         BUZZER_ON();
+    }
+}
+
+/**
+ * @brief fillunshotms - calculate trigger length time
+ */
+void fillunshotms(){
+    if(!trigger_shot) return;
+    uint8_t X = 1;
+    for(int i = 0; i < TRIGGERS_AMOUNT; ++i, X<<=1){
+        // check whether trigger is OFF but shot recently
+        if(trigger_shot & X){
+            uint32_t len = Tms - shotms[i];
+            uint8_t rdy = 0;
+            if(len > MAX_TRIG_LEN){
+                triglen[i] = -1;
+                rdy = 1;
+            }else triglen[i] = (uint16_t) len;
+            if(i == LIDAR_TRIGGER){
+                if(!parse_lidar_data(NULL)) rdy = 1;
+            }else if(i == ADC_TRIGGER){
+                if(!chkADCtrigger()) rdy = 1;
+            }else{
+                uint8_t pinval = (trigport[i]->IDR & trigpin[i]) ? 1 : 0;
+                if(pinval != trigstate[i]) rdy = 1; // trigger is OFF
+            }
+            if(rdy){
+                shotms[i] = Tms;
+                show_trigger_shot(X);
+                trigger_shot &= ~X;
+            }
+        }
     }
 }
 
@@ -176,6 +215,7 @@ void exti15_10_isr(){ // PA13 - trigger[0], PA14 - trigger[1]
     }
 }
 
+#ifdef EBUG
 /**
  * @brief gettrig - get trigger state
  * @return 1 if trigger active or 0
@@ -185,4 +225,19 @@ uint8_t gettrig(uint8_t N){
     uint8_t curval = (trigport[N]->IDR & trigpin[N]) ? 1 : 0;
     if(curval == trigstate[N]) return 1;
     else return 0;
+}
+#endif
+
+void chk_buzzer(){
+    if(!trigger_shot && BUZZER_GET()){ // should we turn off buzzer?
+        uint8_t notrg = 1;
+        for(int i = 0; i < DIGTRIG_AMOUNT; ++i){
+            uint8_t curval = (trigport[i]->IDR & trigpin[i]) ? 1 : 0;
+            if(curval == trigstate[i]){
+                notrg = 0;
+                break;
+            }
+        }
+        if(notrg) BUZZER_OFF(); // turn off buzzer when there's no trigger events
+    }
 }

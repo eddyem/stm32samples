@@ -45,7 +45,7 @@
 #define usartrx(n)  (linerdy[n])
 #define usartovr(n) (bufovr[n])
 
-extern volatile int linerdy[4], bufovr[4], txrdy[4];
+extern volatile int linerdy[], bufovr[], txrdy[];
 
 void transmit_tbuf(int n);
 void usarts_setup();

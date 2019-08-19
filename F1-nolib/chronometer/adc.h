@@ -24,10 +24,12 @@
 // interval of trigger's shot (>min && <max), maybe negative
 #define ADC_MIN_VAL     (1024)
 #define ADC_MAX_VAL     (3072)
+// 2*ADC_THRESHOLD = hysteresis width
+#define ADC_THRESHOLD   (50)
 
 extern uint16_t ADC_array[];
 int32_t getMCUtemp();
 uint32_t getVdd();
 uint16_t getADCval(int nch);
-void chkADCtrigger();
+uint8_t chkADCtrigger();
 #endif // ADC_H

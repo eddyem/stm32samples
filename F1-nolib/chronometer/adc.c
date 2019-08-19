@@ -71,18 +71,23 @@ uint32_t getVdd(){
     return vdd;
 }
 
-void chkADCtrigger(){
+/**
+ * @brief chkADCtrigger - check ADC trigger state
+ * @return value of `triggered`
+ */
+uint8_t chkADCtrigger(){
     static uint8_t triggered = 0;
     savetrigtime();
-    uint16_t val = getADCval(0);
+    int16_t val = getADCval(0);
     if(triggered){ // check untriggered action
-        if(val < the_conf.ADC_min || val > the_conf.ADC_max){
+        if(val < (int16_t)the_conf.ADC_min - ADC_THRESHOLD || val > (int16_t)the_conf.ADC_max + ADC_THRESHOLD){
             triggered = 0;
         }
     }else{ // check if thigger shot
-        if(val > the_conf.ADC_min && val < the_conf.ADC_max){
+        if(val > (int16_t)the_conf.ADC_min + ADC_THRESHOLD && val < (int16_t)the_conf.ADC_max - ADC_THRESHOLD){
             triggered = 1;
             fillshotms(4);
         }
     }
+    return triggered;
 }

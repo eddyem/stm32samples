@@ -46,6 +46,7 @@ typedef struct{
 extern volatile uint32_t Tms;
 extern volatile uint32_t Timer;
 extern curtime current_time;
+extern uint32_t last_corr_time;
 
 extern curtime trigger_time[];
 extern uint32_t trigger_ms[];

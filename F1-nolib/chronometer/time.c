@@ -80,6 +80,26 @@ static char *puttwo(uint8_t N, char *buf){
 }
 
 /**
+ * @brief ms2str - fill buffer str with milliseconds ms
+ * @param str (io) - pointer to buffer
+ * @param T - milliseconds
+ */
+static void ms2str(char **str, uint32_t T){
+    char *bptr = *str;
+    *bptr++ = '.';
+    if(T > 99){
+        *bptr++ = T/100 + '0';
+        T %= 100;
+    }else *bptr++ = '0';
+    if(T > 9){
+        *bptr++ = T/10 + '0';
+        T %= 10;
+    }else *bptr++ = '0';
+    *bptr++ = T + '0';
+    *str = bptr;
+}
+
+/**
  * print time: Tm - time structure, T - milliseconds
  */
 char *get_time(curtime *Tm, uint32_t T){
@@ -95,26 +115,18 @@ char *get_time(curtime *Tm, uint32_t T){
         S /= 10;
     }
     // now bstart is buffer starting index; bptr points to decimal point
-    *bptr++ = '.';
-    if(T > 99){
-        *bptr++ = T/100 + '0';
-        T %= 100;
-    }else *bptr++ = '0';
-    if(T > 9){
-        *bptr++ = T/10 + '0';
-        T %= 10;
-    }else *bptr++ = '0';
-    *bptr++ = T + '0';
+    ms2str(&bptr, T);
     // put current time in HH:MM:SS format into buf
     *bptr++ = ' '; *bptr++ = '(';
     bptr = puttwo(Tm->H, bptr); *bptr++ = ':';
     bptr = puttwo(Tm->M, bptr); *bptr++ = ':';
-    bptr = puttwo(Tm->S, bptr); *bptr++ = ')';
+    bptr = puttwo(Tm->S, bptr);
+    ms2str(&bptr, T);
+    *bptr++ = ')';
     if(GPS_status == GPS_NOTFOUND){
         strcpy(bptr, " GPS not found");
         bptr += 14;
     }
-    *bptr++ = '\n';
     *bptr = 0;
     return bstart;
 }

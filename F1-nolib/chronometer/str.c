@@ -111,6 +111,7 @@ int parse_USBCMD(char *cmd){
                  CMD_DISTMIN   " - min distance threshold (cm)\n"
                  CMD_DISTMAX   " - max distance threshold (cm)\n"
                  CMD_GPSRESTART " - send Full Cold Restart to GPS\n"
+                 CMD_GPSSTAT   " - get GPS status\n"
                  CMD_GPSSTR    " - current GPS data string\n"
                  CMD_LEDS      "S - turn leds on/off (1/0)\n"
                  CMD_GETMCUTEMP " - MCU temperature\n"
@@ -125,6 +126,7 @@ int parse_USBCMD(char *cmd){
                  );
     }else if(CMP(cmd, CMD_PRINTTIME) == 0){
         USB_send(get_time(&current_time, get_millis()));
+        USB_send("\n");
     }else if(CMP(cmd, CMD_DISTMIN) == 0){ // set low limit
         DBG("CMD_DISTMIN");
         GETNUM(CMD_DISTMIN);
@@ -258,14 +260,34 @@ int parse_USBCMD(char *cmd){
         if(Nt > 1) goto bad_number;
         USB_send("BUZZER=");
         if(Nt){
-            BuzzerTime = 0;
             buzzer_on = 1;
             USB_send("ON\n");
         }else{
-            BuzzerTime = 0;
             buzzer_on = 0;
             USB_send("OFF\n");
         }
+    }else if(CMP(cmd, CMD_GPSSTAT) == 0){
+        USB_send("GPS status: ");
+        const char *str = "unknown";
+        switch(GPS_status){
+            case GPS_NOTFOUND:
+                str = "not found";
+            break;
+            case GPS_WAIT:
+                str = "waiting";
+            break;
+            case GPS_NOT_VALID:
+                str = "no satellites";
+            break;
+            case GPS_VALID:
+                str = "valid time";
+            break;
+        }
+        USB_send(str);
+        if(Tms - last_corr_time < 1500)
+            USB_send(", PPS working\n");
+        else
+            USB_send(", no PPS\n");
     }else return 1;
     IWDG->KR = IWDG_REFRESH;
     if(succeed) USB_send("Success!\n");
@@ -285,7 +307,7 @@ void show_trigger_shot(uint8_t tshot){
         IWDG->KR = IWDG_REFRESH;
         if(tshot & X) tshot &= ~X;
         else continue;
-        if(trigger_shot & X) trigger_shot &= ~X;
+        if(!triglen[i]) continue; // noice
         if(i == LIDAR_TRIGGER){
             USB_send("LIDAR, dist=");
             sendu(lidar_triggered_dist);
@@ -296,6 +318,9 @@ void show_trigger_shot(uint8_t tshot){
         }
         USB_send("=");
         USB_send(get_time(&shottime[i].Time, shottime[i].millis));
+        USB_send(", len=");
+        if(triglen[i] < 0) USB_send(">1s");
+        else sendu((uint32_t) triglen[i]);
         USB_send("\n");
     }
 }

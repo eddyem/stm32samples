@@ -24,14 +24,20 @@ uint16_t last_lidar_dist = 0;
 uint16_t last_lidar_stren = 0;
 uint16_t lidar_triggered_dist = 0;
 
-void parse_lidar_data(char *txt){
+/**
+ * @brief parse_lidar_data - parsing of string from lidar
+ * @param txt - the string or NULL (if you want just check trigger state)
+ * @return trigger state
+ */
+uint8_t parse_lidar_data(char *txt){
     static uint8_t triggered = 0;
+    if(!txt) return triggered;
     last_lidar_dist = txt[2] | (txt[3] << 8);
     last_lidar_stren = txt[4] | (txt[5] << 8);
-    if(last_lidar_stren < LIDAR_LOWER_STREN) return; // weak signal
+    if(last_lidar_stren < LIDAR_LOWER_STREN) return 0; // weak signal
     if(!lidar_triggered_dist){ // first run
         lidar_triggered_dist = last_lidar_dist;
-        return;
+        return 0;
     }
     IWDG->KR = IWDG_REFRESH;
     if(triggered){ // check if body gone
@@ -60,4 +66,5 @@ void parse_lidar_data(char *txt){
 #endif
         }
     }
+    return triggered;
 }

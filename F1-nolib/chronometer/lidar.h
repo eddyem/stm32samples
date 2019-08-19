@@ -34,6 +34,6 @@ extern uint16_t last_lidar_dist;
 extern uint16_t lidar_triggered_dist;
 extern uint16_t last_lidar_stren;
 
-void parse_lidar_data(char *txt);
+uint8_t parse_lidar_data(char *txt);
 
 #endif // LIDAR_H__
