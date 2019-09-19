@@ -20,6 +20,7 @@
  * MA 02110-1301, USA.
  *
  */
+#include "flash.h"
 #include "usb.h"
 #include "usb_lib.h"
 #include "usart.h"
@@ -106,17 +107,26 @@ void USB_send(const char *buf){
         DBG("USB not configured");
         return;
     }
+    char tmpbuf[USB_TXBUFSZ];
     uint16_t l = 0, ctr = 0;
     const char *p = buf;
     while(*p++) ++l;
     while(l){
-        uint16_t s = (l > USB_TXBUFSZ) ? USB_TXBUFSZ : l;
+        uint16_t proc = 0, s  = (l > USB_TXBUFSZ - 1) ? USB_TXBUFSZ - 1: l;
+        for(int i = 0; i < s; ++i, ++proc){
+            char c = buf[ctr+proc];
+            if(c == '\n' && the_conf.strendRN){ // add '\r' before '\n'
+                tmpbuf[i++] = '\r';
+                if(i == s) ++s;
+            }
+            tmpbuf[i] = c;
+        }
         tx_succesfull = 0;
-        EP_Write(3, (uint8_t*)&buf[ctr], s);
+        EP_Write(3, (uint8_t*)tmpbuf, s);
         uint32_t ctra = 1000000;
         while(--ctra && tx_succesfull == 0);
-        l -= s;
-        ctr += s;
+        l -= proc;
+        ctr += proc;
     }
 }
 

@@ -20,6 +20,7 @@
 #define STR_H__
 
 #include "stm32f1.h"
+#include "flash.h"
 #include "hardware.h"
 
 // usb commands
@@ -31,7 +32,6 @@
 #define CMD_PRINTTIME   "time"
 #define CMD_STORECONF   "store"
 #define CMD_GPSSTR      "gpsstring"
-#define CMD_PULLUP      "pullup"
 #define CMD_SHOWCONF    "showconf"
 #define CMD_TRIGLVL     "triglevel"
 #define CMD_TRGPAUSE    "trigpause"
@@ -43,12 +43,20 @@
 #define CMD_GPSRESTART  "gpsrestart"
 #define CMD_BUZZER      "buzzer"
 #define CMD_GPSSTAT     "gpsstat"
+#define CMD_USARTSPD    "usartspd"
+#define CMD_RESET       "reset"
+#define CMD_STREND      "strend"
+#define CMD_FLASH       "flash"
+#define CMD_SAVEEVTS    "saveevt"
+#define CMD_DUMP        "dump"
 
 extern uint8_t showGPSstr;
 
+int strln(const char *s);
+char *strcp(char* dst, const char *src);
 int cmpstr(const char *s1, const char *s2, int n);
 char *getchr(const char *str, char symbol);
 int parse_USBCMD(char *cmd);
+char *get_trigger_shot(int number, const event_log *logdata);
 void show_trigger_shot(uint8_t trigger_shot);
-
 #endif // STR_H__

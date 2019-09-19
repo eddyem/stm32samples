@@ -53,7 +53,7 @@ extern uint32_t trigger_ms[];
 
 extern volatile int need_sync;
 
-char *get_time(curtime *T, uint32_t m);
+char *get_time(const curtime *T, uint32_t m);
 void set_time(const char *buf);
 void time_increment();
 void systick_correction();

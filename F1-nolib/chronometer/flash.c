@@ -39,117 +39,162 @@
 #include "adc.h"
 #include "flash.h"
 #include "lidar.h"
+#include "str.h"
 #include "usart.h"  // DBG
+#include "usb.h"    // printout
 #include <string.h> // memcpy
 
-extern uint32_t _edata, _etext, _sdata;
-static int maxnum = FLASH_BLOCK_SIZE / sizeof(user_conf);
+// max amount of records stored: Config & Logs
+static int maxCnum = FLASH_BLOCK_SIZE / sizeof(user_conf);
+static int maxLnum = FLASH_BLOCK_SIZE / sizeof(user_conf);
 
+// common structure for all datatypes stored
+/*typedef struct {
+    uint16_t userconf_sz;
+} flash_storage;*/
 
-typedef struct{
-    const user_conf all_stored;
-} flash_storage;
-
-#define USERCONF_INITIALIZER  { \
+#define USERCONF_INITIALIZER  {             \
+/*    .magick = 0xAB, */                    \
     .userconf_sz = sizeof(user_conf)        \
     ,.dist_min = LIDAR_MIN_DIST             \
     ,.dist_max = LIDAR_MAX_DIST             \
-    ,.trig_pullups = 0xff                   \
     ,.trigstate = 0                         \
     ,.trigpause = {400, 400, 400, 300, 300} \
     ,.ADC_min = ADC_MIN_VAL                 \
     ,.ADC_max = ADC_MAX_VAL                 \
+    ,.USART_speed = USART1_DEFAULT_SPEED    \
+    ,.strendRN = 0                          \
     }
 
-__attribute__((section(".myvars"))) static const flash_storage Flash_Storage = {
-    .all_stored = USERCONF_INITIALIZER
-};
+// change to placement
+/*
+__attribute__ ((section(".logs"))) const uint32_t *logsstart;
+__attribute__ ((section(".myvars"))) const user_conf *Flash_Data;
+*/
 
-static const user_conf *Flash_Data = &Flash_Storage.all_stored;
+static int erase_flash(const void*, const void*);
+static int write2flash(const void*, const void*, int);
+
+const user_conf *Flash_Data = (const user_conf *)&__varsstart;
+const event_log *logsstart = (event_log*) &__logsstart;
 
 user_conf the_conf = USERCONF_INITIALIZER;
 
-static int erase_flash();
-
 static int currentconfidx = -1; // index of current configuration
+static int currentlogidx = -1; // index of current logs record
 
 /**
  * @brief binarySearch - binary search in flash for last non-empty cell
+ *          any struct searched should have its sizeof() @ the first field!!!
  * @param l - left index
  * @param r - right index (should be @1 less than last index!)
+ * @param start - starting address
+ * @param stor_size - size of structure to search
  * @return index of non-empty cell or -1
  */
-static int binarySearch(int l, int r){
+static int binarySearch(int l, int r, uint8_t *start, int stor_size){
+/*DBG("start: "); printuhex(1, (uint32_t)start);
+DBG("\nsizeof: "); printu(1, stor_size);
+newline();*/
     while(r >= l){
         int mid = l + (r - l) / 2;
-        // If the element is present at the middle
-        // itself
-        uint16_t sz = Flash_Data[mid].userconf_sz;
-        if(sz == sizeof(user_conf)){
-            if(Flash_Data[mid+1].userconf_sz == 0xffff){
-#if 0
-        SEND("Found at "); printu(1, mid); newline();
-#endif
+        uint8_t *s = start + mid * stor_size;
+        if(*((uint16_t*)s) == stor_size){
+            if(*((uint16_t*)(s + stor_size)) == 0xffff){
                 return mid;
             }else{ // element is to the right
                 l = mid + 1;
-#if 0
-        SEND("To the right, L="); printu(1, l); newline();
-#endif
             }
         }else{ // element is to the left
             r = mid - 1;
-#if 0
-        SEND("To the left, R="); printu(1, r); newline();
-#endif
         }
     }
-    DBG("Not found!");
     return -1; // not found
 }
 
-static int get_gooddata(){
-    static uint8_t firstrun = 1;
-    if(firstrun){
-        firstrun = 0;
-        if(FLASH_SIZE > 0 && FLASH_SIZE < 20000){
-            uint32_t flsz = FLASH_SIZE * 1024; // size in bytes
-            flsz -= (uint32_t)Flash_Data - FLASH_BASE;
-#if 0
-            SEND("All size: "); printu(1, flsz); newline();
-#endif
-            uint32_t usz = (sizeof(user_conf) + 1) / 2;
-            maxnum = flsz / 2 / usz;
-#if 0
-            SEND("Maxnum: "); printu(1, maxnum); newline();
-#endif
-        }
+/**
+ * @brief flashstorage_init - initialization of user conf & logs storage
+ * run in once @ start
+ */
+void flashstorage_init(){
+    maxCnum = ((uint32_t)&_varslen) / sizeof(user_conf);
+//SEND("maxCnum="); printu(1, maxCnum);
+    if(FLASH_SIZE > 0 && FLASH_SIZE < 20000){
+        uint32_t flsz = FLASH_SIZE * 1024; // size in bytes
+        flsz -= (uint32_t)logsstart - FLASH_BASE;
+        maxLnum = flsz / sizeof(event_log);
+//SEND("\nmaxLnum="); printu(1, maxLnum);
     }
-    return binarySearch(0, maxnum-2); // -1 if there's no data at all & flash is clear; maxnum-1 if flash is full
-}
-
-void get_userconf(){
-    const user_conf *c = Flash_Data;
-    int idx = get_gooddata();
-    if(idx < 0) return; // no data stored
-    currentconfidx = idx;
-    memcpy(&the_conf, &c[idx], sizeof(user_conf));
+    // -1 if there's no data at all & flash is clear; maxnum-1 if flash is full
+    currentconfidx = binarySearch(0, maxCnum-2, (uint8_t*)Flash_Data, sizeof(user_conf));
+    if(currentconfidx > -1){
+        memcpy(&the_conf, &Flash_Data[currentconfidx], sizeof(user_conf));
+    }
+    currentlogidx = binarySearch(0, maxLnum-2, (uint8_t*)logsstart, sizeof(event_log));
+SEND("\ncurrentconfidx="); printu(1, currentconfidx);
+SEND("\ncurrentlogidx="); printu(1, currentlogidx);
+newline();
 }
 
 // store new configuration
 // @return 0 if all OK
 int store_userconf(){
-    IWDG->KR = IWDG_REFRESH;
-    int ret = 0;
-    const user_conf *c = Flash_Data;
-    int idx = currentconfidx;
     // maxnum - 3 means that there always should be at least one empty record after last data
-    if(idx < 0 || idx > maxnum - 3){ // data corruption or there's no more place
-        idx = 0;
+    // for binarySearch() checking that there's nothing more after it!
+    if(currentconfidx > maxCnum - 3){ // there's no more place
+        currentconfidx = 0;
         DBG("Need to erase flash!");
-        if(erase_flash()) return 1;
-    }else ++idx; // take next data position
-    currentconfidx = idx;
+        if(erase_flash(Flash_Data, &__varsend)) return 1;
+    }else ++currentconfidx; // take next data position (0 - within first run after firmware flashing)
+SEND("store_userconf\n");
+SEND("\ncurrentconfidx="); printu(1, currentconfidx);
+newline();
+    return write2flash(&Flash_Data[currentconfidx], &the_conf, sizeof(the_conf));
+}
+
+/**
+ * @brief store_log - save log record L into flash memory
+ * @param L - event log
+ * @return 0 if all OK
+ */
+int store_log(event_log *L){
+    if(currentlogidx > maxLnum - 3){ // there's no more place
+        currentlogidx = 0;
+        DBG("Need to erase flash!");
+        if(erase_flash(logsstart, NULL)) return 1;
+    }else ++currentlogidx; // take next data position (0 - within first run after firmware flashing)
+SEND("sore_log\n");
+SEND("\ncurrentlogidx="); printu(1, currentlogidx);
+newline();
+    return write2flash(&logsstart[currentlogidx], L, sizeof(event_log));
+}
+
+/**
+ * @brief dump_log - dump N log records
+ * @param start - first record to show (if start<0, then first=last+start)
+ * @param Nlogs - amount of logs to show (if Nlogs<=0, then show all logs)
+ * @return 0 if all OK, 1 if there's no logs in flash
+ */
+int dump_log(int start, int Nlogs){
+    if(currentlogidx < 0) return 1;
+    if(start < 0) start += currentlogidx;
+    if(start > currentlogidx) return 1;
+    int nlast;
+    if(Nlogs > 0){
+        nlast = start + Nlogs;
+        if(nlast > currentlogidx) nlast = currentlogidx;
+    }else nlast = currentlogidx;
+    ++nlast;
+    const event_log *l = logsstart + start;
+    for(int i = start; i < nlast; ++i, ++l){
+        IWDG->KR = IWDG_REFRESH;
+        USB_send(get_trigger_shot(i, l));
+    }
+    return 0;
+}
+
+static int write2flash(const void *start, const void *wrdata, int stor_size){
+    int ret = 0;
     if (FLASH->CR & FLASH_CR_LOCK){ // unloch flash
         FLASH->KEYR = FLASH_KEY1;
         FLASH->KEYR = FLASH_KEY2;
@@ -158,10 +203,11 @@ int store_userconf(){
     if(FLASH->SR & FLASH_SR_WRPRTERR) return 1; // write protection
     FLASH->SR = FLASH_SR_EOP | FLASH_SR_PGERR | FLASH_SR_WRPRTERR; // clear all flags
     FLASH->CR |= FLASH_CR_PG;
-    uint16_t *data = (uint16_t*) &the_conf;
-    uint16_t *address = (uint16_t*) &c[idx];
-    uint32_t i, count = (sizeof(user_conf) + 1) / 2;
+    uint16_t *data = (uint16_t*) wrdata;
+    uint16_t *address = (uint16_t*) start;
+    uint32_t i, count = (stor_size + 1) / 2;
     for (i = 0; i < count; ++i){
+        IWDG->KR = IWDG_REFRESH;
         *(volatile uint16_t*)(address + i) = data[i];
         while (FLASH->SR & FLASH_SR_BSY);
         if(FLASH->SR &  FLASH_SR_PGERR) ret = 1; // program error - meet not 0xffff
@@ -172,18 +218,29 @@ int store_userconf(){
     return ret;
 }
 
-static int erase_flash(){
+/**
+ * @brief erase_flash - erase N pages of flash memory
+ * @param start  - first address
+ * @param end    - last address (or NULL if need to erase all flash remaining)
+ * @return 0 if succeed
+ */
+static int erase_flash(const void *start, const void *end){
     int ret = 0;
-    uint32_t nblocks = 1;
-    if(FLASH_SIZE > 0 && FLASH_SIZE < 20000){
-        uint32_t flsz = FLASH_SIZE * 1024; // size in bytes
-        flsz -= (uint32_t)Flash_Data - FLASH_BASE;
-        nblocks = flsz / FLASH_BLOCK_SIZE;
-#if 0
-        SEND("N blocks:"); printu(1, nblocks); newline();
-#endif
+    uint32_t nblocks = 1, flsz = 0;
+    if(!end){ // erase all remaining
+        if(FLASH_SIZE > 0 && FLASH_SIZE < 20000){
+            flsz = FLASH_SIZE * 1024; // size in bytes
+            flsz -= (uint32_t)start - FLASH_BASE;
+        }
+    }else{ // erase a part
+        flsz = (uint32_t)end - (uint32_t)start;
     }
+    nblocks = flsz / FLASH_BLOCK_SIZE;
+    if(nblocks == 0 || nblocks >= FLASH_SIZE) return 1;
     for(uint32_t i = 0; i < nblocks; ++i){
+#ifdef EBUG
+        SEND("Try to erase page #"); printu(1,i); newline();
+#endif
         IWDG->KR = IWDG_REFRESH;
         /* (1) Wait till no operation is on going */
         /* (2) Clear error & EOP bits */
@@ -205,9 +262,6 @@ static int erase_flash(){
         /* (5) Clear EOP flag by software by writing EOP at 1 */
         /* (6) Reset the PER Bit to disable the page erase */
         FLASH->CR |= FLASH_CR_PER; /* (1) */
-#if 0
-        SEND("Delete block number "); printu(1, i); newline();
-#endif
         FLASH->AR = (uint32_t)Flash_Data + i*FLASH_BLOCK_SIZE; /* (2) */
         FLASH->CR |= FLASH_CR_STRT; /* (3) */
         while(!(FLASH->SR & FLASH_SR_EOP));
@@ -228,7 +282,6 @@ void dump_userconf(){
     SEND("userconf_sz="); printu(1, the_conf.userconf_sz);
     SEND("\ndist_min="); printu(1, the_conf.dist_min);
     SEND("\ndist_max="); printu(1, the_conf.dist_max);
-    SEND("\ntrig_pullups="); printuhex(1, the_conf.trig_pullups);
     SEND("\ntrigstate="); printuhex(1, the_conf.trigstate);
     SEND("\ntrigpause={");
     for(int i = 0; i < TRIGGERS_AMOUNT; ++i){

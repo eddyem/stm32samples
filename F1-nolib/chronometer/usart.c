@@ -18,6 +18,7 @@
 
 
 #include "stm32f1.h"
+#include "flash.h"
 #include "usart.h"
 #include "lidar.h"
 
@@ -169,7 +170,7 @@ static void usart_setup(int n, uint32_t BRR){
 void usarts_setup(){
     RCC->AHBENR |= RCC_AHBENR_DMA1EN;
 #if defined EBUG || defined USART1PROXY
-    usart_setup(1, 72000000 / 115200); // debug console or GPS proxy
+    usart_setup(1, 72000000 / the_conf.USART_speed); // debug console or GPS proxy
 #endif
     usart_setup(2, 36000000 / 9600); // GPS
     usart_setup(3, 36000000 / 115200); // LIDAR
@@ -253,27 +254,20 @@ void usart3_isr(){
 
 // return string buffer with val
 char *u2str(uint32_t val){
-    static char bufa[11];
-    char bufb[10];
-    int l = 0, bpos = 0;
-    IWDG->KR = IWDG_REFRESH;
+    static char buf[11];
+    char *bufptr = &buf[10];
+    *bufptr = 0;
     if(!val){
-        bufa[0] = '0';
-        l = 1;
+        *(--bufptr) = '0';
     }else{
         while(val){
-            bufb[l++] = val % 10 + '0';
+            *(--bufptr) = val % 10 + '0';
             val /= 10;
         }
-        int i;
-        bpos += l;
-        for(i = 0; i < l; ++i){
-            bufa[--bpos] = bufb[i];
-        }
     }
-    bufa[l + bpos] = 0;
-    return bufa;
+    return bufptr;
 }
+
 // print 32bit unsigned int
 void printu(int n, uint32_t val){
     usart_send(n, u2str(val));

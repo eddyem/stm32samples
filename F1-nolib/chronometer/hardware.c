@@ -80,11 +80,8 @@ static inline void gpio_setup(){
         uint16_t pin = trigpin[i];
         // fill trigstate array
         uint8_t trgs = (the_conf.trigstate & (1<<i)) ? 1 : 0;
-#ifdef EBUG
         trigstate[i] = trgs;
-#endif
-        // turn on pullups
-        if(the_conf.trig_pullups & (1<<i)) trigport[i]->ODR |= pin;
+        trigport[i]->ODR |= pin; // turn on pullups
         EXTI->IMR |= pin;
         if(trgs){ // triggered @1 -> rising interrupt
             EXTI->RTSR |= pin;
@@ -172,6 +169,7 @@ void fillunshotms(){
     if(!trigger_shot) return;
     uint8_t X = 1;
     for(int i = 0; i < TRIGGERS_AMOUNT; ++i, X<<=1){
+        IWDG->KR = IWDG_REFRESH;
         // check whether trigger is OFF but shot recently
         if(trigger_shot & X){
             uint32_t len = Tms - shotms[i];
@@ -229,15 +227,26 @@ uint8_t gettrig(uint8_t N){
 #endif
 
 void chk_buzzer(){
-    if(!trigger_shot && BUZZER_GET()){ // should we turn off buzzer?
+    static uint32_t Ton = 0; // Time of first buzzer check
+    if(!BUZZER_GET()) return; // buzzer if OFF
+    if(!trigger_shot){ // should we turn off buzzer?
         uint8_t notrg = 1;
         for(int i = 0; i < DIGTRIG_AMOUNT; ++i){
             uint8_t curval = (trigport[i]->IDR & trigpin[i]) ? 1 : 0;
             if(curval == trigstate[i]){
-                notrg = 0;
+                notrg = 0; // cheep while digital trigger is ON
                 break;
             }
         }
-        if(notrg) BUZZER_OFF(); // turn off buzzer when there's no trigger events
+        if(notrg){ // turn off buzzer when there's no trigger events & timeout came
+            if(Tms - Ton < BUZZER_CHEEP_TIME) return;
+            Ton = 0;
+            BUZZER_OFF();
+        }
+    }else{ // buzzer is ON - check timer
+        if(Ton == 0){
+            Ton = Tms;
+            if(!Ton) Ton = 1;
+        }
     }
 }

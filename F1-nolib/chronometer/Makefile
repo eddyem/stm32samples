@@ -8,8 +8,8 @@ MCU			?= F103x8
 # density (stm32f10x.h, lines 70-84)
 DENSITY 	?= MD
 # change this linking script depending on particular MCU model,
-LDSCRIPT	?= stm32f103xB.ld
-DEFS		= -DVERSION=\"0.0.1\"
+LDSCRIPT	?= stm32F103xB.ld
+DEFS		= -DVERSION=\"0.0.2\"
 # debug
 #DEFS		+= -DEBUG
 # proxy GPS output over USART1
@@ -66,7 +66,7 @@ CFLAGS		+=  $(ARCH_FLAGS)
 
 ###############################################################################
 # Linker flags
-LDFLAGS		+= -nostartfiles --static -nostdlibs 
+LDFLAGS		+= --static -nostartfiles -nostdlibs 
 LDFLAGS		+= -L$(LIB_DIR) -L$(TOOLCHLIB)
 LDFLAGS		+= -T$(LDSCRIPT)
 
@@ -114,7 +114,7 @@ $(LIST): $(ELF)
 	@echo "  OBJDUMP $(LIST)"
 	$(OBJDUMP) -S $(ELF) > $(LIST)
 
-$(ELF): $(OBJDIR) $(OBJS)
+$(ELF): $(OBJDIR) $(OBJS) $(LDSCRIPT)
 	@echo "  LD      $(ELF)"
 	$(LD) $(LDFLAGS) $(OBJS) $(LDLIBS) -o $(ELF)
 

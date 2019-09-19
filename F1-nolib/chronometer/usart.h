@@ -29,6 +29,9 @@
 #define TIMEOUT_MS (1500)
 #endif
 
+// USART1 default speed
+#define USART1_DEFAULT_SPEED    (115200)
+
 #define STR_HELPER(s)   #s
 #define STR(s)          STR_HELPER(s)
 

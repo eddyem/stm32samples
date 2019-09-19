@@ -40,6 +40,8 @@ extern uint8_t buzzer_on;
 #define BUZZER_ON() do{if(buzzer_on)pin_set(BUZZER_port, BUZZER_pin);}while(0)
 #define BUZZER_OFF() pin_clear(BUZZER_port, BUZZER_pin)
 #define BUZZER_GET() (pin_read(BUZZER_port, BUZZER_pin))
+// minimal time to buzzer to cheep (ms)
+#define BUZZER_CHEEP_TIME   (500)
 
 // PPS pin - PA1
 #define PPS_port    GPIOA

@@ -102,7 +102,7 @@ static void ms2str(char **str, uint32_t T){
 /**
  * print time: Tm - time structure, T - milliseconds
  */
-char *get_time(curtime *Tm, uint32_t T){
+char *get_time(const curtime *Tm, uint32_t T){
     static char buf[64];
     char *bstart = &buf[5], *bptr = bstart;
     int S = 0;

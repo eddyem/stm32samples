@@ -31,21 +31,45 @@
 #define FLASH_SIZE_REG      ((uint32_t)0x1FFFF7E0)
 #define FLASH_SIZE          *((uint16_t*)FLASH_SIZE_REG)
 
-typedef struct __attribute__((packed)){
+/*
+ * struct to save user configurations
+ */
+typedef struct __attribute__((packed, aligned(4))){
     uint16_t userconf_sz;       // "magick number"
-    uint32_t dist_min;          // minimal distance for LIDAR
-    uint32_t dist_max;          // maximal -//-
-    uint8_t  trig_pullups;      // trigger pullups: each bit ==0 to set OFF, ==1 to set ON pullup with given number
-    uint8_t  trigstate;         // level in `triggered` state
-    int32_t  trigpause[TRIGGERS_AMOUNT]; // pause (ms) for false shots
     int16_t  ADC_min;           // min&max values of ADC (shot when ADval > ADC_min && < ADC_max)
     int16_t  ADC_max;           // !!! BOTH ARE SIGNED! so you can include 0 & 4096
+    uint8_t  trigstate;         // level in `triggered` state
+    uint8_t  strendRN;          // strings ends with "\r\n" instead of normal "\n"
+    uint8_t  defflags;          // default flags
+    uint32_t dist_min;          // minimal distance for LIDAR
+    uint32_t dist_max;          // maximal -//-
+    uint32_t USART_speed;       // USART1 speed (115200 by default)
+    int32_t  trigpause[TRIGGERS_AMOUNT]; // pause (ms) for false shots
 } user_conf;
 
-extern user_conf the_conf;
+// values for user_conf.defflags:
+#define FLAG_SAVE_EVENTS        (1 << 0)
 
-void get_userconf();
+/*
+ * struct to save events logs
+ */
+typedef struct __attribute__((packed, aligned(4))){
+    uint16_t elog_sz;
+    uint8_t trigno;
+    trigtime shottime;
+    int16_t triglen;
+    uint16_t lidar_dist;
+} event_log;
+
+extern user_conf the_conf;
+extern const user_conf *Flash_Data;
+extern const event_log *logsstart;
+extern uint32_t _varslen, __varsstart, __varsend, __logsstart;
+
+void flashstorage_init();
 int store_userconf();
+int store_log(event_log *L);
+int dump_log(int start, int Nlogs);
 
 #ifdef EBUG
 void dump_userconf();

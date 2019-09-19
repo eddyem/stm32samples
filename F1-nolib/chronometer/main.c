@@ -72,12 +72,21 @@ void iwdg_setup(){
 char *parse_cmd(char *buf){
     int32_t N;
     static char btns[] = "BTN0=0, BTN1=0, BTN2=0, PPS=0\n";
+    event_log l = {.elog_sz = sizeof(event_log), .trigno = 2};
     switch(*buf){
         case '0':
             LED_off(); // LED0 off @dbg
         break;
         case '1':
             LED_on(); // LED0 on @dbg
+        break;
+        case 'a':
+            l.shottime.Time = current_time;
+            l.shottime.millis = Timer;
+            l.triglen = getADCval(1);
+            if(store_log(&l)) SEND("Error storing");
+            else SEND("Store OK");
+            newline();
         break;
         case 'b':
             btns[5] = gettrig(0) + '0';
@@ -99,6 +108,9 @@ char *parse_cmd(char *buf){
         break;
         case 'd':
             dump_userconf();
+        break;
+        case 'D':
+            if(dump_log(0, -1)) DBG("Error dumping log: empty?");
         break;
         case 'p':
             pin_toggle(USBPU_port, USBPU_pin);
@@ -140,9 +152,11 @@ char *parse_cmd(char *buf){
             if(buf[1] != '\n') return buf;
             return
             "0/1 - turn on/off LED1\n"
+            "'a' - add test log record\n"
             "'b' - get buttons's state\n"
             "'c' - send cold start\n"
             "'d' - dump current user conf\n"
+            "'D' - dump log\n"
             "'p' - toggle USB pullup\n"
             "'C' - store userconf for N times\n"
             "'G' - get last LIDAR distance\n"
@@ -167,10 +181,15 @@ static char *get_USB(){
     if(!x) return NULL;
     curptr[x] = 0;
     USB_send(curptr); // echo
+    //USB_send("ENDOINPUT\n");
 //if(x == 1 && *curptr < 32){USB_send("\n"); USB_send(u2str(*curptr)); USB_send("\n");}
-    if(curptr[x-1] == '\n'){
+    if(curptr[x-1] == '\n' || curptr[x-1] == '\r'){
         curptr = tmpbuf;
         rest = USBBUF;
+        // omit empty lines
+        if(tmpbuf[0] == '\n') return NULL;
+        // and wrong empty lines
+        if(tmpbuf[0] == '\r' && tmpbuf[1] == '\n') return NULL;
         return tmpbuf;
     }
     curptr += x; rest -= x;
@@ -190,16 +209,10 @@ void linecoding_handler(usb_LineCoding __attribute__((unused)) *lc){ // get/set 
 #endif
 }
 
+
+static uint8_t USBconn = 0;
 void clstate_handler(uint16_t __attribute__((unused)) val){ // lesser bits of val: RTS|DTR
-    static uint32_t Tlast = 0;
-    SEND("Tms/Tlast: ");
-    printu(1, Tms);
-    newline();
-    printu(1, Tlast);
-    newline();
-    if(Tms - Tlast < 500) return;
-    Tlast = Tms;
-    USB_send("Chronometer version " VERSION ".\n");
+    USBconn = 1;
 #ifdef EBUG
     if(val & 2){
         DBG("RTS set");
@@ -225,8 +238,6 @@ int main(void){
     sysreset();
     StartHSE();
     SysTick_Config(SYSTICK_DEFCONF); // function SysTick_Config decrements argument!
-    // read data stored in flash
-    get_userconf();
     // !!! hw_setup() should be the first in setup stage
     hw_setup();
     USB_setup();
@@ -242,11 +253,17 @@ int main(void){
     }
 #endif
     RCC->CSR |= RCC_CSR_RMVF; // remove reset flags
+    // read data stored in flash
+    flashstorage_init();
     iwdg_setup();
 
     while (1){
         IWDG->KR = IWDG_REFRESH; // refresh watchdog
         if(Timer > 499) LED_on(); // turn ON LED0 over 0.25s after PPS pulse
+        if(USBconn && Tms > 100){ // USB connection
+            USBconn = 0;
+            USB_send("Chronometer version " VERSION ".\n");
+        }
         // check if triggers that was recently shot are off now
         fillunshotms();
         if(lastT > Tms || Tms - lastT > 499){
@@ -301,17 +318,19 @@ int main(void){
             }
 #endif
         }
-        //if(trigger_shot) show_trigger_shot(trigger_shot);
         IWDG->KR = IWDG_REFRESH;
         usb_proc();
         IWDG->KR = IWDG_REFRESH;
         int r = 0;
-        char *txt;
+        char *txt = NULL;
         if((txt = get_USB())){
             DBG("Received data over USB:");
             DBG(txt);
-            if(parse_USBCMD(txt))
-                USB_send("Bad command!");
+            if(parse_USBCMD(txt)){
+                USB_send("Bad command: ");
+                USB_send(txt);
+                USB_send("\n");
+            }
             IWDG->KR = IWDG_REFRESH;
         }
 #if defined EBUG || defined USART1PROXY
