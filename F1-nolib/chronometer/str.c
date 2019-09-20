@@ -92,6 +92,9 @@ static void showuserconf(){
     USB_send("\nSAVE_EVENTS=");
     if(f & FLAG_SAVE_EVENTS) USB_send("1");
     else USB_send("0");
+    USB_send("\nGPSPROXY=");
+    if(f & FLAG_GPSPROXY) USB_send("1");
+    else USB_send("0");
     USB_send("\nNFREE=");
     sendu(the_conf.NLfreeWarn);
     USB_send("\n");
@@ -121,6 +124,7 @@ int parse_USBCMD(char *cmd){
                  CMD_DISTMAX   " - max distance threshold (cm)\n"
                  CMD_DUMP      "N - dump 20 last stored events (no x), all (x<1) or x\n"
                  CMD_FLASH     " - FLASH info\n"
+                 CMD_GPSPROXY  "S - GPS proxy over USART1 on/off\n"
                  CMD_GPSRESTART " - send Full Cold Restart to GPS\n"
                  CMD_GPSSTAT   " - get GPS status\n"
                  CMD_GPSSTR    " - current GPS data string\n"
@@ -149,8 +153,8 @@ int parse_USBCMD(char *cmd){
         if(the_conf.dist_min != (uint16_t)N){
             conf_modified = 1;
             the_conf.dist_min = (uint16_t) N;
-            succeed = 1;
         }
+        succeed = 1;
     }else if(CMP(cmd, CMD_DISTMAX) == 0){ // set low limit
         DBG("CMD_DISTMAX");
         GETNUM(CMD_DISTMAX);
@@ -158,8 +162,8 @@ int parse_USBCMD(char *cmd){
         if(the_conf.dist_max != (uint16_t)N){
             conf_modified = 1;
             the_conf.dist_max = (uint16_t) N;
-            succeed = 1;
         }
+        succeed = 1;
     }else if(CMP(cmd, CMD_STORECONF) == 0){ // store everything
         DBG("Store");
         if(conf_modified){
@@ -193,8 +197,10 @@ int parse_USBCMD(char *cmd){
         if(Nt > TRIGGERS_AMOUNT - 1) goto bad_number;
         if(getnum(cmd, &N)) goto bad_number;
         if(N < 0 || N > 10000) goto bad_number;
-        if(the_conf.trigpause[Nt] != N) conf_modified = 1;
-        the_conf.trigpause[Nt] = N;
+        if(the_conf.trigpause[Nt] != N){
+            conf_modified = 1;
+            the_conf.trigpause[Nt] = N;
+        }
         succeed = 1;
     }else if(CMP(cmd, CMD_TRGTIME) == 0){
         DBG("Trigger time");
@@ -245,16 +251,16 @@ int parse_USBCMD(char *cmd){
         if(the_conf.ADC_max != (int16_t)N){
             conf_modified = 1;
             the_conf.ADC_max = (int16_t) N;
-            succeed = 1;
         }
+        succeed = 1;
     }else if(CMP(cmd, CMD_ADCMIN) == 0){ // set low limit
         GETNUM(CMD_ADCMIN);
         if(N < -4096 || N > 4096) goto bad_number;
         if(the_conf.ADC_min != (int16_t)N){
             conf_modified = 1;
             the_conf.ADC_min = (int16_t) N;
-            succeed = 1;
         }
+        succeed = 1;
     }else if(CMP(cmd, CMD_GPSRESTART) == 0){
         USB_send("Send full cold restart to GPS\n");
         GPS_send_FullColdStart();
@@ -297,17 +303,25 @@ int parse_USBCMD(char *cmd){
         if(the_conf.USART_speed != (uint32_t)N){
             the_conf.USART_speed = (uint32_t)N;
             conf_modified = 1;
-            succeed = 1;
         }
+        succeed = 1;
     }else if(CMP(cmd, CMD_RESET) == 0){
         USB_send("Soft reset\n");
         NVIC_SystemReset();
     }else if(CMP(cmd, CMD_STREND) == 0){
         char c = cmd[sizeof(CMD_STREND) - 1];
         succeed = 1;
-        if(c == 'n' || c == 'N') the_conf.defflags &= ~FLAG_STRENDRN;
-        else if(c == 'r' || c == 'R') the_conf.defflags |= FLAG_STRENDRN;
-        else{
+        if(c == 'n' || c == 'N'){
+            if(the_conf.defflags & FLAG_STRENDRN){
+                conf_modified = 1;
+                the_conf.defflags &= ~FLAG_STRENDRN;
+            }
+        }else if(c == 'r' || c == 'R'){
+            if(!(the_conf.defflags & FLAG_STRENDRN)){
+                conf_modified = 1;
+                the_conf.defflags |= FLAG_STRENDRN;
+            }
+        }else{
             succeed = 0;
             USB_send("Bad letter, should be 'n' or 'r'\n");
         }
@@ -332,8 +346,17 @@ int parse_USBCMD(char *cmd){
         sendu(maxLnum - 1);
         USB_send("\n");
     }else if(CMP(cmd, CMD_SAVEEVTS) == 0){
-        if('0' == cmd[sizeof(CMD_SAVEEVTS) - 1]) the_conf.defflags &= ~FLAG_SAVE_EVENTS;
-        else the_conf.defflags |= FLAG_SAVE_EVENTS;
+        if('0' == cmd[sizeof(CMD_SAVEEVTS) - 1]){
+            if(the_conf.defflags & FLAG_SAVE_EVENTS){
+                conf_modified = 1;
+                the_conf.defflags &= ~FLAG_SAVE_EVENTS;
+            }
+        }else{
+            if(!(the_conf.defflags & FLAG_SAVE_EVENTS)){
+                conf_modified = 1;
+                the_conf.defflags |= FLAG_SAVE_EVENTS;
+            }
+        }
         succeed = 1;
     }else if(CMP(cmd, CMD_DUMP) == 0){
         if(getnum(cmd+sizeof(CMD_DUMP)-1, &N)) N = -20; // default - without N
@@ -343,11 +366,27 @@ int parse_USBCMD(char *cmd){
     }else if(CMP(cmd, CMD_NFREE) == 0){
         GETNUM(CMD_NFREE);
         if(N < 0 || N > 0xffff) goto bad_number;
-        the_conf.NLfreeWarn = (uint16_t)N;
+        if(the_conf.NLfreeWarn != (uint16_t)N){
+            conf_modified = 1;
+            the_conf.NLfreeWarn = (uint16_t)N;
+        }
         succeed = 1;
     }else if(CMP(cmd, CMD_DELLOGS) == 0){
         if(store_log(NULL)) USB_send("Error during erasing flash\n");
         else USB_send("All logs erased\n");
+    }else if(CMP(cmd, CMD_GPSPROXY) == 0){
+        if(cmd[sizeof(CMD_GPSPROXY) - 1] == '0'){
+            if(the_conf.defflags & FLAG_GPSPROXY){
+                conf_modified = 1;
+                the_conf.defflags &= ~FLAG_GPSPROXY;
+            }
+        }else{
+            if(!(the_conf.defflags & FLAG_GPSPROXY)){
+                conf_modified = 1;
+                the_conf.defflags |= FLAG_GPSPROXY;
+            }
+        }
+        succeed = 1;
     }else return 1;
     /*else if(CMP(cmd, CMD_) == 0){
         ;
@@ -377,7 +416,7 @@ char *get_trigger_shot(int number, const event_log *logdata){
     if(logdata->trigno == LIDAR_TRIGGER){
         bptr = strcp(bptr, "LIDAR, dist=");
         bptr = strcp(bptr, u2str(logdata->lidar_dist));
-        bptr = strcp(bptr, ", TRIG" STR(LIDAR_TRIGGER) "=");
+        bptr = strcp(bptr, ", TRIG" STR(LIDAR_TRIGGER));
     }else{
         bptr = strcp(bptr, "TRIG");
         *bptr++ = '0' + logdata->trigno;

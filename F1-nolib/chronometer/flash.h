@@ -52,6 +52,9 @@ typedef struct __attribute__((packed, aligned(4))){
 #define FLAG_SAVE_EVENTS        (1 << 0)
 // strings ends with "\r\n" instead of normal "\n"
 #define FLAG_STRENDRN           (1 << 1)
+// proxy GPS messages over USART1
+#define FLAG_GPSPROXY           (1 << 2)
+
 
 /*
  * struct to save events logs

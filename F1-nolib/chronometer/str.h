@@ -51,6 +51,7 @@
 #define CMD_DUMP        "dump"
 #define CMD_NFREE       "nfree"
 #define CMD_DELLOGS     "deletelogs"
+#define CMD_GPSPROXY    "gpsproxy"
 
 extern uint8_t showGPSstr;
 

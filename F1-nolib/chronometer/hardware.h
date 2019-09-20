@@ -41,7 +41,7 @@ extern uint8_t buzzer_on;
 #define BUZZER_OFF() pin_clear(BUZZER_port, BUZZER_pin)
 #define BUZZER_GET() (pin_read(BUZZER_port, BUZZER_pin))
 // minimal time to buzzer to cheep (ms)
-#define BUZZER_CHEEP_TIME   (500)
+#define BUZZER_CHEEP_TIME   500
 
 // PPS pin - PA1
 #define PPS_port    GPIOA
@@ -49,15 +49,15 @@ extern uint8_t buzzer_on;
 
 // PPS and triggers state
 // amount of triggers, should be less than 9; 5 - 0..2 - switches, 3 - LIDAR, 4 - ADC
-#define TRIGGERS_AMOUNT     (5)
+#define TRIGGERS_AMOUNT     5
 // number of LIDAR trigger
-#define LIDAR_TRIGGER       (3)
+#define LIDAR_TRIGGER       3
 // number of ADC trigger
-#define ADC_TRIGGER         (4)
+#define ADC_TRIGGER         4
 // amount of digital triggers (on interrupts)
-#define DIGTRIG_AMOUNT      (3)
+#define DIGTRIG_AMOUNT      3
 // max length of trigger event (ms)
-#define MAX_TRIG_LEN        (1000)
+#define MAX_TRIG_LEN        1000
 
 #ifdef EBUG
 uint8_t gettrig(uint8_t N);

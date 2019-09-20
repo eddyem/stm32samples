@@ -42,7 +42,7 @@ static uint8_t trigstate[DIGTRIG_AMOUNT];
 // time of triggers shot
 trigtime shottime[TRIGGERS_AMOUNT];
 // Tms value when they shot
-static uint32_t shotms[TRIGGERS_AMOUNT];
+uint32_t shotms[TRIGGERS_AMOUNT];
 // trigger length (-1 if > MAX_TRIG_LEN)
 int16_t triglen[TRIGGERS_AMOUNT];
 // if trigger[N] shots, the bit N will be 1
@@ -187,7 +187,7 @@ void fillunshotms(){
                 if(pinval != trigstate[i]) rdy = 1; // trigger is OFF
             }
             if(rdy){
-                shotms[i] = Tms;
+                if(i != LIDAR_TRIGGER) shotms[i] = Tms;
                 show_trigger_shot(X);
                 trigger_shot &= ~X;
             }

@@ -266,7 +266,7 @@ int main(void){
         }
         // check if triggers that was recently shot are off now
         fillunshotms();
-        if(lastT > Tms || Tms - lastT > 499){
+        if(Tms - lastT > 499){
             if(need2startseq) GPS_send_start_seq();
             IWDG->KR = IWDG_REFRESH;
             switch(GPS_status){
@@ -280,17 +280,15 @@ int main(void){
                     LED1_off(); // turn off LED1 if GPS not found or time unknown
             }
             lastT = Tms;
-            if(usartrx(LIDAR_USART)){
+            /*if(usartrx(LIDAR_USART)){
                 char *txt;
                 if(usart_getline(LIDAR_USART, &txt)){
                     DBG("LIDAR:");
                     DBG(txt);
                 }
-            }
+            }*/
             IWDG->KR = IWDG_REFRESH;
-#if defined EBUG || defined USART1PROXY
             transmit_tbuf(1); // non-blocking transmission of data from UART buffer every 0.5s
-#endif
             transmit_tbuf(GPS_USART);
             transmit_tbuf(LIDAR_USART);
 #ifdef EBUG
@@ -333,7 +331,6 @@ int main(void){
             }
             IWDG->KR = IWDG_REFRESH;
         }
-#if defined EBUG || defined USART1PROXY
         if(usartrx(1)){ // usart1 received data, store in in buffer
             r = usart_getline(1, &txt);
             if(r){
@@ -348,18 +345,19 @@ int main(void){
                     transmit_tbuf(1);
                     IWDG->KR = IWDG_REFRESH;
                 }
-#else // USART1PROXY - send received data to GPS
-                usart_send(GPS_USART, txt);
-                IWDG->KR = IWDG_REFRESH;
 #endif
+                if(the_conf.defflags & FLAG_GPSPROXY){
+                    usart_send(GPS_USART, txt);
+                    IWDG->KR = IWDG_REFRESH;
+                }
             }
         }
-#endif
         if(usartrx(GPS_USART)){
             IWDG->KR = IWDG_REFRESH;
             r = usart_getline(GPS_USART, &txt);
             if(r){
                 txt[r] = 0;
+                if(the_conf.defflags & FLAG_GPSPROXY) usart_send(1, txt);
                 GPS_parse_answer(txt);
             }
         }

@@ -96,7 +96,7 @@ void usart_send(int n, const char *str){
         tbuf[n][tbufno[n]][odatalen[n][tbufno[n]]++] = *str++;
     }
 }
-#if defined EBUG || defined USART1PROXY
+#if defined EBUG
 // only for USART1
 void newline(){
     usart_putchar(1, '\n');
@@ -170,9 +170,7 @@ static void usart_setup(int n, uint32_t BRR){
 
 void usarts_setup(){
     RCC->AHBENR |= RCC_AHBENR_DMA1EN;
-#if defined EBUG || defined USART1PROXY
     usart_setup(1, 72000000 / the_conf.USART_speed); // debug console or GPS proxy
-#endif
     usart_setup(2, 36000000 / 9600); // GPS
     usart_setup(3, 36000000 / 115200); // LIDAR
 }
@@ -217,11 +215,9 @@ void usart_isr(int n, USART_TypeDef *USART){
     }
 }
 
-#if defined EBUG || defined USART1PROXY
 void usart1_isr(){
     usart_isr(1, USART1);
 }
-#endif
 
 // GPS_USART
 void usart2_isr(){
@@ -279,14 +275,12 @@ void hexdump(uint8_t *arr, uint16_t len){
 }
 #endif
 
-#if defined EBUG || defined USART1PROXY
 void dma1_channel4_isr(){ // USART1
     if(DMA1->ISR & DMA_ISR_TCIF4){ // Tx
         DMA1->IFCR = DMA_IFCR_CTCIF4; // clear TC flag
         txrdy[1] = 1;
     }
 }
-#endif
 
 void dma1_channel7_isr(){ // USART2
     if(DMA1->ISR & DMA_ISR_TCIF7){ // Tx

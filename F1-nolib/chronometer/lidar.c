@@ -24,6 +24,8 @@ uint16_t last_lidar_dist = 0;
 uint16_t last_lidar_stren = 0;
 uint16_t lidar_triggered_dist = 0;
 
+extern uint32_t shotms[];
+
 /**
  * @brief parse_lidar_data - parsing of string from lidar
  * @param txt - the string or NULL (if you want just check trigger state)
@@ -31,7 +33,16 @@ uint16_t lidar_triggered_dist = 0;
  */
 uint8_t parse_lidar_data(char *txt){
     static uint8_t triggered = 0;
-    if(!txt) return triggered;
+    if(!txt){
+        // clear trigger state after timeout -> need to monitor lidar
+        uint32_t len = Tms - shotms[LIDAR_TRIGGER];
+        //if(len > MAX_TRIG_LEN || len > (uint32_t)the_conf.trigpause[LIDAR_TRIGGER]){
+        if(len > MAX_TRIG_LEN){
+            triggered = 0;
+            DBG("MAX time gone, untrigger!");
+        }
+        return triggered;
+    }
     last_lidar_dist = txt[2] | (txt[3] << 8);
     last_lidar_stren = txt[4] | (txt[5] << 8);
     if(last_lidar_stren < LIDAR_LOWER_STREN) return 0; // weak signal

@@ -62,10 +62,12 @@ void time_increment(){
                 current_time.H = 0;
         }
     }
+    /*
 #ifdef EBUG
     SEND("time_increment():  ");
     SEND(get_time(&current_time, 0));
 #endif
+    */
 }
 
 static char *puttwo(uint8_t N, char *buf){

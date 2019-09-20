@@ -58,9 +58,9 @@ static int checksum_true(const char *buf){
 
 static void send_chksum(uint8_t chs){
     usart_putchar(GPS_USART, hex(chs >> 4));
-    usart_putchar(1, hex(chs >> 4));
+    //usart_putchar(1, hex(chs >> 4));
     usart_putchar(GPS_USART, hex(chs & 0x0f));
-    usart_putchar(1, hex(chs & 0x0f));
+    //usart_putchar(1, hex(chs & 0x0f));
 }
 /**
  * Calculate checksum & write message to port
@@ -78,19 +78,19 @@ static void write_with_checksum(const char *buf){
             break;
         }
     }
-    DBG("Send:");
+    //DBG("Send:");
     uint8_t checksum = 0;
     usart_putchar(GPS_USART, '$');
-    usart_putchar(1, '$');
+    //usart_putchar(1, '$');
     GPS_send_string(buf);
-    SEND(buf);
+    //SEND(buf);
     do{
         checksum ^= *buf++;
     }while(*buf);
     usart_putchar(GPS_USART, '*');
-    usart_putchar(1, '*');
+    //usart_putchar(1, '*');
     send_chksum(checksum);
-    newline();
+    //newline();
     GPS_endline();
 }
 
@@ -155,9 +155,6 @@ void GPS_send_FullColdStart(){
  */
 void GPS_parse_answer(const char *buf){
     char *ptr;
-#if defined USART1PROXY
-    usart_send(1, buf); newline();
-#endif
     if(buf[1] == 'P') return; // answers to proprietary messages
     if(cmpstr(buf+3, "RMC", 3)){ // not RMC message
         need2startseq = 1;

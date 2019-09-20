@@ -86,7 +86,7 @@ uint8_t chkADCtrigger(){
     }else{ // check if thigger shot
         if(val > (int16_t)the_conf.ADC_min + ADC_THRESHOLD && val < (int16_t)the_conf.ADC_max - ADC_THRESHOLD){
             triggered = 1;
-            fillshotms(4);
+            fillshotms(ADC_TRIGGER);
         }
     }
     return triggered;
