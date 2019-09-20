@@ -19,8 +19,9 @@
 
 #include "stm32f1.h"
 #include "flash.h"
-#include "usart.h"
 #include "lidar.h"
+#include "str.h"
+#include "usart.h"
 
 extern volatile uint32_t Tms;
 static volatile int idatalen[4][2] = {0}; // received data line length (including '\n')
@@ -252,22 +253,6 @@ void usart3_isr(){
     }
 }
 
-// return string buffer with val
-char *u2str(uint32_t val){
-    static char buf[11];
-    char *bufptr = &buf[10];
-    *bufptr = 0;
-    if(!val){
-        *(--bufptr) = '0';
-    }else{
-        while(val){
-            *(--bufptr) = val % 10 + '0';
-            val /= 10;
-        }
-    }
-    return bufptr;
-}
-
 // print 32bit unsigned int
 void printu(int n, uint32_t val){
     usart_send(n, u2str(val));
@@ -275,17 +260,7 @@ void printu(int n, uint32_t val){
 
 // print 32bit unsigned int as hex
 void printuhex(int n, uint32_t val){
-    usart_send(n, "0x");
-    uint8_t *ptr = (uint8_t*)&val + 3;
-    int i, j;
-    IWDG->KR = IWDG_REFRESH;
-    for(i = 0; i < 4; ++i, --ptr){
-        for(j = 1; j > -1; --j){
-            register uint8_t half = (*ptr >> (4*j)) & 0x0f;
-            if(half < 10) usart_putchar(n, half + '0');
-            else usart_putchar(n, half - 10 + 'a');
-        }
-    }
+    usart_send(n, u2hex(val));
 }
 
 #ifdef EBUG
@@ -325,35 +300,4 @@ void dma1_channel2_isr(){ // USART3
         DMA1->IFCR = DMA_IFCR_CTCIF2; // clear TC flag
         txrdy[3] = 1;
     }
-}
-
-// read `buf` and get first integer `N` in it
-// @return 0 if all OK or 1 if there's not a number; omit spaces and '='
-int getnum(const char *buf, int32_t *N){
-    char c;
-    int positive = -1;
-    int32_t val = 0;
-    while((c = *buf++)){
-        if(c == '\t' || c == ' ' || c == '='){
-            if(positive < 0) continue; // beginning spaces
-            else break; // spaces after number
-        }
-        if(c == '-'){
-            if(positive < 0){
-                positive = 0;
-                continue;
-            }else break; // there already was `-` or number
-        }
-        if(c < '0' || c > '9') break;
-        if(positive < 0) positive = 1;
-        val = val * 10 + (int32_t)(c - '0');
-    }
-    if(positive != -1){
-        if(positive == 0){
-            if(val == 0) return 1; // single '-'
-            val = -val;
-        }
-        *N = val;
-    }else return 1;
-    return 0;
 }

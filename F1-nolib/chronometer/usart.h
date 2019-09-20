@@ -55,10 +55,8 @@ void usarts_setup();
 int usart_getline(int n, char **line);
 void usart_send(int n, const char *str);
 void usart_putchar(int n, char ch);
-char *u2str(uint32_t val);
 void printu(int n, uint32_t val);
 void printuhex(int n, uint32_t val);
-int getnum(const char *buf, int32_t *N);
 
 #if defined EBUG || defined USART1PROXY
 void newline();

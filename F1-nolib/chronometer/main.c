@@ -183,7 +183,7 @@ static char *get_USB(){
     USB_send(curptr); // echo
     //USB_send("ENDOINPUT\n");
 //if(x == 1 && *curptr < 32){USB_send("\n"); USB_send(u2str(*curptr)); USB_send("\n");}
-    if(curptr[x-1] == '\n' || curptr[x-1] == '\r'){
+    if(curptr[x-1] == '\n'){ // || curptr[x-1] == '\r'){
         curptr = tmpbuf;
         rest = USBBUF;
         // omit empty lines

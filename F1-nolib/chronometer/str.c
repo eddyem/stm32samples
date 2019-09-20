@@ -86,12 +86,14 @@ static void showuserconf(){
     USB_send("}");
     USB_send("\nUSART1SPD="); sendu(the_conf.USART_speed);
     USB_send("\nSTREND=");
-    if(the_conf.strendRN) USB_send("RN");
+    if(the_conf.defflags & FLAG_STRENDRN) USB_send("RN");
     else USB_send("N");
     uint8_t f = the_conf.defflags;
     USB_send("\nSAVE_EVENTS=");
     if(f & FLAG_SAVE_EVENTS) USB_send("1");
     else USB_send("0");
+    USB_send("\nNFREE=");
+    sendu(the_conf.NLfreeWarn);
     USB_send("\n");
 }
 
@@ -114,25 +116,27 @@ int parse_USBCMD(char *cmd){
                  CMD_ADCMIN    " - min -//- (triggered when ADval>min & <max)\n"
                  CMD_GETADCVAL " - get ADC value\n"
                  CMD_BUZZER    "S - turn buzzer ON/OFF\n"
+                 CMD_DELLOGS   " - delete logs from flash memory\n"
                  CMD_DISTMIN   " - min distance threshold (cm)\n"
                  CMD_DISTMAX   " - max distance threshold (cm)\n"
-                 CMD_DUMP      " - dump stored events\n"
+                 CMD_DUMP      "N - dump 20 last stored events (no x), all (x<1) or x\n"
                  CMD_FLASH     " - FLASH info\n"
                  CMD_GPSRESTART " - send Full Cold Restart to GPS\n"
                  CMD_GPSSTAT   " - get GPS status\n"
                  CMD_GPSSTR    " - current GPS data string\n"
                  CMD_LEDS      "S - turn leds on/off (1/0)\n"
                  CMD_GETMCUTEMP " - MCU temperature\n"
-                 CMD_SHOWCONF  " - show current configuration\n"
+                 CMD_NFREE     " - warn when free logs space less than this number (0 - not warn)"
                  CMD_PRINTTIME " - print time\n"
                  CMD_RESET     " - reset MCU\n"
-                 CMD_SAVEEVTS  "x - save/don't save (1/0) trigger events into flash\n"
+                 CMD_SAVEEVTS  "S - save/don't save (1/0) trigger events into flash\n"
+                 CMD_SHOWCONF  " - show current configuration\n"
                  CMD_STORECONF " - store new configuration in flash\n"
-                 CMD_STREND    "x - string ends with \\n (x=n) or \\r\\n (x=r)\n"
+                 CMD_STREND    "C - string ends with \\n (C=n) or \\r\\n (C=r)\n"
                  CMD_TRIGLVL   "NS - working trigger N level S\n"
                  CMD_TRGPAUSE  "NP - pause (P, ms) after trigger N shots\n"
                  CMD_TRGTIME   "N - show last trigger N time\n"
-                 CMD_USARTSPD  "V - set USART1 speed to V\n"
+                 CMD_USARTSPD  "N - set USART1 speed to N\n"
                  CMD_GETVDD    " - Vdd value\n"
                  );
     }else if(CMP(cmd, CMD_PRINTTIME) == 0){
@@ -168,21 +172,7 @@ int parse_USBCMD(char *cmd){
         }
     }else if(CMP(cmd, CMD_GPSSTR) == 0){ // show GPS status string
         showGPSstr = 1;
-    }/*
-    else if(CMP(cmd, CMD_PULLUP) == 0){
-        DBG("Pullups");
-        cmd += sizeof(CMD_PULLUP) - 1;
-        uint8_t Nt = *cmd++ - '0';
-        if(Nt > TRIGGERS_AMOUNT - 1) goto bad_number;
-        uint8_t state = *cmd -'0';
-        if(state > 1) goto bad_number;
-        uint8_t oldval = the_conf.trig_pullups;
-        if(!state) the_conf.trig_pullups = oldval & ~(1<<Nt);
-        else the_conf.trig_pullups = oldval | (1<<Nt);
-        if(oldval != the_conf.trig_pullups) conf_modified = 1;
-        succeed = 1;
-    } */
-    else if(CMP(cmd, CMD_TRIGLVL) == 0){
+    }else if(CMP(cmd, CMD_TRIGLVL) == 0){
         DBG("Trig levels");
         cmd += sizeof(CMD_TRIGLVL) - 1;
         uint8_t Nt = *cmd++ - '0';
@@ -315,8 +305,8 @@ int parse_USBCMD(char *cmd){
     }else if(CMP(cmd, CMD_STREND) == 0){
         char c = cmd[sizeof(CMD_STREND) - 1];
         succeed = 1;
-        if(c == 'n' || c == 'N') the_conf.strendRN = 0;
-        else if(c == 'r' || c == 'R') the_conf.strendRN = 1;
+        if(c == 'n' || c == 'N') the_conf.defflags &= ~FLAG_STRENDRN;
+        else if(c == 'r' || c == 'R') the_conf.defflags |= FLAG_STRENDRN;
         else{
             succeed = 0;
             USB_send("Bad letter, should be 'n' or 'r'\n");
@@ -325,24 +315,39 @@ int parse_USBCMD(char *cmd){
         USB_send("FLASHSIZE=");
         sendu(FLASH_SIZE);
         USB_send("kB\nFLASH_BASE=");
-        sendu(FLASH_BASE);
+        USB_send(u2hex(FLASH_BASE));
         USB_send("\nFlash_Data=");
-        sendu((uint32_t)Flash_Data);
+        USB_send(u2hex((uint32_t)Flash_Data));
         USB_send("\nvarslen=");
         sendu((uint32_t)&_varslen);
-        USB_send("\nvarsend=");
-        sendu((uint32_t)&__varsend);
-        USB_send("\nvarsstart=");
-        sendu((uint32_t)&__varsstart);
+        USB_send("\nCONFsize=");
+        sendu(sizeof(user_conf));
+        USB_send("\nNconf_records=");
+        sendu(maxCnum - 1);
         USB_send("\nlogsstart=");
-        sendu((uint32_t)logsstart);
+        USB_send(u2hex((uint32_t)logsstart));
+        USB_send("\nLOGsize=");
+        sendu(sizeof(event_log));
+        USB_send("\nNlogs_records=");
+        sendu(maxLnum - 1);
         USB_send("\n");
     }else if(CMP(cmd, CMD_SAVEEVTS) == 0){
         if('0' == cmd[sizeof(CMD_SAVEEVTS) - 1]) the_conf.defflags &= ~FLAG_SAVE_EVENTS;
         else the_conf.defflags |= FLAG_SAVE_EVENTS;
         succeed = 1;
     }else if(CMP(cmd, CMD_DUMP) == 0){
-        if(dump_log(0, -1)) USB_send("Event log empty!\n");
+        if(getnum(cmd+sizeof(CMD_DUMP)-1, &N)) N = -20; // default - without N
+        else N = -N;
+        if(N > 0) N = 0;
+        if(dump_log(N, -1)) USB_send("Event log empty!\n");
+    }else if(CMP(cmd, CMD_NFREE) == 0){
+        GETNUM(CMD_NFREE);
+        if(N < 0 || N > 0xffff) goto bad_number;
+        the_conf.NLfreeWarn = (uint16_t)N;
+        succeed = 1;
+    }else if(CMP(cmd, CMD_DELLOGS) == 0){
+        if(store_log(NULL)) USB_send("Error during erasing flash\n");
+        else USB_send("All logs erased\n");
     }else return 1;
     /*else if(CMP(cmd, CMD_) == 0){
         ;
@@ -432,4 +437,71 @@ char *strcp(char* dst, const char *src){
     if(l < 1) return dst;
     while((*dst++ = *src++));
     return dst - 1;
+}
+
+
+// read `buf` and get first integer `N` in it
+// @return 0 if all OK or 1 if there's not a number; omit spaces and '='
+int getnum(const char *buf, int32_t *N){
+    char c;
+    int positive = -1;
+    int32_t val = 0;
+    while((c = *buf++)){
+        if(c == '\t' || c == ' ' || c == '='){
+            if(positive < 0) continue; // beginning spaces
+            else break; // spaces after number
+        }
+        if(c == '-'){
+            if(positive < 0){
+                positive = 0;
+                continue;
+            }else break; // there already was `-` or number
+        }
+        if(c < '0' || c > '9') break;
+        if(positive < 0) positive = 1;
+        val = val * 10 + (int32_t)(c - '0');
+    }
+    if(positive != -1){
+        if(positive == 0){
+            if(val == 0) return 1; // single '-'
+            val = -val;
+        }
+        *N = val;
+    }else return 1;
+    return 0;
+}
+
+static char strbuf[11];
+// return string buffer (strbuf) with val
+char *u2str(uint32_t val){
+    char *bufptr = &strbuf[10];
+    *bufptr = 0;
+    if(!val){
+        *(--bufptr) = '0';
+    }else{
+        while(val){
+            *(--bufptr) = val % 10 + '0';
+            val /= 10;
+        }
+    }
+    return bufptr;
+}
+
+// return strbuf filled with hex
+char *u2hex(uint32_t val){
+    char *bufptr = strbuf;
+    *bufptr++ = '0';
+    *bufptr++ = 'x';
+    uint8_t *ptr = (uint8_t*)&val + 3;
+    int i, j;
+    IWDG->KR = IWDG_REFRESH;
+    for(i = 0; i < 4; ++i, --ptr){
+        for(j = 1; j > -1; --j){
+            register uint8_t half = (*ptr >> (4*j)) & 0x0f;
+            if(half < 10) *bufptr++ = half + '0';
+            else *bufptr++ = half - 10 + 'a';
+        }
+    }
+    *bufptr = 0;
+    return strbuf;
 }

@@ -47,10 +47,16 @@
 #define CMD_RESET       "reset"
 #define CMD_STREND      "strend"
 #define CMD_FLASH       "flash"
-#define CMD_SAVEEVTS    "saveevt"
+#define CMD_SAVEEVTS    "se"
 #define CMD_DUMP        "dump"
+#define CMD_NFREE       "nfree"
+#define CMD_DELLOGS     "deletelogs"
 
 extern uint8_t showGPSstr;
+
+int getnum(const char *buf, int32_t *N);
+char *u2str(uint32_t val);
+char *u2hex(uint32_t val);
 
 int strln(const char *s);
 char *strcp(char* dst, const char *src);

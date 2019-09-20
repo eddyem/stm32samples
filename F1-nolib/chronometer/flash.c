@@ -45,8 +45,8 @@
 #include <string.h> // memcpy
 
 // max amount of records stored: Config & Logs
-static int maxCnum = FLASH_BLOCK_SIZE / sizeof(user_conf);
-static int maxLnum = FLASH_BLOCK_SIZE / sizeof(user_conf);
+int maxCnum = FLASH_BLOCK_SIZE / sizeof(user_conf);
+int maxLnum = FLASH_BLOCK_SIZE / sizeof(user_conf);
 
 // common structure for all datatypes stored
 /*typedef struct {
@@ -63,7 +63,8 @@ static int maxLnum = FLASH_BLOCK_SIZE / sizeof(user_conf);
     ,.ADC_min = ADC_MIN_VAL                 \
     ,.ADC_max = ADC_MAX_VAL                 \
     ,.USART_speed = USART1_DEFAULT_SPEED    \
-    ,.strendRN = 0                          \
+    ,.defflags = 0                          \
+    ,.NLfreeWarn = 100                      \
     }
 
 // change to placement
@@ -131,9 +132,6 @@ void flashstorage_init(){
         memcpy(&the_conf, &Flash_Data[currentconfidx], sizeof(user_conf));
     }
     currentlogidx = binarySearch(0, maxLnum-2, (uint8_t*)logsstart, sizeof(event_log));
-SEND("\ncurrentconfidx="); printu(1, currentconfidx);
-SEND("\ncurrentlogidx="); printu(1, currentlogidx);
-newline();
 }
 
 // store new configuration
@@ -144,28 +142,42 @@ int store_userconf(){
     if(currentconfidx > maxCnum - 3){ // there's no more place
         currentconfidx = 0;
         DBG("Need to erase flash!");
-        if(erase_flash(Flash_Data, &__varsend)) return 1;
+        if(erase_flash(Flash_Data, logsstart)) return 1;
     }else ++currentconfidx; // take next data position (0 - within first run after firmware flashing)
-SEND("store_userconf\n");
-SEND("\ncurrentconfidx="); printu(1, currentconfidx);
-newline();
     return write2flash(&Flash_Data[currentconfidx], &the_conf, sizeof(the_conf));
 }
 
 /**
  * @brief store_log - save log record L into flash memory
- * @param L - event log
+ * @param L - event log (or NULL to delete flash)
  * @return 0 if all OK
  */
 int store_log(event_log *L){
+    if(!L){
+        currentlogidx = -1;
+        return erase_flash(logsstart, NULL);
+    }
     if(currentlogidx > maxLnum - 3){ // there's no more place
-        currentlogidx = 0;
+        /*currentlogidx = 0;
         DBG("Need to erase flash!");
-        if(erase_flash(logsstart, NULL)) return 1;
+        if(erase_flash(logsstart, NULL)) return 1;*/
+        // prevent automatic logs erasing!
+        USB_send("\n\nERROR!\nCan't save logs: delete old manually!!!\n");
+        return 1;
     }else ++currentlogidx; // take next data position (0 - within first run after firmware flashing)
-SEND("sore_log\n");
-SEND("\ncurrentlogidx="); printu(1, currentlogidx);
-newline();
+    // put warning if there's little space
+    if(currentlogidx + the_conf.NLfreeWarn > maxLnum - 3){
+        uint32_t nfree = maxLnum - 2 - currentlogidx;
+        USB_send("\n\nWARNING!\nCan store only ");
+        USB_send(u2str(nfree));
+        USB_send(" logs!\n\n");
+    }
+/*
+USB_send("Stored #"); USB_send(u2str(currentlogidx));
+USB_send(", max="); USB_send(u2str(maxLnum));
+USB_send(", warn="); USB_send(u2str(the_conf.NLfreeWarn));
+USB_send("\n");
+*/
     return write2flash(&logsstart[currentlogidx], L, sizeof(event_log));
 }
 
@@ -177,11 +189,14 @@ newline();
  */
 int dump_log(int start, int Nlogs){
     if(currentlogidx < 0) return 1;
-    if(start < 0) start += currentlogidx;
+    if(start < 0){
+        start += currentlogidx + 1;
+        if(start < 0) start = 0;
+    }
     if(start > currentlogidx) return 1;
     int nlast;
     if(Nlogs > 0){
-        nlast = start + Nlogs;
+        nlast = start + Nlogs - 1;
         if(nlast > currentlogidx) nlast = currentlogidx;
     }else nlast = currentlogidx;
     ++nlast;

@@ -36,10 +36,10 @@
  */
 typedef struct __attribute__((packed, aligned(4))){
     uint16_t userconf_sz;       // "magick number"
+    uint16_t NLfreeWarn;        // warn user when there's less free log records than NLfreeWarn
     int16_t  ADC_min;           // min&max values of ADC (shot when ADval > ADC_min && < ADC_max)
     int16_t  ADC_max;           // !!! BOTH ARE SIGNED! so you can include 0 & 4096
     uint8_t  trigstate;         // level in `triggered` state
-    uint8_t  strendRN;          // strings ends with "\r\n" instead of normal "\n"
     uint8_t  defflags;          // default flags
     uint32_t dist_min;          // minimal distance for LIDAR
     uint32_t dist_max;          // maximal -//-
@@ -48,7 +48,10 @@ typedef struct __attribute__((packed, aligned(4))){
 } user_conf;
 
 // values for user_conf.defflags:
+// save events in flash
 #define FLAG_SAVE_EVENTS        (1 << 0)
+// strings ends with "\r\n" instead of normal "\n"
+#define FLAG_STRENDRN           (1 << 1)
 
 /*
  * struct to save events logs
@@ -64,7 +67,10 @@ typedef struct __attribute__((packed, aligned(4))){
 extern user_conf the_conf;
 extern const user_conf *Flash_Data;
 extern const event_log *logsstart;
-extern uint32_t _varslen, __varsstart, __varsend, __logsstart;
+extern int maxCnum, maxLnum;
+// data from ld-file
+extern uint32_t _varslen, __varsstart, __logsstart;
+
 
 void flashstorage_init();
 int store_userconf();

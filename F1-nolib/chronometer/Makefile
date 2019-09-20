@@ -9,7 +9,7 @@ MCU			?= F103x8
 DENSITY 	?= MD
 # change this linking script depending on particular MCU model,
 LDSCRIPT	?= stm32F103xB.ld
-DEFS		= -DVERSION=\"0.0.2\"
+DEFS		= -DVERSION=\"0.1.0\"
 # debug
 #DEFS		+= -DEBUG
 # proxy GPS output over USART1

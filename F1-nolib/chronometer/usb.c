@@ -115,7 +115,7 @@ void USB_send(const char *buf){
         uint16_t proc = 0, s  = (l > USB_TXBUFSZ - 1) ? USB_TXBUFSZ - 1: l;
         for(int i = 0; i < s; ++i, ++proc){
             char c = buf[ctr+proc];
-            if(c == '\n' && the_conf.strendRN){ // add '\r' before '\n'
+            if(c == '\n' && the_conf.defflags & FLAG_STRENDRN){ // add '\r' before '\n'
                 tmpbuf[i++] = '\r';
                 if(i == s) ++s;
             }

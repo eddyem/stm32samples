@@ -78,7 +78,18 @@ SECTIONS {
   .myvars :
   {
     . = ALIGN(1024);
-    KEEP(*(.myvars))
+    __varsstart = ABSOLUTE(.);
+    KEEP(*(.myvars));
+    . = . + 2000;
+    . = ALIGN(1024);
+    __varsend = ABSOLUTE(.);
+  } > rom
+
+  .logs :
+  {
+    . = ALIGN(1024);
+    __logsstart = ABSOLUTE(.);
+    KEEP(*(.logs))
   } > rom
 
   _ldata = LOADADDR(.data);
@@ -95,3 +106,4 @@ SECTIONS {
 }
 
 PROVIDE(_stack = ORIGIN(ram) + LENGTH(ram));
+PROVIDE(_varslen = __varsend - __varsstart);
