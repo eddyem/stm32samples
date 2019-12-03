@@ -55,6 +55,7 @@ void iwdg_setup(){
 }
 
 char *parse_cmd(char *buf){
+    IWDG->KR = IWDG_REFRESH;
     if(buf[1] != '\n') return buf;
     switch(*buf){
         case 'p':

@@ -100,12 +100,9 @@
 #define CLEAR_CTR_RX_TX(R)              (R & (~(USB_EPnR_CTR_TX | USB_EPnR_CTR_RX)))
 
 // USB state: uninitialized, addressed, ready for use
-typedef enum{
-    USB_STATE_DEFAULT,
-    USB_STATE_ADDRESSED,
-    USB_STATE_CONFIGURED,
-    USB_STATE_CONNECTED
-} USB_state;
+#define USB_DEFAULT_STATE               0
+#define USB_ADRESSED_STATE              1
+#define USB_CONFIGURE_STATE             2
 
 // EP types
 #define EP_TYPE_BULK                    0x00
@@ -115,7 +112,7 @@ typedef enum{
 
 #define LANG_US (uint16_t)0x0409
 
-#define USB_STRING(name, str)                  \
+#define _USB_STRING_(name, str)                  \
 static const struct name \
 {                          \
         uint8_t  bLength;                       \
@@ -125,7 +122,7 @@ static const struct name \
 } \
 name = {sizeof(name), 0x03, str}
 
-#define USB_LANG_ID(name, lng_id)     \
+#define _USB_LANG_ID_(name, lng_id)     \
     \
 static const struct name \
 {         \
@@ -149,7 +146,6 @@ typedef struct {
 // endpoints state
 typedef struct __ep_t{
     uint16_t *tx_buf;           // transmission buffer address
-    uint16_t txbufsz;           // transmission buffer size
     uint16_t *rx_buf;           // reception buffer address
     uint16_t (*func)();         // endpoint action function
     uint16_t status;            // status flags
@@ -189,19 +185,18 @@ typedef struct {
 } __attribute__ ((packed)) usb_cdc_notification;
 
 extern ep_t endpoints[];
-extern usb_dev_t USB_Dev;
-extern uint8_t usbON;
 
 void USB_Init();
-void USB_ResetState();
+uint8_t USB_GetState();
 int EP_Init(uint8_t number, uint8_t type, uint16_t txsz, uint16_t rxsz, uint16_t (*func)(ep_t ep));
 void EP_WriteIRQ(uint8_t number, const uint8_t *buf, uint16_t size);
 void EP_Write(uint8_t number, const uint8_t *buf, uint16_t size);
 int EP_Read(uint8_t number, uint16_t *buf);
 usb_LineCoding getLineCoding();
 
-void linecoding_handler(usb_LineCoding *lc);
-void clstate_handler(uint16_t val);
-void break_handler();
+void WEAK linecoding_handler(usb_LineCoding *lc);
+void WEAK clstate_handler(uint16_t val);
+void WEAK break_handler();
+void WEAK vendor_handler(config_pack_t *packet);
 
 #endif // __USB_LIB_H__

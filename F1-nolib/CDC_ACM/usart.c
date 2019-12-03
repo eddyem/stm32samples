@@ -53,7 +53,10 @@ int usart_getline(char **line){
 // transmit current tbuf and swap buffers
 void transmit_tbuf(){
     uint32_t tmout = 16000000;
-    while(!txrdy){if(--tmout == 0) return;}; // wait for previos buffer transmission
+    while(!txrdy){ // wait for previos buffer transmission
+        IWDG->KR = IWDG_REFRESH;
+        if(--tmout == 0) return;
+    }
     register int l = odatalen[tbufno];
     if(!l) return;
     txrdy = 0;
@@ -109,7 +112,10 @@ void usart_setup(){
     // setup usart1
     USART1->BRR = 72000000 / 115200;
     USART1->CR1 = USART_CR1_TE | USART_CR1_RE | USART_CR1_UE; // 1start,8data,nstop; enable Rx,Tx,USART
-    while(!(USART1->SR & USART_SR_TC)){if(--tmout == 0) break;} // polling idle frame Transmission
+    while(!(USART1->SR & USART_SR_TC)){ // polling idle frame Transmission
+        IWDG->KR = IWDG_REFRESH;
+        if(--tmout == 0) break;
+    }
     USART1->SR = 0; // clear flags
     USART1->CR1 |= USART_CR1_RXNEIE; // allow Rx IRQ
     USART1->CR3 = USART_CR3_DMAT; // enable DMA Tx

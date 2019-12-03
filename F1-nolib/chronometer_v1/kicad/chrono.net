@@ -1,7 +1,7 @@
 (export (version D)
   (design
     (source /Big/Data/00__Electronics/STM32/F1-nolib/chronometer_v1/kicad/chrono.sch)
-    (date "Ср 23 окт 2019 21:44:20")
+    (date "Чт 21 ноя 2019 20:34:55")
     (tool "Eeschema 5.1.0")
     (sheet (number 1) (name /) (tstamps /)
       (title_block
@@ -210,7 +210,7 @@
       (sheetpath (names /) (tstamps /))
       (tstamp 5D79C13C))
     (comp (ref D2)
-      (value IN5819)
+      (value 1N5819)
       (footprint Diode_SMD:D_SOD-323)
       (datasheet ~)
       (libsource (lib Device) (part D_Schottky) (description "Schottky diode"))
@@ -504,7 +504,7 @@
       (sheetpath (names /) (tstamps /))
       (tstamp 5DC349EC))
     (comp (ref D6)
-      (value IN5819)
+      (value 1N5819)
       (footprint Diode_SMD:D_SOD-323)
       (datasheet ~)
       (libsource (lib Device) (part D_Schottky) (description "Schottky diode"))
