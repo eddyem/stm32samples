@@ -1,0 +1,16 @@
+#!/bin/bash
+
+function bits(){
+	Ans=""
+	for x in $(seq 7 -1 0); do
+		B=$((1<<$x))
+		if [ $(($1&$B)) -ne 0 ]; then Ans="${Ans}X"
+		else Ans="${Ans}_"
+		fi
+	done
+	echo $Ans
+}
+
+for x in $(seq 0 255); do
+	printf "#define $(bits $x)\t0x%02x\n" $x
+done
