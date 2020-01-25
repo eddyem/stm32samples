@@ -1,0 +1,4 @@
+Difference from previous version:
+- new code (some bugs fixed)
+- backspace (in USB input) used
+- USART3 (LIDAR) can be used as command TTY 

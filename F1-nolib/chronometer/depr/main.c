@@ -19,7 +19,7 @@
  * MA 02110-1301, USA.
  */
 
-#include "adc.h"
+//#include "adc.h"
 #include "GPS.h"
 #include "flash.h"
 #include "hardware.h"
@@ -71,33 +71,19 @@ void iwdg_setup(){
 #ifdef EBUG
 char *parse_cmd(char *buf){
     int32_t N;
-    static char btns[] = "BTN0=0, BTN1=0, BTN2=0, PPS=0\n";
-    event_log l = {.elog_sz = sizeof(event_log), .trigno = 2};
+    static char btns[] = "BTN0=0, BTN1=0, PPS=0\n";
     switch(*buf){
         case '0':
-            LED_off(); // LED0 off @dbg
+            LED_off();
         break;
         case '1':
-            LED_on(); // LED0 on @dbg
-        break;
-        case 'a':
-            l.shottime.Time = current_time;
-            l.shottime.millis = Timer;
-            l.triglen = getADCval(1);
-            if(store_log(&l)) SEND("Error storing");
-            else SEND("Store OK");
-            newline();
+            LED_on();
         break;
         case 'b':
-            btns[5] = gettrig(0) + '0';
-            btns[13] = gettrig(1) + '0';
-            btns[21] = gettrig(2) + '0';
-            btns[28] = GET_PPS() + '0';
+            btns[5] = GET_BTN0() + '0';
+            btns[13] = GET_BTN1() + '0';
+            btns[20] = GET_PPS() + '0';
             return btns;
-        break;
-        case 'c':
-            DBG("Send cold start");
-            GPS_send_FullColdStart();
         break;
         case 'C':
             if(getnum(&buf[1], &N)){
@@ -108,9 +94,6 @@ char *parse_cmd(char *buf){
         break;
         case 'd':
             dump_userconf();
-        break;
-        case 'D':
-            if(dump_log(0, -1)) DBG("Error dumping log: empty?");
         break;
         case 'p':
             pin_toggle(USBPU_port, USBPU_pin);
@@ -152,11 +135,8 @@ char *parse_cmd(char *buf){
             if(buf[1] != '\n') return buf;
             return
             "0/1 - turn on/off LED1\n"
-            "'a' - add test log record\n"
             "'b' - get buttons's state\n"
-            "'c' - send cold start\n"
             "'d' - dump current user conf\n"
-            "'D' - dump log\n"
             "'p' - toggle USB pullup\n"
             "'C' - store userconf for N times\n"
             "'G' - get last LIDAR distance\n"
@@ -172,203 +152,121 @@ char *parse_cmd(char *buf){
 }
 #endif
 
-#define USBBUF 63
 // usb getline
 static char *get_USB(){
-    static char tmpbuf[USBBUF+1], *curptr = tmpbuf;
-    static int rest = USBBUF;
+    static char tmpbuf[512], *curptr = tmpbuf;
+    static int rest = 511;
     int x = USB_receive(curptr, rest);
-    if(!x) return NULL;
     curptr[x] = 0;
-    USB_send(curptr); // echo
-    //USB_send("ENDOINPUT\n");
-//if(x == 1 && *curptr < 32){USB_send("\n"); USB_send(u2str(*curptr)); USB_send("\n");}
-    if(curptr[x-1] == '\n'){ // || curptr[x-1] == '\r'){
+    if(!x) return NULL;
+    if(curptr[x-1] == '\n'){
         curptr = tmpbuf;
-        rest = USBBUF;
-        // omit empty lines
-        if(tmpbuf[0] == '\n') return NULL;
-        // and wrong empty lines
-        if(tmpbuf[0] == '\r' && tmpbuf[1] == '\n') return NULL;
+        rest = 511;
         return tmpbuf;
     }
     curptr += x; rest -= x;
     if(rest <= 0){ // buffer overflow
-        //SEND("USB buffer overflow!\n");
+        SEND("USB buffer overflow!\n");
         curptr = tmpbuf;
-        rest = USBBUF;
+        rest = 511;
     }
     return NULL;
 }
-
-void linecoding_handler(usb_LineCoding __attribute__((unused)) *lc){ // get/set line coding
-#ifdef EBUG
-    SEND("Change speed to");
-    printu(1, lc->dwDTERate);
-    newline();
-#endif
-}
-
-
-static volatile uint8_t USBconn = 0;
-void clstate_handler(uint16_t __attribute__((unused)) val){ // lesser bits of val: RTS|DTR
-    USBconn = 1;
-#ifdef EBUG
-    if(val & 2){
-        DBG("RTS set");
-        USB_send("RTS set\n");
-    }
-    if(val & 1){
-        DBG("DTR set");
-        USB_send("DTR set\n");
-    }
-#endif
-}
-
-void break_handler(){ // client disconnected
-    DBG("Disconnected");
-}
-
-#ifdef EBUG
-extern int32_t ticksdiff, timecntr, timerval, Tms1;
-#endif
 
 int main(void){
     uint32_t lastT = 0;
     sysreset();
     StartHSE();
-    SysTick_Config(SYSTICK_DEFCONF); // function SysTick_Config decrements argument!
-    // !!! hw_setup() should be the first in setup stage
     hw_setup();
-    USB_setup();
-    USBPU_ON();
+    LED1_off();
+    USBPU_OFF();
     usarts_setup();
-#ifdef EBUG
-    SEND("This is chronometer version " VERSION ".\n");
+    SysTick_Config(SYSTICK_DEFCONF); // function SysTick_Config decrements argument!
+    SEND("Chronometer version " VERSION ".\n");
     if(RCC->CSR & RCC_CSR_IWDGRSTF){ // watchdog reset occured
         SEND("WDGRESET=1\n");
     }
     if(RCC->CSR & RCC_CSR_SFTRSTF){ // software reset occured
         SEND("SOFTRESET=1\n");
     }
-#endif
     RCC->CSR |= RCC_CSR_RMVF; // remove reset flags
-    // read data stored in flash
-    flashstorage_init();
+
+    USB_setup();
     iwdg_setup();
+    USBPU_ON();
+    // read data stored in flash
+#ifdef EBUG
+    SEND("Old config:\n");
+    dump_userconf();
+#endif
+    //writeatend();
+    get_userconf();
+#ifdef EBUG
+    SEND("New config:\n");
+    dump_userconf();
+#endif
 
     while (1){
         IWDG->KR = IWDG_REFRESH; // refresh watchdog
-        if(Timer > 499) LED_on(); // turn ON LED0 over 0.25s after PPS pulse
-        if(USBconn && Tms > 100){ // USB connection
-            USBconn = 0;
-            USB_send("Chronometer version " VERSION ".\n");
-        }
-        // check if triggers that was recently shot are off now
-        fillunshotms();
-        if(Tms - lastT > 499){
+        if(lastT > Tms || Tms - lastT > 499){
             if(need2startseq) GPS_send_start_seq();
-            IWDG->KR = IWDG_REFRESH;
-            switch(GPS_status){
-                case GPS_VALID:
-                    LED1_blink(); // blink LED1 @ VALID time
-                break;
-                case GPS_NOT_VALID:
-                    LED1_on(); // shine LED1 @ NON-VALID time
-                break;
-                default:
-                    LED1_off(); // turn off LED1 if GPS not found or time unknown
-            }
+            LED_blink();
+            if(GPS_status != GPS_VALID) LED1_blink();
+            else LED1_on();
             lastT = Tms;
-            /*if(usartrx(LIDAR_USART)){
+            if(usartrx(LIDAR_USART)){
                 char *txt;
                 if(usart_getline(LIDAR_USART, &txt)){
                     DBG("LIDAR:");
                     DBG(txt);
                 }
-            }*/
-            IWDG->KR = IWDG_REFRESH;
+            }
+#if defined EBUG || defined USART1PROXY
             transmit_tbuf(1); // non-blocking transmission of data from UART buffer every 0.5s
+#endif
             transmit_tbuf(GPS_USART);
             transmit_tbuf(LIDAR_USART);
-#ifdef EBUG
-            static uint8_t x = 1;
-            if(timecntr){
-                if(x){
-                    SEND("ticksdiff=");
-                    if(ticksdiff < 0){
-                        SEND("-");
-                        printu(1, -ticksdiff);
-                    }else printu(1, ticksdiff);
-                    SEND(", timecntr=");
-                    printu(1, timecntr);
-                    SEND("\nlast_corr_time=");
-                    printu(1, last_corr_time);
-                    SEND(", Tms=");
-                    printu(1, Tms1);
-                    SEND("\nTimer=");
-                    printu(1, timerval);
-                    SEND(", LOAD=");
-                    printu(1, SysTick->LOAD);
-                    newline();
-                }
-                x = !x;
-            }
-#endif
         }
-        IWDG->KR = IWDG_REFRESH;
         usb_proc();
-        IWDG->KR = IWDG_REFRESH;
         int r = 0;
-        char *txt = NULL;
+        char *txt;
         if((txt = get_USB())){
             DBG("Received data over USB:");
             DBG(txt);
-            if(parse_USBCMD(txt)){
-                USB_send("Bad command: ");
-                USB_send(txt);
-                USB_send("\n");
-            }
-            IWDG->KR = IWDG_REFRESH;
+            if(parse_USBCMD(txt))
+                USB_send(txt); // echo back non-commands data
         }
+#if defined EBUG || defined USART1PROXY
         if(usartrx(1)){ // usart1 received data, store in in buffer
             r = usart_getline(1, &txt);
             if(r){
                 txt[r] = 0;
 #ifdef EBUG
                 char *ans = parse_cmd(txt);
-                IWDG->KR = IWDG_REFRESH;
                 if(ans){
                     transmit_tbuf(1);
-                    IWDG->KR = IWDG_REFRESH;
                     usart_send(1, ans);
                     transmit_tbuf(1);
-                    IWDG->KR = IWDG_REFRESH;
                 }
+#else // USART1PROXY - send received data to GPS
+                usart_send(GPS_USART, txt);
 #endif
-                if(the_conf.defflags & FLAG_GPSPROXY){
-                    usart_send(GPS_USART, txt);
-                    IWDG->KR = IWDG_REFRESH;
-                }
             }
         }
+#endif
         if(usartrx(GPS_USART)){
-            IWDG->KR = IWDG_REFRESH;
             r = usart_getline(GPS_USART, &txt);
             if(r){
                 txt[r] = 0;
-                if(the_conf.defflags & FLAG_GPSPROXY) usart_send(1, txt);
                 GPS_parse_answer(txt);
             }
         }
         if(usartrx(LIDAR_USART)){
-            IWDG->KR = IWDG_REFRESH;
             r = usart_getline(LIDAR_USART, &txt);
             if(r){
                 parse_lidar_data(txt);
             }
         }
-        chk_buzzer(); // should we turn off buzzer?
     }
     return 0;
 }

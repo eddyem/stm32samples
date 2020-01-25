@@ -33,10 +33,10 @@
 
 uint8_t buzzer_on = 1; // buzzer ON by default
 uint8_t LEDSon = 1; // LEDS are working
-// ports of triggers
-static GPIO_TypeDef *trigport[DIGTRIG_AMOUNT] = {GPIOA, GPIOA, GPIOA};
-// pins of triggers: PA13, PA14, PA4
-static uint16_t trigpin[DIGTRIG_AMOUNT] = {1<<13, 1<<14, 1<<4};
+// ports of triggers: PB0, PB1, PB3
+static GPIO_TypeDef *trigport[DIGTRIG_AMOUNT] = {GPIOB, GPIOB, GPIOB};
+// pins of triggers: 0, 1, 3
+static uint16_t trigpin[DIGTRIG_AMOUNT] = {1<<0, 1<<1, 1<<3};
 // value of pin in `triggered` state
 static uint8_t trigstate[DIGTRIG_AMOUNT];
 // time of triggers shot
@@ -53,48 +53,52 @@ static inline void gpio_setup(){
     LED_on(); // turn ON LED0 @start
     LED1_off(); // turn off LED1 @start
     USBPU_OFF(); // turn off USB pullup @start
-    // Enable clocks to the GPIO subsystems (PB for ADC), turn on AFIO clocking to disable SWD/JTAG
+    // Enable clocks to the GPIO subsystems (PB for ADC), turn on AFIO clocking enable EXTI & so on
     RCC->APB2ENR |= RCC_APB2ENR_IOPAEN | RCC_APB2ENR_IOPBEN | RCC_APB2ENR_IOPCEN | RCC_APB2ENR_AFIOEN;
-    // turn off SWJ/JTAG
-    AFIO->MAPR = AFIO_MAPR_SWJ_CFG_DISABLE;
+    // turn off JTAG (PA15, PB3)
+    AFIO->MAPR = AFIO_MAPR_SWJ_CFG_JTAGDISABLE;
+//    AFIO->MAPR = AFIO_MAPR_SWJ_CFG_DISABLE;
     // pullups: PA1 - PPS, PA15 - USB pullup
-    GPIOA->ODR = (1<<12)|(1<<15);
-    // buzzer (PC13): pushpull output
-    GPIOC->CRH = CRH(13, CNF_PPOUTPUT|MODE_SLOW);
-    // Set leds (PB8) as opendrain output
-    GPIOB->CRH = CRH(8, CNF_ODOUTPUT|MODE_SLOW) | CRH(9, CNF_ODOUTPUT|MODE_SLOW);
+    GPIOA->ODR = (1<<1)|(1<<15);
     // PPS pin (PA1) - input with weak pullup
     GPIOA->CRL = CRL(1, CNF_PUDINPUT|MODE_INPUT);
+    EXTI->IMR = EXTI_IMR_MR1; // mask PA1
+    // interrupt on pulse front: buttons - 1->0, PPS - 0->1
+    EXTI->RTSR = EXTI_RTSR_TR1; // rising trigger for PPS
+    NVIC_EnableIRQ(EXTI1_IRQn); // enable PPS interrupt
     // Set USB pullup (PA15) - opendrain output
     GPIOA->CRH = CRH(15, CNF_ODOUTPUT|MODE_SLOW);
-    // ---------------------> config-depengent block, interrupts & pullup inputs:
-    GPIOA->CRH |= CRH(13, CNF_PUDINPUT|MODE_INPUT) | CRH(14, CNF_PUDINPUT|MODE_INPUT);
-    GPIOA->CRL |= CRL(4, CNF_PUDINPUT|MODE_INPUT);
-    // <---------------------
-    // EXTI: all three EXTI are on PA -> AFIO_EXTICRx = 0
-    // interrupt on pulse front: buttons - 1->0, PPS - 0->1
-    EXTI->IMR = EXTI_IMR_MR1;
-    EXTI->RTSR = EXTI_RTSR_TR1; // rising trigger
-    // PA4/PA13/PA14 - buttons
+    // Set leds (PB8/9) as opendrain output
+    GPIOB->CRH = CRH(8, CNF_ODOUTPUT|MODE_SLOW) | CRH(9, CNF_ODOUTPUT|MODE_SLOW);
+
+    /**************** Trigger inputs ******************/
+    GPIOB->CRL = CRL(0, CNF_PUDINPUT|MODE_INPUT) | CRL(1, CNF_PUDINPUT|MODE_INPUT) | CRL(3, CNF_PUDINPUT|MODE_INPUT);
+    // buzzer (PC13): pushpull output
+    GPIOC->CRH = CRH(13, CNF_PPOUTPUT|MODE_SLOW);
+    // exti: PB0, 3; PA1
+    AFIO->EXTICR[0] = AFIO_EXTICR1_EXTI0_PB | AFIO_EXTICR1_EXTI1_PA | AFIO_EXTICR1_EXTI3_PB;
+    // PB0/1/3 - triggers
     for(int i = 0; i < DIGTRIG_AMOUNT; ++i){
         uint16_t pin = trigpin[i];
+        if(pin == 1<<1) continue; // omit PB1
         // fill trigstate array
         uint8_t trgs = (the_conf.trigstate & (1<<i)) ? 1 : 0;
         trigstate[i] = trgs;
         trigport[i]->ODR |= pin; // turn on pullups
-        EXTI->IMR |= pin;
-        if(trgs){ // triggered @1 -> rising interrupt
-            EXTI->RTSR |= pin;
-        }else{ // falling interrupt
-            EXTI->FTSR |= pin;
+        if(i != 1){ // turn interrupts on
+            EXTI->IMR |= pin;
+            if(trgs){ // triggered @1 -> rising interrupt
+                EXTI->RTSR |= pin;
+            }else{ // falling interrupt
+                EXTI->FTSR |= pin;
+            }
         }
     }
     // ---------------------> config-depengent block, interrupts & pullup inputs:
     // !!! change AFIO_EXTICRx if some triggers not @GPIOA
-    NVIC_EnableIRQ(EXTI4_IRQn);
-    NVIC_EnableIRQ(EXTI15_10_IRQn);
+    NVIC_EnableIRQ(EXTI0_IRQn); // PB0
+    NVIC_EnableIRQ(EXTI3_IRQn); // PB3
     // <---------------------
-    NVIC_EnableIRQ(EXTI1_IRQn);
 }
 
 static inline void adc_setup(){
@@ -104,12 +108,12 @@ static inline void adc_setup(){
     RCC->APB2ENR |= RCC_APB2ENR_ADC1EN;
     RCC->CFGR &= ~(RCC_CFGR_ADCPRE);
     RCC->CFGR |= RCC_CFGR_ADCPRE_DIV8; // ADC clock = RCC / 8
-    // sampling time - 239.5 cycles for channels 8, 16 and 17
-    ADC1->SMPR2 = ADC_SMPR2_SMP8;
+    // sampling time - 239.5 cycles for channels 16 and 17
     ADC1->SMPR1 = ADC_SMPR1_SMP16 | ADC_SMPR1_SMP17;
-    // we have three conversions in group -> ADC1->SQR1[L] = 2, order: 8->16->17
-    ADC1->SQR3 = 8 | (16<<5) | (17<<10);
-    ADC1->SQR1 = ADC_SQR1_L_1;
+    // we have three conversions in group -> ADC1->SQR1[L] = 2, order: 16->17
+    // Tsens == 16, Vdd == 17
+    ADC1->SQR3 = (16<<0) | (17<<5);
+    ADC1->SQR1 = ADC_SQR1_L_0; // 2 conversions
     ADC1->CR1 |= ADC_CR1_SCAN; // scan mode
     // DMA configuration
     RCC->AHBENR |= RCC_AHBENR_DMA1EN;
@@ -134,12 +138,6 @@ static inline void adc_setup(){
 void hw_setup(){
     gpio_setup();
     adc_setup();
-}
-
-void exti1_isr(){ // PPS - PA1
-    systick_correction();
-    LED_off(); // turn off LED0 @ each PPS
-    EXTI->PR = EXTI_PR_PR1;
 }
 
 static trigtime trgtm;
@@ -177,11 +175,9 @@ void fillunshotms(){
             if(len > MAX_TRIG_LEN){
                 triglen[i] = -1;
                 rdy = 1;
-            }else triglen[i] = (uint16_t) len;
+            }else triglen[i] = (int16_t) len;
             if(i == LIDAR_TRIGGER){
                 if(!parse_lidar_data(NULL)) rdy = 1;
-            }else if(i == ADC_TRIGGER){
-                if(!chkADCtrigger()) rdy = 1;
             }else{
                 uint8_t pinval = (trigport[i]->IDR & trigpin[i]) ? 1 : 0;
                 if(pinval != trigstate[i]) rdy = 1; // trigger is OFF
@@ -195,22 +191,40 @@ void fillunshotms(){
     }
 }
 
-void exti4_isr(){ // PA4 - trigger[2]
+void exti0_isr(){ // PB0 - trig0
     savetrigtime();
-    fillshotms(2);
-    EXTI->PR = EXTI_PR_PR4;
+    fillshotms(0);
+    EXTI->PR = EXTI_PR_PR0;
 }
 
-void exti15_10_isr(){ // PA13 - trigger[0], PA14 - trigger[1]
+void exti1_isr(){ // PPS - PA1
+    systick_correction();
+    LED_off(); // turn off LED0 @ each PPS
+    EXTI->PR = EXTI_PR_PR1;
+}
+
+void chkTrig1(){
+    // ================> HARD HARDWARE DEPENDENT: PB1 trigger
+    static uint8_t oldstate = 0;
+    uint8_t curstate = GPIOB->IDR & 2;
+    if(Tms < 100){ // don't mind for first 100ms
+        oldstate = curstate;
+        return;
+    }
+    if(curstate == oldstate){ // state didn't changed
+        return;
+    }
+    oldstate = curstate;
+    if(curstate != (the_conf.trigstate & 2)) return; // relax from trigger
     savetrigtime();
-    if(EXTI->PR & EXTI_PR_PR13){
-        fillshotms(0);
-        EXTI->PR = EXTI_PR_PR13;
-    }
-    if(EXTI->PR & EXTI_PR_PR14){
-        fillshotms(1);
-        EXTI->PR = EXTI_PR_PR14;
-    }
+    fillshotms(1);
+    // <================
+}
+
+void exti3_isr(){ // PB3 - trig2
+    savetrigtime();
+    fillshotms(2);
+    EXTI->PR = EXTI_PR_PR3;
 }
 
 #ifdef EBUG
