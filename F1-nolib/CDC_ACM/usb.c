@@ -57,12 +57,7 @@ static uint16_t EP23_Handler(ep_t ep){
                 return ep.status;
             }
         }
-        // end of transaction: clear DTOGs
-        //ep.status = CLEAR_DTOG_RX(ep.status);
-        //ep.status = CLEAR_DTOG_TX(ep.status);
-        //ep.status = SET_STALL_TX(ep.status);
     }else if (ep.tx_flag){
-        //ep.status = KEEP_STAT_TX(ep.status);
         tx_succesfull = 1;
     }
     ep.status = SET_VALID_RX(ep.status);
@@ -93,19 +88,24 @@ void usb_proc(){
             EP_Init(2, EP_TYPE_BULK, 0, USB_RXBUFSZ, EP23_Handler); // OUT2 - receive data
             EP_Init(3, EP_TYPE_BULK, USB_TXBUFSZ, 0, EP23_Handler); // IN3 - transmit data
             USB_Dev.USB_Status = USB_STATE_CONNECTED;
+            DBG("Connected");
         break;
         case USB_STATE_DEFAULT:
         case USB_STATE_ADDRESSED:
-            usbON = 0;
+            if(usbON){
+                DBG("def/adr");
+                usbON = 0;
+            }
         default:
             return;
     }
 }
 
 void USB_send(const char *buf){
-    if(!usbON) return;
+    if(!usbON) return; // USB disconnected
     uint16_t l = 0, ctr = 0;
     const char *p = buf;
+    //SEND("buf: "); SEND(buf); newline();
     while(*p++) ++l;
     while(l){
         uint16_t s = (l > USB_TXBUFSZ) ? USB_TXBUFSZ : l;
@@ -115,7 +115,7 @@ void USB_send(const char *buf){
         while(--ctra && tx_succesfull == 0){
             IWDG->KR = IWDG_REFRESH;
         }
-        if(tx_succesfull == 0){usbON = 0; DBG("USB transfer error"); return;} // usb is OFF?
+        if(tx_succesfull == 0){usbON = 0; DBG("USB disconnected"); return;} // usb is OFF?
         l -= s;
         ctr += s;
     }
@@ -128,7 +128,7 @@ void USB_send(const char *buf){
  * @return amount of received bytes
  */
 int USB_receive(char *buf, int bufsize){
-    if(!bufsize || !idatalen) return 0;
+    if(bufsize < 1 || !idatalen) return 0;
     uint32_t oldcntr = USB->CNTR;
     USB->CNTR = 0;
     int sz = (idatalen > bufsize) ? bufsize : idatalen, rest = idatalen - sz;
@@ -149,10 +149,3 @@ int USB_receive(char *buf, int bufsize){
     return sz;
 }
 
-/**
- * @brief USB_configured
- * @return 1 if USB is in configured state
- */
-int USB_connected(){
-    return usbON;
-}

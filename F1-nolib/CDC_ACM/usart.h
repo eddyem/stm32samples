@@ -36,6 +36,7 @@
 
 #ifdef EBUG
 #define DBG(str)  do{SEND(__func__); SEND(": " str); newline();}while(0)
+#define MSG(str)    do{SEND(str); newline();}while(0)
 #else
 #define MSG(str)
 #define DBG(str)

@@ -129,6 +129,21 @@ void break_handler(){
     br = 1;
 }
 
+char *u2str(uint32_t val){
+    static char strbuf[11];
+    char *bufptr = &strbuf[10];
+    *bufptr = 0;
+    if(!val){
+        *(--bufptr) = '0';
+    }else{
+        while(val){
+            *(--bufptr) = val % 10 + '0';
+            val /= 10;
+        }
+    }
+    return bufptr;
+}
+
 int main(void){
     uint32_t lastT = 0, Tp = 499;
     sysreset();
@@ -150,15 +165,22 @@ int main(void){
     iwdg_setup();
     USBPU_ON();
 
+    uint32_t ctr = 0;
     while (1){
         IWDG->KR = IWDG_REFRESH; // refresh watchdog
         if(lastT > Tms || Tms - lastT > Tp){
             LED_blink(LED0);
             lastT = Tms;
-            USB_send("Hello!\n");
+            if(usbON){
+                USB_send("String #");
+                char *s = u2str(ctr++);
+                //SEND(s); SEND("th string"); newline();
+                USB_send(s);
+                USB_send("\n");
+            }
         }
         usb_proc();
-        if(USB_connected()) Tp = 999;
+        if(usbON) Tp = 999;
         else Tp = 499;
         char *txt, *ans;
         if((txt = get_USB())){

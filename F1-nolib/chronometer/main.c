@@ -241,6 +241,7 @@ int main(void){
     // !!! hw_setup() should be the first in setup stage
     hw_setup();
     USB_setup();
+    flashstorage_init();
     USBPU_ON();
     usarts_setup();
 #ifdef EBUG
@@ -254,7 +255,6 @@ int main(void){
 #endif
     RCC->CSR |= RCC_CSR_RMVF; // remove reset flags
     // read data stored in flash
-    flashstorage_init();
     iwdg_setup();
 
     while (1){

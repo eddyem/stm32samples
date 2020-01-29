@@ -1,3 +1,5 @@
+# make debug adds -DEBUG -Werror
+# make ADDEFS="additional defs"
 BINARY		= cdcacm
 BOOTPORT	?= /dev/ttyUSB0
 BOOTSPEED	?= 115200
@@ -9,10 +11,10 @@ MCU			?= F103x8
 DENSITY 	?= MD
 # change this linking script depending on particular MCU model,
 LDSCRIPT	?= stm32f103x8.ld
-# debug
-#DEFS		= -DEBUG
-
-INDEPENDENT_HEADERS=
+DEFS		= ${ADDEFS} -DVERSION=\"0.0.1\"
+TARGET := RELEASE
+# proxy GPS output over USART1
+#DEFS += -DUSART1PROXY
 
 FP_FLAGS	?= -msoft-float -mfloat-abi=soft
 ASM_FLAGS	?= -mthumb -mcpu=cortex-m3 -mfix-cortex-m3-ldrd
@@ -57,13 +59,13 @@ LIB_DIR		:= $(INC_DIR)/ld
 ###############################################################################
 # C flags
 CFLAGS		+= -O2 -g -D__thumb2__=1 -MD
-CFLAGS		+= -Wall -Werror -Wextra -Wshadow 
+CFLAGS		+= -Wall -Wextra -Wshadow 
 CFLAGS		+= -fno-common -ffunction-sections -fdata-sections -fno-stack-protector
 CFLAGS		+=  $(ARCH_FLAGS)
 
 ###############################################################################
 # Linker flags
-LDFLAGS		+= -nostartfiles --static -nostdlibs 
+LDFLAGS		+= --static -nostartfiles -nostdlibs 
 LDFLAGS		+= -L$(LIB_DIR) -L$(TOOLCHLIB)
 LDFLAGS		+= -T$(LDSCRIPT)
 
@@ -71,14 +73,31 @@ LDFLAGS		+= -T$(LDSCRIPT)
 # Used libraries
 LDLIBS		+=  -lc $(shell $(CC) $(CFLAGS) -print-libgcc-file-name)
 
-PLATFRM		?= -DSTM32$(FAMILY) -DSTM32$(MCU) -DSTM32F10X_$(DENSITY)
+DEFS		+= -DSTM32$(FAMILY) -DSTM32$(MCU) -DSTM32F10X_$(DENSITY)
 
 ELF		:= $(OBJDIR)/$(BINARY).elf
 LIST	:= $(OBJDIR)/$(BINARY).list
 BIN		:= $(BINARY).bin
 HEX		:= $(BINARY).hex
 
-all: bin list size
+all: $(OBJDIR)/RELEASE bin list size
+release: all
+
+debug: CFLAGS += -DEBUG -Werror
+debug: $(OBJDIR)/DEBUG bin list size
+
+$(OBJDIR)/DEBUG: 
+	@rm -rf $(OBJDIR)
+	@mkdir $(OBJDIR)
+	@> $(OBJDIR)/DEBUG
+	@echo "TARGET: DEBUG"
+	echo "CFLAGS += -DEBUG -Werror" > $(OBJDIR)/CFLAGS
+$(OBJDIR)/RELEASE:
+	@rm -rf $(OBJDIR)
+	@mkdir $(OBJDIR)
+	@> $(OBJDIR)/RELEASE
+	@echo "TARGET: RELEASE"
+	echo "" > $(OBJDIR)/CFLAGS
 
 elf: $(ELF)
 bin: $(BIN)
@@ -87,17 +106,18 @@ list: $(LIST)
 
 ifneq ($(MAKECMDGOALS),clean)
 -include $(DEPS)
+-include $(OBJDIR)/CFLAGS
 endif
 
 $(OBJDIR):
 	mkdir $(OBJDIR)
 
 $(STARTUP): $(INC_DIR)/startup/vector.c
-	$(CC) $(CFLAGS) $(DEFS) $(PLATFRM) $(INCLUDE) -o $@ -c $<
+	$(CC) $(CFLAGS) $(DEFS) $(INCLUDE) -o $@ -c $<
 
 $(OBJDIR)/%.o: %.c
 	@echo "  CC      $<"
-	$(CC) $(CFLAGS) $(DEFS) $(PLATFRM) $(INCLUDE) -o $@ -c $<
+	$(CC) $(CFLAGS) $(DEFS) $(INCLUDE) -o $@ -c $<
 
 $(BIN): $(ELF)
 	@echo "  OBJCOPY $(BIN)"
@@ -111,7 +131,7 @@ $(LIST): $(ELF)
 	@echo "  OBJDUMP $(LIST)"
 	$(OBJDUMP) -S $(ELF) > $(LIST)
 
-$(ELF): $(OBJDIR) $(OBJS)
+$(ELF): $(OBJDIR) $(OBJS) 
 	@echo "  LD      $(ELF)"
 	$(LD) $(LDFLAGS) $(OBJS) $(LDLIBS) -o $(ELF)
 
@@ -120,13 +140,13 @@ size: $(ELF)
 
 clean:
 	@echo "  CLEAN"
-	$(RM) $(OBJS) $(DEPS) $(ELF) $(HEX) $(LIST)
-	@rmdir $(OBJDIR) 2>/dev/null || true
+	@$(RM) $(HEX)
+	@$(RM) -rf $(OBJDIR) 2>/dev/null || true
 
 
 flash: $(BIN)
 	@echo "  FLASH  $(BIN)"
-	$(STFLASH) write $(BIN) 0x8000000
+	$(STFLASH) --reset write $(BIN) 0x8000000
 
 boot: $(BIN)
 	@echo "  LOAD $(BIN) through bootloader"

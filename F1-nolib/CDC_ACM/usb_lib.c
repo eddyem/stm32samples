@@ -32,6 +32,7 @@ static usb_LineCoding lineCoding = {115200, 0, 0, 8};
 config_pack_t setup_packet;
 static uint8_t ep0databuf[EP0DATABUF_SIZE];
 static uint8_t ep0dbuflen = 0;
+uint8_t USB_connected = 0;
 
 usb_LineCoding getLineCoding(){return lineCoding;}
 
@@ -187,14 +188,17 @@ USB_STRING(USB_StringProdDescriptor, u"USB-Serial Controller");
  */
 // SET_LINE_CODING
 void WEAK linecoding_handler(usb_LineCoding __attribute__((unused)) *lcd){
+    MSG("linecoding_handler()");
 }
 
 // SET_CONTROL_LINE_STATE
 void WEAK clstate_handler(uint16_t __attribute__((unused)) val){
+    MSG("clstate_handler()");
 }
 
 // SEND_BREAK
 void WEAK break_handler(){
+    MSG("break_handler()");
 }
 
 static uint16_t wr0(const uint8_t *buf, uint16_t size, uint16_t status){
@@ -339,12 +343,14 @@ static uint16_t EP0_Handler(ep_t ep){
                         EP_WriteIRQ(0, (uint8_t*)&lineCoding, sizeof(lineCoding));
                     break;
                     case SET_LINE_CODING: // omit this for next stage, when data will come
+                        usbON = 1;
                     break;
                     case SET_CONTROL_LINE_STATE:
                         usbON = 1;
                         clstate_handler(setup_packet.wValue);
                     break;
                     case SEND_BREAK:
+                        usbON = 0;
                         break_handler();
                     break;
                     default:
@@ -431,6 +437,7 @@ int EP_Init(uint8_t number, uint8_t type, uint16_t txsz, uint16_t rxsz, uint16_t
 void usb_lp_can_rx0_isr(){
     if (USB->ISTR & USB_ISTR_RESET){
         usbON = 0;
+        USB_connected = 0;
         // Reinit registers
         USB->CNTR = USB_CNTR_RESETM | USB_CNTR_CTRM | USB_CNTR_SUSPM;
         // Endpoint 0 - CONTROL
