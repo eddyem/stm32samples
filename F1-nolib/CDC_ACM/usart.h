@@ -25,7 +25,7 @@
 
 // input and output buffers size
 #define UARTBUFSZI  (16)
-#define UARTBUFSZO  (32)
+#define UARTBUFSZO  (512)
 // timeout between data bytes
 #ifndef TIMEOUT_MS
 #define TIMEOUT_MS (1500)
@@ -33,19 +33,23 @@
 
 // macro for static strings
 #define SEND(str) usart_send(str)
+#define _s(s)   #s
+#define STR(s)  _s(s)
 
 #ifdef EBUG
-#define DBG(str)  do{SEND(__func__); SEND(": " str); newline();}while(0)
-#define MSG(str)    do{SEND(str); newline();}while(0)
+#define DBG(str)  do{SEND(__FILE__ " (L" STR(__LINE__) "): " str); newline();}while(0)
+#define HERE()    do{SEND(STR(__LINE__)); usart_putchar('\n');}while(0)
+#define MSG(str)  do{SEND(str); usart_putchar('\n');}while(0)
 #else
 #define MSG(str)
+#define HERE()
 #define DBG(str)
 #endif
 
 #define usartrx()  (linerdy)
 #define usartovr() (bufovr)
 
-extern volatile int linerdy, bufovr, txrdy;
+extern int linerdy, bufovr, txrdy;
 
 void transmit_tbuf();
 void usart_setup();

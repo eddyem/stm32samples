@@ -105,7 +105,6 @@ void USB_send(const char *buf){
     if(!usbON) return; // USB disconnected
     uint16_t l = 0, ctr = 0;
     const char *p = buf;
-    //SEND("buf: "); SEND(buf); newline();
     while(*p++) ++l;
     while(l){
         uint16_t s = (l > USB_TXBUFSZ) ? USB_TXBUFSZ : l;

@@ -19,20 +19,23 @@
  * MA 02110-1301, USA.
  */
 #include "stm32f1.h"
+#include "sync.h"
 #include "usart.h"
 
 extern volatile uint32_t Tms;
 static volatile int idatalen[2] = {0,0}; // received data line length (including '\n')
 static volatile int odatalen[2] = {0,0};
 
-volatile int linerdy = 0,        // received data ready
-    dlen = 0,           // length of data (including '\n') in current buffer
+static int dlen = 0; // length of data (including '\n') in current buffer
+
+int linerdy = 0,        // received data ready
     bufovr = 0,         // input buffer overfull
     txrdy = 1           // transmission done
 ;
 
+static mutex_t the_mutex = MUTEX_UNLOCKED; // mutex for sending messages
 
-int rbufno = 0, tbufno = 0; // current rbuf/tbuf numbers
+static int rbufno = 0, tbufno = 0; // current rbuf/tbuf numbers
 static char rbuf[2][UARTBUFSZI], tbuf[2][UARTBUFSZO]; // receive & transmit buffers
 static char *recvdata = NULL;
 
@@ -52,13 +55,20 @@ int usart_getline(char **line){
 
 // transmit current tbuf and swap buffers
 void transmit_tbuf(){
-    uint32_t tmout = 16000000;
+    uint32_t tmout = 160000;
+    mutex_lock(&the_mutex);
     while(!txrdy){ // wait for previos buffer transmission
         IWDG->KR = IWDG_REFRESH;
-        if(--tmout == 0) return;
+        if(--tmout == 0){
+            mutex_unlock(&the_mutex);
+            return;
+        }
     }
     register int l = odatalen[tbufno];
-    if(!l) return;
+    if(!l){
+        mutex_unlock(&the_mutex);
+        return;
+    }
     txrdy = 0;
     odatalen[tbufno] = 0;
     DMA1_Channel4->CCR &= ~DMA_CCR_EN;
@@ -66,24 +76,39 @@ void transmit_tbuf(){
     DMA1_Channel4->CNDTR = l;
     DMA1_Channel4->CCR |= DMA_CCR_EN;
     tbufno = !tbufno;
+    mutex_unlock(&the_mutex);
 }
 
 void usart_putchar(const char ch){
-    if(odatalen[tbufno] == UARTBUFSZO) transmit_tbuf();
+    mutex_lock(&the_mutex);
+    if(odatalen[tbufno] == UARTBUFSZO){
+        mutex_unlock(&the_mutex);
+        //return;
+        transmit_tbuf();
+        mutex_lock(&the_mutex);
+    }
     tbuf[tbufno][odatalen[tbufno]++] = ch;
+    mutex_unlock(&the_mutex);
 }
 
 void usart_send(const char *str){
     uint32_t x = 512;
+    mutex_lock(&the_mutex);
     while(*str && --x){
-        if(odatalen[tbufno] == UARTBUFSZO) transmit_tbuf();
+        if(odatalen[tbufno] == UARTBUFSZO){
+            mutex_unlock(&the_mutex);
+            //return;
+            transmit_tbuf();
+            mutex_lock(&the_mutex);
+        }
         tbuf[tbufno][odatalen[tbufno]++] = *str++;
     }
+    mutex_unlock(&the_mutex);
 }
 
 void newline(){
     usart_putchar('\n');
-    transmit_tbuf();
+    //transmit_tbuf();
 }
 
 
@@ -110,7 +135,8 @@ void usart_setup(){
     NVIC_EnableIRQ(DMA1_Channel4_IRQn);
     NVIC_SetPriority(USART1_IRQn, 0);
     // setup usart1
-    USART1->BRR = 72000000 / 115200;
+    //USART1->BRR = 72000000 / 115200;
+    USART1->BRR = 24; // 3000000
     USART1->CR1 = USART_CR1_TE | USART_CR1_RE | USART_CR1_UE; // 1start,8data,nstop; enable Rx,Tx,USART
     while(!(USART1->SR & USART_SR_TC)){ // polling idle frame Transmission
         IWDG->KR = IWDG_REFRESH;

@@ -102,6 +102,7 @@ char *get_USB(){
     int x = USB_receive(curptr, rest);
     curptr[x] = 0;
     if(!x) return NULL;
+    MSG(tmpbuf);
     if(curptr[x-1] == '\n'){
         curptr = tmpbuf;
         rest = 511;
@@ -145,7 +146,7 @@ char *u2str(uint32_t val){
 }
 
 int main(void){
-    uint32_t lastT = 0, Tp = 499;
+    uint32_t lastT = 0;
     sysreset();
     StartHSE();
     SysTick_Config(72000);
@@ -162,26 +163,25 @@ int main(void){
     RCC->CSR |= RCC_CSR_RMVF; // remove reset flags
 
     USB_setup();
-    iwdg_setup();
+    //iwdg_setup();
     USBPU_ON();
 
-    uint32_t ctr = 0;
+    //uint32_t ctr = 0;
     while (1){
         IWDG->KR = IWDG_REFRESH; // refresh watchdog
-        if(lastT > Tms || Tms - lastT > Tp){
+        if(Tms - lastT > 499){
             LED_blink(LED0);
             lastT = Tms;
+            transmit_tbuf();
+/*
             if(usbON){
                 USB_send("String #");
                 char *s = u2str(ctr++);
-                //SEND(s); SEND("th string"); newline();
                 USB_send(s);
                 USB_send("\n");
-            }
+            }*/
         }
         usb_proc();
-        if(usbON) Tp = 999;
-        else Tp = 499;
         char *txt, *ans;
         if((txt = get_USB())){
             ans = parse_cmd(txt);

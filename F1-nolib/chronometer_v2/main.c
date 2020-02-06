@@ -242,6 +242,8 @@ int main(void){
     sysreset();
     StartHSE();
     SysTick_Config(SYSTICK_DEFCONF); // function SysTick_Config decrements argument!
+    // read data stored in flash - before all pins/ports setup!!!
+    flashstorage_init();
     // !!! hw_setup() should be the first in setup stage
     hw_setup();
     USB_setup();
@@ -256,8 +258,6 @@ int main(void){
     }
 #endif
     RCC->CSR |= RCC_CSR_RMVF; // remove reset flags
-    // read data stored in flash
-    flashstorage_init();
     usarts_setup(); // setup usarts after reading configuration
     iwdg_setup();
 
