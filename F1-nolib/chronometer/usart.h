@@ -22,15 +22,22 @@
 
 #include <stm32f1.h>
 
-// input and output buffers size
+// input and output buffers size (should be less than 256!!!)
 #define UARTBUFSZ   (128)
 // timeout between data bytes
 #ifndef TIMEOUT_MS
 #define TIMEOUT_MS (1500)
 #endif
 
+// number of last USART used
+#define USART_LAST     3
+
 // USART1 default speed
 #define USART1_DEFAULT_SPEED    (115200)
+// LIDAR default speed
+#define LIDAR_DEFAULT_SPEED     (115200)
+// GPS default speed
+#define GPS_DEFAULT_SPEED       (9600)
 
 #define STR_HELPER(s)   #s
 #define STR(s)          STR_HELPER(s)
@@ -38,7 +45,7 @@
 #ifdef EBUG
 #define SEND(str) usart_send(1, str)
 #define MSG(str)  do{SEND(__FILE__ " (L" STR(__LINE__) "): " str);}while(0)
-#define DBG(str)  do{SEND(str); newline(); }while(0)
+#define DBG(str)  do{SEND(str); newline(1); }while(0)
 #else
 #define SEND(str)
 #define MSG(str)
@@ -48,19 +55,17 @@
 #define usartrx(n)  (linerdy[n])
 #define usartovr(n) (bufovr[n])
 
-extern volatile int linerdy[], bufovr[], txrdy[];
+extern volatile uint8_t linerdy[], bufovr[], txrdy[];
 
-void transmit_tbuf(int n);
+void transmit_tbuf(uint8_t n);
 void usarts_setup();
 int usart_getline(int n, char **line);
-void usart_send(int n, const char *str);
-void usart_putchar(int n, char ch);
-void printu(int n, uint32_t val);
-void printuhex(int n, uint32_t val);
+void usart_send(uint8_t n, const char *str);
+void usart_putchar(uint8_t n, char ch);
+void printu(uint8_t n, uint32_t val);
+void printuhex(uint8_t n, uint32_t val);
+void newline(uint8_t n);
 
-#if defined EBUG || defined USART1PROXY
-void newline();
-#endif
 #ifdef EBUG
 void hexdump(uint8_t *arr, uint16_t len);
 #endif

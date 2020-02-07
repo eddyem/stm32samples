@@ -43,6 +43,10 @@ typedef struct{
     uint8_t S;
 } curtime;
 
+#ifdef EBUG
+extern int32_t ticksdiff, timecntr;
+extern uint32_t timerval, Tms1;
+#endif
 extern volatile uint32_t Tms;
 extern volatile uint32_t Timer;
 extern curtime current_time;

@@ -36,8 +36,8 @@ uint16_t ADC_array[NUMBER_OF_ADC_CHANNELS*9];
 uint16_t getADCval(int nch){
     int i, addr = nch;
     register uint16_t temp;
-#define PIX_SORT(a,b) { if ((a)>(b)) PIX_SWAP((a),(b)); }
-#define PIX_SWAP(a,b) { temp=(a);(a)=(b);(b)=temp; }
+#define PIX_SORT(a,b) do{ if ((a)>(b)) PIX_SWAP((a),(b)); }while(0)
+#define PIX_SWAP(a,b) do{ temp=(a);(a)=(b);(b)=temp; }while(0)
     uint16_t p[9];
     for(i = 0; i < 9; ++i, addr += NUMBER_OF_ADC_CHANNELS) // first we should prepare array for optmed
         p[i] = ADC_array[addr];
@@ -57,8 +57,8 @@ uint16_t getADCval(int nch){
 int32_t getMCUtemp(){
     // Temp = (V25 - Vsense)/Avg_Slope + 25
     // V_25 = 1.45V,  Slope = 4.3e-3
-    int32_t Vsense = getVdd() * getADCval(1);
-    int32_t temperature = 593920 - Vsense; // 593920 == 145*4096
+    uint32_t Vsense = getVdd() * getADCval(ADC_TMCU_CHANNEL);
+    int32_t temperature = 593920 - (int32_t)Vsense; // 593920 == 145*4096
     temperature /= 172; // == /(4096*10*4.3e-3), 10 - to convert from *100 to *10
     temperature += 250;
     return(temperature);
@@ -67,27 +67,6 @@ int32_t getMCUtemp(){
 // return Vdd * 100 (V)
 uint32_t getVdd(){
     uint32_t vdd = 120 * 4096; // 1.2V
-    vdd /= getADCval(2);
+    vdd /= getADCval(ADC_VDD_CHANNEL);
     return vdd;
-}
-
-/**
- * @brief chkADCtrigger - check ADC trigger state
- * @return value of `triggered`
- */
-uint8_t chkADCtrigger(){
-    static uint8_t triggered = 0;
-    savetrigtime();
-    int16_t val = getADCval(0);
-    if(triggered){ // check untriggered action
-        if(val < (int16_t)the_conf.ADC_min - ADC_THRESHOLD || val > (int16_t)the_conf.ADC_max + ADC_THRESHOLD){
-            triggered = 0;
-        }
-    }else{ // check if thigger shot
-        if(val > (int16_t)the_conf.ADC_min + ADC_THRESHOLD && val < (int16_t)the_conf.ADC_max - ADC_THRESHOLD){
-            triggered = 1;
-            fillshotms(ADC_TRIGGER);
-        }
-    }
-    return triggered;
 }

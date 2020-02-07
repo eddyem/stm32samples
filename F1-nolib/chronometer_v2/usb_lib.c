@@ -227,20 +227,20 @@ static uint16_t EP0_Handler(ep_t ep){
                     std_h2d_req();
                     EP_WriteIRQ(0, (uint8_t *)0, 0);
                 }
-                epstatus = SET_NAK_RX(epstatus);
-                epstatus = SET_VALID_TX(epstatus);
+                //epstatus = SET_NAK_RX(epstatus);
+                //epstatus = SET_VALID_TX(epstatus);
             break;
             case STANDARD_ENDPOINT_REQUEST_TYPE: // standard endpoint request
                 if(setup_packet.bRequest == CLEAR_FEATURE){
                     EP_WriteIRQ(0, (uint8_t *)0, 0);
-                    epstatus = SET_NAK_RX(epstatus);
-                    epstatus = SET_VALID_TX(epstatus);
+                    //epstatus = SET_NAK_RX(epstatus);
+                    //epstatus = SET_VALID_TX(epstatus);
                 }
             break;
             case VENDOR_REQUEST_TYPE:
                 vendor_handler(&setup_packet);
-                epstatus = SET_NAK_RX(epstatus);
-                epstatus = SET_VALID_TX(epstatus);
+                //epstatus = SET_NAK_RX(epstatus);
+                //epstatus = SET_VALID_TX(epstatus);
             break;
             case CONTROL_REQUEST_TYPE:
                 switch(setup_packet.bRequest){
@@ -262,13 +262,13 @@ static uint16_t EP0_Handler(ep_t ep){
                 //if(!dev2host)
                 if(setup_packet.bRequest != GET_LINE_CODING)
                     EP_WriteIRQ(0, (uint8_t *)0, 0); // write acknowledgement
-                epstatus = SET_VALID_RX(epstatus);
-                epstatus = SET_VALID_TX(epstatus);
+                //epstatus = SET_VALID_RX(epstatus);
+                //epstatus = SET_VALID_TX(epstatus);
             break;
             default:
                 EP_WriteIRQ(0, (uint8_t *)0, 0);
-                epstatus = SET_NAK_RX(epstatus);
-                epstatus = SET_VALID_TX(epstatus);
+                //epstatus = SET_NAK_RX(epstatus);
+                //epstatus = SET_VALID_TX(epstatus);
         }
     }else if (ep.rx_flag){ // got data over EP0 or host acknowlegement
         if(ep.rx_cnt){
@@ -278,8 +278,8 @@ static uint16_t EP0_Handler(ep_t ep){
             }
         }
         // wait for new data from host
-        epstatus = SET_VALID_RX(epstatus);
-        epstatus = SET_VALID_TX(epstatus);
+        //epstatus = SET_VALID_RX(epstatus);
+        //epstatus = SET_VALID_TX(epstatus);
     } else if (ep.tx_flag){ // package transmitted
         // now we can change address after enumeration
         if ((USB->DADDR & USB_DADDR_ADD) != USB_Dev.USB_Addr){
@@ -290,9 +290,11 @@ static uint16_t EP0_Handler(ep_t ep){
         // end of transaction
         epstatus = CLEAR_DTOG_RX(epstatus);
         epstatus = CLEAR_DTOG_TX(epstatus);
-        epstatus = SET_VALID_RX(epstatus);
-        epstatus = SET_VALID_TX(epstatus);
+        //epstatus = SET_VALID_RX(epstatus);
+        //epstatus = SET_VALID_TX(epstatus);
     }
+    epstatus = SET_VALID_RX(epstatus);
+    epstatus = SET_VALID_TX(epstatus);
     return epstatus;
 }
 

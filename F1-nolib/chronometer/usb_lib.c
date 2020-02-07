@@ -29,7 +29,7 @@ ep_t endpoints[STM32ENDPOINTS];
 
 static usb_dev_t USB_Dev;
 static usb_LineCoding lineCoding = {115200, 0, 0, 8};
-config_pack_t setup_packet;
+static config_pack_t setup_packet;
 static uint8_t ep0databuf[EP0DATABUF_SIZE];
 static uint8_t ep0dbuflen = 0;
 
@@ -136,44 +136,6 @@ _USB_STRING_(USB_StringSerialDescriptor, u"0");
 _USB_STRING_(USB_StringManufacturingDescriptor, u"Prolific Technology Inc.");
 _USB_STRING_(USB_StringProdDescriptor, u"USB-Serial Controller");
 
-/*
- * default handlers
- */
-// SET_LINE_CODING
-void WEAK linecoding_handler(usb_LineCoding __attribute__((unused)) *lc){
-}
-
-// SET_CONTROL_LINE_STATE
-void WEAK clstate_handler(uint16_t __attribute__((unused)) val){
-}
-
-// SEND_BREAK
-void WEAK break_handler(){
-}
-
-// handler of vendor requests
-void WEAK vendor_handler(config_pack_t *packet){
-    if(packet->bmRequestType & 0x80){ // read
-        uint8_t c;
-        switch(packet->wValue){
-            case 0x8484:
-                c = 2;
-            break;
-            case 0x0080:
-                c = 1;
-            break;
-            case 0x8686:
-                c = 0xaa;
-            break;
-            default:
-                c = 0;
-        }
-        EP_WriteIRQ(0, &c, 1);
-    }else{ // write ZLP
-        EP_WriteIRQ(0, (uint8_t *)0, 0);
-    }
-}
-
 static void wr0(const uint8_t *buf, uint16_t size){
     if(setup_packet.wLength < size) size = setup_packet.wLength;
     EP_WriteIRQ(0, buf, size);
@@ -265,20 +227,20 @@ static uint16_t EP0_Handler(ep_t ep){
                     std_h2d_req();
                     EP_WriteIRQ(0, (uint8_t *)0, 0);
                 }
-                epstatus = SET_NAK_RX(epstatus);
-                epstatus = SET_VALID_TX(epstatus);
+                //epstatus = SET_NAK_RX(epstatus);
+                //epstatus = SET_VALID_TX(epstatus);
             break;
             case STANDARD_ENDPOINT_REQUEST_TYPE: // standard endpoint request
                 if(setup_packet.bRequest == CLEAR_FEATURE){
                     EP_WriteIRQ(0, (uint8_t *)0, 0);
-                    epstatus = SET_NAK_RX(epstatus);
-                    epstatus = SET_VALID_TX(epstatus);
+                    //epstatus = SET_NAK_RX(epstatus);
+                    //epstatus = SET_VALID_TX(epstatus);
                 }
             break;
             case VENDOR_REQUEST_TYPE:
                 vendor_handler(&setup_packet);
-                epstatus = SET_NAK_RX(epstatus);
-                epstatus = SET_VALID_TX(epstatus);
+                //epstatus = SET_NAK_RX(epstatus);
+                //epstatus = SET_VALID_TX(epstatus);
             break;
             case CONTROL_REQUEST_TYPE:
                 switch(setup_packet.bRequest){
@@ -300,13 +262,13 @@ static uint16_t EP0_Handler(ep_t ep){
                 //if(!dev2host)
                 if(setup_packet.bRequest != GET_LINE_CODING)
                     EP_WriteIRQ(0, (uint8_t *)0, 0); // write acknowledgement
-                epstatus = SET_VALID_RX(epstatus);
-                epstatus = SET_VALID_TX(epstatus);
+                //epstatus = SET_VALID_RX(epstatus);
+                //epstatus = SET_VALID_TX(epstatus);
             break;
             default:
                 EP_WriteIRQ(0, (uint8_t *)0, 0);
-                epstatus = SET_NAK_RX(epstatus);
-                epstatus = SET_VALID_TX(epstatus);
+                //epstatus = SET_NAK_RX(epstatus);
+                //epstatus = SET_VALID_TX(epstatus);
         }
     }else if (ep.rx_flag){ // got data over EP0 or host acknowlegement
         if(ep.rx_cnt){
@@ -316,8 +278,8 @@ static uint16_t EP0_Handler(ep_t ep){
             }
         }
         // wait for new data from host
-        epstatus = SET_VALID_RX(epstatus);
-        epstatus = SET_VALID_TX(epstatus);
+        //epstatus = SET_VALID_RX(epstatus);
+        //epstatus = SET_VALID_TX(epstatus);
     } else if (ep.tx_flag){ // package transmitted
         // now we can change address after enumeration
         if ((USB->DADDR & USB_DADDR_ADD) != USB_Dev.USB_Addr){
@@ -328,9 +290,11 @@ static uint16_t EP0_Handler(ep_t ep){
         // end of transaction
         epstatus = CLEAR_DTOG_RX(epstatus);
         epstatus = CLEAR_DTOG_TX(epstatus);
-        epstatus = SET_VALID_RX(epstatus);
-        epstatus = SET_VALID_TX(epstatus);
+        //epstatus = SET_VALID_RX(epstatus);
+        //epstatus = SET_VALID_TX(epstatus);
     }
+    epstatus = SET_VALID_RX(epstatus);
+    epstatus = SET_VALID_TX(epstatus);
     return epstatus;
 }
 

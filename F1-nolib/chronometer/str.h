@@ -23,36 +23,37 @@
 #include "flash.h"
 #include "hardware.h"
 
-// usb commands
-// lower and upper limits to capture
-#define CMD_DISTMIN     "distmin"
+// local buffer size (chars)
+#define LOCBUFSZ    128
+
+// TTY commands
+#define CMD_BUZZER      "buzzer"
+#define CMD_CURDIST     "curdist"
+#define CMD_DELLOGS     "deletelogs"
 #define CMD_DISTMAX     "distmax"
-#define CMD_ADCMIN      "adcmin"
-#define CMD_ADCMAX      "adcmax"
-#define CMD_PRINTTIME   "time"
-#define CMD_STORECONF   "store"
+#define CMD_DISTMIN     "distmin"
+#define CMD_DUMP        "dump"
+#define CMD_FLASH       "flash"
+#define CMD_GETMCUTEMP  "mcutemp"
+#define CMD_GETVDD      "vdd"
+#define CMD_GPSPROXY    "gpsproxy"
+#define CMD_GPSRESTART  "gpsrestart"
+#define CMD_GPSSTAT     "gpsstat"
 #define CMD_GPSSTR      "gpsstring"
+#define CMD_LEDS        "leds"
+#define CMD_LIDAR       "lidar"
+#define CMD_LIDARSPEED  "lidspd"
+#define CMD_NFREE       "nfree"
+#define CMD_PRINTTIME   "time"
+#define CMD_RESET       "reset"
+#define CMD_SAVEEVTS    "se"
 #define CMD_SHOWCONF    "showconf"
-#define CMD_TRIGLVL     "triglevel"
+#define CMD_STORECONF   "store"
+#define CMD_STREND      "strend"
 #define CMD_TRGPAUSE    "trigpause"
 #define CMD_TRGTIME     "trigtime"
-#define CMD_GETVDD      "vdd"
-#define CMD_GETMCUTEMP  "mcutemp"
-#define CMD_GETADCVAL   "adcval"
-#define CMD_LEDS        "leds"
-#define CMD_GPSRESTART  "gpsrestart"
-#define CMD_BUZZER      "buzzer"
-#define CMD_GPSSTAT     "gpsstat"
+#define CMD_TRIGLVL     "triglevel"
 #define CMD_USARTSPD    "usartspd"
-#define CMD_RESET       "reset"
-#define CMD_STREND      "strend"
-#define CMD_FLASH       "flash"
-#define CMD_SAVEEVTS    "se"
-#define CMD_DUMP        "dump"
-#define CMD_NFREE       "nfree"
-#define CMD_DELLOGS     "deletelogs"
-#define CMD_GPSPROXY    "gpsproxy"
-#define CMD_CURDIST     "curdist"
 
 extern uint8_t showGPSstr;
 
@@ -64,7 +65,9 @@ int strln(const char *s);
 char *strcp(char* dst, const char *src);
 int cmpstr(const char *s1, const char *s2, int n);
 char *getchr(const char *str, char symbol);
-int parse_USBCMD(char *cmd);
+void parse_CMD(char *cmd);
 char *get_trigger_shot(int number, const event_log *logdata);
 void show_trigger_shot(uint8_t trigger_shot);
+void sendstring(const char *str);
+void sendchar(char ch);
 #endif // STR_H__

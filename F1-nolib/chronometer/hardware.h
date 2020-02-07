@@ -27,11 +27,23 @@
 #include "stm32f1.h"
 #include "time.h"
 
+#ifdef EBUG
+#define DO_PRAGMA(x) _Pragma (#x)
+#define TODO(x) DO_PRAGMA(message #x)
+#else
+#define TODO(x)
+#endif
+
+// only 2 ADC channels used: Tmcu and Vdd
+#define NUMBER_OF_ADC_CHANNELS  (2)
+#define ADC_TMCU_CHANNEL        (0)
+#define ADC_VDD_CHANNEL         (1)
+
 // onboard LEDs - PB8/PB9
 #define LED0_port   GPIOB
-#define LED0_pin    (1<<8)
+#define LED0_pin    (1<<9)
 #define LED1_port   GPIOB
-#define LED1_pin    (1<<9)
+#define LED1_pin    (1<<8)
 
 // buzzer (1 - active) - PC13
 extern uint8_t buzzer_on;
@@ -48,12 +60,10 @@ extern uint8_t buzzer_on;
 #define PPS_pin     (1<<1)
 
 // PPS and triggers state
-// amount of triggers, should be less than 9; 5 - 0..2 - switches, 3 - LIDAR, 4 - ADC
-#define TRIGGERS_AMOUNT     5
+// amount of triggers, should be less than 9; 4 - 0..2 - switches, 3 - LIDAR
+#define TRIGGERS_AMOUNT     4
 // number of LIDAR trigger
 #define LIDAR_TRIGGER       3
-// number of ADC trigger
-#define ADC_TRIGGER         4
 // amount of digital triggers (on interrupts)
 #define DIGTRIG_AMOUNT      3
 // max length of trigger event (ms)
@@ -97,6 +107,8 @@ extern trigtime shottime[TRIGGERS_AMOUNT];
 extern int16_t triglen[TRIGGERS_AMOUNT];
 // if trigger[N] shots, the bit N will be 1
 extern uint8_t trigger_shot;
+// Tms value when they shot
+extern uint32_t shotms[TRIGGERS_AMOUNT];
 
 void chk_buzzer();
 void hw_setup();

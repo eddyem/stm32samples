@@ -22,8 +22,8 @@
  */
 
 #include "adc.h"
-#include "hardware.h"
 #include "flash.h"
+#include "hardware.h"
 #include "lidar.h"
 #include "str.h"
 #include "time.h"
@@ -53,29 +53,30 @@ static inline void gpio_setup(){
     LED_on(); // turn ON LED0 @start
     LED1_off(); // turn off LED1 @start
     USBPU_OFF(); // turn off USB pullup @start
-    // Enable clocks to the GPIO subsystems (PB for ADC), turn on AFIO clocking to disable SWD/JTAG
+    // Enable clocks to the GPIO subsystems (PB for ADC), turn on AFIO clocking enable EXTI & so on
     RCC->APB2ENR |= RCC_APB2ENR_IOPAEN | RCC_APB2ENR_IOPBEN | RCC_APB2ENR_IOPCEN | RCC_APB2ENR_AFIOEN;
     // turn off SWJ/JTAG
     AFIO->MAPR = AFIO_MAPR_SWJ_CFG_DISABLE;
     // pullups: PA1 - PPS, PA15 - USB pullup
-    GPIOA->ODR = (1<<12)|(1<<15);
+    GPIOA->ODR = (1<<1)|(1<<15);
     // buzzer (PC13): pushpull output
     GPIOC->CRH = CRH(13, CNF_PPOUTPUT|MODE_SLOW);
-    // Set leds (PB8) as opendrain output
+    // Set leds (PB8/9) as opendrain output
     GPIOB->CRH = CRH(8, CNF_ODOUTPUT|MODE_SLOW) | CRH(9, CNF_ODOUTPUT|MODE_SLOW);
     // PPS pin (PA1) - input with weak pullup
     GPIOA->CRL = CRL(1, CNF_PUDINPUT|MODE_INPUT);
     // Set USB pullup (PA15) - opendrain output
     GPIOA->CRH = CRH(15, CNF_ODOUTPUT|MODE_SLOW);
-    // ---------------------> config-depengent block, interrupts & pullup inputs:
+    // Trigger inputs
     GPIOA->CRH |= CRH(13, CNF_PUDINPUT|MODE_INPUT) | CRH(14, CNF_PUDINPUT|MODE_INPUT);
     GPIOA->CRL |= CRL(4, CNF_PUDINPUT|MODE_INPUT);
-    // <---------------------
+
     // EXTI: all three EXTI are on PA -> AFIO_EXTICRx = 0
     // interrupt on pulse front: buttons - 1->0, PPS - 0->1
-    EXTI->IMR = EXTI_IMR_MR1;
-    EXTI->RTSR = EXTI_RTSR_TR1; // rising trigger
-    // PA4/PA13/PA14 - buttons
+    EXTI->IMR = EXTI_IMR_MR1; // mask PA1
+    // interrupt on pulse front: buttons - 1->0, PPS - 0->1
+    EXTI->RTSR = EXTI_RTSR_TR1; // rising trigger for PPS
+    // PA4/PA13/PA14 - triggers
     for(int i = 0; i < DIGTRIG_AMOUNT; ++i){
         uint16_t pin = trigpin[i];
         // fill trigstate array
@@ -89,12 +90,9 @@ static inline void gpio_setup(){
             EXTI->FTSR |= pin;
         }
     }
-    // ---------------------> config-depengent block, interrupts & pullup inputs:
-    // !!! change AFIO_EXTICRx if some triggers not @GPIOA
     NVIC_EnableIRQ(EXTI4_IRQn);
     NVIC_EnableIRQ(EXTI15_10_IRQn);
-    // <---------------------
-    NVIC_EnableIRQ(EXTI1_IRQn);
+    NVIC_EnableIRQ(EXTI1_IRQn); // enable PPS interrupt
 }
 
 static inline void adc_setup(){
@@ -104,12 +102,12 @@ static inline void adc_setup(){
     RCC->APB2ENR |= RCC_APB2ENR_ADC1EN;
     RCC->CFGR &= ~(RCC_CFGR_ADCPRE);
     RCC->CFGR |= RCC_CFGR_ADCPRE_DIV8; // ADC clock = RCC / 8
-    // sampling time - 239.5 cycles for channels 8, 16 and 17
-    ADC1->SMPR2 = ADC_SMPR2_SMP8;
+    // sampling time - 239.5 cycles for channels 16 and 17
     ADC1->SMPR1 = ADC_SMPR1_SMP16 | ADC_SMPR1_SMP17;
-    // we have three conversions in group -> ADC1->SQR1[L] = 2, order: 8->16->17
-    ADC1->SQR3 = 8 | (16<<5) | (17<<10);
-    ADC1->SQR1 = ADC_SQR1_L_1;
+    // we have three conversions in group -> ADC1->SQR1[L] = 2, order: 16->17
+    // Tsens == 16, Vdd == 17
+    ADC1->SQR3 = (16<<0) | (17<<5);
+    ADC1->SQR1 = ADC_SQR1_L_0; // 2 conversions
     ADC1->CR1 |= ADC_CR1_SCAN; // scan mode
     // DMA configuration
     RCC->AHBENR |= RCC_AHBENR_DMA1EN;
@@ -134,12 +132,6 @@ static inline void adc_setup(){
 void hw_setup(){
     gpio_setup();
     adc_setup();
-}
-
-void exti1_isr(){ // PPS - PA1
-    systick_correction();
-    LED_off(); // turn off LED0 @ each PPS
-    EXTI->PR = EXTI_PR_PR1;
 }
 
 static trigtime trgtm;
@@ -177,11 +169,9 @@ void fillunshotms(){
             if(len > MAX_TRIG_LEN){
                 triglen[i] = -1;
                 rdy = 1;
-            }else triglen[i] = (uint16_t) len;
+            }else triglen[i] = (int16_t) len;
             if(i == LIDAR_TRIGGER){
                 if(!parse_lidar_data(NULL)) rdy = 1;
-            }else if(i == ADC_TRIGGER){
-                if(!chkADCtrigger()) rdy = 1;
             }else{
                 uint8_t pinval = (trigport[i]->IDR & trigpin[i]) ? 1 : 0;
                 if(pinval != trigstate[i]) rdy = 1; // trigger is OFF
@@ -193,6 +183,12 @@ void fillunshotms(){
             }
         }
     }
+}
+
+void exti1_isr(){ // PPS - PA1
+    systick_correction();
+    LED_off(); // turn off LED0 @ each PPS
+    EXTI->PR = EXTI_PR_PR1;
 }
 
 void exti4_isr(){ // PA4 - trigger[2]

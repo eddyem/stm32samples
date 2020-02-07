@@ -27,7 +27,6 @@
 #include "usb.h"
 #include <string.h> // memcpy
 
-#define GPS_endline() do{usart_send(GPS_USART, "\r\n"); transmit_tbuf(GPS_USART); }while(0)
 #define GPS_send_string(str) do{usart_send(GPS_USART, str);}while(0)
 
 gps_status GPS_status = GPS_NOTFOUND;
@@ -58,40 +57,34 @@ static int checksum_true(const char *buf){
 
 static void send_chksum(uint8_t chs){
     usart_putchar(GPS_USART, hex(chs >> 4));
-    //usart_putchar(1, hex(chs >> 4));
     usart_putchar(GPS_USART, hex(chs & 0x0f));
-    //usart_putchar(1, hex(chs & 0x0f));
 }
+
 /**
  * Calculate checksum & write message to port
  * @param  buf - command to write (without leading $ and trailing *)
  * return 0 if fails
  */
 static void write_with_checksum(const char *buf){
-    char *txt = NULL;
-     // clear old buffer data
+    /*
     for(int i = 0; i < 10000; ++i){
+        char *txt = NULL;
         if(usartrx(GPS_USART)){
             usart_getline(GPS_USART, &txt);
             DBG("Old data");
             GPS_parse_answer(txt);
             break;
         }
-    }
-    //DBG("Send:");
+    }*/
     uint8_t checksum = 0;
     usart_putchar(GPS_USART, '$');
-    //usart_putchar(1, '$');
     GPS_send_string(buf);
-    //SEND(buf);
     do{
         checksum ^= *buf++;
     }while(*buf);
     usart_putchar(GPS_USART, '*');
-    //usart_putchar(1, '*');
     send_chksum(checksum);
-    //newline();
-    GPS_endline();
+    newline(GPS_USART);
 }
 
 
@@ -157,7 +150,7 @@ void GPS_parse_answer(const char *buf){
     char *ptr;
     if(buf[1] == 'P') return; // answers to proprietary messages
     if(cmpstr(buf+3, "RMC", 3)){ // not RMC message
-        need2startseq = 1;
+        //need2startseq = 1;
         return;
     }
     if(!checksum_true(buf)){
@@ -165,7 +158,7 @@ void GPS_parse_answer(const char *buf){
     }
     if(showGPSstr){
         showGPSstr = 0;
-        USB_send(buf);
+        sendstring(buf);
     }
     buf += 7; // skip header
     if(*buf == ','){ // time unknown

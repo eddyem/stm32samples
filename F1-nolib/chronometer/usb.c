@@ -102,11 +102,13 @@ void usb_proc(){
     }
 }
 
+extern uint8_t USB_connected;
 void USB_send(const char *buf){
     if(!USB_configured()){
         DBG("USB not configured");
         return;
     }
+    if(!USB_connected) return; // no connection -> no need to send data into nothing
     char tmpbuf[USB_TXBUFSZ];
     uint16_t l = 0, ctr = 0;
     const char *p = buf;
@@ -119,7 +121,9 @@ void USB_send(const char *buf){
                 tmpbuf[i++] = '\r';
                 if(i == s) ++s;
             }
-            tmpbuf[i] = c;
+            if(c == 0x1B) tmpbuf[i] = 'E'; // ESC
+            else if(c == 0x7F) tmpbuf[i] = 'B'; // Backspace
+            else tmpbuf[i] = c;
         }
         tx_succesfull = 0;
         EP_Write(3, (uint8_t*)tmpbuf, s);
@@ -164,4 +168,46 @@ int USB_receive(char *buf, int bufsize){
  */
 int USB_configured(){
     return usbON;
+}
+
+
+/*
+ * default handlers
+ *
+// SET_LINE_CODING
+void WEAK linecoding_handler(usb_LineCoding __attribute__((unused)) *lc){
+    DBG("WEAK LH");
+}
+
+// SET_CONTROL_LINE_STATE
+void WEAK clstate_handler(uint16_t __attribute__((unused)) val){
+    DBG("WEAK CLSH");
+}
+
+// SEND_BREAK
+void WEAK break_handler(){
+    DBG("WEAK BH");
+}*/
+
+// handler of vendor requests
+void WEAK vendor_handler(config_pack_t *packet){
+    if(packet->bmRequestType & 0x80){ // read
+        uint8_t c;
+        switch(packet->wValue){
+            case 0x8484:
+                c = 2;
+            break;
+            case 0x0080:
+                c = 1;
+            break;
+            case 0x8686:
+                c = 0xaa;
+            break;
+            default:
+                c = 0;
+        }
+        EP_WriteIRQ(0, &c, 1);
+    }else{ // write ZLP
+        EP_WriteIRQ(0, (uint8_t *)0, 0);
+    }
 }

@@ -24,17 +24,18 @@
 #include "usart.h"
 
 extern volatile uint32_t Tms;
-static volatile int idatalen[4][2] = {0}; // received data line length (including '\n')
-static volatile int odatalen[4][2] = {0};
+static volatile uint8_t idatalen[4][2] = {{0}}; // received data line length (including '\n')
+static volatile uint8_t odatalen[4][2] = {{0}};
 
-volatile int linerdy[4] = {0},  // received data ready
-    dlen[4] = {0},              // length of data (including '\n') in current buffer
+static volatile uint8_t dlen[4] = {0}; // length of data (including '\n') in current buffer
+
+volatile uint8_t linerdy[4] = {0},  // received data ready
     bufovr[4] = {0},            // input buffer overfull
     txrdy[4] = {0,1,1,1}        // transmission done
 ;
 
 
-int rbufno[4] = {0}, tbufno[4] = {0}; // current rbuf/tbuf numbers
+static uint8_t rbufno[4] = {0}, tbufno[4] = {0}; // current rbuf/tbuf numbers
 static char rbuf[4][2][UARTBUFSZ], tbuf[4][2][UARTBUFSZ]; // receive & transmit buffers
 static char *recvdata[4] = {0};
 
@@ -53,17 +54,9 @@ int usart_getline(int n, char **line){
 }
 
 // transmit current tbuf and swap buffers
-void transmit_tbuf(int n){
-    if(n < 1 || n > 3) return;
-    uint32_t tmout = 72000;
-    while(!txrdy[n]){if(--tmout == 0) return;}; // wait for previos buffer transmission
-    register int l = odatalen[n][tbufno[n]];
-    if(!l) return;
-    txrdy[n] = 0;
-    odatalen[n][tbufno[n]] = 0;
+void transmit_tbuf(uint8_t n){
     DMA_Channel_TypeDef *DMA;
-    IWDG->KR = IWDG_REFRESH;
-    switch(n){
+    switch(n){ // also check if n wrong
         case 1:
             DMA = DMA1_Channel4;
         break;
@@ -73,7 +66,15 @@ void transmit_tbuf(int n){
         case 3:
             DMA = DMA1_Channel2;
         break;
+        default: return;
     }
+    uint32_t tmout = 72000;
+    while(!txrdy[n]){if(--tmout == 0) return;} // wait for previos buffer transmission
+    register uint32_t l = odatalen[n][tbufno[n]];
+    if(!l) return;
+    txrdy[n] = 0;
+    odatalen[n][tbufno[n]] = 0;
+    IWDG->KR = IWDG_REFRESH;
     DMA->CCR &= ~DMA_CCR_EN;
     DMA->CMAR = (uint32_t) tbuf[n][tbufno[n]]; // mem
     DMA->CNDTR = l;
@@ -81,12 +82,14 @@ void transmit_tbuf(int n){
     tbufno[n] = !tbufno[n];
 }
 
-void usart_putchar(int n, char ch){
+void usart_putchar(uint8_t n, char ch){
+    if(!n || n > USART_LAST+1) return;
     for(int i = 0; odatalen[n][tbufno[n]] == UARTBUFSZ && i < 1024; ++i) transmit_tbuf(n);
     tbuf[n][tbufno[n]][odatalen[n][tbufno[n]]++] = ch;
 }
 
-void usart_send(int n, const char *str){
+void usart_send(uint8_t n, const char *str){
+    if(!n || n > USART_LAST+1) return;
     uint32_t x = 512;
     while(*str && --x){
         if(odatalen[n][tbufno[n]] == UARTBUFSZ){
@@ -96,13 +99,15 @@ void usart_send(int n, const char *str){
         tbuf[n][tbufno[n]][odatalen[n][tbufno[n]]++] = *str++;
     }
 }
-#if defined EBUG
-// only for USART1
-void newline(){
-    usart_putchar(1, '\n');
-    transmit_tbuf(1);
+
+// send newline ("\r" or "\r\n") and transmit whole buffer
+// for GPS_USART endline always is "\r\n"
+// @param n - USART number
+void newline(uint8_t n){
+    if((the_conf.defflags & FLAG_STRENDRN) || n == GPS_USART) usart_putchar(n, '\r');
+    usart_putchar(n, '\n');
+    transmit_tbuf(n);
 }
-#endif
 
 /*
  * USART speed: baudrate = Fck/(USARTDIV)
@@ -111,7 +116,7 @@ void newline(){
  * for 72MHz USARTDIV=72000/f(kboud); so for 115200 USARTDIV=72000/115.2=625 -> BRR=0x271
  *         9600: BRR = 7500 (0x1D4C)
  */
-static void usart_setup(int n, uint32_t BRR){
+static void usart_setup(uint8_t n, uint16_t BRR){
     DMA_Channel_TypeDef *DMA;
     IRQn_Type DMAirqN, USARTirqN;
     USART_TypeDef *USART;
@@ -170,13 +175,13 @@ static void usart_setup(int n, uint32_t BRR){
 
 void usarts_setup(){
     RCC->AHBENR |= RCC_AHBENR_DMA1EN;
-    usart_setup(1, 72000000 / the_conf.USART_speed); // debug console or GPS proxy
-    usart_setup(2, 36000000 / 9600); // GPS
-    usart_setup(3, 36000000 / 115200); // LIDAR
+    usart_setup(1, 72000000 / the_conf.USART_speed);           // debug console or GPS proxy
+    usart_setup(GPS_USART, 36000000 / GPS_DEFAULT_SPEED);      // GPS
+    usart_setup(LIDAR_USART, 36000000 / the_conf.LIDAR_speed); // LIDAR
 }
 
 
-void usart_isr(int n, USART_TypeDef *USART){
+static void usart_isr(uint8_t n, USART_TypeDef *USART){
     #ifdef CHECK_TMOUT
     static uint32_t tmout[n] = 0;
     #endif
@@ -190,12 +195,13 @@ void usart_isr(int n, USART_TypeDef *USART){
         tmout[n] = Tms + TIMEOUT_MS;
         if(!tmout[n]) tmout[n] = 1; // prevent 0
         #endif
-        uint8_t rb = USART->DR;
+        char rb = (char)USART->DR;
         if(idatalen[n][rbufno[n]] < UARTBUFSZ){ // put next char into buf
-            rbuf[n][rbufno[n]][idatalen[n][rbufno[n]]++] = rb;
+            if(rb != '\r') rbuf[n][rbufno[n]][idatalen[n][rbufno[n]]++] = rb; // omit '\r'
             if(rb == '\n'){ // got newline - line ready
                 linerdy[n] = 1;
                 dlen[n] = idatalen[n][rbufno[n]];
+                rbuf[n][rbufno[n]][dlen[n]] = 0;
                 recvdata[n] = rbuf[n][rbufno[n]];
                 // prepare other buffer
                 rbufno[n] = !rbufno[n];
@@ -226,9 +232,15 @@ void usart2_isr(){
 
 // LIDAR_USART
 void usart3_isr(){
+    if(the_conf.defflags & FLAG_NOLIDAR){ // regular TTY
+        usart_isr(3, USART3);
+        return;
+    }
+    // LIDAR - check for different things
     IWDG->KR = IWDG_REFRESH;
     if(USART3->SR & USART_SR_RXNE){ // RX not emty - receive next char
-        uint8_t rb = USART3->DR, L = idatalen[3][rbufno[3]];
+        char rb = (char)USART3->DR;
+        uint8_t L = idatalen[3][rbufno[3]];
         if(rb != LIDAR_FRAME_HEADER && (L == 0 || L == 1)){ // bad starting sequence
             idatalen[3][rbufno[3]] = 0;
             return;
@@ -250,12 +262,12 @@ void usart3_isr(){
 }
 
 // print 32bit unsigned int
-void printu(int n, uint32_t val){
+void printu(uint8_t n, uint32_t val){
     usart_send(n, u2str(val));
 }
 
 // print 32bit unsigned int as hex
-void printuhex(int n, uint32_t val){
+void printuhex(uint8_t n, uint32_t val){
     usart_send(n, u2hex(val));
 }
 

@@ -59,7 +59,7 @@ uint8_t parse_lidar_data(char *txt){
             printu(1, last_lidar_dist);
             SEND(" signal=");
             printu(1, last_lidar_stren);
-            newline();
+            newline(1);
 #endif
         }
     }else{
@@ -73,7 +73,7 @@ uint8_t parse_lidar_data(char *txt){
             printu(1, last_lidar_dist);
             SEND(" signal=");
             printu(1, last_lidar_stren);
-            newline();
+            newline(1);
 #endif
         }
     }

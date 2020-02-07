@@ -16,6 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Commands parser
+
 #include "adc.h"
 #include "GPS.h"
 #include "lidar.h"
@@ -32,7 +34,7 @@ extern uint32_t shotms[];
 /**
  * @brief cmpstr - the same as strncmp
  * @param s1,s2 - strings to compare
- * @param n - max symbols amount
+ * @param n - max symbols amount + 1 (!!!!)
  * @return 0 if strings equal or 1/-1
  */
 int cmpstr(const char *s1, const char *s2, int n){
@@ -61,45 +63,50 @@ char *getchr(const char *str, char symbol){
     return NULL;
 }
 
-#define sendu(x) do{USB_send(u2str(x));}while(0)
+#define sendu(x) do{sendstring(u2str(x));}while(0)
 
+/*
 static void sendi(int32_t I){
     if(I < 0){
-        USB_send("-");
+        sendchar('-');
         I = -I;
     }
-    USB_send(u2str((uint32_t)I));
+    sendstring(u2str((uint32_t)I));
+}*/
+
+// echo '1' if true or '0' if false
+static void checkflag(uint8_t f){
+    if(f) sendchar('1');
+    else sendchar('0');
 }
 
 /**
  * @brief showuserconf - show configuration over USB
  */
 static void showuserconf(){
-    USB_send("DISTMIN="); sendu(the_conf.dist_min);
-    USB_send("\nDISTMAX="); sendu(the_conf.dist_max);
-    USB_send("\nADCMIN="); sendi(the_conf.ADC_min);
-    USB_send("\nADCMAX="); sendi(the_conf.ADC_max);
-    USB_send("\nTRIGLVL="); sendu(the_conf.trigstate);
-    USB_send("\nTRIGPAUSE={");
+    sendstring("DISTMIN="); sendu(the_conf.dist_min);
+    sendstring("\nDISTMAX="); sendu(the_conf.dist_max);
+    sendstring("\nTRIGLVL="); sendu(the_conf.trigstate);
+    sendstring("\nTRIGPAUSE={");
     for(int i = 0; i < TRIGGERS_AMOUNT; ++i){
-        if(i) USB_send(", ");
+        if(i) sendstring(", ");
         sendu(the_conf.trigpause[i]);
     }
-    USB_send("}");
-    USB_send("\nUSART1SPD="); sendu(the_conf.USART_speed);
-    USB_send("\nSTREND=");
-    if(the_conf.defflags & FLAG_STRENDRN) USB_send("RN");
-    else USB_send("N");
-    uint8_t f = the_conf.defflags;
-    USB_send("\nSAVE_EVENTS=");
-    if(f & FLAG_SAVE_EVENTS) USB_send("1");
-    else USB_send("0");
-    USB_send("\nGPSPROXY=");
-    if(f & FLAG_GPSPROXY) USB_send("1");
-    else USB_send("0");
-    USB_send("\nNFREE=");
+    sendstring("}\nUSART1SPD="); sendu(the_conf.USART_speed);
+    sendstring("\nLIDARSPD="); sendu(the_conf.LIDAR_speed);
+    sendstring("\nNFREE=");
     sendu(the_conf.NLfreeWarn);
-    USB_send("\n");
+    sendstring("\nSTREND=");
+    if(the_conf.defflags & FLAG_STRENDRN) sendstring("RN");
+    else sendchar('N');
+    uint8_t f = the_conf.defflags;
+    sendstring("\nSAVE_EVENTS=");
+    checkflag(f & FLAG_SAVE_EVENTS);
+    sendstring("\nGPSPROXY=");
+    checkflag(f & FLAG_GPSPROXY);
+    sendstring("\nLIDAR=");
+    checkflag(!(f & FLAG_NOLIDAR));
+    sendstring("\n"); // <-- sendstring @ the end to initialize data transmission
 }
 
 /**
@@ -107,19 +114,17 @@ static void showuserconf(){
  * @param cmd - buffer with commands
  * @return 0 if got command, 1 if command not recognized
  */
-int parse_USBCMD(char *cmd){
+void parse_CMD(char *cmd){
+    char *oldcmd = cmd;
 #define CMP(a,b)  cmpstr(a, b, sizeof(b))
-#define GETNUM(x) if(getnum(cmd+sizeof(x)-1, &N)) goto bad_number;
+#define GETNUM(x) do{if(getnum(cmd+sizeof(x)-1, &N)) goto bad_number;}while(0)
     static uint8_t conf_modified = 0;
     uint8_t succeed = 0;
     int32_t N;
-    if(!cmd || !*cmd) return 0;
+    if(!cmd || !*cmd) return;
     IWDG->KR = IWDG_REFRESH;
-    if(*cmd == '?'){ // help
-        USB_send("Commands:\n"
-                 CMD_ADCMAX    " - max ADC value treshold for trigger\n"
-                 CMD_ADCMIN    " - min -//- (triggered when ADval>min & <max)\n"
-                 CMD_GETADCVAL " - get ADC value\n"
+    if(*cmd == '?' || CMP(cmd, "help") == 0){ // help
+        sendstring("Commands:\n"
                  CMD_BUZZER    "S - turn buzzer ON/OFF\n"
                  CMD_CURDIST   " - show current LIDAR distance\n"
                  CMD_DELLOGS   " - delete logs from flash memory\n"
@@ -132,9 +137,10 @@ int parse_USBCMD(char *cmd){
                  CMD_GPSSTAT   " - get GPS status\n"
                  CMD_GPSSTR    " - current GPS data string\n"
                  CMD_LEDS      "S - turn leds on/off (1/0)\n"
+                 CMD_LIDAR     "S - switch between LIDAR (1) or command TTY (0)\n"
+                 CMD_LIDARSPEED "N - set LIDAR speed to N\n"
                  CMD_GETMCUTEMP " - MCU temperature\n"
-                 CMD_NFREE     " - warn when free logs space less than this number (0 - not warn)"
-                 CMD_PRINTTIME " - print time\n"
+                 CMD_NFREE     " - warn when free logs space less than this number (0 - not warn)\n"
                  CMD_RESET     " - reset MCU\n"
                  CMD_SAVEEVTS  "S - save/don't save (1/0) trigger events into flash\n"
                  CMD_SHOWCONF  " - show current configuration\n"
@@ -147,11 +153,10 @@ int parse_USBCMD(char *cmd){
                  CMD_USARTSPD  "N - set USART1 speed to N\n"
                  CMD_GETVDD    " - Vdd value\n"
                  );
-    }else if(CMP(cmd, CMD_PRINTTIME) == 0){
-        USB_send(get_time(&current_time, get_millis()));
-        USB_send("\n");
-    }else if(CMP(cmd, CMD_DISTMIN) == 0){ // set low limit
-        DBG("CMD_DISTMIN");
+    }else if(CMP(cmd, CMD_PRINTTIME) == 0){ // print current time
+        sendstring(get_time(&current_time, get_millis()));
+        sendstring("\n");
+    }else if(CMP(cmd, CMD_DISTMIN) == 0){ // set low LIDAR limit
         GETNUM(CMD_DISTMIN);
         if(N < 0 || N > 0xffff) goto bad_number;
         if(the_conf.dist_min != (uint16_t)N){
@@ -159,8 +164,7 @@ int parse_USBCMD(char *cmd){
             the_conf.dist_min = (uint16_t) N;
         }
         succeed = 1;
-    }else if(CMP(cmd, CMD_DISTMAX) == 0){ // set low limit
-        DBG("CMD_DISTMAX");
+    }else if(CMP(cmd, CMD_DISTMAX) == 0){ // set high LIDAR limit
         GETNUM(CMD_DISTMAX);
         if(N < 0 || N > 0xffff) goto bad_number;
         if(the_conf.dist_max != (uint16_t)N){
@@ -168,11 +172,10 @@ int parse_USBCMD(char *cmd){
             the_conf.dist_max = (uint16_t) N;
         }
         succeed = 1;
-    }else if(CMP(cmd, CMD_STORECONF) == 0){ // store everything
-        DBG("Store");
+    }else if(CMP(cmd, CMD_STORECONF) == 0){ // store everything in flash
         if(conf_modified){
             if(store_userconf()){
-                USB_send("Error: can't save data!\n");
+                sendstring("Error: can't save data!\n");
             }else{
                 conf_modified = 0;
                 succeed = 1;
@@ -180,107 +183,84 @@ int parse_USBCMD(char *cmd){
         }
     }else if(CMP(cmd, CMD_GPSSTR) == 0){ // show GPS status string
         showGPSstr = 1;
-    }else if(CMP(cmd, CMD_TRIGLVL) == 0){
-        DBG("Trig levels");
+    }else if(CMP(cmd, CMD_TRIGLVL) == 0){ // trigger levels: 0->1 or 1->0
         cmd += sizeof(CMD_TRIGLVL) - 1;
-        uint8_t Nt = *cmd++ - '0';
+        uint8_t Nt = (uint8_t)(*cmd++ - '0');
         if(Nt > TRIGGERS_AMOUNT - 1) goto bad_number;
-        uint8_t state = *cmd -'0';
+        uint8_t state = (uint8_t)(*cmd -'0');
         if(state > 1) goto bad_number;
         uint8_t oldval = the_conf.trigstate;
         if(!state) the_conf.trigstate = oldval & ~(1<<Nt);
-        else the_conf.trigstate = oldval | (1<<Nt);
+        else the_conf.trigstate = (uint8_t)(oldval | (1<<Nt));
         if(oldval != the_conf.trigstate) conf_modified = 1;
         succeed = 1;
-    }else if(CMP(cmd, CMD_SHOWCONF) == 0){
+    }else if(CMP(cmd, CMD_SHOWCONF) == 0){ // print current configuration
         showuserconf();
-    }else if(CMP(cmd, CMD_TRGPAUSE) == 0){
-        DBG("Trigger pause");
+    }else if(CMP(cmd, CMD_TRGPAUSE) == 0){ // pause after Nth trigger
         cmd += sizeof(CMD_TRGPAUSE) - 1;
-        uint8_t Nt = *cmd++ - '0';
+        uint8_t Nt = (uint8_t)(*cmd++ - '0');
         if(Nt > TRIGGERS_AMOUNT - 1) goto bad_number;
         if(getnum(cmd, &N)) goto bad_number;
         if(N < 0 || N > 10000) goto bad_number;
-        if(the_conf.trigpause[Nt] != N){
+        if(the_conf.trigpause[Nt] != (uint16_t)N){
             conf_modified = 1;
-            the_conf.trigpause[Nt] = N;
+            the_conf.trigpause[Nt] = (uint16_t)N;
         }
         succeed = 1;
-    }else if(CMP(cmd, CMD_TRGTIME) == 0){
-        DBG("Trigger time");
+    }else if(CMP(cmd, CMD_TRGTIME) == 0){ // last trigger time
         cmd += sizeof(CMD_TRGTIME) - 1;
-        uint8_t Nt = *cmd++ - '0';
+        uint8_t Nt = (uint8_t)(*cmd++ - '0');
         if(Nt > TRIGGERS_AMOUNT - 1) goto bad_number;
-        show_trigger_shot((uint8_t)1<<Nt);
-    }else if(CMP(cmd, CMD_GETVDD) == 0){
-        USB_send("VDD=");
+        show_trigger_shot((uint8_t)(1<<Nt));
+    }else if(CMP(cmd, CMD_GETVDD) == 0){ // Vdd
+        sendstring("VDD=");
         uint32_t vdd = getVdd();
         sendu(vdd/100);
         vdd %= 100;
-        if(vdd < 10) USB_send(".0");
-        else USB_send(".");
+        if(vdd < 10) sendstring(".0");
+        else sendstring(".");
         sendu(vdd);
-        USB_send("\n");
-    }else if(CMP(cmd, CMD_GETMCUTEMP) == 0){
+        sendstring("\n");
+    }else if(CMP(cmd, CMD_GETMCUTEMP) == 0){ // ~Tmcu
         int32_t t = getMCUtemp();
-        USB_send("MCUTEMP=");
+        sendstring("MCUTEMP=");
         if(t < 0){
             t = -t;
-            USB_send("-");
+            sendstring("-");
         }
         sendu(t/10);
-        USB_send(".");
+        sendstring(".");
         sendu(t%10);
-        USB_send("\n");
-    }else if(CMP(cmd, CMD_GETADCVAL) == 0){
-        USB_send("ADCVAL=");
-        sendu(getADCval(0));
-        USB_send("\n");
-    }else if(CMP(cmd, CMD_LEDS) == 0){
-        uint8_t Nt = cmd[sizeof(CMD_LEDS) - 1] - '0';
+        sendstring("\n");
+    }else if(CMP(cmd, CMD_LEDS) == 0){ // turn LEDs on/off
+        uint8_t Nt = (uint8_t)(cmd[sizeof(CMD_LEDS) - 1] - '0');
         if(Nt > 1) goto bad_number;
-        USB_send("LEDS=");
+        sendstring("LEDS=");
         if(Nt){
             LEDSon = 1;
-            USB_send("ON\n");
+            sendstring("ON\n");
         }else{
             LED_off();  // turn off LEDS
             LED1_off(); // by user request
             LEDSon = 0;
-            USB_send("OFF\n");
+            sendstring("OFF\n");
         }
-    }else if(CMP(cmd, CMD_ADCMAX) == 0){ // set low limit
-        GETNUM(CMD_ADCMAX);
-        if(N < -4096 || N > 4096) goto bad_number;
-        if(the_conf.ADC_max != (int16_t)N){
-            conf_modified = 1;
-            the_conf.ADC_max = (int16_t) N;
-        }
-        succeed = 1;
-    }else if(CMP(cmd, CMD_ADCMIN) == 0){ // set low limit
-        GETNUM(CMD_ADCMIN);
-        if(N < -4096 || N > 4096) goto bad_number;
-        if(the_conf.ADC_min != (int16_t)N){
-            conf_modified = 1;
-            the_conf.ADC_min = (int16_t) N;
-        }
-        succeed = 1;
-    }else if(CMP(cmd, CMD_GPSRESTART) == 0){
-        USB_send("Send full cold restart to GPS\n");
+    }else if(CMP(cmd, CMD_GPSRESTART) == 0){ // restart GPS
+        sendstring("Send full cold restart to GPS\n");
         GPS_send_FullColdStart();
     }else if(CMP(cmd, CMD_BUZZER) == 0){
-        uint8_t Nt = cmd[sizeof(CMD_BUZZER) - 1] - '0';
+        uint8_t Nt = (uint8_t)(cmd[sizeof(CMD_BUZZER) - 1] - '0');
         if(Nt > 1) goto bad_number;
-        USB_send("BUZZER=");
+        sendstring("BUZZER=");
         if(Nt){
             buzzer_on = 1;
-            USB_send("ON\n");
+            sendstring("ON\n");
         }else{
             buzzer_on = 0;
-            USB_send("OFF\n");
+            sendstring("OFF\n");
         }
-    }else if(CMP(cmd, CMD_GPSSTAT) == 0){
-        USB_send("GPS status: ");
+    }else if(CMP(cmd, CMD_GPSSTAT) == 0){ // GPS status
+        sendstring("GPS status: ");
         const char *str = "unknown";
         switch(GPS_status){
             case GPS_NOTFOUND:
@@ -296,12 +276,12 @@ int parse_USBCMD(char *cmd){
                 str = "valid time";
             break;
         }
-        USB_send(str);
+        sendstring(str);
         if(Tms - last_corr_time < 1500)
-            USB_send(", PPS working\n");
+            sendstring(", PPS working\n");
         else
-            USB_send(", no PPS\n");
-    }else if(CMP(cmd, CMD_USARTSPD) == 0){
+            sendstring(", no PPS\n");
+    }else if(CMP(cmd, CMD_USARTSPD) == 0){ // USART speed
         GETNUM(CMD_USARTSPD);
         if(N < 400 || N > 3000000) goto bad_number;
         if(the_conf.USART_speed != (uint32_t)N){
@@ -309,10 +289,18 @@ int parse_USBCMD(char *cmd){
             conf_modified = 1;
         }
         succeed = 1;
-    }else if(CMP(cmd, CMD_RESET) == 0){
-        USB_send("Soft reset\n");
+    }else if(CMP(cmd, CMD_LIDARSPEED) == 0){ // LIDAR speed
+        GETNUM(CMD_LIDARSPEED);
+        if(N < 400 || N > 3000000) goto bad_number;
+        if(the_conf.LIDAR_speed != (uint32_t)N){
+            the_conf.LIDAR_speed = (uint32_t)N;
+            conf_modified = 1;
+        }
+        succeed = 1;
+    }else if(CMP(cmd, CMD_RESET) == 0){ // Reset MCU
+        sendstring("Soft reset\n");
         NVIC_SystemReset();
-    }else if(CMP(cmd, CMD_STREND) == 0){
+    }else if(CMP(cmd, CMD_STREND) == 0){ // string ends in '\n' or "\r\n"
         char c = cmd[sizeof(CMD_STREND) - 1];
         succeed = 1;
         if(c == 'n' || c == 'N'){
@@ -327,29 +315,29 @@ int parse_USBCMD(char *cmd){
             }
         }else{
             succeed = 0;
-            USB_send("Bad letter, should be 'n' or 'r'\n");
+            sendstring("Bad letter, should be 'n' or 'r'\n");
         }
     }else if(CMP(cmd, CMD_FLASH) == 0){ // show flash size
-        USB_send("FLASHSIZE=");
+        sendstring("FLASHSIZE=");
         sendu(FLASH_SIZE);
-        USB_send("kB\nFLASH_BASE=");
-        USB_send(u2hex(FLASH_BASE));
-        USB_send("\nFlash_Data=");
-        USB_send(u2hex((uint32_t)Flash_Data));
-        USB_send("\nvarslen=");
+        sendstring("kB\nFLASH_BASE=");
+        sendstring(u2hex(FLASH_BASE));
+        sendstring("\nFlash_Data=");
+        sendstring(u2hex((uint32_t)Flash_Data));
+        sendstring("\nvarslen=");
         sendu((uint32_t)&_varslen);
-        USB_send("\nCONFsize=");
+        sendstring("\nCONFsize=");
         sendu(sizeof(user_conf));
-        USB_send("\nNconf_records=");
+        sendstring("\nNconf_records=");
         sendu(maxCnum - 1);
-        USB_send("\nlogsstart=");
-        USB_send(u2hex((uint32_t)logsstart));
-        USB_send("\nLOGsize=");
+        sendstring("\nlogsstart=");
+        sendstring(u2hex((uint32_t)logsstart));
+        sendstring("\nLOGsize=");
         sendu(sizeof(event_log));
-        USB_send("\nNlogs_records=");
+        sendstring("\nNlogs_records=");
         sendu(maxLnum - 1);
-        USB_send("\n");
-    }else if(CMP(cmd, CMD_SAVEEVTS) == 0){
+        sendstring("\n");
+    }else if(CMP(cmd, CMD_SAVEEVTS) == 0){ // save all events
         if('0' == cmd[sizeof(CMD_SAVEEVTS) - 1]){
             if(the_conf.defflags & FLAG_SAVE_EVENTS){
                 conf_modified = 1;
@@ -362,12 +350,12 @@ int parse_USBCMD(char *cmd){
             }
         }
         succeed = 1;
-    }else if(CMP(cmd, CMD_DUMP) == 0){
+    }else if(CMP(cmd, CMD_DUMP) == 0){ // dump N last events
         if(getnum(cmd+sizeof(CMD_DUMP)-1, &N)) N = -20; // default - without N
         else N = -N;
         if(N > 0) N = 0;
-        if(dump_log(N, -1)) USB_send("Event log empty!\n");
-    }else if(CMP(cmd, CMD_NFREE) == 0){
+        if(dump_log(N, -1)) sendstring("Event log empty!\n");
+    }else if(CMP(cmd, CMD_NFREE) == 0){ // warn if there's less than N free cells for logs in flash
         GETNUM(CMD_NFREE);
         if(N < 0 || N > 0xffff) goto bad_number;
         if(the_conf.NLfreeWarn != (uint16_t)N){
@@ -375,10 +363,10 @@ int parse_USBCMD(char *cmd){
             the_conf.NLfreeWarn = (uint16_t)N;
         }
         succeed = 1;
-    }else if(CMP(cmd, CMD_DELLOGS) == 0){
-        if(store_log(NULL)) USB_send("Error during erasing flash\n");
-        else USB_send("All logs erased\n");
-    }else if(CMP(cmd, CMD_GPSPROXY) == 0){
+    }else if(CMP(cmd, CMD_DELLOGS) == 0){ // delete all logs
+        if(store_log(NULL)) sendstring("Error during erasing flash\n");
+        else sendstring("All logs erased\n");
+    }else if(CMP(cmd, CMD_GPSPROXY) == 0){ // proxy GPS data over USART1
         if(cmd[sizeof(CMD_GPSPROXY) - 1] == '0'){
             if(the_conf.defflags & FLAG_GPSPROXY){
                 conf_modified = 1;
@@ -391,29 +379,46 @@ int parse_USBCMD(char *cmd){
             }
         }
         succeed = 1;
-    }else if(CMP(cmd, CMD_CURDIST) == 0){
-        USB_send("DIST=");
+    }else if(CMP(cmd, CMD_CURDIST) == 0){ // current LIDAR distance
+        sendstring("DIST=");
         sendu(last_lidar_dist);
-        USB_send("\nSTREN=");
+        sendstring("\nSTREN=");
         sendu(last_lidar_stren);
-        USB_send("\nTRIGDIST=");
+        sendstring("\nTRIGDIST=");
         sendu(lidar_triggered_dist);
-        USB_send("\nTms=");
+        sendstring("\nTms=");
         sendu(Tms);
-        USB_send("\nshotms=");
+        sendstring("\nshotms=");
         sendu(shotms[LIDAR_TRIGGER]);
-        USB_send("\n");
-    }else return 1;
+        sendstring("\n");
+    }else if(CMP(cmd, CMD_LIDAR) == 0){ // turn LIDAR on/off
+        if(cmd[sizeof(CMD_LIDAR) - 1] == '0'){
+            if(!(the_conf.defflags & FLAG_NOLIDAR)){
+                conf_modified = 1;
+                the_conf.defflags |= FLAG_NOLIDAR;
+            }
+        }else{
+            if(the_conf.defflags & FLAG_NOLIDAR){
+                conf_modified = 1;
+                the_conf.defflags &= ~FLAG_NOLIDAR;
+            }
+        }
+        succeed = 1;
+    }else{
+        sendstring("Bad command: ");
+        sendstring(oldcmd);
+        sendstring("\n");
+        return;
+    }
     /*else if(CMP(cmd, CMD_) == 0){
         ;
     }*/
 
     IWDG->KR = IWDG_REFRESH;
-    if(succeed) USB_send("Success!\n");
-    return 0;
+    if(succeed) sendstring("Success!\n");
+    return;
   bad_number:
-    USB_send("Error: bad number!\n");
-    return 0;
+    sendstring("Error: bad number!\n");
 }
 
 /**
@@ -453,7 +458,7 @@ char *get_trigger_shot(int number, const event_log *logdata){
  */
 void show_trigger_shot(uint8_t tshot){
     uint8_t X = 1;
-    for(int i = 0; i < TRIGGERS_AMOUNT && tshot; ++i, X <<= 1){
+    for(uint8_t i = 0; i < TRIGGERS_AMOUNT && tshot; ++i, X <<= 1){
         IWDG->KR = IWDG_REFRESH;
         if(tshot & X) tshot &= ~X;
         else continue;
@@ -463,9 +468,9 @@ void show_trigger_shot(uint8_t tshot){
         if(i == LIDAR_TRIGGER) l.lidar_dist = lidar_triggered_dist;
         l.shottime = shottime[i];
         l.triglen = triglen[i];
-        USB_send(get_trigger_shot(-1, &l));
+        sendstring(get_trigger_shot(-1, &l));
         if(the_conf.defflags & FLAG_SAVE_EVENTS){
-            if(store_log(&l)) USB_send("\n\nError saving event!\n\n");
+            if(store_log(&l)) sendstring("\n\nError saving event!\n\n");
         }
     }
 }
@@ -559,4 +564,34 @@ char *u2hex(uint32_t val){
     }
     *bufptr = 0;
     return strbuf;
+}
+
+static char localbuffer[LOCBUFSZ];
+static uint8_t bufidx = 0;
+static void transmitlocbuf(){
+    localbuffer[bufidx] = 0;
+    USB_send(localbuffer);
+    if(!(the_conf.defflags & FLAG_GPSPROXY)){ // USART1 isn't a GPS proxy
+        usart_send(1, localbuffer);
+        transmit_tbuf(1);
+    }
+    if(the_conf.defflags & FLAG_NOLIDAR){ // USART3 isn't a LIDAR
+        usart_send(LIDAR_USART, localbuffer);
+        transmit_tbuf(LIDAR_USART);
+    }
+    bufidx = 0;
+}
+// add char to buf
+void sendchar(char ch){
+    localbuffer[bufidx++] = ch;
+    if(bufidx >= LOCBUFSZ-1) transmitlocbuf();
+}
+/**
+ * @brief addtobuf - add to local buffer any zero-terminated substring
+ * @param str - string to add
+ *  it sends data to USB and (due to setup) USART1 when buffer will be full or when meet '\n' at the end of str
+ */
+void sendstring(const char *str){
+    while(*str) sendchar(*str++);
+    if(str[-1] == '\n') transmitlocbuf();
 }

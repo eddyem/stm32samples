@@ -1,3 +1,5 @@
+# make debug adds -DEBUG -Werror
+# make ADDEFS="additional defs"
 BINARY		= chrono
 BOOTPORT	?= /dev/ttyUSB0
 BOOTSPEED	?= 115200
@@ -9,13 +11,10 @@ MCU			?= F103x8
 DENSITY 	?= MD
 # change this linking script depending on particular MCU model,
 LDSCRIPT	?= stm32F103xB.ld
-DEFS		= -DVERSION=\"0.0.2\"
-# debug
-#DEFS		+= -DEBUG
+DEFS		= ${ADDEFS} -DVERSION=\"0.1.0\"
+TARGET := RELEASE
 # proxy GPS output over USART1
-DEFS += -DUSART1PROXY
-
-INDEPENDENT_HEADERS=
+#DEFS += -DUSART1PROXY
 
 FP_FLAGS	?= -msoft-float -mfloat-abi=soft
 ASM_FLAGS	?= -mthumb -mcpu=cortex-m3 -mfix-cortex-m3-ldrd
@@ -60,13 +59,13 @@ LIB_DIR		:= $(INC_DIR)/ld
 ###############################################################################
 # C flags
 CFLAGS		+= -O2 -g -D__thumb2__=1 -MD
-CFLAGS		+= -Wall -Werror -Wextra -Wshadow 
+CFLAGS		+= -Wall -Wextra -Wshadow 
 CFLAGS		+= -fno-common -ffunction-sections -fdata-sections -fno-stack-protector
 CFLAGS		+=  $(ARCH_FLAGS)
 
 ###############################################################################
 # Linker flags
-LDFLAGS		+= -nostartfiles --static -nostdlibs 
+LDFLAGS		+= --static -nostartfiles -nostdlibs 
 LDFLAGS		+= -L$(LIB_DIR) -L$(TOOLCHLIB)
 LDFLAGS		+= -T$(LDSCRIPT)
 
@@ -81,7 +80,24 @@ LIST	:= $(OBJDIR)/$(BINARY).list
 BIN		:= $(BINARY).bin
 HEX		:= $(BINARY).hex
 
-all: bin list size
+all: $(OBJDIR)/RELEASE bin list size
+release: all
+
+debug: CFLAGS += -DEBUG -Werror
+debug: $(OBJDIR)/DEBUG bin list size
+
+$(OBJDIR)/DEBUG: 
+	@rm -rf $(OBJDIR)
+	@mkdir $(OBJDIR)
+	@> $(OBJDIR)/DEBUG
+	@echo "TARGET: DEBUG"
+	echo "CFLAGS += -DEBUG -Werror" > $(OBJDIR)/CFLAGS
+$(OBJDIR)/RELEASE:
+	@rm -rf $(OBJDIR)
+	@mkdir $(OBJDIR)
+	@> $(OBJDIR)/RELEASE
+	@echo "TARGET: RELEASE"
+	echo "" > $(OBJDIR)/CFLAGS
 
 elf: $(ELF)
 bin: $(BIN)
@@ -90,6 +106,7 @@ list: $(LIST)
 
 ifneq ($(MAKECMDGOALS),clean)
 -include $(DEPS)
+-include $(OBJDIR)/CFLAGS
 endif
 
 $(OBJDIR):
@@ -114,7 +131,7 @@ $(LIST): $(ELF)
 	@echo "  OBJDUMP $(LIST)"
 	$(OBJDUMP) -S $(ELF) > $(LIST)
 
-$(ELF): $(OBJDIR) $(OBJS)
+$(ELF): $(OBJDIR) $(OBJS) $(LDSCRIPT)
 	@echo "  LD      $(ELF)"
 	$(LD) $(LDFLAGS) $(OBJS) $(LDLIBS) -o $(ELF)
 
@@ -123,13 +140,13 @@ size: $(ELF)
 
 clean:
 	@echo "  CLEAN"
-	$(RM) $(OBJS) $(DEPS) $(ELF) $(HEX) $(LIST)
-	@rmdir $(OBJDIR) 2>/dev/null || true
+	@$(RM) $(HEX)
+	@$(RM) -rf $(OBJDIR) 2>/dev/null || true
 
 
 flash: $(BIN)
 	@echo "  FLASH  $(BIN)"
-	$(STFLASH) write $(BIN) 0x8000000
+	$(STFLASH) --reset write $(BIN) 0x8000000
 
 boot: $(BIN)
 	@echo "  LOAD $(BIN) through bootloader"

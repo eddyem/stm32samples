@@ -37,14 +37,13 @@
 typedef struct __attribute__((packed, aligned(4))){
     uint16_t userconf_sz;       // "magick number"
     uint16_t NLfreeWarn;        // warn user when there's less free log records than NLfreeWarn
-    int16_t  ADC_min;           // min&max values of ADC (shot when ADval > ADC_min && < ADC_max)
-    int16_t  ADC_max;           // !!! BOTH ARE SIGNED! so you can include 0 & 4096
     uint8_t  trigstate;         // level in `triggered` state
     uint8_t  defflags;          // default flags
-    uint32_t dist_min;          // minimal distance for LIDAR
-    uint32_t dist_max;          // maximal -//-
+    uint16_t dist_min;          // minimal distance for LIDAR
+    uint16_t dist_max;          // maximal -//-
     uint32_t USART_speed;       // USART1 speed (115200 by default)
-    int32_t  trigpause[TRIGGERS_AMOUNT]; // pause (ms) for false shots
+    uint32_t LIDAR_speed;       // USART3 speed (115200 by default)
+    uint16_t trigpause[TRIGGERS_AMOUNT]; // pause (ms) for false shots
 } user_conf;
 
 // values for user_conf.defflags:
@@ -54,7 +53,8 @@ typedef struct __attribute__((packed, aligned(4))){
 #define FLAG_STRENDRN           (1 << 1)
 // proxy GPS messages over USART1
 #define FLAG_GPSPROXY           (1 << 2)
-
+// USART3 works as regular TTY instead of LIDAR
+#define FLAG_NOLIDAR            (1 << 3)
 
 /*
  * struct to save events logs
@@ -70,7 +70,7 @@ typedef struct __attribute__((packed, aligned(4))){
 extern user_conf the_conf;
 extern const user_conf *Flash_Data;
 extern const event_log *logsstart;
-extern int maxCnum, maxLnum;
+extern uint32_t maxCnum, maxLnum;
 // data from ld-file
 extern uint32_t _varslen, __varsstart, __logsstart;
 

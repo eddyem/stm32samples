@@ -68,17 +68,17 @@ void iwdg_setup(){
     IWDG->KR = IWDG_REFRESH; /* (6) */
 }
 
-#ifdef EBUG
+#if 0
 char *parse_cmd(char *buf){
     int32_t N;
     static char btns[] = "BTN0=0, BTN1=0, BTN2=0, PPS=0\n";
     event_log l = {.elog_sz = sizeof(event_log), .trigno = 2};
     switch(*buf){
         case '0':
-            LED_off(); // LED0 off @dbg
+            LED1_off(); // LED1 off @dbg
         break;
         case '1':
-            LED_on(); // LED0 on @dbg
+            LED1_on(); // LED1 on @dbg
         break;
         case 'a':
             l.shottime.Time = current_time;
@@ -86,7 +86,7 @@ char *parse_cmd(char *buf){
             l.triglen = getADCval(1);
             if(store_log(&l)) SEND("Error storing");
             else SEND("Store OK");
-            newline();
+            newline(1);
         break;
         case 'b':
             btns[5] = gettrig(0) + '0';
@@ -117,36 +117,36 @@ char *parse_cmd(char *buf){
             SEND("USB pullup is ");
             if(pin_read(USBPU_port, USBPU_pin)) SEND("off");
             else SEND("on");
-            newline();
+            newline(1);
         break;
         case 'G':
             SEND("LIDAR_DIST=");
             printu(1, last_lidar_dist);
             SEND(", LIDAR_STREN=");
             printu(1, last_lidar_stren);
-            newline();
+            newline(1);
         break;
         case 'L':
-            USB_send("Very long test string for USB (it's length is more than 64 bytes).\n"
+            sendstring("Very long test string for USB (it's length is more than 64 bytes).\n"
                      "This is another part of the string! Can you see all of this?\n");
             return "Long test sent\n";
         break;
         case 'R':
-            USB_send("Soft reset\n");
+            sendstring("Soft reset\n");
             SEND("Soft reset\n");
             NVIC_SystemReset();
         break;
         case 'S':
-            USB_send("Test string for USB\n");
+            sendstring("Test string for USB\n");
             return "Short test sent\n";
         break;
         case 'T':
             SEND(get_time(&current_time, get_millis()));
         break;
         case 'W':
-            USB_send("Wait for reboot\n");
+            sendstring("Wait for reboot\n");
             SEND("Wait for reboot\n");
-            while(1){nop();};
+            while(1){nop();}
         break;
         default: // help
             if(buf[1] != '\n') return buf;
@@ -180,9 +180,14 @@ static char *get_USB(){
     int x = USB_receive(curptr, rest);
     if(!x) return NULL;
     curptr[x] = 0;
+    if(x == 1 && *curptr == 0x7f){ // backspace
+        if(curptr > tmpbuf){
+            --curptr;
+            USB_send("\b \b");
+        }
+        return NULL;
+    }
     USB_send(curptr); // echo
-    //USB_send("ENDOINPUT\n");
-//if(x == 1 && *curptr < 32){USB_send("\n"); USB_send(u2str(*curptr)); USB_send("\n");}
     if(curptr[x-1] == '\n'){ // || curptr[x-1] == '\r'){
         curptr = tmpbuf;
         rest = USBBUF;
@@ -194,7 +199,7 @@ static char *get_USB(){
     }
     curptr += x; rest -= x;
     if(rest <= 0){ // buffer overflow
-        //SEND("USB buffer overflow!\n");
+        sendstring("\nUSB buffer overflow!\n");
         curptr = tmpbuf;
         rest = USBBUF;
     }
@@ -203,47 +208,46 @@ static char *get_USB(){
 
 void linecoding_handler(usb_LineCoding __attribute__((unused)) *lc){ // get/set line coding
 #ifdef EBUG
-    SEND("Change speed to");
+    SEND("Change speed to ");
     printu(1, lc->dwDTERate);
-    newline();
+    newline(1);
 #endif
 }
 
 
 static volatile uint8_t USBconn = 0;
+uint8_t USB_connected = 0; // need for usb.c
 void clstate_handler(uint16_t __attribute__((unused)) val){ // lesser bits of val: RTS|DTR
-    USBconn = 1;
-#ifdef EBUG
+    USBconn = 1; // if == 1 -> send welcome message
+    USB_connected = 1;
+#if 0
     if(val & 2){
         DBG("RTS set");
-        USB_send("RTS set\n");
+        sendstring("RTS set\n");
     }
     if(val & 1){
         DBG("DTR set");
-        USB_send("DTR set\n");
+        sendstring("DTR set\n");
     }
 #endif
 }
 
 void break_handler(){ // client disconnected
     DBG("Disconnected");
+    USB_connected = 0;
 }
-
-#ifdef EBUG
-extern int32_t ticksdiff, timecntr, timerval, Tms1;
-#endif
 
 int main(void){
     uint32_t lastT = 0;
     sysreset();
     StartHSE();
     SysTick_Config(SYSTICK_DEFCONF); // function SysTick_Config decrements argument!
+    // read data stored in flash - before all pins/ports setup!!!
+    flashstorage_init();
     // !!! hw_setup() should be the first in setup stage
     hw_setup();
     USB_setup();
-    flashstorage_init();
     USBPU_ON();
-    usarts_setup();
 #ifdef EBUG
     SEND("This is chronometer version " VERSION ".\n");
     if(RCC->CSR & RCC_CSR_IWDGRSTF){ // watchdog reset occured
@@ -254,7 +258,7 @@ int main(void){
     }
 #endif
     RCC->CSR |= RCC_CSR_RMVF; // remove reset flags
-    // read data stored in flash
+    usarts_setup(); // setup usarts after reading configuration
     iwdg_setup();
 
     while (1){
@@ -262,7 +266,7 @@ int main(void){
         if(Timer > 499) LED_on(); // turn ON LED0 over 0.25s after PPS pulse
         if(USBconn && Tms > 100){ // USB connection
             USBconn = 0;
-            USB_send("Chronometer version " VERSION ".\n");
+            sendstring("Chronometer version " VERSION ".\n");
         }
         // check if triggers that was recently shot are off now
         fillunshotms();
@@ -280,39 +284,31 @@ int main(void){
                     LED1_off(); // turn off LED1 if GPS not found or time unknown
             }
             lastT = Tms;
-            /*if(usartrx(LIDAR_USART)){
-                char *txt;
-                if(usart_getline(LIDAR_USART, &txt)){
-                    DBG("LIDAR:");
-                    DBG(txt);
-                }
-            }*/
             IWDG->KR = IWDG_REFRESH;
             transmit_tbuf(1); // non-blocking transmission of data from UART buffer every 0.5s
             transmit_tbuf(GPS_USART);
             transmit_tbuf(LIDAR_USART);
 #ifdef EBUG
-            static uint8_t x = 1;
-            if(timecntr){
-                if(x){
-                    SEND("ticksdiff=");
-                    if(ticksdiff < 0){
-                        SEND("-");
-                        printu(1, -ticksdiff);
-                    }else printu(1, ticksdiff);
-                    SEND(", timecntr=");
-                    printu(1, timecntr);
-                    SEND("\nlast_corr_time=");
-                    printu(1, last_corr_time);
-                    SEND(", Tms=");
-                    printu(1, Tms1);
-                    SEND("\nTimer=");
-                    printu(1, timerval);
-                    SEND(", LOAD=");
-                    printu(1, SysTick->LOAD);
-                    newline();
-                }
-                x = !x;
+            static int32_t oldctr = 0;
+            if(timecntr && timecntr != oldctr){
+                oldctr = timecntr;
+                SEND("ticksdiff=");
+                if(ticksdiff < 0){
+                    SEND("-");
+                    printu(1, -ticksdiff);
+                }else printu(1, ticksdiff);
+                SEND(", timecntr=");
+                printu(1, timecntr);
+                SEND("\nlast_corr_time=");
+                printu(1, last_corr_time);
+                SEND(", Tms=");
+                printu(1, Tms1);
+                SEND("\nTimer=");
+                printu(1, timerval);
+                SEND(", LOAD=");
+                printu(1, SysTick->LOAD);
+                usart_putchar(1, '\n');
+                newline(1);
             }
 #endif
         }
@@ -322,33 +318,21 @@ int main(void){
         int r = 0;
         char *txt = NULL;
         if((txt = get_USB())){
-            DBG("Received data over USB:");
-            DBG(txt);
-            if(parse_USBCMD(txt)){
-                USB_send("Bad command: ");
-                USB_send(txt);
-                USB_send("\n");
-            }
             IWDG->KR = IWDG_REFRESH;
+            parse_CMD(txt);
         }
-        if(usartrx(1)){ // usart1 received data, store in in buffer
+        if(usartrx(1)){ // usart1 received data, store it in buffer
             r = usart_getline(1, &txt);
+            IWDG->KR = IWDG_REFRESH;
             if(r){
                 txt[r] = 0;
-#ifdef EBUG
-                char *ans = parse_cmd(txt);
-                IWDG->KR = IWDG_REFRESH;
-                if(ans){
-                    transmit_tbuf(1);
-                    IWDG->KR = IWDG_REFRESH;
-                    usart_send(1, ans);
-                    transmit_tbuf(1);
-                    IWDG->KR = IWDG_REFRESH;
-                }
-#endif
                 if(the_conf.defflags & FLAG_GPSPROXY){
                     usart_send(GPS_USART, txt);
-                    IWDG->KR = IWDG_REFRESH;
+                }else{ // UART1 is additive serial/bluetooth console
+                    usart_send(1, txt);
+                    if(*txt != '\n'){
+                        parse_CMD(txt);
+                    }
                 }
             }
         }
@@ -365,7 +349,13 @@ int main(void){
             IWDG->KR = IWDG_REFRESH;
             r = usart_getline(LIDAR_USART, &txt);
             if(r){
-                parse_lidar_data(txt);
+                if(the_conf.defflags & FLAG_NOLIDAR){
+                    usart_send(LIDAR_USART, txt);
+                    if(*txt != '\n'){
+                        parse_CMD(txt);
+                    }
+                }else
+                    parse_lidar_data(txt);
             }
         }
         chk_buzzer(); // should we turn off buzzer?

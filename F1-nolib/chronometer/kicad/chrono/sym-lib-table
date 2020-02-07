@@ -1,4 +1,0 @@
-(sym_lib_table
-  (lib (name Chrono)(type Legacy)(uri ${KIPRJMOD}/Chrono.lib)(options "")(descr ""))
-  (lib (name stm32-rescue)(type Legacy)(uri ${KIPRJMOD}/stm32-rescue.lib)(options "")(descr ""))
-)

@@ -27,8 +27,9 @@
 volatile uint32_t Timer; // milliseconds counter
 curtime current_time = TMNOTINI;
 
+// convert two-digit decimal string into number
 static inline uint8_t atou(const char *b){
-    return (b[0]-'0')*10 + b[1]-'0';
+    return (uint8_t)((b[0]-'0')*10 + b[1]-'0');
 }
 
 /**
@@ -41,11 +42,13 @@ void set_time(const char *buf){
     current_time.H = H;
     current_time.M = atou(&buf[2]);
     current_time.S = atou(&buf[4]);
+/*
 #ifdef EBUG
     SEND("set_time, Tms: "); printu(1, Tms);
     SEND("; Timer: "); printu(1, Timer);
-    newline();
+    newline(1);
 #endif
+*/
 }
 
 /**
@@ -62,12 +65,6 @@ void time_increment(){
                 current_time.H = 0;
         }
     }
-    /*
-#ifdef EBUG
-    SEND("time_increment():  ");
-    SEND(get_time(&current_time, 0));
-#endif
-    */
 }
 
 static char *puttwo(uint8_t N, char *buf){
@@ -77,7 +74,7 @@ static char *puttwo(uint8_t N, char *buf){
         *buf++ = N/10 + '0';
         N %= 10;
     }
-    *buf++ = N + '0';
+    *buf++ = (char)(N + '0');
     return buf;
 }
 
@@ -90,14 +87,14 @@ static void ms2str(char **str, uint32_t T){
     char *bptr = *str;
     *bptr++ = '.';
     if(T > 99){
-        *bptr++ = T/100 + '0';
+        *bptr++ = (char)(T/100 + '0');
         T %= 100;
     }else *bptr++ = '0';
     if(T > 9){
-        *bptr++ = T/10 + '0';
+        *bptr++ = (char)(T/10 + '0');
         T %= 10;
     }else *bptr++ = '0';
-    *bptr++ = T + '0';
+    *bptr++ = (char)(T + '0');
     *str = bptr;
 }
 
@@ -135,10 +132,11 @@ char *get_time(const curtime *Tm, uint32_t T){
 
 
 #ifdef EBUG
-int32_t timerval, Tms1;
-#endif
+uint32_t timerval, Tms1;
 int32_t timecntr=0, ticksdiff=0;
-
+#else
+static int32_t timecntr=0, ticksdiff=0;
+#endif
 uint32_t last_corr_time = 0;
 
 /**
@@ -158,8 +156,8 @@ uint32_t last_corr_time = 0;
  */
 void systick_correction(){
     SysTick->CTRL &= ~SysTick_CTRL_ENABLE_Msk; // stop systick for a while
-    uint32_t systick_val = SysTick->VAL, L = SysTick->LOAD + 1;
-    int32_t timer_val = Timer;
+    int32_t systick_val = (int32_t)SysTick->VAL, L = (int32_t)SysTick->LOAD + 1;
+    uint32_t timer_val = Timer;
 #ifdef EBUG
     timerval = Timer;
     Tms1 = Tms;
@@ -170,20 +168,18 @@ void systick_correction(){
 //    if(systick_val != SysTick->LOAD) ++Tms;
     if(timer_val > 500) time_increment(); // counter greater than 500 -> need to increment time
     if(last_corr_time){
-        if(Tms - last_corr_time < 1500){ // there was perevious PPS signal
-            int32_t D = L * (Tms - 1000 - last_corr_time) + (SysTick->LOAD - systick_val); // amount of spare ticks
-#ifdef EBUG
+        uint32_t Tdiff = Tms - last_corr_time;
+        if(Tdiff < 1500 && Tdiff > 700){ // there was perevious PPS signal ~1s ago
+            int32_t D = L * ((int32_t)(Tms - 1000 - last_corr_time)) + ((int32_t)SysTick->LOAD - systick_val); // amount of spare ticks
             ++timecntr;
-#endif
             ticksdiff += D;
-            uint32_t ticksabs = (ticksdiff < 0) ? -ticksdiff : ticksdiff;
-            // 10000 == 30 seconds * 1000 interrupts per second
-            if(ticksabs > 30000 && timecntr > 30){ // need correction (not more often than each 10s)
+            uint32_t ticksabs = (ticksdiff < 0) ? (uint32_t)-ticksdiff : (uint32_t)ticksdiff;
+            // 30000 == 30 seconds * 1000 interrupts per second
+            if(ticksabs > 30000 && timecntr > 10){ // need correction (not more often than each 10s)
                 ticksdiff /= timecntr * 1000; // correction per one interrupt
-                SysTick->LOAD += ticksdiff;
+                SysTick->LOAD = (uint32_t)(ticksdiff + (int32_t)SysTick->LOAD);
                 timecntr = 0;
                 ticksdiff = 0;
-                last_corr_time = 0;
 #ifdef EBUG
                 SEND("Correction\n");
 #endif
@@ -191,7 +187,6 @@ void systick_correction(){
         }else{
             timecntr = 0;
             ticksdiff = 0;
-            last_corr_time = 0;
         }
     }
     last_corr_time = Tms;
