@@ -53,7 +53,7 @@ void iwdg_setup(){
     while(IWDG->SR){if(--tmout == 0) break;} /* (5) */
     IWDG->KR = IWDG_REFRESH; /* (6) */
 }
-
+/*
 char *parse_cmd(char *buf){
     IWDG->KR = IWDG_REFRESH;
     if(buf[1] != '\n') return buf;
@@ -93,43 +93,55 @@ char *parse_cmd(char *buf){
         break;
     }
     return NULL;
+}*/
+
+/*
+char *get_USB(){
+    static char tmpbuf[65];
+    int x = USB_receive(tmpbuf, 64);
+    tmpbuf[x] = 0;
+    if(!x) return NULL;
+    return tmpbuf;
 }
 
 // usb getline
 char *get_USB(){
-    static char tmpbuf[512], *curptr = tmpbuf;
-    static int rest = 511;
+    static char tmpbuf[128], *curptr = tmpbuf;
+    static int rest = 127;
     int x = USB_receive(curptr, rest);
     curptr[x] = 0;
     if(!x) return NULL;
-    MSG(tmpbuf);
     if(curptr[x-1] == '\n'){
+        //DBG("Got \\n");
         curptr = tmpbuf;
-        rest = 511;
+        rest = 127;
         return tmpbuf;
     }
     curptr += x; rest -= x;
     if(rest <= 0){ // buffer overflow
+        //DBG("Buffer full");
         curptr = tmpbuf;
-        rest = 511;
+        rest = 127;
+        return tmpbuf;
     }
     return NULL;
-}
+}*/
 
 
-uint32_t newrate = 0;
+static uint32_t newrate = 0;
+// redefine weak handlers
 void linecoding_handler(usb_LineCoding *lcd){
     newrate = lcd->dwDTERate;
 }
-uint16_t cl = 0xffff;
+static uint16_t cl = 0xffff;
 void clstate_handler(uint16_t val){
     cl = val;
 }
-int8_t br = 0;
+static int8_t br = 0;
 void break_handler(){
     br = 1;
 }
-
+/*
 char *u2str(uint32_t val){
     static char strbuf[11];
     char *bufptr = &strbuf[10];
@@ -143,7 +155,7 @@ char *u2str(uint32_t val){
         }
     }
     return bufptr;
-}
+}*/
 
 int main(void){
     uint32_t lastT = 0;
@@ -154,6 +166,7 @@ int main(void){
     hw_setup();
     USBPU_OFF();
     usart_setup();
+    DBG("Start");
     if(RCC->CSR & RCC_CSR_IWDGRSTF){ // watchdog reset occured
         SEND("WDGRESET=1"); newline();
     }
@@ -163,7 +176,7 @@ int main(void){
     RCC->CSR |= RCC_CSR_RMVF; // remove reset flags
 
     USB_setup();
-    //iwdg_setup();
+    iwdg_setup();
     USBPU_ON();
 
     //uint32_t ctr = 0;
@@ -173,25 +186,30 @@ int main(void){
             LED_blink(LED0);
             lastT = Tms;
             transmit_tbuf();
-/*
-            if(usbON){
-                USB_send("String #");
-                char *s = u2str(ctr++);
-                USB_send(s);
-                USB_send("\n");
-            }*/
         }
         usb_proc();
-        char *txt, *ans;
-        if((txt = get_USB())){
-            ans = parse_cmd(txt);
-            if(ans) USB_send(ans);
+        if(bufovr){
+            bufovr = 0;
+            USB_send((uint8_t*)"USART overflow!\n", 16);
+        }
+        uint8_t tmpbuf[USB_RXBUFSZ], *txt;
+        uint16_t x = USB_receive(tmpbuf);
+        if(x){
+            //for(int _ = 0; _ < 7000000; ++_)nop();
+            //USB_send(tmpbuf, x);
+            usart_senddata(tmpbuf, x);
+            //transmit_tbuf();
+           /*char *ans = parse_cmd(txt);
+           if(ans) USB_send(ans);*/
+        }
+        if((x = usart_get(&txt))){
+            USB_send(txt, x);
         }
         int n = 0;
         if(newrate){SEND("new speed: "); printu(newrate); n = 1; newrate = 0;}
         if(cl!=0xffff){SEND("controls: "); printuhex(cl); n = 1; cl = 0xffff;}
         if(br){SEND("break"); n = 1; br = 0;}
-        if(n) newline();
+        if(n){newline(); transmit_tbuf();}
     }
     return 0;
 }

@@ -105,6 +105,21 @@ static inline void showUIvals(){
     newline();
 }
 
+// check address & return 0 if wrong or address to roll to next non-digit
+static int chk485addr(const char *txt){
+    int32_t N;
+    int p = getnum(txt, &N);
+    if(!p){
+        USB_send("Not num\n");
+        return 0;
+    }
+    if(N == getBRDaddr()){
+        return p;
+    }
+    USB_send("Not me\n");
+    return 0;
+}
+
 /**
  * @brief cmd_parser - command parsing
  * @param txt   - buffer with commands & data
@@ -113,8 +128,20 @@ static inline void showUIvals(){
 void cmd_parser(const char *txt, uint8_t isUSB){
     sendbuf();
     USBcmd = isUSB;
+    int p = 0;
+    // we can't simple use &txt[p] as variable: it can be non-aligned by 4!!!
+    if(isUSB == TARGET_USART){ // check address and roll message to nearest non-space
+        p = chk485addr(txt);
+        if(!p) return;
+    }
+    // roll to non-space
+    char c;
+    while((c = txt[p])){
+        if(c == ' ' || c == '\t') ++p;
+        else break;
+    }
     //int16_t L = strlen(txt);
-    char _1st = txt[0];
+    char _1st = txt[p];
     switch(_1st){
         case 'a':
             showADCvals();
@@ -181,4 +208,54 @@ void printuhex(uint32_t val){
             else bufputchar(half - 10 + 'a');
         }
     }
+}
+
+/**
+ * @brief getnum - read number from string omiting leading spaces
+ * @param buf (i) - string to process
+ * @param N (o)   - number read (or NULL for test)
+ * @return amount of symbols processed (or 0 if none)
+ */
+int getnum(const char *buf, int32_t *N){
+    char c;
+    int positive = -1, srd = 0;
+    int32_t val = 0;
+    while((c = *buf++)){
+        if(c == '\t' || c == ' '){
+            if(positive < 0){
+                ++srd;
+                continue; // beginning spaces
+            }
+            else break; // spaces after number
+        }
+        if(c == '-'){
+            if(positive < 0){
+                ++srd;
+                positive = 0;
+                continue;
+            }else break; // there already was `-` or number
+        }
+        if(c < '0' || c > '9') break;
+        ++srd;
+        if(positive < 0) positive = 1;
+        val = val * 10 + (int32_t)(c - '0');
+    }
+    if(positive != -1){
+        if(positive == 0){
+            if(val == 0) return 0; // single '-' or -0000
+            val = -val;
+        }
+        if(N) *N = val;
+    }else return 0;
+uint8_t uold = USBcmd;
+USBcmd = TARGET_USB;
+addtobuf("Got num: ");
+if(val < 0){bufputchar('-'); val = -val;}
+printu(val);
+addtobuf(", N=");
+printu(srd);
+newline();
+sendbuf();
+USBcmd = uold;
+    return srd;
 }

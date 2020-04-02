@@ -78,6 +78,17 @@
 #define STRING_SN_DESCRIPTOR            0x303
 #define DEVICE_QUALIFIER_DESCRIPTOR     0x600
 
+#define RX_FLAG(epstat)                 (epstat & USB_EPnR_CTR_RX)
+#define TX_FLAG(epstat)                 (epstat & USB_EPnR_CTR_TX)
+#define SETUP_FLAG(epstat)              (epstat & USB_EPnR_SETUP)
+
+// keep all DTOGs and STATs
+#define KEEP_DTOG_STAT(EPnR)            (EPnR & ~(USB_EPnR_STAT_RX|USB_EPnR_STAT_TX|USB_EPnR_DTOG_RX|USB_EPnR_DTOG_TX))
+#define KEEP_DTOG(EPnR)                 (EPnR & ~(USB_EPnR_DTOG_RX|USB_EPnR_DTOG_TX))
+
+//#define RX_CNT(N)                       (USB_BTABLE->EP[N].USB_COUNT_RX & 0x3FF)
+
+/*
 // EPnR bits manipulation
 #define CLEAR_DTOG_RX(R)                (R & USB_EPnR_DTOG_RX) ? R : (R & (~USB_EPnR_DTOG_RX))
 #define SET_DTOG_RX(R)                  (R & USB_EPnR_DTOG_RX) ? (R & (~USB_EPnR_DTOG_RX)) : R
@@ -98,6 +109,7 @@
 #define CLEAR_CTR_RX(R)                 (R & (~USB_EPnR_CTR_RX))
 #define CLEAR_CTR_TX(R)                 (R & (~USB_EPnR_CTR_TX))
 #define CLEAR_CTR_RX_TX(R)              (R & (~(USB_EPnR_CTR_TX | USB_EPnR_CTR_RX)))
+*/
 
 // USB state: uninitialized, addressed, ready for use
 typedef enum{
@@ -151,12 +163,8 @@ typedef struct __ep_t{
     uint16_t *tx_buf;           // transmission buffer address
     uint16_t txbufsz;           // transmission buffer size
     uint16_t *rx_buf;           // reception buffer address
-    uint16_t (*func)();         // endpoint action function
-    uint16_t status;            // status flags
+    void (*func)();             // endpoint action function
     unsigned rx_cnt  : 10;      // received data counter
-    unsigned tx_flag : 1;       // transmission flag
-    unsigned rx_flag : 1;       // reception flag
-    unsigned setup_flag : 1;    // this is setup packet (only for EP0)
 } ep_t;
 
 // USB status & its address
@@ -194,7 +202,7 @@ extern uint8_t usbON;
 
 void USB_Init();
 void USB_ResetState();
-int EP_Init(uint8_t number, uint8_t type, uint16_t txsz, uint16_t rxsz, uint16_t (*func)(ep_t ep));
+int EP_Init(uint8_t number, uint8_t type, uint16_t txsz, uint16_t rxsz, void (*func)());
 void EP_WriteIRQ(uint8_t number, const uint8_t *buf, uint16_t size);
 void EP_Write(uint8_t number, const uint8_t *buf, uint16_t size);
 int EP_Read(uint8_t number, uint16_t *buf);

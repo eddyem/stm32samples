@@ -111,6 +111,7 @@ void usart_send_blocking(const char *str, int len){
         USARTX -> TDR = *str++;
         while(!(USARTX->ISR & USART_ISR_TXE)){IWDG->KR = IWDG_REFRESH;}
     }
+    // wait for transfer complete to switch into Rx
     while(!(USARTX->ISR & USART_ISR_TC)){IWDG->KR = IWDG_REFRESH;}
     _485_Rx();
 }

@@ -26,11 +26,10 @@
 
 #include "hardware.h"
 
-#define BUFFSIZE   (64)
-
 void USB_setup();
 void usb_proc();
-void USB_send(const char *buf);
-int USB_receive(char *buf, int bufsize);
+void USB_send(const uint8_t *buf, uint16_t len);
+void USB_send_blk(const uint8_t *buf, uint16_t len);
+uint8_t USB_receive(uint8_t *buf);
 
 #endif // __USB_H__

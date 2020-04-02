@@ -40,9 +40,11 @@
 void cmd_parser(const char *buf, uint8_t isUSB);
 void addtobuf(const char *txt);
 void bufputchar(char ch);
+void sendbuf();
 void printu(uint32_t val);
 void printuhex(uint32_t val);
-void sendbuf();
+int getnum(const char *buf, int32_t *N);
+
 #define TARGET_USB   1
 #define TARGET_USART 0
 void buftgt(uint8_t isUSB);

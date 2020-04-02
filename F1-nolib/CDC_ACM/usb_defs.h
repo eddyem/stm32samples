@@ -93,18 +93,6 @@ typedef struct {
     __IO uint32_t BTABLE;
 } USB_TypeDef;
 
-/*
-typedef struct{
-    __IO uint16_t USB_ADDR_TX;
-    __IO uint16_t res1;
-    __IO uint16_t USB_COUNT_TX;
-    __IO uint16_t res2;
-    __IO uint16_t USB_ADDR_RX;
-    __IO uint16_t res3;
-    __IO uint16_t USB_COUNT_RX;
-    __IO uint16_t res4;
-} USB_EPDATA_TypeDef;*/
-
 typedef struct{
     __IO uint32_t USB_ADDR_TX;
     __IO uint32_t USB_COUNT_TX;

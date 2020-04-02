@@ -24,8 +24,8 @@
 #define __USART_H__
 
 // input and output buffers size
-#define UARTBUFSZI  (16)
-#define UARTBUFSZO  (512)
+#define UARTBUFSZI  (64)
+#define UARTBUFSZO  (64)
 // timeout between data bytes
 #ifndef TIMEOUT_MS
 #define TIMEOUT_MS (1500)
@@ -51,14 +51,15 @@
 
 extern int linerdy, bufovr, txrdy;
 
-void transmit_tbuf();
+int transmit_tbuf();
 void usart_setup();
-int usart_getline(char **line);
+uint16_t usart_get(uint8_t **line);
 void usart_send(const char *str);
+void usart_senddata(const uint8_t *str, uint16_t len);
 void newline();
 void usart_putchar(const char ch);
 void printu(uint32_t val);
 void printuhex(uint32_t val);
-void hexdump(uint8_t *arr, uint16_t len);
+void hexdump(const uint8_t *arr, uint16_t len);
 
 #endif // __USART_H__
