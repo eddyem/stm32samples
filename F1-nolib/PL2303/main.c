@@ -20,6 +20,7 @@
  */
 
 #include "hardware.h"
+#include "usart.h"
 #include "usb.h"
 #include "usb_lib.h"
 
@@ -53,31 +54,32 @@ void iwdg_setup(){
     IWDG->KR = IWDG_REFRESH; /* (6) */
 }
 
-char *parse_cmd(char *buf){
+#define USND(str)  do{USB_send((uint8_t*)str, sizeof(str)-1);}while(0)
+static const char *parse_cmd(const char *buf){
     if(buf[1] != '\n') return buf;
     switch(*buf){
         case 'p':
             pin_toggle(USBPU_port, USBPU_pin);
-            USB_send("USB pullup is ");
-            if(pin_read(USBPU_port, USBPU_pin)) USB_send("off\n");
-            else USB_send("on\n");
+            USND("USB pullup is ");
+            if(pin_read(USBPU_port, USBPU_pin)) USND("off\n");
+            else USND("on\n");
             return NULL;
         break;
         case 'L':
-            USB_send("Very long test string for USB (it's length is more than 64 bytes).\n"
+            USND("Very long test string for USB (it's length is more than 64 bytes).\n"
                      "This is another part of the string! Can you see all of this?\n");
             return "OK\n";
         break;
         case 'R':
-            USB_send("Soft reset\n");
+            USND("Soft reset\n");
             NVIC_SystemReset();
         break;
         case 'S':
-            USB_send("Test string for USB\n");
+            USND("Test string for USB\n");
             return "OK\n";
         break;
         case 'W':
-            USB_send("Wait for reboot\n");
+            USND("Wait for reboot\n");
             while(1){nop();};
         break;
         default: // help
@@ -97,10 +99,16 @@ char *parse_cmd(char *buf){
 char *get_USB(){
     static char tmpbuf[512], *curptr = tmpbuf;
     static int rest = 511;
-    int x = USB_receive(curptr, rest);
+    uint8_t x = USB_receive((uint8_t*)curptr);
     curptr[x] = 0;
     if(!x) return NULL;
     if(curptr[x-1] == '\n'){
+#ifdef EBUG
+        DBG("fullline");
+        IWDG->KR = IWDG_REFRESH;
+        SEND(tmpbuf);
+        transmit_tbuf();
+#endif
         curptr = tmpbuf;
         rest = 511;
         return tmpbuf;
@@ -119,13 +127,15 @@ int main(void){
     StartHSE();
     hw_setup();
     SysTick_Config(72000);
-/*
+
+    usart_setup();
+    DBG("Start");
     if(RCC->CSR & RCC_CSR_IWDGRSTF){ // watchdog reset occured
-        SEND("WDGRESET=1\n");
+        SEND("WDGRESET=1"); newline();
     }
     if(RCC->CSR & RCC_CSR_SFTRSTF){ // software reset occured
-        SEND("SOFTRESET=1\n");
-    }*/
+        SEND("SOFTRESET=1"); newline();
+    }
     RCC->CSR |= RCC_CSR_RMVF; // remove reset flags
 
     USBPU_OFF();
@@ -138,14 +148,25 @@ int main(void){
         if(lastT > Tms || Tms - lastT > 499){
             LED_blink(LED0);
             lastT = Tms;
+            USND("tick\n");
+            transmit_tbuf();
         }
         usb_proc();
         char *txt, *ans;
         if((txt = get_USB())){
-            ans = parse_cmd(txt);
-            if(ans) USB_send(ans);
+            IWDG->KR = IWDG_REFRESH;
+#ifdef EBUG
+            SEND("Got data: ");
+            SEND(txt); newline();
+            transmit_tbuf();
+#endif
+            ans = (char*)parse_cmd(txt);
+            if(ans){
+                uint16_t l = 0; char *p = ans;
+                while(*p++) l++;
+                USB_send((uint8_t*)ans, l);
+            }
         }
     }
     return 0;
 }
-

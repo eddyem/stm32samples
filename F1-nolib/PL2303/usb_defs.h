@@ -41,6 +41,8 @@
 #define USB_TXBUFSZ             64
 // USB receive buffer size (64 for PL2303)
 #define USB_RXBUFSZ             64
+// EP1 - interrupt - buffer size
+#define USB_EP1BUFSZ            8
 
 #define USB_BTABLE_BASE         0x40006000
 #define USB_BASE                ((uint32_t)0x40005C00)
@@ -90,18 +92,6 @@ typedef struct {
     __IO uint32_t DADDR;
     __IO uint32_t BTABLE;
 } USB_TypeDef;
-
-/*
-typedef struct{
-    __IO uint16_t USB_ADDR_TX;
-    __IO uint16_t res1;
-    __IO uint16_t USB_COUNT_TX;
-    __IO uint16_t res2;
-    __IO uint16_t USB_ADDR_RX;
-    __IO uint16_t res3;
-    __IO uint16_t USB_COUNT_RX;
-    __IO uint16_t res4;
-} USB_EPDATA_TypeDef;*/
 
 typedef struct{
     __IO uint32_t USB_ADDR_TX;
