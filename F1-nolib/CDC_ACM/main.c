@@ -193,7 +193,7 @@ int main(void){
             USB_send((uint8_t*)"USART overflow!\n", 16);
         }
         uint8_t tmpbuf[USB_RXBUFSZ], *txt;
-        uint16_t x = USB_receive(tmpbuf);
+        uint8_t x = USB_receive(tmpbuf);
         if(x){
             //for(int _ = 0; _ < 7000000; ++_)nop();
             //USB_send(tmpbuf, x);

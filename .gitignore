@@ -23,3 +23,9 @@ F1/client-term/client
 *.files
 *.includes
 
+*.cflags
+*.config
+*.creator*
+*.cxxflags
+*.files
+*.includes

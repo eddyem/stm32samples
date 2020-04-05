@@ -198,6 +198,7 @@ static void wr0(const uint8_t *buf, uint16_t size){
     if(setup_packet.wLength < size) size = setup_packet.wLength; // shortened request
     if(size < endpoints[0].txbufsz){
         EP_WriteIRQ(0, buf, size);
+        return;
     }
     while(size){
         uint16_t l = size;
@@ -305,8 +306,6 @@ bmRequestType: 76543210
 */
 /**
  * Endpoint0 (control) handler
- * @param ep - endpoint state
- * @return data written to EP0R
  */
 static void EP0_Handler(){
     uint8_t reqtype = setup_packet.bmRequestType & 0x7f;
@@ -487,7 +486,7 @@ void usb_lp_can_rx0_isr(){
  */
 void EP_WriteIRQ(uint8_t number, const uint8_t *buf, uint16_t size){
     uint8_t i;
-    if(size > USB_TXBUFSZ) size = USB_TXBUFSZ;
+    if(size > endpoints[number].txbufsz) size = endpoints[number].txbufsz;
     uint16_t N2 = (size + 1) >> 1;
     // the buffer is 16-bit, so we should copy data as it would be uint16_t
     uint16_t *buf16 = (uint16_t *)buf;

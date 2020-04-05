@@ -38,7 +38,7 @@
 
 #ifdef EBUG
 #define MSG(str)  do{SEND(__FILE__ " (L" STR(__LINE__) "): " str);}while(0)
-#define DBG(str)  do{SEND(str); usart_putchar('\n'); }while(0)
+#define DBG(str)  do{SEND(str); usart_putchar('\n'); transmit_tbuf();}while(0)
 #else
 #define MSG(str)
 #define DBG(str)

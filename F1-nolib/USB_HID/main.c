@@ -34,13 +34,13 @@ void sys_tick_handler(void){
 
 static void hw_setup(){
     // Enable clocks to the GPIO subsystems (PB for ADC), turn on AFIO clocking to disable SWD/JTAG
-    RCC->APB2ENR |= RCC_APB2ENR_IOPAEN | RCC_APB2ENR_IOPBEN | RCC_APB2ENR_AFIOEN;
+    RCC->APB2ENR |= RCC_APB2ENR_IOPAEN | RCC_APB2ENR_IOPBEN | RCC_APB2ENR_IOPCEN | RCC_APB2ENR_AFIOEN;
     // turn off SWJ/JTAG
-    AFIO->MAPR = AFIO_MAPR_SWJ_CFG_DISABLE;
+    //AFIO->MAPR = AFIO_MAPR_SWJ_CFG_DISABLE;
     // turn off USB pullup
     GPIOA->ODR = (1<<13);
-    // Set led (PA0) as opendrain output
-    GPIOA->CRL = CRL(0, CNF_ODOUTPUT|MODE_SLOW);
+    // Set led (PC13) as opendrain output
+    GPIOC->CRH = CRH(13, CNF_ODOUTPUT|MODE_SLOW);
     // Set USB pullup (PA13) as opendrain output
     GPIOA->CRH = CRH(13, CNF_ODOUTPUT|MODE_SLOW);
 }
@@ -111,7 +111,7 @@ static char *parse_cmd(char *buf){
         break;
         case 'C':
             SEND("USB ");
-            if(!USB_configured()) SEND("dis");
+            if(!usbON) SEND("dis");
             SEND("connected\n");
         break;
         case 'K':

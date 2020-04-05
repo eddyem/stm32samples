@@ -53,7 +53,10 @@ int usart_getline(char **line){
 // transmit current tbuf and swap buffers
 void transmit_tbuf(){
     uint32_t tmout = 72000;
-    while(!txrdy){if(--tmout == 0) return;}; // wait for previos buffer transmission
+    while(!txrdy){ // wait for previos buffer transmission
+        IWDG->KR = IWDG_REFRESH;
+        if(--tmout == 0) return;
+    }
     register int l = odatalen[tbufno];
     if(!l) return;
     txrdy = 0;
@@ -66,7 +69,10 @@ void transmit_tbuf(){
 }
 
 void usart_putchar(const char ch){
-    for(int i = 0; odatalen[tbufno] == UARTBUFSZO && i < 1024; ++i) transmit_tbuf();
+    for(int i = 0; odatalen[tbufno] == UARTBUFSZO && i < 1024; ++i){
+        IWDG->KR = IWDG_REFRESH;
+        transmit_tbuf();
+    }
     tbuf[tbufno][odatalen[tbufno]++] = ch;
 }
 

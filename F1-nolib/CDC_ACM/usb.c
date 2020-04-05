@@ -67,7 +67,6 @@ void USB_setup(){
     DBG("USB irq enabled");
 }
 
-
 static int usbwr(const uint8_t *buf, uint16_t l){
     uint32_t ctra = 1000000;
     while(--ctra && tx_succesfull == 0){
@@ -97,13 +96,13 @@ static void send_next(){
 // unblocking sending - just fill a buffer
 void USB_send(const uint8_t *buf, uint16_t len){
     if(!usbON || !len) return;
-    if(len > USB_TXBUFSZ-1){
-        USB_send_blk(buf, len);
-        return;
-    }
     if(len > USB_TXBUFSZ-1 - buflen){
         usbwr(usbbuff, buflen);
         buflen = 0;
+    }
+    if(len > USB_TXBUFSZ-1){
+        USB_send_blk(buf, len);
+        return;
     }
     while(len--) usbbuff[buflen++] = *buf++;
 }
@@ -127,7 +126,6 @@ void USB_send_blk(const uint8_t *buf, uint16_t len){
         usbwr(NULL, 0);
     }
 }
-
 
 void usb_proc(){
     switch(USB_Dev.USB_Status){

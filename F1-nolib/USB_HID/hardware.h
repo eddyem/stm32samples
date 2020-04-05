@@ -27,8 +27,8 @@
 #include "stm32f1.h"
 
 // LED - blinking each second
-#define LED_port   GPIOA
-#define LED_pin    (1<<0)
+#define LED_port   GPIOC
+#define LED_pin    (1<<13)
 
 // USB pullup (not used in STM32F0x2!) - PA13
 #define USBPU_port  GPIOA

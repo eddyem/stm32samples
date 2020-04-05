@@ -438,7 +438,7 @@ void usb_lp_can_rx0_isr(){
  */
 void EP_WriteIRQ(uint8_t number, const uint8_t *buf, uint16_t size){
     uint8_t i;
-    if(size > USB_TXBUFSZ) size = USB_TXBUFSZ;
+    if(size > endpoints[number].txbufsz) size = endpoints[number].txbufsz;
     uint16_t N2 = (size + 1) >> 1;
     // the buffer is 16-bit, so we should copy data as it would be uint16_t
     uint16_t *buf16 = (uint16_t *)buf;
