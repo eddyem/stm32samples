@@ -22,6 +22,8 @@
 #ifndef __USART_H__
 #define __USART_H__
 
+#include <stdint.h>
+
 // input and output buffers size
 #define UARTBUFSZI  (32)
 #define UARTBUFSZO  (512)

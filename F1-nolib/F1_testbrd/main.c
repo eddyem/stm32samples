@@ -55,6 +55,7 @@ void iwdg_setup(){
     IWDG->KR = IWDG_REFRESH; /* (6) */
 }
 
+#define USND(str)  do{USB_send((uint8_t*)str, sizeof(str)-1);}while(0)
 char *parse_cmd(char *buf){
     static char btns[] = "BTN0=0, BTN1=0\n";
     if(buf[1] != '\n') return buf;
@@ -81,17 +82,17 @@ char *parse_cmd(char *buf){
             return u2str(getADCval(0));
         break;
         case 'L':
-            USB_send("Very long test string for USB (it's length is more than 64 bytes).\n"
+            USND("Very long test string for USB (it's length is more than 64 bytes).\n"
                      "This is another part of the string! Can you see all of this?\n");
             return "Long test sent\n";
         break;
         case 'R':
-            USB_send("Soft reset\n");
+            USND("Soft reset\n");
             SEND("Soft reset\n");
             NVIC_SystemReset();
         break;
         case 'S':
-            USB_send("Test string for USB\n");
+            USND("Test string for USB\n");
             return "Short test sent\n";
         break;
         case 'T':
@@ -101,13 +102,13 @@ char *parse_cmd(char *buf){
             return u2str(getVdd());
         break;
         case 'W':
-            USB_send("Wait for reboot\n");
+            USND("Wait for reboot\n");
             SEND("Wait for reboot\n");
             while(1){nop();};
         break;
         default: // help
             return
-            "0/1 - turn on/off LED1"
+            "0/1 - turn on/off LED1\n"
             "'b' - get buttons's state\n"
             "'p' - toggle USB pullup\n"
             "'A' - get ADC8 value\n"
@@ -127,7 +128,7 @@ char *parse_cmd(char *buf){
 char *get_USB(){
     static char tmpbuf[512], *curptr = tmpbuf;
     static int rest = 511;
-    int x = USB_receive(curptr, rest);
+    int x = USB_receive((uint8_t*)curptr);
     curptr[x] = 0;
     if(!x) return NULL;
     if(curptr[x-1] == '\n'){
@@ -171,25 +172,6 @@ int main(void){
 
     while (1){
         IWDG->KR = IWDG_REFRESH; // refresh watchdog
-        /*if(dump){
-            SEND("\nin buffer:\n");
-            uint16_t buf[32];
-            uint32_t *in = (uint32_t *)endpoints[0].rx_buf;
-            for(int i = 0; i < 32; ++i, ++in)
-                buf[i] = *(uint16_t*)in;
-            hexdump((uint8_t*)buf, 64);
-            SEND("\nout buffer:\n");
-            in = (uint32_t *)endpoints[0].tx_buf;
-            for(int i = 0; i < 32; ++i, ++in)
-                buf[i] = *(uint16_t*)in;
-            hexdump((uint8_t*)buf, 64);
-            SEND("Config:\n");
-            hexdump((uint8_t*)&setup_packet, sizeof(setup_packet));
-            newline();
-            hexdump16((uint16_t*)USB_BTABLE, 64);
-            newline();
-            dump = 0;
-        }*/
         if(lastT > Tms || Tms - lastT > LEDperiod){
             LED_blink(LED0);
             lastT = Tms;
@@ -203,7 +185,11 @@ int main(void){
             SEND("Received data over USB:\n");
             SEND(txt);
             newline();
-            if(ans) USB_send(ans);
+            if(ans){
+                uint16_t l = 0; char *p = ans;
+                while(*p++) l++;
+                USB_send((uint8_t*)ans, l);
+            }
         }
         if(usartrx()){ // usart1 received data, store in in buffer
             r = usart_getline(&txt);

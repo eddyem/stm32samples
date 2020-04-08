@@ -93,8 +93,7 @@
 typedef enum{
     USB_STATE_DEFAULT,
     USB_STATE_ADDRESSED,
-    USB_STATE_CONFIGURED,
-    USB_STATE_CONNECTED
+    USB_STATE_CONFIGURED
 } USB_state;
 
 // EP types
@@ -157,7 +156,7 @@ extern uint8_t usbON;
 
 void USB_Init();
 void USB_ResetState();
-int EP_Init(uint8_t number, uint8_t type, uint16_t txsz, uint16_t rxsz, void (*func)(ep_t ep));
+int EP_Init(uint8_t number, uint8_t type, uint16_t txsz, uint16_t rxsz, void (*func)());
 void EP_WriteIRQ(uint8_t number, const uint8_t *buf, uint16_t size);
 void EP_Write(uint8_t number, const uint8_t *buf, uint16_t size);
 int EP_Read(uint8_t number, uint16_t *buf);

@@ -110,7 +110,7 @@ TRUE_INLINE void StartHSE(){
     while ((RCC->CFGR & (uint32_t)RCC_CFGR_SWS) != (uint32_t)RCC_CFGR_SWS_PLL){}
 }
 
-#if !defined (STM32F030x4) && !defined (STM32F030x6) && !defined (STM32F030x8) && !defined (STM32F031x6) && !defined (STM32F038xx) && !defined (STM32F030xC)
+#if defined (STM32F042x6) || defined (STM32F072xb)
 TRUE_INLINE void StartHSI48(){
     // disable PLL
     RCC->CR &= ~RCC_CR_PLLON;

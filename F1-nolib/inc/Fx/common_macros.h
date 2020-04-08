@@ -22,6 +22,8 @@
 #ifndef __COMMON_MACROS_H__
 #define __COMMON_MACROS_H__
 
+#include <stdint.h>
+
 #ifndef TRUE_INLINE
 #define TRUE_INLINE  __attribute__((always_inline)) static inline
 #endif

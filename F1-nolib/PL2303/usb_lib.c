@@ -377,7 +377,6 @@ int EP_Init(uint8_t number, uint8_t type, uint16_t txsz, uint16_t rxsz, void (*f
     return 0;
 }
 
-//extern int8_t dump;
 // standard IRQ handler
 void usb_lp_can_rx0_isr(){
     if(USB->ISTR & USB_ISTR_RESET){
@@ -480,7 +479,3 @@ int EP_Read(uint8_t number, uint16_t *buf){
     return sz;
 }
 
-// USB status
-uint8_t USB_GetState(){
-    return USB_Dev.USB_Status;
-}

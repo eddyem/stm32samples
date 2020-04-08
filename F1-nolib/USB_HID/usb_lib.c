@@ -350,10 +350,10 @@ static uint16_t lastaddr = LASTADDR_DEFAULT;
  * @param type - EP type (EP_TYPE_BULK, EP_TYPE_CONTROL, EP_TYPE_ISO, EP_TYPE_INTERRUPT)
  * @param txsz - transmission buffer size @ USB/CAN buffer
  * @param rxsz - reception buffer size @ USB/CAN buffer
- * @param uint16_t (*func)(ep_t *ep) - EP handler function
+ * @param void (*func)() - EP handler function
  * @return 0 if all OK
  */
-int EP_Init(uint8_t number, uint8_t type, uint16_t txsz, uint16_t rxsz, void (*func)(ep_t ep)){
+int EP_Init(uint8_t number, uint8_t type, uint16_t txsz, uint16_t rxsz, void (*func)()){
     if(number >= STM32ENDPOINTS) return 4; // out of configured amount
     if(txsz > USB_BTABLE_SIZE || rxsz > USB_BTABLE_SIZE) return 1; // buffer too large
     if(lastaddr + txsz + rxsz >= USB_BTABLE_SIZE) return 2; // out of btable
@@ -415,7 +415,7 @@ void usb_lp_can_rx0_isr(){
         }else{ // IN interrupt - transmit data, only CTR_TX == 1
             // enumeration end could be here (if EP0)
         }
-        if(endpoints[n].func) endpoints[n].func(endpoints[n]);
+        if(endpoints[n].func) endpoints[n].func();
     }
     if(USB->ISTR & USB_ISTR_SUSP){ // suspend -> still no connection, may sleep
         usbON = 0;
