@@ -21,19 +21,11 @@
 #pragma once
 #ifndef __STM32F0_H__
 #define __STM32F0_H__
-#include <stdint.h>
+
+#include "vector.h"
 #include "stm32f0xx.h"
+#include "common_macros.h"
 
-#ifndef TRUE_INLINE
-#define TRUE_INLINE  __attribute__((always_inline)) static inline
-#endif
-
-#ifndef NULL
-#define NULL (0)
-#endif
-
-// some good things from CMSIS
-#define nop()   __NOP()
 
 /************************* RCC *************************/
 // reset clocking registers
@@ -105,33 +97,34 @@ TRUE_INLINE void sysreset(void){
     /* Wait till PLL is used as system clock source */
     while ((RCC->CFGR & RCC_CFGR_SWS) != RCC_CFGR_SWS_PLL){}
 }
-/* wrong
+
 TRUE_INLINE void StartHSE(){
     // disable PLL
     RCC->CR &= ~RCC_CR_PLLON;
     RCC->CR |= RCC_CR_HSEON;
-    while ((RCC->CIR & RCC_CIR_HSERDYF) == 0);
+    while ((RCC->CIR & RCC_CIR_HSERDYF) != 0);
     RCC->CIR |= RCC_CIR_HSERDYC; // clear rdy flag
-    // PLL configuration = (HSE) * 12 = ~48 MHz
+    /* PLL configuration = (HSE) * 12 = ~48 MHz */
     RCC->CFGR &= ~(RCC_CFGR_PLLSRC | RCC_CFGR_PLLMUL);
     RCC->CFGR |= RCC_CFGR_PLLSRC_HSE_PREDIV | RCC_CFGR_PLLMUL12;
     RCC->CR |= RCC_CR_PLLON;
     while ((RCC->CFGR & (uint32_t)RCC_CFGR_SWS) != (uint32_t)RCC_CFGR_SWS_PLL){}
-}       */
+}
 
 #if defined (STM32F042x6) || defined (STM32F072xb)
 TRUE_INLINE void StartHSI48(){
-    RCC->APB1ENR |= RCC_APB1ENR_CRSEN | RCC_APB1ENR_USBEN; // enable CRS (hsi48 sync) & USB
-    RCC->CFGR3 &= ~RCC_CFGR3_USBSW; // reset USB
-    RCC->CR2 |= RCC_CR2_HSI48ON; // turn ON HSI48
-    uint32_t tmout = 16000000;
-    while(!(RCC->CR2 & RCC_CR2_HSI48RDY)){if(--tmout == 0) break;}
-    FLASH->ACR = FLASH_ACR_PRFTBE | FLASH_ACR_LATENCY;
-    CRS->CFGR &= ~CRS_CFGR_SYNCSRC;
-    CRS->CFGR |= CRS_CFGR_SYNCSRC_1; // USB SOF selected as sync source
-    CRS->CR |= CRS_CR_AUTOTRIMEN; // enable auto trim
-    CRS->CR |= CRS_CR_CEN; // enable freq counter & block CRS->CFGR as read-only
-    RCC->CFGR |= RCC_CFGR_SW;
+    // disable PLL
+    RCC->CR &= ~RCC_CR_PLLON;
+    RCC->CR2 &= RCC_CR2_HSI48ON; // turn on HSI48
+    while((RCC->CR2 & RCC_CR2_HSI48RDY) == 0);
+    RCC->CFGR &= (uint32_t)((uint32_t)~(RCC_CFGR_PLLSRC | RCC_CFGR_PLLMUL));
+    // HSI48/2 * 2 = HSI48
+    RCC->CFGR |= (uint32_t)(RCC_CFGR_PLLSRC_HSI48_PREDIV | RCC_CFGR_PLLMUL2);
+    RCC->CR |= RCC_CR_PLLON;
+    // select HSI48 as system clock source
+    RCC->CFGR &= ~RCC_CFGR_SW;
+    RCC->CFGR |= RCC_CFGR_SW_HSI48;
+    while ((RCC->CFGR & (uint32_t)RCC_CFGR_SWS) != (uint32_t)RCC_CFGR_SWS_HSI48){}
 }
 #endif
 
@@ -188,14 +181,6 @@ TRUE_INLINE void StartHSI48(){
 #define GPIO_MODER_MODER15_O        ((uint32_t)0x40000000)
 #define GPIO_MODER_MODER15_AF       ((uint32_t)0x80000000)
 
-#define pin_toggle(gpioport, gpios)  do{  \
-    register uint32_t __port = gpioport->ODR;  \
-    gpioport->BSRR = ((__port & gpios) << 16) | (~__port & gpios);}while(0)
-
-#define pin_set(gpioport, gpios)  do{gpioport->BSRR = gpios;}while(0)
-#define pin_clear(gpioport, gpios) do{gpioport->BRR = gpios;}while(0)
-#define pin_read(gpioport, gpios) ((gpioport->IDR & gpios) ? 1 : 0)
-#define pin_write(gpioport, gpios)  do{gpioport->ODR = gpios;}while(0)
 
 /************************* ADC *************************/
 /* inner termometer calibration values

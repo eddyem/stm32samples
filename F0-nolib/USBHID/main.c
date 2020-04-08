@@ -107,25 +107,12 @@ int main(void){
 
     USB_setup();
     iwdg_setup();
-    //int N = 0;
     while (1){
         IWDG->KR = IWDG_REFRESH; // refresh watchdog
         if(lastT > Tms || Tms - lastT > 499){
             LED_blink(LED0);
             lastT = Tms;
             transmit_tbuf(); // non-blocking transmission of data from UART buffer every 0.5s
-            /*if(N){
-                SEND("start: ");
-                printu(Tms);
-                for(int i = 0; i < 100; ++i){
-                    IWDG->KR = IWDG_REFRESH;
-                    send_word("0123456789abcdefghi\n");
-                }
-                SEND("stop: ");
-                printu(Tms);
-                newline();
-                --N;
-            }*/
         }
         usb_proc();
         if(usartrx()){ // usart1 received data, store in in buffer
@@ -136,12 +123,11 @@ int main(void){
                 switch(_1st){
                     case 'C':
                         SEND("USB ");
-                        if(!USB_configured()) SEND("dis");
+                        if(!usbON) SEND("dis");
                         SEND("connected\n");
                     break;
                     case 'K':
                         send_word("Hello, weird and cruel world!\n\n");
-                        //N = 2;
                         SEND("Write hello\n");
                     break;
                     case 'M':
@@ -168,12 +154,12 @@ int main(void){
                     break;
                 }
             }
+            if(L){ // echo all other data
+                txt[L] = 0;
+                usart_send(txt);
+                L = 0;
+            }
             transmit_tbuf();
-        }
-        if(L){ // echo all other data
-            txt[L] = 0;
-            usart_send(txt);
-            L = 0;
         }
     }
     return 0;

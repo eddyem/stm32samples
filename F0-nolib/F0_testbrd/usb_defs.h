@@ -25,7 +25,11 @@
 #ifndef __USB_DEFS_H__
 #define __USB_DEFS_H__
 
-#include <stm32f0xx.h>
+#include <stm32f0.h>
+
+// max endpoints number
+#define STM32ENDPOINTS          8
+#define USB_EP1BUFSZ            8
 
 /**
  *                 Buffers size definition
@@ -74,15 +78,8 @@
 #define USB_TypeDef USB_TypeDef_custom
 
 typedef struct{
-    __IO uint32_t EPnR[8];
-    __IO uint32_t RESERVED1;
-    __IO uint32_t RESERVED2;
-    __IO uint32_t RESERVED3;
-    __IO uint32_t RESERVED4;
-    __IO uint32_t RESERVED5;
-    __IO uint32_t RESERVED6;
-    __IO uint32_t RESERVED7;
-    __IO uint32_t RESERVED8;
+    __IO uint32_t EPnR[STM32ENDPOINTS];
+    __IO uint32_t RESERVED[STM32ENDPOINTS];
     __IO uint32_t CNTR;
     __IO uint32_t ISTR;
     __IO uint32_t FNR;
@@ -100,7 +97,7 @@ typedef struct{
 } USB_EPDATA_TypeDef;
 
 typedef struct{
-    __IO USB_EPDATA_TypeDef EP[8];
+    __IO USB_EPDATA_TypeDef EP[STM32ENDPOINTS];
 } USB_BtableDef;
 
 #endif // __USB_DEFS_H__

@@ -51,7 +51,7 @@ DEPS		:= $(OBJS:.o=.d)
 
 INC_DIR ?= ../inc
 
-INCLUDE 	:= -I$(INC_DIR)/F0 -I$(INC_DIR)/cm
+INCLUDE 	:= -I$(INC_DIR)/Fx -I$(INC_DIR)/cm
 LIB_DIR		:= $(INC_DIR)/ld
 
 ###############################################################################

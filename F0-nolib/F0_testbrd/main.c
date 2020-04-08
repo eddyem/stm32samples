@@ -24,7 +24,6 @@
 #include "usart.h"
 #include "usb.h"
 #include "usb_lib.h"
-#include <string.h> // memcpy
 
 volatile uint32_t Tms = 0;
 
@@ -56,6 +55,7 @@ void iwdg_setup(){
     IWDG->KR = IWDG_REFRESH; /* (6) */
 }
 
+#define USND(str)  do{USB_send((uint8_t*)str, sizeof(str)-1);}while(0)
 char *parse_cmd(char *buf){
     static char btns[] = "BTN0=0, BTN1=0\n";
     if(buf[1] != '\n') return buf;
@@ -87,17 +87,17 @@ char *parse_cmd(char *buf){
             return u2str(getADCval(0));
         break;
         case 'L':
-            USB_send("Very long test string for USB (it's length is more than 64 bytes).\n"
+            USND("Very long test string for USB (it's length is more than 64 bytes).\n"
                      "This is another part of the string! Can you see all of this?\n");
             return "Long test sent\n";
         break;
         case 'R':
-            USB_send("Soft reset\n");
+            USND("Soft reset\n");
             SEND("Soft reset\n");
             NVIC_SystemReset();
         break;
         case 'S':
-            USB_send("Test string for USB\n");
+            USND("Test string for USB\n");
             return "Short test sent\n";
         break;
         case 'T':
@@ -107,7 +107,7 @@ char *parse_cmd(char *buf){
             return u2str(getVdd());
         break;
         case 'W':
-            USB_send("Wait for reboot\n");
+            USND("Wait for reboot\n");
             SEND("Wait for reboot\n");
             while(1){nop();};
         break;
@@ -133,12 +133,9 @@ char *parse_cmd(char *buf){
 char *get_USB(){
     static char tmpbuf[129], *curptr = tmpbuf;
     static int rest = 128;
-    int x = USB_receive(curptr, rest);
+    int x = USB_receive((uint8_t*)curptr);
     curptr[x] = 0;
     if(!x) return NULL;
-    SEND("got: ");
-    SEND(curptr);
-    newline();
     if(curptr[x-1] == '\n'){
         curptr = tmpbuf;
         rest = 128;
@@ -187,7 +184,12 @@ int main(void){
             SEND("Received data over USB:\n");
             SEND(txt);
             newline();
-            if(ans) USB_send(ans);
+            if(ans){
+                uint16_t l = 0; char *p = ans;
+                while(*p++) l++;
+                USB_send((uint8_t*)ans, l);
+                if(ans[l-1] != '\n') USND("\n");
+            }
         }
         if(usartrx()){ // usart1 received data, store in in buffer
             r = usart_getline(&txt);
@@ -202,18 +204,6 @@ int main(void){
         }
         // check buttons - each 50ms
         if(Tms - lastB > 49){
-            /*static uint8_t oldbtn0 = 0, oldbtn1 = 0;
-            uint8_t btn0 = GET_BTN0(), btn1 = GET_BTN1(), pwm = GET_LED_PWM();
-            // both: set to middle
-            if(oldbtn0 != btn0 && oldbtn1 != btn1){
-                SET_LED_PWM(127);
-            }else if(oldbtn0 != btn0){ // pressed/released
-                oldbtn0 = btn0;
-                if(pwm < 255) SET_LED_PWM(pwm+1);
-            }else if(oldbtn1 != btn1){
-                oldbtn1 = btn1;
-                if(pwm > 0) SET_LED_PWM(pwm-1);
-            }*/
             lastB = Tms;
             uint8_t btn0 = GET_BTN0(), btn1 = GET_BTN1(), pwm = GET_LED_PWM();
             // both: set to middle

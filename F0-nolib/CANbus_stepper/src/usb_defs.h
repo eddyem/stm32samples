@@ -25,7 +25,7 @@
 #ifndef __USB_DEFS_H__
 #define __USB_DEFS_H__
 
-#include <stm32f0xx.h>
+#include <stm32f0.h>
 
 /**
  *                 Buffers size definition

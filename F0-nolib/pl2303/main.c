@@ -22,7 +22,6 @@
 #include "usart.h"
 #include "usb.h"
 #include "usb_lib.h"
-#include <string.h> // memcpy
 
 volatile uint32_t Tms = 0;
 
@@ -53,7 +52,7 @@ void iwdg_setup(){
     while(IWDG->SR){if(--tmout == 0) break;} /* (5) */
     IWDG->KR = IWDG_REFRESH; /* (6) */
 }
-
+/*
 static usb_LineCoding new_lc;
 static uint8_t lcchange = 0;
 static void show_new_lc(){
@@ -112,18 +111,75 @@ void clstate_handler(uint16_t val){
     if(val & CONTROL_RTS) SEND(" (RTS)");
     usart_putchar('\n');
 }
+*/
+
+// usb getline
+char *get_USB(){
+    static char tmpbuf[512], *curptr = tmpbuf;
+    static int rest = 511;
+    uint8_t x = USB_receive((uint8_t*)curptr);
+    curptr[x] = 0;
+    if(!x) return NULL;
+    if(curptr[x-1] == '\n'){
+#ifdef EBUG
+        DBG("fullline");
+        IWDG->KR = IWDG_REFRESH;
+        SEND(tmpbuf);
+        transmit_tbuf();
+#endif
+        curptr = tmpbuf;
+        rest = 511;
+        return tmpbuf;
+    }
+    curptr += x; rest -= x;
+    if(rest <= 0){ // buffer overflow
+        curptr = tmpbuf;
+        rest = 511;
+    }
+    return NULL;
+}
+
+#define USND(str)  do{USB_send((uint8_t*)str, sizeof(str)-1);}while(0)
+static const char *parse_cmd(const char *buf){
+    if(buf[1] != '\n') return buf;
+    switch(*buf){
+        case 'L':
+            USND("Very long test string for USB (it's length is more than 64 bytes).\n"
+                     "This is another part of the string! Can you see all of this?\n");
+            return "OK\n";
+        break;
+        case 'R':
+            USND("Soft reset\n");
+            NVIC_SystemReset();
+        break;
+        case 'S':
+            USND("Test string for USB\n");
+            return "OK\n";
+        break;
+        case 'W':
+            USND("Wait for reboot\n");
+            while(1){nop();};
+        break;
+        default: // help
+            return
+            "'L' - send long string over USB\n"
+            "'R' - software reset\n"
+            "'S' - send short string over USB\n"
+            "'W' - test watchdog\n"
+            ;
+        break;
+    }
+    return NULL;
+}
 
 int main(void){
     uint32_t lastT = 0;
-    int L = 0;
-    char *txt;
-    char tmpbuf[129];
     sysreset();
     SysTick_Config(6000, 1);
     gpio_setup();
     usart_setup();
 
-    SEND("Hello!\n");
+    MSG("Run");
 
     if(RCC->CSR & RCC_CSR_IWDGRSTF){ // watchdog reset occured
         SEND("WDGRESET=1\n");
@@ -144,62 +200,24 @@ int main(void){
             transmit_tbuf(); // non-blocking transmission of data from UART buffer every 0.5s
         }
         usb_proc();
-        uint8_t r = 0;
-        if((r = USB_receive(tmpbuf, 128))){
-            tmpbuf[r] = 0;
-            SEND("Received data over USB:\n");
-            SEND(tmpbuf);
-            newline();
+        char *txt, *ans;
+        if(usartrx()){
+            usart_getline(&txt);
+            ans = (char*)parse_cmd(txt);
+            if(ans) usart_send(ans);
         }
-        if(usartrx()){ // usart1 received data, store in in buffer
-            L = usart_getline(&txt);
-            char _1st = txt[0];
-            if(L == 2 && txt[1] == '\n'){
-                L = 0;
-                switch(_1st){
-                    case 'C':
-                        SEND("USB ");
-                        if(!USB_configured()) SEND("dis");
-                        SEND("connected\n");
-                    break;
-                    case 'L':
-                        USB_send("Very long test string for USB (it's length is more than 64 bytes\n"
-                                 "This is another part of the string! Can you see all of this?\n");
-                        SEND("Long test sent\n");
-                    break;
-                    case 'R':
-                        SEND("Soft reset\n");
-                        NVIC_SystemReset();
-                    break;
-                    case 'S':
-                        USB_send("Test string for USB\n");
-                        SEND("Short test sent\n");
-                    break;
-                    case 'W':
-                        SEND("Wait for reboot\n");
-                        while(1){nop();};
-                    break;
-                    default: // help
-                        SEND(
-                        "'C' - test if USB is configured\n"
-                        "'L' - send long string over USB\n"
-                        "'R' - software reset\n"
-                        "'S' - send short string over USB\n"
-                        "'W' - test watchdog\n"
-                        );
-                    break;
-                }
+        if((txt = get_USB())){
+            IWDG->KR = IWDG_REFRESH;
+            ans = (char*)parse_cmd(txt);
+            if(ans){
+                uint16_t l = 0; char *p = ans;
+                while(*p++) l++;
+                USB_send((uint8_t*)ans, l);
             }
-            transmit_tbuf();
         }
-        if(L){ // echo all other data
-            txt[L] = 0;
-            usart_send(txt);
-            L = 0;
-        }
-        if(lcchange){
+        /*if(lcchange){
             show_new_lc();
-        }
+        }*/
     }
     return 0;
 }

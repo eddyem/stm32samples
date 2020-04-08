@@ -8,5 +8,5 @@ MEMORY
 }
 
 /* Include the common ld script. */
-INCLUDE stm32f0.ld
+INCLUDE stm32f01234.ld
 
