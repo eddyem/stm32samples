@@ -29,3 +29,5 @@ F1/client-term/client
 *.cxxflags
 *.files
 *.includes
+
+*-bak

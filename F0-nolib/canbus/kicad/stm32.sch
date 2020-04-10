@@ -1,42 +1,5 @@
-EESchema Schematic File Version 2
-LIBS:stm32-rescue
-LIBS:power
-LIBS:device
-LIBS:transistors
-LIBS:conn
-LIBS:linear
-LIBS:regul
-LIBS:74xx
-LIBS:cmos4000
-LIBS:adc-dac
-LIBS:memory
-LIBS:xilinx
-LIBS:microcontrollers
-LIBS:dsp
-LIBS:microchip
-LIBS:analog_switches
-LIBS:motorola
-LIBS:texas
-LIBS:intel
-LIBS:audio
-LIBS:interface
-LIBS:digital-audio
-LIBS:philips
-LIBS:display
-LIBS:cypress
-LIBS:siliconi
-LIBS:opto
-LIBS:atmel
-LIBS:contrib
-LIBS:valves
-LIBS:stm32
-LIBS:vreg
-LIBS:elements
-LIBS:ESD_Protection
-LIBS:switches
-LIBS:acs712
-LIBS:stm32-cache
-EELAYER 25 0
+EESchema Schematic File Version 4
+EELAYER 30 0
 EELAYER END
 $Descr A3 16535 11693
 encoding utf-8
@@ -51,7 +14,7 @@ Comment3 ""
 Comment4 ""
 $EndDescr
 $Comp
-L C C11
+L stm32-rescue:C C11
 U 1 1 58C42D39
 P 8150 9950
 F 0 "C11" H 8175 10050 50  0000 L CNN
@@ -62,7 +25,7 @@ F 3 "" H 8150 9950 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L LM1117-3.3-RESCUE-stm32 U2
+L stm32-rescue:LM1117-3.3-RESCUE-stm32 U2
 U 1 1 58C431FC
 P 2350 4900
 F 0 "U2" H 2450 4650 50  0000 C CNN
@@ -73,7 +36,7 @@ F 3 "" H 2350 4900 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L MCP2551-I/SN U4
+L stm32-rescue:MCP2551-I_SN U4
 U 1 1 58C43297
 P 3550 1550
 F 0 "U4" H 3150 1900 50  0000 L CNN
@@ -84,7 +47,7 @@ F 3 "" H 3550 1550 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L USB_A-RESCUE-stm32 P13
+L stm32-rescue:USB_A-RESCUE-stm32 P13
 U 1 1 58C433D0
 P 14300 8950
 F 0 "P13" H 14500 8750 50  0000 C CNN
@@ -95,7 +58,7 @@ F 3 "" V 14250 8850 50  0000 C CNN
 	0    1    1    0   
 $EndComp
 $Comp
-L GND #PWR01
+L stm32-rescue:GND #PWR01
 U 1 1 58C43B9F
 P 1600 3750
 F 0 "#PWR01" H 1600 3500 50  0001 C CNN
@@ -108,7 +71,7 @@ $EndComp
 Text Notes 1000 3100 0    60   ~ 0
 5V power source
 $Comp
-L +5V #PWR02
+L stm32-rescue:+5V #PWR02
 U 1 1 58C45269
 P 1800 4900
 F 0 "#PWR02" H 1800 4750 50  0001 C CNN
@@ -119,7 +82,7 @@ F 3 "" H 1800 4900 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L GND #PWR03
+L stm32-rescue:GND #PWR03
 U 1 1 58C453C7
 P 2350 5250
 F 0 "#PWR03" H 2350 5000 50  0001 C CNN
@@ -130,7 +93,7 @@ F 3 "" H 2350 5250 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L CP C2
+L stm32-rescue:CP C2
 U 1 1 58C454F6
 P 2750 5050
 F 0 "C2" H 2775 5150 50  0000 L CNN
@@ -141,7 +104,7 @@ F 3 "" H 2750 5050 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L +3.3V #PWR04
+L stm32-rescue:+3.3V #PWR04
 U 1 1 58C455CB
 P 2950 4900
 F 0 "#PWR04" H 2950 4750 50  0001 C CNN
@@ -152,7 +115,7 @@ F 3 "" H 2950 4900 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L PESD1CAN D3
+L stm32-rescue:PESD1CAN D3
 U 1 1 58C46522
 P 4550 2450
 F 0 "D3" H 4550 2100 50  0000 C CNN
@@ -163,7 +126,7 @@ F 3 "" H 4550 2450 50  0000 C CNN
 	0    1    1    0   
 $EndComp
 $Comp
-L GND #PWR05
+L stm32-rescue:GND #PWR05
 U 1 1 58C47600
 P 4450 2900
 F 0 "#PWR05" H 4450 2650 50  0001 C CNN
@@ -174,7 +137,7 @@ F 3 "" H 4450 2900 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L +5V #PWR06
+L stm32-rescue:+5V #PWR06
 U 1 1 58C47B3E
 P 3550 1100
 F 0 "#PWR06" H 3550 950 50  0001 C CNN
@@ -185,7 +148,7 @@ F 3 "" H 3550 1100 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L R R8
+L stm32-rescue:R R8
 U 1 1 58C47F04
 P 3000 1950
 F 0 "R8" V 3080 1950 50  0000 C CNN
@@ -196,7 +159,7 @@ F 3 "" H 3000 1950 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L GND #PWR07
+L stm32-rescue:GND #PWR07
 U 1 1 58C4802D
 P 3550 2050
 F 0 "#PWR07" H 3550 1800 50  0001 C CNN
@@ -207,7 +170,7 @@ F 3 "" H 3550 2050 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L GND #PWR08
+L stm32-rescue:GND #PWR08
 U 1 1 58C4805F
 P 3000 2150
 F 0 "#PWR08" H 3000 1900 50  0001 C CNN
@@ -218,7 +181,7 @@ F 3 "" H 3000 2150 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L R R9
+L stm32-rescue:R R9
 U 1 1 58C488C6
 P 4900 1800
 F 0 "R9" V 4980 1800 50  0000 C CNN
@@ -229,7 +192,7 @@ F 3 "" H 4900 1800 50  0000 C CNN
 	0    -1   -1   0   
 $EndComp
 $Comp
-L Jumper_NO_Small JP1
+L stm32-rescue:Jumper_NO_Small JP1
 U 1 1 58C4940D
 P 4950 1200
 F 0 "JP1" H 4950 1280 50  0000 C CNN
@@ -250,7 +213,7 @@ LED0
 Text Label 4450 3950 2    60   ~ 0
 LED1
 $Comp
-L LED-RESCUE-stm32 D5
+L stm32-rescue:LED-RESCUE-stm32 D5
 U 1 1 5908EA64
 P 4750 3650
 F 0 "D5" H 4750 3750 50  0000 C CNN
@@ -261,7 +224,7 @@ F 3 "" H 4750 3650 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L R R29
+L stm32-rescue:R R29
 U 1 1 5908EB17
 P 5150 3650
 F 0 "R29" V 5230 3650 50  0000 C CNN
@@ -272,7 +235,7 @@ F 3 "" H 5150 3650 50  0000 C CNN
 	0    -1   -1   0   
 $EndComp
 $Comp
-L +3.3V #PWR09
+L stm32-rescue:+3.3V #PWR09
 U 1 1 5908F9F4
 P 5450 3650
 F 0 "#PWR09" H 5450 3500 50  0001 C CNN
@@ -283,7 +246,7 @@ F 3 "" H 5450 3650 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L C C12
+L stm32-rescue:C C12
 U 1 1 590935EA
 P 8450 9950
 F 0 "C12" H 8475 10050 50  0000 L CNN
@@ -294,7 +257,7 @@ F 3 "" H 8450 9950 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L C C13
+L stm32-rescue:C C13
 U 1 1 59093675
 P 8750 9950
 F 0 "C13" H 8775 10050 50  0000 L CNN
@@ -307,7 +270,7 @@ $EndComp
 Text Label 8450 5900 0    60   ~ 0
 VDD
 $Comp
-L USB6B1 D7
+L stm32-rescue:USB6B1 D7
 U 1 1 59098D4D
 P 12950 8900
 F 0 "D7" H 12950 8450 50  0000 C CNN
@@ -318,7 +281,7 @@ F 3 "" V 13150 8800 50  0000 C CNN
 	-1   0    0    -1  
 $EndComp
 $Comp
-L LED-RESCUE-stm32 D6
+L stm32-rescue:LED-RESCUE-stm32 D6
 U 1 1 5909AF9A
 P 4750 3950
 F 0 "D6" H 4750 4050 50  0000 C CNN
@@ -329,7 +292,7 @@ F 3 "" H 4750 3950 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L R R30
+L stm32-rescue:R R30
 U 1 1 5909AFA0
 P 5150 3950
 F 0 "R30" V 5230 3950 50  0000 C CNN
@@ -340,7 +303,7 @@ F 3 "" H 5150 3950 50  0000 C CNN
 	0    -1   -1   0   
 $EndComp
 $Comp
-L +3.3V #PWR010
+L stm32-rescue:+3.3V #PWR010
 U 1 1 5909AFA6
 P 5450 3950
 F 0 "#PWR010" H 5450 3800 50  0001 C CNN
@@ -353,7 +316,7 @@ $EndComp
 Text Notes 4300 3400 0    60   ~ 0
 LED indicators
 $Comp
-L LED-RESCUE-stm32 D2
+L stm32-rescue:LED-RESCUE-stm32 D2
 U 1 1 5909BFFC
 P 3100 5050
 F 0 "D2" H 3100 5150 50  0000 C CNN
@@ -364,7 +327,7 @@ F 3 "" H 3100 5050 50  0000 C CNN
 	0    -1   -1   0   
 $EndComp
 $Comp
-L R R5
+L stm32-rescue:R R5
 U 1 1 5909C002
 P 2850 5350
 F 0 "R5" V 2930 5350 50  0000 C CNN
@@ -378,7 +341,7 @@ Text Notes 1000 4600 0    60   ~ 0
 3.3V MCU power source
 NoConn ~ 3050 1650
 $Comp
-L +3.3V #PWR011
+L stm32-rescue:+3.3V #PWR011
 U 1 1 590A0C2D
 P 9450 10100
 F 0 "#PWR011" H 9450 9950 50  0001 C CNN
@@ -389,7 +352,7 @@ F 3 "" H 9450 10100 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L GND #PWR012
+L stm32-rescue:GND #PWR012
 U 1 1 590A1958
 P 7800 9800
 F 0 "#PWR012" H 7800 9550 50  0001 C CNN
@@ -402,7 +365,7 @@ $EndComp
 Text Label 9550 10100 0    60   ~ 0
 VDD
 $Comp
-L GND #PWR013
+L stm32-rescue:GND #PWR013
 U 1 1 590A6FD0
 P 12450 9300
 F 0 "#PWR013" H 12450 9050 50  0001 C CNN
@@ -413,7 +376,7 @@ F 3 "" H 12450 9300 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L C C14
+L stm32-rescue:C C14
 U 1 1 590A8102
 P 9050 9950
 F 0 "C14" H 9075 10050 50  0000 L CNN
@@ -425,7 +388,7 @@ F 3 "" H 9050 9950 50  0000 C CNN
 $EndComp
 NoConn ~ 5450 6750
 $Comp
-L CONN_01X03 P12
+L stm32-rescue:CONN_01X03 P12
 U 1 1 590AD3A7
 P 12200 9600
 F 0 "P12" H 12200 9800 50  0000 C CNN
@@ -436,7 +399,7 @@ F 3 "" H 12200 9600 50  0000 C CNN
 	1    0    0    1   
 $EndComp
 $Comp
-L GND #PWR014
+L stm32-rescue:GND #PWR014
 U 1 1 590AD6E0
 P 12000 9750
 F 0 "#PWR014" H 12000 9500 50  0001 C CNN
@@ -457,7 +420,7 @@ CAN_Rx
 Text Label 6350 2900 0    60   ~ 0
 12Vin
 $Comp
-L Q_PMOS_GSD Q1
+L stm32-rescue:Q_PMOS_GSD Q1
 U 1 1 5910E2F2
 P 5500 2700
 F 0 "Q1" H 5700 2750 50  0000 L CNN
@@ -476,7 +439,7 @@ External 12V voltage control
 Text Notes 11900 7850 0    60   ~ 0
 External 5V voltage control
 $Comp
-L R R3
+L stm32-rescue:R R3
 U 1 1 590A6DD4
 P 1600 6050
 F 0 "R3" V 1680 6050 50  0000 C CNN
@@ -487,7 +450,7 @@ F 3 "" H 1600 6050 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L R R4
+L stm32-rescue:R R4
 U 1 1 590A6DDA
 P 1600 6450
 F 0 "R4" V 1680 6450 50  0000 C CNN
@@ -498,7 +461,7 @@ F 3 "" H 1600 6450 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L R R6
+L stm32-rescue:R R6
 U 1 1 590A6F68
 P 2400 6050
 F 0 "R6" V 2480 6050 50  0000 C CNN
@@ -509,7 +472,7 @@ F 3 "" H 2400 6050 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L R R7
+L stm32-rescue:R R7
 U 1 1 590A6F6E
 P 2400 6450
 F 0 "R7" V 2480 6450 50  0000 C CNN
@@ -520,7 +483,7 @@ F 3 "" H 2400 6450 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L GND #PWR015
+L stm32-rescue:GND #PWR015
 U 1 1 590A7717
 P 1600 6650
 F 0 "#PWR015" H 1600 6400 50  0001 C CNN
@@ -531,7 +494,7 @@ F 3 "" H 1600 6650 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L GND #PWR016
+L stm32-rescue:GND #PWR016
 U 1 1 590A77FA
 P 2400 6650
 F 0 "#PWR016" H 2400 6400 50  0001 C CNN
@@ -544,7 +507,7 @@ $EndComp
 Text Label 1450 5900 2    60   ~ 0
 12Vin
 $Comp
-L +5V #PWR017
+L stm32-rescue:+5V #PWR017
 U 1 1 590AA81F
 P 2400 5850
 F 0 "#PWR017" H 2400 5700 50  0001 C CNN
@@ -575,7 +538,7 @@ BOOT0
 Text Label 1350 1100 0    60   ~ 0
 BOOT0
 $Comp
-L R R27
+L stm32-rescue:R R27
 U 1 1 590D30C8
 P 1350 1400
 F 0 "R27" V 1430 1400 50  0000 C CNN
@@ -586,7 +549,7 @@ F 3 "" H 1350 1400 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L R R28
+L stm32-rescue:R R28
 U 1 1 590D3334
 P 1350 2250
 F 0 "R28" V 1430 2250 50  0000 C CNN
@@ -597,7 +560,7 @@ F 3 "" H 1350 2250 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L C C6
+L stm32-rescue:C C6
 U 1 1 590D4150
 P 1950 1400
 F 0 "C6" H 1975 1500 50  0000 L CNN
@@ -608,7 +571,7 @@ F 3 "" H 1950 1400 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L C C5
+L stm32-rescue:C C5
 U 1 1 590D4832
 P 1900 2250
 F 0 "C5" H 1925 2350 50  0000 L CNN
@@ -619,7 +582,7 @@ F 3 "" H 1900 2250 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L SW_Push SW2
+L stm32-rescue:SW_Push SW2
 U 1 1 5909F6B6
 P 1650 1400
 F 0 "SW2" H 1700 1500 50  0000 L CNN
@@ -630,7 +593,7 @@ F 3 "" H 1650 1600 50  0000 C CNN
 	0    1    1    0   
 $EndComp
 $Comp
-L SW_Push SW1
+L stm32-rescue:SW_Push SW1
 U 1 1 590A0134
 P 1600 2250
 F 0 "SW1" H 1650 2350 50  0000 L CNN
@@ -641,7 +604,7 @@ F 3 "" H 1600 2450 50  0000 C CNN
 	0    1    1    0   
 $EndComp
 $Comp
-L GND #PWR018
+L stm32-rescue:GND #PWR018
 U 1 1 590A03AF
 P 1350 1600
 F 0 "#PWR018" H 1350 1350 50  0001 C CNN
@@ -652,7 +615,7 @@ F 3 "" H 1350 1600 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L +3.3V #PWR019
+L stm32-rescue:+3.3V #PWR019
 U 1 1 590A1E6C
 P 1800 1650
 F 0 "#PWR019" H 1800 1500 50  0001 C CNN
@@ -663,7 +626,7 @@ F 3 "" H 1800 1650 50  0000 C CNN
 	-1   0    0    1   
 $EndComp
 $Comp
-L +3.3V #PWR020
+L stm32-rescue:+3.3V #PWR020
 U 1 1 590A465B
 P 1350 2500
 F 0 "#PWR020" H 1350 2350 50  0001 C CNN
@@ -674,7 +637,7 @@ F 3 "" H 1350 2500 50  0000 C CNN
 	-1   0    0    1   
 $EndComp
 $Comp
-L GND #PWR021
+L stm32-rescue:GND #PWR021
 U 1 1 590A509B
 P 1750 2500
 F 0 "#PWR021" H 1750 2250 50  0001 C CNN
@@ -685,7 +648,7 @@ F 3 "" H 1750 2500 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L PWR_FLAG #FLG022
+L stm32-rescue:PWR_FLAG #FLG022
 U 1 1 590C1070
 P 6250 2900
 F 0 "#FLG022" H 6250 2995 50  0001 C CNN
@@ -696,7 +659,7 @@ F 3 "" H 6250 2900 50  0000 C CNN
 	-1   0    0    1   
 $EndComp
 $Comp
-L PWR_FLAG #FLG023
+L stm32-rescue:PWR_FLAG #FLG023
 U 1 1 590CEE5E
 P 14000 8600
 F 0 "#FLG023" H 14000 8695 50  0001 C CNN
@@ -707,7 +670,7 @@ F 3 "" H 14000 8600 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L GND #PWR024
+L stm32-rescue:GND #PWR024
 U 1 1 590CF25B
 P 14400 9300
 F 0 "#PWR024" H 14400 9050 50  0001 C CNN
@@ -718,7 +681,7 @@ F 3 "" H 14400 9300 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L PWR_FLAG #FLG025
+L stm32-rescue:PWR_FLAG #FLG025
 U 1 1 590D075A
 P 13450 9350
 F 0 "#FLG025" H 13450 9445 50  0001 C CNN
@@ -729,7 +692,7 @@ F 3 "" H 13450 9350 50  0000 C CNN
 	-1   0    0    1   
 $EndComp
 $Comp
-L CONN_01X01 P15
+L stm32-rescue:CONN_01X01 P15
 U 1 1 59143415
 P 15700 8850
 F 0 "P15" H 15700 8950 50  0000 C CNN
@@ -740,7 +703,7 @@ F 3 "" H 15700 8850 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L CONN_01X01 P16
+L stm32-rescue:CONN_01X01 P16
 U 1 1 5914456D
 P 15700 9100
 F 0 "P16" H 15700 9200 50  0000 C CNN
@@ -751,7 +714,7 @@ F 3 "" H 15700 9100 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L CONN_01X01 P17
+L stm32-rescue:CONN_01X01 P17
 U 1 1 591446F3
 P 15700 9350
 F 0 "P17" H 15700 9450 50  0000 C CNN
@@ -762,7 +725,7 @@ F 3 "" H 15700 9350 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L CONN_01X01 P18
+L stm32-rescue:CONN_01X01 P18
 U 1 1 591446F9
 P 15700 9600
 F 0 "P18" H 15700 9700 50  0000 C CNN
@@ -777,7 +740,7 @@ NoConn ~ 15500 9100
 NoConn ~ 15500 9350
 NoConn ~ 15500 9600
 $Comp
-L C C15
+L stm32-rescue:C C15
 U 1 1 596772D4
 P 1350 3600
 F 0 "C15" H 1375 3700 50  0000 L CNN
@@ -788,7 +751,7 @@ F 3 "" H 1350 3600 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L D_Zener D9
+L stm32-rescue:D_Zener D9
 U 1 1 5968325A
 P 2650 6450
 F 0 "D9" H 2650 6550 50  0000 C CNN
@@ -799,7 +762,7 @@ F 3 "" H 2650 6450 50  0000 C CNN
 	0    1    1    0   
 $EndComp
 $Comp
-L D_Zener D8
+L stm32-rescue:D_Zener D8
 U 1 1 59684468
 P 1850 6450
 F 0 "D8" H 1850 6550 50  0000 C CNN
@@ -810,7 +773,7 @@ F 3 "" H 1850 6450 50  0000 C CNN
 	0    1    1    0   
 $EndComp
 $Comp
-L R R34
+L stm32-rescue:R R34
 U 1 1 5968E385
 P 12200 8800
 F 0 "R34" V 12280 8800 50  0000 C CNN
@@ -821,7 +784,7 @@ F 3 "" H 12200 8800 50  0001 C CNN
 	0    1    1    0   
 $EndComp
 $Comp
-L R R35
+L stm32-rescue:R R35
 U 1 1 5968E83B
 P 12200 9000
 F 0 "R35" V 12280 9000 50  0000 C CNN
@@ -838,7 +801,7 @@ brdaddr1
 Text Label 11650 8550 0    60   ~ 0
 brdaddr2
 $Comp
-L CONN_02X03 J1
+L stm32-rescue:CONN_02X03 J1
 U 1 1 5A50A198
 P 6600 3650
 F 0 "J1" H 6600 3850 50  0000 C CNN
@@ -857,7 +820,7 @@ brdaddr1
 Text Label 6850 3750 0    60   ~ 0
 brdaddr2
 $Comp
-L GND #PWR026
+L stm32-rescue:GND #PWR026
 U 1 1 5A50D34D
 P 6250 3800
 F 0 "#PWR026" H 6250 3550 50  0001 C CNN
@@ -876,7 +839,7 @@ Text Label 1300 5150 2    60   ~ 0
 Text Label 1300 4900 2    60   ~ 0
 5Vreg
 $Comp
-L D_Schottky D4
+L stm32-rescue:D_Schottky D4
 U 1 1 5A545B43
 P 1500 5150
 F 0 "D4" H 1500 5250 50  0000 C CNN
@@ -887,7 +850,7 @@ F 3 "" H 1500 5150 50  0001 C CNN
 	-1   0    0    1   
 $EndComp
 $Comp
-L LM1117-3.3-RESCUE-stm32 U1
+L stm32-rescue:LM1117-3.3-RESCUE-stm32 U1
 U 1 1 5A5866DE
 P 2000 3400
 F 0 "U1" H 2100 3150 50  0000 C CNN
@@ -898,7 +861,7 @@ F 3 "" H 2000 3400 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L GND #PWR027
+L stm32-rescue:GND #PWR027
 U 1 1 5A586C06
 P 2000 3800
 F 0 "#PWR027" H 2000 3550 50  0001 C CNN
@@ -909,7 +872,7 @@ F 3 "" H 2000 3800 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L C C1
+L stm32-rescue:C C1
 U 1 1 5A586F5C
 P 2400 3550
 F 0 "C1" H 2425 3650 50  0000 L CNN
@@ -920,7 +883,7 @@ F 3 "" H 2400 3550 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L +5V #PWR028
+L stm32-rescue:+5V #PWR028
 U 1 1 5A5881A0
 P 2700 3400
 F 0 "#PWR028" H 2700 3250 50  0001 C CNN
@@ -936,7 +899,7 @@ NoConn ~ 5450 8950
 Text Label 1250 3400 0    60   ~ 0
 12Vin
 $Comp
-L DB9_Female J2
+L stm32-rescue:DB9_Female J2
 U 1 1 5A5935B2
 P 6000 1650
 F 0 "J2" H 6000 2300 50  0000 C CNN
@@ -947,7 +910,7 @@ F 3 "" H 6000 1650 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L DB9_Male J3
+L stm32-rescue:DB9_Male J3
 U 1 1 5A59367B
 P 7100 1650
 F 0 "J3" H 7100 2300 50  0000 C CNN
@@ -958,7 +921,7 @@ F 3 "" H 7100 1650 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	1250 3400 1700 3400
+	1250 3400 1350 3400
 Wire Wire Line
 	1600 3750 1600 3700
 Wire Notes Line
@@ -970,13 +933,13 @@ Wire Notes Line
 Wire Notes Line
 	3850 2950 950  2950
 Wire Wire Line
-	1300 4900 2050 4900
+	1300 4900 1800 4900
 Wire Wire Line
 	2350 5250 2350 5200
 Wire Wire Line
-	2350 5200 2750 5200
+	2350 5200 2700 5200
 Wire Wire Line
-	2650 4900 3100 4900
+	2650 4900 2750 4900
 Connection ~ 2750 4900
 Wire Wire Line
 	4350 1650 4350 2150
@@ -1006,12 +969,12 @@ Wire Wire Line
 Wire Wire Line
 	3050 1450 2850 1450
 Wire Wire Line
-	8350 9650 8650 9650
+	8350 9650 8450 9650
 Connection ~ 8450 9650
 Wire Wire Line
 	8450 9800 8450 9650
 Wire Wire Line
-	8350 6050 8650 6050
+	8350 6050 8450 6050
 Connection ~ 8450 6050
 Wire Wire Line
 	8450 6050 8450 5900
@@ -1072,10 +1035,10 @@ Wire Notes Line
 Wire Notes Line
 	950  5500 950  4450
 Wire Wire Line
-	7800 9800 9050 9800
+	7800 9800 8150 9800
 Connection ~ 8450 9800
 Wire Wire Line
-	8150 10100 9550 10100
+	8150 10100 8450 10100
 Connection ~ 8450 10100
 Connection ~ 8150 9800
 Connection ~ 8750 10100
@@ -1099,24 +1062,24 @@ Connection ~ 9050 10100
 Wire Wire Line
 	12000 9700 12000 9750
 Wire Wire Line
-	5600 2900 6350 2900
+	5600 2900 6250 2900
 Wire Wire Line
 	2400 5900 2400 5850
 Wire Wire Line
-	2400 6200 2400 6300
+	2400 6200 2400 6250
 Wire Wire Line
 	2400 6600 2400 6650
 Wire Wire Line
 	1450 5900 1600 5900
 Wire Wire Line
-	1600 6200 1600 6300
+	1600 6200 1600 6250
 Wire Wire Line
 	1600 6600 1600 6650
 Wire Wire Line
-	1600 6250 1950 6250
+	1600 6250 1850 6250
 Connection ~ 1600 6250
 Wire Wire Line
-	2400 6250 2750 6250
+	2400 6250 2650 6250
 Connection ~ 2400 6250
 Wire Notes Line
 	950  5600 3950 5600
@@ -1129,32 +1092,32 @@ Wire Notes Line
 Wire Wire Line
 	1350 1600 1350 1550
 Wire Wire Line
-	1350 1100 1350 1250
+	1350 1100 1350 1200
 Wire Wire Line
 	1950 1200 1950 1250
 Wire Wire Line
-	1350 1200 1950 1200
+	1350 1200 1650 1200
 Connection ~ 1650 1200
 Connection ~ 1350 1200
 Wire Wire Line
-	1650 1600 1950 1600
+	1650 1600 1800 1600
 Wire Wire Line
 	1950 1600 1950 1550
 Wire Wire Line
 	1800 1650 1800 1600
 Connection ~ 1800 1600
 Wire Wire Line
-	1350 2000 1350 2100
+	1350 2000 1350 2050
 Wire Wire Line
 	1350 2500 1350 2400
 Wire Wire Line
-	1350 2050 1900 2050
+	1350 2050 1600 2050
 Connection ~ 1350 2050
 Wire Wire Line
 	1900 2050 1900 2100
 Connection ~ 1600 2050
 Wire Wire Line
-	1600 2450 1900 2450
+	1600 2450 1750 2450
 Wire Wire Line
 	1900 2450 1900 2400
 Wire Wire Line
@@ -1206,13 +1169,13 @@ Wire Wire Line
 Wire Wire Line
 	12050 9000 12000 9000
 Wire Wire Line
-	5450 1650 4050 1650
+	5450 1650 4750 1650
 Wire Wire Line
 	6250 3800 6250 3750
 Wire Wire Line
 	6250 3750 6350 3750
 Wire Wire Line
-	6350 3750 6350 3550
+	6350 3750 6350 3650
 Connection ~ 6350 3650
 Connection ~ 6350 3750
 Wire Notes Line
@@ -1231,15 +1194,15 @@ Wire Wire Line
 Wire Wire Line
 	1350 5150 1300 5150
 Wire Wire Line
-	2650 4850 2650 4950
+	2650 4850 2650 4900
 Connection ~ 2650 4900
 Connection ~ 2350 5200
 Wire Wire Line
-	2000 3700 2000 3800
+	2000 3700 2000 3750
 Wire Wire Line
-	2300 3350 2300 3450
+	2300 3350 2300 3400
 Wire Wire Line
-	2300 3400 2850 3400
+	2300 3400 2400 3400
 Connection ~ 2300 3400
 Wire Wire Line
 	2000 3750 2400 3750
@@ -1248,7 +1211,7 @@ Wire Wire Line
 Connection ~ 2000 3750
 Connection ~ 2400 3400
 Wire Wire Line
-	5450 900  5450 1650
+	5450 900  5450 1450
 Wire Wire Line
 	5450 1450 5700 1450
 Wire Wire Line
@@ -1259,7 +1222,7 @@ Wire Wire Line
 	6500 1850 6800 1850
 Connection ~ 5450 1450
 Wire Wire Line
-	5250 850  5250 1550
+	5250 850  5250 1450
 Wire Wire Line
 	5250 1550 5700 1550
 Wire Wire Line
@@ -1270,22 +1233,22 @@ Wire Wire Line
 	6550 850  5250 850 
 Connection ~ 5250 1450
 Wire Wire Line
-	6650 1350 6650 2500
+	6650 1350 6650 2350
 Wire Wire Line
 	6650 1350 6800 1350
 Wire Wire Line
 	5700 1950 5600 1950
 Wire Wire Line
-	5600 1950 5600 2500
+	5600 1950 5600 2350
 Wire Wire Line
 	5600 2350 6650 2350
 Connection ~ 5600 2350
 Wire Wire Line
 	5700 1650 5550 1650
 Wire Wire Line
-	5550 1650 5550 1750
+	5550 1650 5550 1700
 $Comp
-L GND #PWR029
+L stm32-rescue:GND #PWR029
 U 1 1 5A597EA9
 P 5550 1750
 F 0 "#PWR029" H 5550 1500 50  0001 C CNN
@@ -1296,7 +1259,7 @@ F 3 "" H 5550 1750 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L GND #PWR030
+L stm32-rescue:GND #PWR030
 U 1 1 5A597F41
 P 6300 1650
 F 0 "#PWR030" H 6300 1400 50  0001 C CNN
@@ -1309,7 +1272,7 @@ $EndComp
 Wire Wire Line
 	6300 1650 6800 1650
 $Comp
-L GND #PWR031
+L stm32-rescue:GND #PWR031
 U 1 1 5A598436
 P 5300 2750
 F 0 "#PWR031" H 5300 2500 50  0001 C CNN
@@ -1344,7 +1307,7 @@ Wire Notes Line
 Wire Notes Line
 	2450 2450 2450 800 
 $Comp
-L PWR_FLAG #FLG032
+L stm32-rescue:PWR_FLAG #FLG032
 U 1 1 5A59F726
 P 5300 1850
 F 0 "#FLG032" H 5300 1925 50  0001 C CNN
@@ -1355,7 +1318,7 @@ F 3 "" H 5300 1850 50  0001 C CNN
 	-1   0    0    1   
 $EndComp
 $Comp
-L Q_NMOS_GSD Q2
+L stm32-rescue:Q_NMOS_GSD Q2
 U 1 1 5A5A1353
 P 8800 1200
 F 0 "Q2" H 9000 1250 50  0000 L CNN
@@ -1366,7 +1329,7 @@ F 3 "" H 8800 1200 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L R R1
+L stm32-rescue:R R1
 U 1 1 5A5A1F28
 P 8350 1200
 F 0 "R1" V 8430 1200 50  0000 C CNN
@@ -1379,7 +1342,7 @@ $EndComp
 Wire Wire Line
 	8500 1200 8600 1200
 $Comp
-L GND #PWR033
+L stm32-rescue:GND #PWR033
 U 1 1 5A5A2353
 P 8900 1450
 F 0 "#PWR033" H 8900 1200 50  0001 C CNN
@@ -1392,7 +1355,7 @@ $EndComp
 Wire Wire Line
 	8900 1450 8900 1400
 $Comp
-L Conn_01x07 J4
+L stm32-rescue:Conn_01x07 J4
 U 1 1 5A5A2990
 P 10450 2100
 F 0 "J4" H 10450 2500 50  0000 C CNN
@@ -1403,7 +1366,7 @@ F 3 "" H 10450 2100 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L GND #PWR034
+L stm32-rescue:GND #PWR034
 U 1 1 5A5A2ECA
 P 10150 2500
 F 0 "#PWR034" H 10150 2250 50  0001 C CNN
@@ -1418,7 +1381,7 @@ Wire Wire Line
 Wire Wire Line
 	10150 2400 10250 2400
 $Comp
-L +3.3V #PWR035
+L stm32-rescue:+3.3V #PWR035
 U 1 1 5A5A3661
 P 10150 1250
 F 0 "#PWR035" H 10150 1100 50  0001 C CNN
@@ -1429,7 +1392,7 @@ F 3 "" H 10150 1250 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L R R13
+L stm32-rescue:R R13
 U 1 1 5A5A3B4E
 P 10150 1450
 F 0 "R13" V 10230 1450 50  0000 C CNN
@@ -1450,7 +1413,7 @@ OUTP1
 Text Label 10250 1900 2    60   ~ 0
 OUTP1
 $Comp
-L Q_NMOS_GSD Q3
+L stm32-rescue:Q_NMOS_GSD Q3
 U 1 1 5A5A57A1
 P 8800 2000
 F 0 "Q3" H 9000 2050 50  0000 L CNN
@@ -1461,7 +1424,7 @@ F 3 "" H 8800 2000 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L R R2
+L stm32-rescue:R R2
 U 1 1 5A5A57A7
 P 8350 2000
 F 0 "R2" V 8430 2000 50  0000 C CNN
@@ -1474,7 +1437,7 @@ $EndComp
 Wire Wire Line
 	8500 2000 8600 2000
 $Comp
-L GND #PWR036
+L stm32-rescue:GND #PWR036
 U 1 1 5A5A57AE
 P 8900 2250
 F 0 "#PWR036" H 8900 2000 50  0001 C CNN
@@ -1489,7 +1452,7 @@ Wire Wire Line
 Text Label 8900 1800 0    60   ~ 0
 OUTP2
 $Comp
-L Q_NMOS_GSD Q4
+L stm32-rescue:Q_NMOS_GSD Q4
 U 1 1 5A5A5C15
 P 8800 2750
 F 0 "Q4" H 9000 2800 50  0000 L CNN
@@ -1500,7 +1463,7 @@ F 3 "" H 8800 2750 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L R R10
+L stm32-rescue:R R10
 U 1 1 5A5A5C1B
 P 8350 2750
 F 0 "R10" V 8430 2750 50  0000 C CNN
@@ -1513,7 +1476,7 @@ $EndComp
 Wire Wire Line
 	8500 2750 8600 2750
 $Comp
-L GND #PWR037
+L stm32-rescue:GND #PWR037
 U 1 1 5A5A5C22
 P 8900 3000
 F 0 "#PWR037" H 8900 2750 50  0001 C CNN
@@ -1536,7 +1499,7 @@ INP1
 Text Label 9500 2400 2    60   ~ 0
 INP2
 $Comp
-L R R11
+L stm32-rescue:R R11
 U 1 1 5A5A929C
 P 9850 2200
 F 0 "R11" V 9930 2200 50  0000 C CNN
@@ -1547,7 +1510,7 @@ F 3 "" H 9850 2200 50  0000 C CNN
 	0    -1   -1   0   
 $EndComp
 $Comp
-L R R12
+L stm32-rescue:R R12
 U 1 1 5A5A93D0
 P 9850 2400
 F 0 "R12" V 9930 2400 50  0000 C CNN
@@ -1590,7 +1553,7 @@ O2
 Text Label 5450 7750 2    60   ~ 0
 O3
 $Comp
-L Conn_01x02 J5
+L stm32-rescue:Conn_01x02 J5
 U 1 1 5A5B6143
 P 7050 2500
 F 0 "J5" H 7050 2600 50  0000 C CNN
@@ -1601,7 +1564,7 @@ F 3 "" H 7050 2500 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L GND #PWR038
+L stm32-rescue:GND #PWR038
 U 1 1 5A5B6FD3
 P 6800 2750
 F 0 "#PWR038" H 6800 2500 50  0001 C CNN
@@ -1619,7 +1582,7 @@ Wire Wire Line
 	6650 2500 6850 2500
 Connection ~ 6650 2350
 $Comp
-L SP0502BAHT D1
+L stm32-rescue:SP0502BAHT D1
 U 1 1 5A5D29E2
 P 9650 2800
 F 0 "D1" H 9850 2800 50  0000 L CNN
@@ -1630,7 +1593,7 @@ F 3 "" H 9775 2925 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L GND #PWR039
+L stm32-rescue:GND #PWR039
 U 1 1 5A5D32F5
 P 9650 3050
 F 0 "#PWR039" H 9650 2800 50  0001 C CNN
@@ -1645,7 +1608,7 @@ Wire Wire Line
 Wire Wire Line
 	9550 2600 9550 2200
 Wire Wire Line
-	9500 2200 9700 2200
+	9500 2200 9550 2200
 Wire Wire Line
 	9750 2600 9700 2600
 Wire Wire Line
@@ -1655,7 +1618,7 @@ Wire Wire Line
 	9700 2400 9500 2400
 Connection ~ 9700 2400
 $Comp
-L R R14
+L stm32-rescue:R R14
 U 1 1 5A5D5996
 P 4650 1450
 F 0 "R14" V 4730 1450 50  0000 C CNN
@@ -1666,9 +1629,9 @@ F 3 "" H 4650 1450 50  0001 C CNN
 	0    1    1    0   
 $EndComp
 Wire Wire Line
-	4800 1450 5250 1450
+	4800 1450 4850 1450
 Wire Wire Line
-	4050 1450 4500 1450
+	4050 1450 4450 1450
 Wire Wire Line
 	4550 2150 4550 1850
 Wire Wire Line
@@ -1683,7 +1646,7 @@ Wire Wire Line
 Connection ~ 5550 1700
 NoConn ~ 11650 9050
 $Comp
-L STM32F042C6Tx U7
+L stm32-rescue:STM32F042C6Tx U7
 U 1 1 58C42C0E
 P 8550 7850
 F 0 "U7" H 5550 9575 50  0000 L BNN
@@ -1723,7 +1686,7 @@ NoConn ~ 5450 6950
 NoConn ~ 5450 7050
 NoConn ~ 11650 8350
 $Comp
-L Conn_01x01 J6
+L stm32-rescue:Conn_01x01 J6
 U 1 1 5A6066AA
 P 3050 3400
 F 0 "J6" H 3050 3500 50  0000 C CNN
@@ -1734,4 +1697,88 @@ F 3 "" H 3050 3400 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 Connection ~ 2700 3400
+Wire Wire Line
+	2750 4900 2950 4900
+Wire Wire Line
+	4350 1650 4050 1650
+Wire Wire Line
+	4750 1650 4350 1650
+Wire Wire Line
+	4850 1450 5250 1450
+Wire Wire Line
+	8450 9650 8550 9650
+Wire Wire Line
+	8450 6050 8550 6050
+Wire Wire Line
+	2700 5200 2750 5200
+Wire Wire Line
+	2950 4900 3100 4900
+Wire Wire Line
+	8450 9800 8750 9800
+Wire Wire Line
+	8450 10100 8750 10100
+Wire Wire Line
+	8150 9800 8450 9800
+Wire Wire Line
+	9450 10100 9550 10100
+Wire Wire Line
+	8550 6050 8650 6050
+Wire Wire Line
+	8550 9650 8650 9650
+Wire Wire Line
+	8750 9800 9050 9800
+Wire Wire Line
+	9050 10100 9450 10100
+Wire Wire Line
+	1600 6250 1600 6300
+Wire Wire Line
+	2400 6250 2400 6300
+Wire Wire Line
+	1650 1200 1950 1200
+Wire Wire Line
+	1350 1200 1350 1250
+Wire Wire Line
+	1800 1600 1950 1600
+Wire Wire Line
+	1350 2050 1350 2100
+Wire Wire Line
+	1600 2050 1900 2050
+Wire Wire Line
+	1750 2450 1900 2450
+Wire Wire Line
+	6250 2900 6350 2900
+Wire Wire Line
+	1350 3400 1700 3400
+Wire Wire Line
+	2650 6250 2750 6250
+Wire Wire Line
+	1850 6250 1950 6250
+Wire Wire Line
+	6350 3650 6350 3550
+Wire Wire Line
+	1800 4900 2050 4900
+Wire Wire Line
+	2650 4900 2650 4950
+Wire Wire Line
+	2300 3400 2300 3450
+Wire Wire Line
+	2000 3750 2000 3800
+Wire Wire Line
+	2400 3400 2700 3400
+Wire Wire Line
+	5450 1450 5450 1650
+Wire Wire Line
+	5250 1450 5250 1550
+Wire Wire Line
+	5600 2350 5600 2500
+Wire Wire Line
+	6650 2350 6650 2500
+Wire Wire Line
+	9550 2200 9700 2200
+Wire Wire Line
+	4450 1450 4500 1450
+Wire Wire Line
+	5550 1700 5550 1750
+Wire Wire Line
+	2700 3400 2850 3400
 $EndSCHEMATC

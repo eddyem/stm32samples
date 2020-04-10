@@ -23,19 +23,19 @@
 #include "usart.h"
 #include <string.h>
 
-extern volatile uint32_t Tms;
 static volatile int idatalen[2] = {0,0}; // received data line length (including '\n')
 static volatile int odatalen[2] = {0,0};
 
-volatile int linerdy = 0,        // received data ready
-    dlen = 0,           // length of data (including '\n') in current buffer
-    bufovr = 0,         // input buffer overfull
-    txrdy = 1           // transmission done
+
+static volatile int dlen = 0;   // length of data (including '\n') in current buffer
+volatile int linerdy = 0,       // received data ready
+    bufovr = 0,                 // input buffer overfull
+    txrdy = 1               // transmission done
 ;
 
 
-int rbufno = 0, tbufno = 0; // current rbuf/tbuf numbers
-static char rbuf[2][UARTBUFSZI], tbuf[2][UARTBUFSZO]; // receive & transmit buffers
+static int rbufno = 0, tbufno = 0; // current rbuf/tbuf numbers
+static char rbuf[2][UARTBUFSZ], tbuf[2][UARTBUFSZ]; // receive & transmit buffers
 static char *recvdata = NULL;
 
 /**
@@ -77,30 +77,24 @@ void transmit_tbuf(){
 }
 
 void usart_putchar(const char ch){
-    if(odatalen[tbufno] == UARTBUFSZO) transmit_tbuf();
+    if(odatalen[tbufno] == UARTBUFSZ) transmit_tbuf();
     tbuf[tbufno][odatalen[tbufno]++] = ch;
 }
 
 void usart_send(const char *str){
     uint32_t x = 512;
     while(*str && --x){
-        if(odatalen[tbufno] == UARTBUFSZO) transmit_tbuf();
+        if(odatalen[tbufno] == UARTBUFSZ) transmit_tbuf();
         tbuf[tbufno][odatalen[tbufno]++] = *str++;
     }
 }
 
 void usart_sendn(const char *str, uint8_t L){
     for(uint8_t i = 0; i < L; ++i){
-        if(odatalen[tbufno] == UARTBUFSZO) transmit_tbuf();
+        if(odatalen[tbufno] == UARTBUFSZ) transmit_tbuf();
         tbuf[tbufno][odatalen[tbufno]++] = *str++;
     }
 }
-
-void newline(){
-    usart_putchar('\n');
-    transmit_tbuf();
-}
-
 
 void usart_setup(){
 // Nucleo's USART2 connected to VCP proxy of st-link
@@ -181,12 +175,14 @@ void usart1_isr(){
         #endif
         // read RDR clears flag
         uint8_t rb = USARTX->RDR;
-        if(idatalen[rbufno] < UARTBUFSZI){ // put next char into buf
+        USARTX->TDR = rb;
+        if(idatalen[rbufno] < UARTBUFSZ){ // put next char into buf
             rbuf[rbufno][idatalen[rbufno]++] = rb;
             if(rb == '\n'){ // got newline - line ready
                 linerdy = 1;
                 dlen = idatalen[rbufno];
                 recvdata = rbuf[rbufno];
+                recvdata[dlen] = 0;
                 // prepare other buffer
                 rbufno = !rbufno;
                 idatalen[rbufno] = 0;
@@ -202,61 +198,6 @@ void usart1_isr(){
             tmout = 0;
             #endif
         }
-    }
-}
-
-// print 32bit unsigned int
-void printu(uint32_t val){
-    char bufa[11], bufb[10];
-    int l = 0, bpos = 0;
-    if(!val){
-        bufa[0] = '0';
-        l = 1;
-    }else{
-        while(val){
-            bufb[l++] = val % 10 + '0';
-            val /= 10;
-        }
-        int i;
-        bpos += l;
-        for(i = 0; i < l; ++i){
-            bufa[--bpos] = bufb[i];
-        }
-    }
-    bufa[l + bpos] = 0;
-    usart_send(bufa);
-}
-
-// print 32bit unsigned int as hex
-void printuhex(uint32_t val){
-    usart_send("0x");
-    uint8_t *ptr = (uint8_t*)&val + 3, start = 1;
-    int i, j;
-    for(i = 0; i < 4; ++i, --ptr){
-        if(!*ptr && start) continue;
-        for(j = 1; j > -1; --j){
-            start = 0;
-            register uint8_t half = (*ptr >> (4*j)) & 0x0f;
-            if(half < 10) usart_putchar(half + '0');
-            else usart_putchar(half - 10 + 'a');
-        }
-    }
-    if(start){
-        usart_putchar('0');
-        usart_putchar('0');
-    }
-}
-
-// dump memory buffer
-void hexdump(uint8_t *arr, uint16_t len){
-    for(uint16_t l = 0; l < len; ++l, ++arr){
-        for(int16_t j = 1; j > -1; --j){
-            register uint8_t half = (*arr >> (4*j)) & 0x0f;
-            if(half < 10) usart_putchar(half + '0');
-            else usart_putchar(half - 10 + 'a');
-        }
-        if(l % 16 == 15) usart_putchar('\n');
-        else if(l & 1) usart_putchar(' ');
     }
 }
 

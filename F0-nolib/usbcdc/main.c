@@ -19,9 +19,10 @@
  * MA 02110-1301, USA.
  */
 
-#include "hardware.h"
-#include "usart.h"
 #include "can.h"
+#include "hardware.h"
+#include "proto.h"
+#include "usart.h"
 #include "usb.h"
 #include "usb_lib.h"
 
@@ -32,55 +33,88 @@ void sys_tick_handler(void){
     ++Tms;
 }
 
-void iwdg_setup(){
-    uint32_t tmout = 16000000;
-    /* Enable the peripheral clock RTC */
-    /* (1) Enable the LSI (40kHz) */
-    /* (2) Wait while it is not ready */
-    RCC->CSR |= RCC_CSR_LSION; /* (1) */
-    while((RCC->CSR & RCC_CSR_LSIRDY) != RCC_CSR_LSIRDY){if(--tmout == 0) break;} /* (2) */
-    /* Configure IWDG */
-    /* (1) Activate IWDG (not needed if done in option bytes) */
-    /* (2) Enable write access to IWDG registers */
-    /* (3) Set prescaler by 64 (1.6ms for each tick) */
-    /* (4) Set reload value to have a rollover each 2s */
-    /* (5) Check if flags are reset */
-    /* (6) Refresh counter */
-    IWDG->KR = IWDG_START; /* (1) */
-    IWDG->KR = IWDG_WRITE_ACCESS; /* (2) */
-    IWDG->PR = IWDG_PR_PR_1; /* (3) */
-    IWDG->RLR = 1250; /* (4) */
-    tmout = 16000000;
-    while(IWDG->SR){if(--tmout == 0) break;} /* (5) */
-    IWDG->KR = IWDG_REFRESH; /* (6) */
+/*
+// usb getline
+static char *get_USB(){
+    static char tmpbuf[512], *curptr = tmpbuf;
+    static int rest = 511;
+    uint8_t x = USB_receive((uint8_t*)curptr);
+    curptr[x] = 0;
+    if(!x) return NULL;
+    if(curptr[x-1] == '\n'){
+        curptr = tmpbuf;
+        rest = 511;
+        return tmpbuf;
+    }
+    curptr += x; rest -= x;
+    if(rest <= 0){ // buffer overflow
+        curptr = tmpbuf;
+        rest = 511;
+    }
+    return NULL;
+}*/
+
+#define USBBUF 63
+// usb getline
+static char *get_USB(){
+    static char tmpbuf[USBBUF+1], *curptr = tmpbuf;
+    static int rest = USBBUF;
+    uint8_t x = USB_receive((uint8_t*)curptr);
+    if(!x) return NULL;
+    curptr[x] = 0;
+    if(x == 1 && *curptr == 0x7f){ // backspace
+        if(curptr > tmpbuf){
+            --curptr;
+            USND("\b \b");
+        }
+        return NULL;
+    }
+    USB_sendstr(curptr); // echo
+    if(curptr[x-1] == '\n'){ // || curptr[x-1] == '\r'){
+        curptr = tmpbuf;
+        rest = USBBUF;
+        // omit empty lines
+        if(tmpbuf[0] == '\n') return NULL;
+        // and wrong empty lines
+        if(tmpbuf[0] == '\r' && tmpbuf[1] == '\n') return NULL;
+        return tmpbuf;
+    }
+    curptr += x; rest -= x;
+    if(rest <= 0){ // buffer overflow
+        usart_send("\nUSB buffer overflow!\n"); transmit_tbuf();
+        curptr = tmpbuf;
+        rest = USBBUF;
+    }
+    return NULL;
 }
+
+
 
 int main(void){
     uint32_t lastT = 0;
     uint8_t ctr, len;
     CAN_message *can_mesg;
-    int L;
     char *txt;
     sysreset();
     SysTick_Config(6000, 1);
     gpio_setup();
     usart_setup();
-    //iwdg_setup();
     readCANID();
     CAN_setup();
 
+    switchbuff(0);
     SEND("Greetings! My address is ");
     printuhex(getCANID());
-    newline();
+    NL();
 
     if(RCC->CSR & RCC_CSR_IWDGRSTF){ // watchdog reset occured
-        SEND("WDGRESET=1\n");
+        SEND("WDGRESET=1\n"); NL();
     }
     if(RCC->CSR & RCC_CSR_SFTRSTF){ // software reset occured
-        SEND("SOFTRESET=1\n");
+        SEND("SOFTRESET=1\n"); NL();
     }
     RCC->CSR |= RCC_CSR_RMVF; // remove reset flags
-
+    iwdg_setup();
     USB_setup();
 
     while (1){
@@ -93,83 +127,28 @@ int main(void){
         can_proc();
         usb_proc();
         if(CAN_get_status() == CAN_FIFO_OVERRUN){
-            SEND("CAN bus fifo overrun occured!\n");
+            SEND("CAN bus fifo overrun occured!\n"); NL();
         }
         can_mesg = CAN_messagebuf_pop();
         if(can_mesg){ // new data in buff
             len = can_mesg->length;
+            switchbuff(0);
             SEND("got message, len: "); usart_putchar('0' + len);
             SEND(", data: ");
             for(ctr = 0; ctr < len; ++ctr){
                 printuhex(can_mesg->data[ctr]);
                 usart_putchar(' ');
             }
-            newline();
+            NL();
         }
         if(usartrx()){ // usart1 received data, store in in buffer
-            L = usart_getline(&txt);
-            char _1st = txt[0];
-            if(L == 2 && txt[1] == '\n'){
-                L = 0;
-                switch(_1st){
-                    case 'f':
-                        transmit_tbuf();
-                    break;
-                    case 'B':
-                        can_send_broadcast();
-                    break;
-                    case 'C':
-                        can_send_dummy();
-                    break;
-                    case 'G':
-                        SEND("Can address: ");
-                        printuhex(getCANID());
-                        newline();
-                    break;
-                    case 'R':
-                        SEND("Soft reset\n");
-                        NVIC_SystemReset();
-                    break;
-                    case 'S':
-                        CAN_reinit();
-                        SEND("Can address: ");
-                        printuhex(getCANID());
-                        newline();
-                    break;
-                    case 'T':
-                        SEND("Time (ms): ");
-                        printu(Tms);
-                        newline();
-                    break;
-                    case 'U':
-                        USB_send("Test string for USB; a very long string that don't fit into one 64-byte buffer, what will be with it?\n");
-                    break;
-                    case 'W':
-                        SEND("Wait for reboot\n");
-                        while(1){nop();};
-                    break;
-                    default: // help
-                        SEND(
-                        "'f' - flush UART buffer\n"
-                        "'B' - send broadcast dummy byte\n"
-                        "'C' - send dummy byte over CAN\n"
-                        "'G' - get CAN address\n"
-                        "'R' - software reset\n"
-                        "'S' - reinit CAN (with new address)\n"
-                        "'T' - gen time from start (ms)"
-                        "'U' - send test string over USB\n"
-                        "'W' - test watchdog\n"
-                        );
-                    break;
-                }
-            }
-            transmit_tbuf();
+            usart_getline(&txt);
+            IWDG->KR = IWDG_REFRESH;
+            cmd_parser(txt, 0);
         }
-        if(L){ // text waits for sending
-            txt[L] = 0;
-            usart_send(txt);
-            USB_send(txt);
-            L = 0;
+        if((txt = get_USB())){
+            IWDG->KR = IWDG_REFRESH;
+            cmd_parser(txt, 1);
         }
     }
     return 0;

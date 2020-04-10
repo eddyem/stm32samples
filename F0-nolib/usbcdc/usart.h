@@ -25,20 +25,10 @@
 #include "hardware.h"
 
 // input and output buffers size
-#define UARTBUFSZI  (32)
-#define UARTBUFSZO  (512)
+#define UARTBUFSZ   (64)
 // timeout between data bytes
 #ifndef TIMEOUT_MS
 #define TIMEOUT_MS (1500)
-#endif
-
-// macro for static strings
-#define SEND(str) usart_send(str)
-
-#ifdef EBUG
-#define MSG(str)  do{SEND(__FILE__ " (L" STR(__LINE__) "): " str);}while(0)
-#else
-#define MSG(str)
 #endif
 
 #define usartrx()  (linerdy)
@@ -51,10 +41,7 @@ void usart_setup();
 int usart_getline(char **line);
 void usart_send(const char *str);
 void usart_sendn(const char *str, uint8_t L);
-void newline();
 void usart_putchar(const char ch);
-void printu(uint32_t val);
-void printuhex(uint32_t val);
 void hexdump(uint8_t *arr, uint16_t len);
 
 #endif // __USART_H__

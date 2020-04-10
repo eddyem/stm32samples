@@ -20,23 +20,12 @@
  * MA 02110-1301, USA.
  *
  */
-#include <string.h> // memcpy
 #include "can.h"
 #include "hardware.h"
+#include "proto.h"
 #include "usart.h"
 
-#define CMD_TOGGLE      (0xDA)
-#define CMD_BCAST       (0xAD)
-#define CAN_ID_MASK     (0x7F8)
-#define CAN_ID_PREFIX   (0xAAA)
-#define TARG_ID         (CAN_ID_PREFIX & CAN_ID_MASK)
-#define BCAST_ID        (0x7F7)
-
-#define CAN_FLAG_GOTDUMMY   (1)
-// incoming message buffer size
-#define CAN_INMESSAGE_SIZE  (6)
-
-extern volatile uint32_t Tms;
+#include <string.h> // memcpy
 
 // circular buffer for  received messages
 static CAN_message messages[CAN_INMESSAGE_SIZE];
@@ -44,7 +33,9 @@ static uint8_t first_free_idx = 0;    // index of first empty cell
 static int8_t first_nonfree_idx = -1; // index of first data cell
 
 static uint16_t CANID = 0xFFFF;
+#ifdef EBUG
 static uint32_t last_err_code = 0;
+#endif
 static CAN_status can_status = CAN_STOP;
 
 static void can_process_fifo(uint8_t fifo_num);
@@ -52,6 +43,9 @@ static void can_process_fifo(uint8_t fifo_num);
 CAN_status CAN_get_status(){
     CAN_status st = can_status;
     // give overrun message only once
+#ifdef EBUG
+    if(st == CAN_FIFO_OVERRUN) MSG("fifo 0 overrun\n");
+#endif
     if(st == CAN_FIFO_OVERRUN) can_status = CAN_READY;
     return st;
 }
@@ -65,7 +59,7 @@ static int CAN_messagebuf_push(CAN_message *msg){
     // need to roll?
     if(first_free_idx == CAN_INMESSAGE_SIZE) first_free_idx = 0;
     #ifdef EBUG
-    MSG("1st free: "); usart_putchar('0' + first_free_idx); newline();
+    MSG("1st free: "); usart_putchar('0' + first_free_idx); NL();
     #endif
     return 0;
 }
@@ -74,7 +68,7 @@ static int CAN_messagebuf_push(CAN_message *msg){
 CAN_message *CAN_messagebuf_pop(){
     if(first_nonfree_idx < 0) return NULL;
     #ifdef EBUG
-    MSG("read from idx "); usart_putchar('0' + first_nonfree_idx); newline();
+    MSG("read from idx "); usart_putchar('0' + first_nonfree_idx); NL();
     #endif
     CAN_message *msg = &messages[first_nonfree_idx++];
     if(first_nonfree_idx == CAN_INMESSAGE_SIZE) first_nonfree_idx = 0;
@@ -162,14 +156,14 @@ void CAN_setup(){
 }
 
 void can_proc(){
-    if(last_err_code){
 #ifdef EBUG
+    if(last_err_code){
         MSG("Error, ESR=");
         printu(last_err_code);
-        newline();
-#endif
+        NL();
         last_err_code = 0;
     }
+#endif
     // check for messages in FIFO0 & FIFO1
     if(CAN->RF0R & CAN_RF0R_FMP0){
         can_process_fifo(0);
@@ -178,7 +172,29 @@ void can_proc(){
         can_process_fifo(1);
     }
     if(CAN->ESR & (CAN_ESR_BOFF | CAN_ESR_EPVF | CAN_ESR_EWGF)){ // much errors - restart CAN BUS
-        MSG("bus-off, restarting\n");
+        switchbuff(0);
+        SEND("\nToo much errors, restarting!\n");
+        SEND("Receive error counter: ");
+        printu((CAN->ESR & CAN_ESR_REC)>>24);
+        SEND("\nTransmit error counter: ");
+        printu((CAN->ESR & CAN_ESR_TEC)>>16);
+        SEND("\nLast error code: ");
+        int lec = (CAN->ESR & CAN_ESR_LEC) >> 4;
+        const char *errmsg = "No";
+        switch(lec){
+            case 1: errmsg = "Stuff"; break;
+            case 2: errmsg = "Form"; break;
+            case 3: errmsg = "Ack"; break;
+            case 4: errmsg = "Bit recessive"; break;
+            case 5: errmsg = "Bit dominant"; break;
+            case 6: errmsg = "CRC"; break;
+            case 7: errmsg = "(set by software)"; break;
+        }
+        SEND(errmsg); SEND(" error\n");
+        if(CAN->ESR & CAN_ESR_BOFF) SEND("Bus off");
+        if(CAN->ESR & CAN_ESR_EPVF) SEND("Passive error limit");
+        if(CAN->ESR & CAN_ESR_EWGF) SEND("Error counter limit");
+        NL();
         // request abort for all mailboxes
         CAN->TSR |= CAN_TSR_ABRQ0 | CAN_TSR_ABRQ1 | CAN_TSR_ABRQ2;
         // reset CAN bus
@@ -193,23 +209,23 @@ void can_proc(){
     if(esr != CAN->ESR || msr != msr_now || tsr != CAN->TSR){
         MSG("Timestamp: ");
         printu(Tms);
-        newline();
+        NL();
     }
     if((CAN->ESR) != esr){
         usart_putchar(((CAN->ESR & CAN_ESR_BOFF) != 0) + '0');
         esr = CAN->ESR;
         MSG("CAN->ESR: ");
-        printuhex(esr); newline();
+        printuhex(esr); NL();
     }
     if(msr_now != msr){
         msr = msr_now;
         MSG("CAN->MSR & 0xf: ");
-        printuhex(msr); newline();
+        printuhex(msr); NL();
     }
     if(CAN->TSR != tsr){
         tsr = CAN->TSR;
         MSG("CAN->TSR: ");
-        printuhex(tsr); newline();
+        printuhex(tsr); NL();
     }
 #endif
 }
@@ -219,9 +235,6 @@ CAN_status can_send(uint8_t *msg, uint8_t len, uint16_t target_id){
     // check first free mailbox
     if(CAN->TSR & (CAN_TSR_TME)){
         mailbox = (CAN->TSR & CAN_TSR_CODE) >> 24;
-        #ifdef EBUG
-        MSG("select "); usart_putchar('0'+mailbox); SEND(" mailbox\n");
-        #endif
     }else{ // no free mailboxes
         return CAN_BUSY;
     }
@@ -263,11 +276,11 @@ void can_send_dummy(){
     uint8_t msg = CMD_TOGGLE;
     if(CAN_OK != can_send(&msg, 1, TARG_ID)) SEND("Bus busy!\n");
     MSG("CAN->MSR: ");
-    printuhex(CAN->MSR); newline();
+    printuhex(CAN->MSR); NL();
     MSG("CAN->TSR: ");
-    printuhex(CAN->TSR); newline();
+    printuhex(CAN->TSR); NL();
     MSG("CAN->ESR: ");
-    printuhex(CAN->ESR); newline();
+    printuhex(CAN->ESR); NL();
 }
 
 void can_send_broadcast(){
@@ -284,7 +297,7 @@ static void can_process_fifo(uint8_t fifo_num){
     MSG("Receive, RDTR=");
     #ifdef EBUG
     printuhex(box->RDTR);
-    newline();
+    NL();
     #endif
     // read all
     while(*RFxR & CAN_RF0R_FMP0){ // amount of messages pending
@@ -337,15 +350,14 @@ void cec_can_isr(){
         CAN->RF1R &= ~CAN_RF1R_FOVR1;
         can_status = CAN_FIFO_OVERRUN;
     }
-    #ifdef EBUG
-    if(can_status == CAN_FIFO_OVERRUN) MSG("fifo 0 overrun\n");
-    #endif
     if(CAN->MSR & CAN_MSR_ERRI){ // Error
         CAN->MSR &= ~CAN_MSR_ERRI;
         // request abort for problem mailbox
         if(CAN->TSR & CAN_TSR_TERR0) CAN->TSR |= CAN_TSR_ABRQ0;
         if(CAN->TSR & CAN_TSR_TERR1) CAN->TSR |= CAN_TSR_ABRQ1;
         if(CAN->TSR & CAN_TSR_TERR2) CAN->TSR |= CAN_TSR_ABRQ2;
+#ifdef EBUG
         last_err_code = CAN->ESR;
+#endif
     }
 }

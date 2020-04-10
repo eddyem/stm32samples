@@ -25,10 +25,29 @@
 #ifndef __USB_DEFS_H__
 #define __USB_DEFS_H__
 
-#include <stm32f0xx.h>
+#include <stm32f0.h>
+
+// max endpoints number
+#define STM32ENDPOINTS          8
+/**
+ *                 Buffers size definition
+ **/
+// !!! when working with CAN bus change USB_BTABLE_SIZE to 768 !!!
+#define USB_BTABLE_SIZE         1024
+// for USB FS EP0 buffers are from 8 to 64 bytes long (64 for PL2303)
+#define USB_EP0_BUFSZ           64
+// USB transmit buffer size (64 for PL2303)
+#define USB_TXBUFSZ             64
+// USB receive buffer size (64 for PL2303)
+#define USB_RXBUFSZ             64
+// EP1 - interrupt - buffer size
+#define USB_EP1BUFSZ            8
 
 #define USB_BTABLE_BASE         0x40006000
+
+#ifdef USB_BTABLE
 #undef USB_BTABLE
+#endif
 #define USB_BTABLE              ((USB_BtableDef *)(USB_BTABLE_BASE))
 #define USB_ISTR_EPID           0x0000000F
 #define USB_FNR_LSOF_0          0x00000800
@@ -60,15 +79,8 @@
 #define USB_TypeDef USB_TypeDef_custom
 
 typedef struct{
-    __IO uint32_t EPnR[8];
-    __IO uint32_t RESERVED1;
-    __IO uint32_t RESERVED2;
-    __IO uint32_t RESERVED3;
-    __IO uint32_t RESERVED4;
-    __IO uint32_t RESERVED5;
-    __IO uint32_t RESERVED6;
-    __IO uint32_t RESERVED7;
-    __IO uint32_t RESERVED8;
+    __IO uint32_t EPnR[STM32ENDPOINTS];
+    __IO uint32_t RESERVED[STM32ENDPOINTS];
     __IO uint32_t CNTR;
     __IO uint32_t ISTR;
     __IO uint32_t FNR;
@@ -86,7 +98,7 @@ typedef struct{
 } USB_EPDATA_TypeDef;
 
 typedef struct{
-    __IO USB_EPDATA_TypeDef EP[8];
+    __IO USB_EPDATA_TypeDef EP[STM32ENDPOINTS];
 } USB_BtableDef;
 
 #endif // __USB_DEFS_H__

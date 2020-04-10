@@ -26,6 +26,21 @@
 
 #include "hardware.h"
 
+// simple 1-byte commands
+#define CMD_TOGGLE      (0xDA)
+#define CMD_BCAST       (0xAD)
+// mask heading 8 bits of can ID
+#define CAN_ID_MASK     (0x7F8)
+// prefix to make ID from any number (0..7)
+#define CAN_ID_PREFIX   (0xAAA)
+// "target" ID: num=0
+#define TARG_ID         (CAN_ID_PREFIX & CAN_ID_MASK)
+// "broadcast" ID: all ones
+#define BCAST_ID        (0x7FF)
+
+// incoming message buffer size
+#define CAN_INMESSAGE_SIZE  (8)
+
 typedef struct{
     uint8_t data[8];
     uint8_t length;

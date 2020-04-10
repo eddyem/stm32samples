@@ -28,8 +28,14 @@
 
 #define BUFFSIZE   (64)
 
+// send string with constant length
+#define USND(str)  do{USB_send((uint8_t*)str, sizeof(str)-1);}while(0)
+
 void USB_setup();
 void usb_proc();
-void USB_send(char *buf);
+void USB_send(const uint8_t *buf, uint16_t len);
+void USB_sendstr(const char *str);
+void USB_send_blk(const uint8_t *buf, uint16_t len);
+uint8_t USB_receive(uint8_t *buf);
 
 #endif // __USB_H__

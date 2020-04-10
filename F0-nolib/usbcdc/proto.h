@@ -1,6 +1,6 @@
 /*
  *                                                                                                  geany_encoding=koi8-r
- * hardware.h
+ * proto.h
  *
  * Copyright 2018 Edward V. Emelianov <eddy@sao.ru, edward.emelianoff@gmail.com>
  *
@@ -21,39 +21,36 @@
  *
  */
 #pragma once
-#ifndef __HARDWARE_H__
-#define __HARDWARE_H__
+#ifndef __PROTO_H__
+#define __PROTO_H__
 
-#include <stm32f0.h>
+#include "stm32f0.h"
+#include "hardware.h"
 
-#define CONCAT(a,b)     a ## b
-#define STR_HELPER(s)   #s
-#define STR(s)          STR_HELPER(s)
+// macro for static strings
+#define SEND(str) do{addtobuf(str);}while(0)
 
-#define FORMUSART(X)    CONCAT(USART, X)
-#define USARTX          FORMUSART(USARTNUM)
+#ifdef EBUG
+#define MSG(str)  do{addtobuf(__FILE__ " (L" STR(__LINE__) "): " str);}while(0)
+#else
+#define MSG(str)
+#endif
 
-// LEDS: 0 - PC13, 1 - PC14
-// LED0
-#define LED0_port   GPIOC
-#define LED0_pin    (1<<13)
-// LED1
-#define LED1_port   GPIOC
-#define LED1_pin    (1<<14)
+#define newline() do{bufputchar('\n');}while(0)
+// newline with buffer sending over USART
+#define NL() do{bufputchar('\n'); switchbuff(0); sendbuf();}while(0)
 
-#define LED_blink(x)    pin_toggle(x ## _port, x ## _pin)
-#define LED_on(x)       pin_clear(x ## _port, x ## _pin)
-#define LED_off(x)      pin_set(x ## _port, x ## _pin)
+void cmd_parser(char *buf, uint8_t isUSB);
+void addtobuf(const char *txt);
+void bufputchar(char ch);
+void printu(uint32_t val);
+void printuhex(uint32_t val);
+void sendbuf();
+void switchbuff(uint8_t isUSB);
 
+char *omit_spaces(char *buf);
+char *getnum(char *buf, uint32_t *N);
 
-// CAN address - PB14(0), PB15(1), PA8(2)
-#define READ_CAN_INV_ADDR()  (((GPIOA->IDR & (1<<8))>>6)|((GPIOB->IDR & (3<<14))>>14))
-
-
-extern volatile uint32_t Tms;
-
-void gpio_setup(void);
-void iwdg_setup();
-void pause_ms(uint32_t pause);
-
-#endif // __HARDWARE_H__
+//int strlen(const char *txt);
+//void memcpy(void *dest, const void *src, int len);
+#endif // __PROTO_H__
