@@ -33,7 +33,7 @@
  *                 Buffers size definition
  **/
 // !!! when working with CAN bus change USB_BTABLE_SIZE to 768 !!!
-#define USB_BTABLE_SIZE         1024
+#define USB_BTABLE_SIZE         768
 // for USB FS EP0 buffers are from 8 to 64 bytes long (64 for PL2303)
 #define USB_EP0_BUFSZ           64
 // USB transmit buffer size (64 for PL2303)

@@ -40,6 +40,10 @@
 // newline with buffer sending over USART
 #define NL() do{bufputchar('\n'); switchbuff(0); sendbuf();}while(0)
 
+#define IGN_SIZE 10
+extern uint16_t Ignore_IDs[IGN_SIZE];
+extern uint8_t IgnSz;
+
 void cmd_parser(char *buf, uint8_t isUSB);
 void addtobuf(const char *txt);
 void bufputchar(char ch);
@@ -50,6 +54,8 @@ void switchbuff(uint8_t isUSB);
 
 char *omit_spaces(char *buf);
 char *getnum(char *buf, uint32_t *N);
+
+uint8_t isgood(uint16_t ID);
 
 //int strlen(const char *txt);
 //void memcpy(void *dest, const void *src, int len);

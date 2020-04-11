@@ -31,6 +31,7 @@
 static CAN_message messages[CAN_INMESSAGE_SIZE];
 static uint8_t first_free_idx = 0;    // index of first empty cell
 static int8_t first_nonfree_idx = -1; // index of first data cell
+static uint16_t oldspeed = 100; // speed of last init
 
 static uint16_t CANID = 0xFFFF;
 #ifdef EBUG
@@ -52,14 +53,14 @@ CAN_status CAN_get_status(){
 
 // push next message into buffer; return 1 if buffer overfull
 static int CAN_messagebuf_push(CAN_message *msg){
-    MSG("Try to push\n");
+    //MSG("Try to push\n");
     if(first_free_idx == first_nonfree_idx) return 1; // no free space
     if(first_nonfree_idx < 0) first_nonfree_idx = 0;  // first message in empty buffer
     memcpy(&messages[first_free_idx++], msg, sizeof(CAN_message));
     // need to roll?
     if(first_free_idx == CAN_INMESSAGE_SIZE) first_free_idx = 0;
     #ifdef EBUG
-    MSG("1st free: "); usart_putchar('0' + first_free_idx); NL();
+    //MSG("1st free: "); printu(first_free_idx); NL();
     #endif
     return 0;
 }
@@ -68,14 +69,16 @@ static int CAN_messagebuf_push(CAN_message *msg){
 CAN_message *CAN_messagebuf_pop(){
     if(first_nonfree_idx < 0) return NULL;
     #ifdef EBUG
-    MSG("read from idx "); usart_putchar('0' + first_nonfree_idx); NL();
+    //MSG("read from idx "); printu(first_nonfree_idx); NL();
     #endif
     CAN_message *msg = &messages[first_nonfree_idx++];
     if(first_nonfree_idx == CAN_INMESSAGE_SIZE) first_nonfree_idx = 0;
     if(first_nonfree_idx == first_free_idx){ // buffer is empty - refresh it
         first_nonfree_idx = -1;
         first_free_idx = 0;
-        MSG("refresh buffer\n");
+#ifdef EBUG
+    //  MSG("refresh buffer\n"); NL();
+#endif
     }
     return msg;
 }
@@ -91,15 +94,42 @@ uint16_t getCANID(){
     return CANID;
 }
 
-void CAN_reinit(){
+void CAN_reinit(uint16_t speed){
     readCANID();
     CAN->TSR |= CAN_TSR_ABRQ0 | CAN_TSR_ABRQ1 | CAN_TSR_ABRQ2;
     RCC->APB1RSTR |= RCC_APB1RSTR_CANRST;
     RCC->APB1RSTR &= ~RCC_APB1RSTR_CANRST;
-    CAN_setup();
+    CAN_setup(speed);
 }
 
-void CAN_setup(){
+/*
+Can filtering: FSCx=0 (CAN->FS1R) -> 16-bit identifiers
+MASK: FBMx=0 (CAN->FM1R), two filters (n in FR1 and n+1 in FR2)
+    ID:   CAN->sFilterRegister[x].FRn[0..15]
+    MASK: CAN->sFilterRegister[x].FRn[16..31]
+    FR bits:  STID[10:0] RTR IDE EXID[17:15]
+LIST: FBMx=1, four filters (n&n+1 in FR1, n+2&n+3 in FR2)
+    IDn:   CAN->sFilterRegister[x].FRn[0..15]
+    IDn+1: CAN->sFilterRegister[x].FRn[16..31]
+*/
+
+/*
+Can timing: main freq - APB (PLL=48MHz)
+segment = 1sync + TBS1 + TBS2, sample point is between TBS1 and TBS2,
+so if TBS1=4 and TBS2=3, sum=8, bit sampling freq is 48/8 = 6MHz
+-> to get   100kbps we need prescaler=60
+            250kbps - 24
+            500kbps - 12
+            1MBps   - 6
+*/
+
+// speed - in kbps
+void CAN_setup(uint16_t speed){
+    LED_off(LED1);
+    if(speed == 0) speed = oldspeed;
+    else if(speed < 50) speed = 50;
+    else if(speed > 3000) speed = 3000;
+    oldspeed = speed;
     uint32_t tmout = 16000000;
     if(CANID == 0xFFFF) readCANID();
     // Configure GPIO: PB8 - CAN_Rx, PB9 - CAN_Tx
@@ -115,10 +145,10 @@ void CAN_setup(){
     /* (1) Enter CAN init mode to write the configuration */
     /* (2) Wait the init mode entering */
     /* (3) Exit sleep mode */
-    /* (4) Loopback mode, set timing to 100kb/s: BS1 = 4, BS2 = 3, prescaler = 60 */
+    /* (4) Normal mode, set timing to 100kb/s: TBS1 = 4, TBS2 = 3, prescaler = 60 */
     /* (5) Leave init mode */
     /* (6) Wait the init mode leaving */
-    /* (7) Enter filter init mode, (16-bit + mask, filter 0 for FIFO 0) */
+    /* (7) Enter filter init mode, (16-bit + mask, bank 0 for FIFO 0) */
     /* (8) Acivate filter 0 for two IDs */
     /* (9) Identifier list mode */
     /* (10) Set the Id list */
@@ -130,20 +160,22 @@ void CAN_setup(){
         if(--tmout == 0) break;
     }
     CAN->MCR &=~ CAN_MCR_SLEEP; /* (3) */
-    CAN->MCR |= CAN_MCR_ABOM;
+    CAN->MCR |= CAN_MCR_ABOM; /* allow automatically bus-off */
 
-    CAN->BTR |=  2 << 20 | 3 << 16 | 59 << 0; /* (4) */
+    CAN->BTR |=  2 << 20 | 3 << 16 | (6000/speed) << 0; /* (4) */
     CAN->MCR &=~ CAN_MCR_INRQ; /* (5) */
     tmout = 16000000;
-    while((CAN->MSR & CAN_MSR_INAK)==CAN_MSR_INAK) /* (6) */
-    {
-        if(--tmout == 0) break;
-    }
+    while((CAN->MSR & CAN_MSR_INAK)==CAN_MSR_INAK) if(--tmout == 0) break; /* (6) */
+    // accept ALL
     CAN->FMR = CAN_FMR_FINIT; /* (7) */
     CAN->FA1R = CAN_FA1R_FACT0; /* (8) */
+    // set to 1 all needed bits of CAN->FFA1R to switch given filters to FIFO1
+#if 0
     CAN->FM1R = CAN_FM1R_FBM0; /* (9) */
     CAN->sFilterRegister[0].FR1 = CANID << 5 | ((BCAST_ID << 5) << 16); /* (10) */
-
+#else
+    CAN->sFilterRegister[0].FR1 = 0;
+#endif
     CAN->FMR &=~ CAN_FMR_FINIT; /* (12) */
     CAN->IER |= CAN_IER_ERRIE | CAN_IER_FOVIE0 | CAN_IER_FOVIE1; /* (13) */
 
@@ -200,9 +232,8 @@ void can_proc(){
         // reset CAN bus
         RCC->APB1RSTR |= RCC_APB1RSTR_CANRST;
         RCC->APB1RSTR &= ~RCC_APB1RSTR_CANRST;
-        CAN_setup();
+        CAN_setup(0);
     }
-    LED_off(LED1);
 #if 0
     static uint32_t esr, msr, tsr;
     uint32_t msr_now = CAN->MSR & 0xf;
@@ -212,7 +243,6 @@ void can_proc(){
         NL();
     }
     if((CAN->ESR) != esr){
-        usart_putchar(((CAN->ESR & CAN_ESR_BOFF) != 0) + '0');
         esr = CAN->ESR;
         MSG("CAN->ESR: ");
         printuhex(esr); NL();
@@ -236,8 +266,20 @@ CAN_status can_send(uint8_t *msg, uint8_t len, uint16_t target_id){
     if(CAN->TSR & (CAN_TSR_TME)){
         mailbox = (CAN->TSR & CAN_TSR_CODE) >> 24;
     }else{ // no free mailboxes
+#ifdef EBUG
+        MSG("No free mailboxes"); NL();
+#endif
         return CAN_BUSY;
     }
+#ifdef EBUG
+    MSG("Send data. Len="); printu(len);
+    SEND(", tagid="); printuhex(target_id);
+    SEND(", data=");
+    for(int i = 0; i < len; ++i){
+        SEND(" "); printuhex(msg[i]);
+    }
+    NL();
+#endif
     CAN_TxMailBox_TypeDef *box = &CAN->sTxMailBox[mailbox];
     uint32_t lb = 0, hb = 0;
     switch(len){
@@ -291,14 +333,16 @@ void can_send_broadcast(){
 
 static void can_process_fifo(uint8_t fifo_num){
     if(fifo_num > 1) return;
-    LED_on(LED1); // Toggle LED1
+    LED_on(LED1); // Turn on LED1 - message received
     CAN_FIFOMailBox_TypeDef *box = &CAN->sFIFOMailBox[fifo_num];
     volatile uint32_t *RFxR = (fifo_num) ? &CAN->RF1R : &CAN->RF0R;
-    MSG("Receive, RDTR=");
+    /*
+    MSG("\nReceive, RDTR=");
     #ifdef EBUG
     printuhex(box->RDTR);
     NL();
     #endif
+    */
     // read all
     while(*RFxR & CAN_RF0R_FMP0){ // amount of messages pending
         // CAN_RDTxR: (16-31) - timestamp, (8-15) - filter match index, (0-3) - data length
@@ -307,6 +351,7 @@ static void can_process_fifo(uint8_t fifo_num){
         uint8_t *dat = msg.data;
         uint8_t len = box->RDTR & 0x7;
         msg.length = len;
+        msg.ID = box->RIR >> 21;
         if(len){ // message can be without data
             uint32_t hb = box->RDHR, lb = box->RDLR;
             switch(len){
@@ -338,7 +383,8 @@ static void can_process_fifo(uint8_t fifo_num){
         if(CAN_messagebuf_push(&msg)) return; // error: buffer is full, try later
         *RFxR |= CAN_RF0R_RFOM0; // release fifo for access to next message
     }
-    if(*RFxR & CAN_RF0R_FULL0) *RFxR &= ~CAN_RF0R_FULL0;
+    //if(*RFxR & CAN_RF0R_FULL0) *RFxR &= ~CAN_RF0R_FULL0;
+    *RFxR = 0; // clear FOVR & FULL
 }
 
 void cec_can_isr(){

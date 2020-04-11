@@ -100,7 +100,7 @@ int main(void){
     gpio_setup();
     usart_setup();
     readCANID();
-    CAN_setup();
+    CAN_setup(100);
 
     switchbuff(0);
     SEND("Greetings! My address is ");
@@ -127,19 +127,24 @@ int main(void){
         can_proc();
         usb_proc();
         if(CAN_get_status() == CAN_FIFO_OVERRUN){
-            SEND("CAN bus fifo overrun occured!\n"); NL();
+            switchbuff(3);
+            SEND("CAN bus fifo overrun occured!\n");
+            newline(); sendbuf();
         }
         can_mesg = CAN_messagebuf_pop();
-        if(can_mesg){ // new data in buff
+        if(can_mesg && isgood(can_mesg->ID)){ // new data in buff
             len = can_mesg->length;
-            switchbuff(0);
-            SEND("got message, len: "); usart_putchar('0' + len);
+            switchbuff(3);
+            SEND("got message, ID=");
+            printuhex(can_mesg->ID);
+            SEND(", len=");
+            printu(len);
             SEND(", data: ");
             for(ctr = 0; ctr < len; ++ctr){
                 printuhex(can_mesg->data[ctr]);
-                usart_putchar(' ');
+                SEND(" ");
             }
-            NL();
+            newline(); sendbuf();
         }
         if(usartrx()){ // usart1 received data, store in in buffer
             usart_getline(&txt);

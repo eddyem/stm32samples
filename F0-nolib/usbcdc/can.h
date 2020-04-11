@@ -41,9 +41,11 @@
 // incoming message buffer size
 #define CAN_INMESSAGE_SIZE  (8)
 
+// CAN message
 typedef struct{
-    uint8_t data[8];
-    uint8_t length;
+    uint8_t data[8];    // up to 8 bytes of data
+    uint8_t length;     // data length
+    uint16_t ID;        // ID of receiver
 } CAN_message;
 
 typedef enum{
@@ -59,9 +61,10 @@ CAN_status CAN_get_status();
 void readCANID();
 uint16_t getCANID();
 
-void CAN_reinit();
-void CAN_setup();
+void CAN_reinit(uint16_t speed);
+void CAN_setup(uint16_t speed);
 
+CAN_status can_send(uint8_t *msg, uint8_t len, uint16_t target_id);
 void can_send_dummy();
 void can_send_broadcast();
 void can_proc();

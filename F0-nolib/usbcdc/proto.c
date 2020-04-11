@@ -30,6 +30,8 @@
 
 extern volatile uint8_t canerror;
 
+uint16_t Ignore_IDs[IGN_SIZE];
+uint8_t IgnSz = 0;
 static char buff[UARTBUFSZ+1], *bptr = buff;
 static uint8_t blen = 0, USBcmd = 0;
 
@@ -38,7 +40,7 @@ void sendbuf(){
     if(blen == 0) return;
     *bptr = 0;
     if(USBcmd) USB_sendstr(buff);
-    else{
+    if(USBcmd != 1){
         usart_send(buff);
         transmit_tbuf();
     }
@@ -46,6 +48,7 @@ void sendbuf(){
     blen = 0;
 }
 
+// 1 - USB, 0 - USART, other number - both
 void switchbuff(uint8_t isUSB){
     USBcmd = isUSB;
 }
@@ -158,24 +161,107 @@ char *getnum(char *txt, uint32_t *N){
 
 
 // send command, format: ID (hex/bin/dec) data bytes (up to 8 bytes, space-delimeted)
-void sendCANcommand(char *txt){
+TRUE_INLINE void sendCANcommand(char *txt){
     SEND("CAN command with arguments:\n");
     uint32_t N;
+    uint16_t ID = 0xffff;
     char *n;
+    uint8_t data[8];
+    int ctr = -1;
     do{
         txt = omit_spaces(txt);
         n = getnum(txt, &N);
         if(txt == n) break;
+        txt = n;
+        if(ctr == -1){
+            if(N > 0x7ff){
+                SEND("ID should be 11-bit number!");
+                return;
+            }
+            ID = (uint16_t)(N&0x7ff);
+            SEND("ID="); printuhex(ID); newline();
+            ctr = 0;
+            continue;
+        }
+        if(ctr > 7){
+            SEND("ONLY 8 data bytes allowed!");
+            return;
+        }
+        if(N > 0xff){
+            SEND("Every data portion is a byte!");
+            return;
+        }
+        data[ctr++] = (uint8_t)(N&0xff);
         printu(N); SEND(", hex: ");
         printuhex(N); newline();
-        txt = n;
     }while(1);
     if(*n){
-        SEND("\nThe rest: ");
+        SEND("\nUnusefull data: ");
         SEND(n);
     }
-    newline();
+    if(ID == 0xffff){
+        SEND("NO ID given, send nothing!");
+        return;
+    }
     sendbuf();
+    N = 1000000;
+    while(CAN_BUSY == can_send(data, (uint8_t)ctr, ID)){
+        if(--N == 0) break;
+    }
+}
+
+TRUE_INLINE void CANini(char *txt){
+    txt = omit_spaces(txt);
+    uint32_t N;
+    char *n = getnum(txt, &N);
+    if(txt == n){
+        SEND("No speed given");
+        return;
+    }
+    if(N < 50){
+        SEND("Lowest speed is 50kbps");
+        return;
+    }else if(N > 3000){
+        SEND("Highest speed is 3000kbps");
+        return;
+    }
+    CAN_reinit((uint16_t)N);
+    SEND("Reinit CAN bus with speed ");
+    printu(N); SEND("kbps");
+}
+
+TRUE_INLINE void addIGN(char *txt){
+    if(IgnSz == IGN_SIZE){
+        MSG("Ignore buffer is full");
+        return;
+    }
+    txt = omit_spaces(txt);
+    uint32_t N;
+    char *n = getnum(txt, &N);
+    if(txt == n){
+        SEND("No ID given");
+        return;
+    }
+    if(N > 0x7ff){
+        SEND("ID should be 11-bit number!");
+        return;
+    }
+    Ignore_IDs[IgnSz++] = (uint16_t)(N & 0x7ff);
+    SEND("Added ID "); printu(N);
+    SEND("\nIgn buffer size: "); printu(IgnSz);
+}
+
+TRUE_INLINE void print_ign_buf(){
+    if(IgnSz == 0){
+        SEND("Ignore buffer is empty");
+        return;
+    }
+    for(int i = 0; i < IgnSz; ++i){
+        printu(i);
+        SEND(": ");
+        printuhex(Ignore_IDs[i]);
+        newline();
+    }
 }
 
 /**
@@ -190,9 +276,19 @@ void cmd_parser(char *txt, uint8_t isUSB){
     /*
      * parse long commands here
      */
-    if(_1st == 's' || _1st == 'S'){
-        sendCANcommand(txt + 1);
-        return;
+    switch(_1st){
+        case 's':
+        case 'S':
+            sendCANcommand(txt + 1);
+            goto eof;
+        break;
+        case 'b':
+            CANini(txt + 1);
+            goto eof;
+        break;
+        case 'a':
+            addIGN(txt + 1);
+            goto eof;
     }
     if(txt[1] != '\n') *txt = '?'; // help for wrong message length
     switch(_1st){
@@ -205,16 +301,22 @@ void cmd_parser(char *txt, uint8_t isUSB){
         case 'C':
             can_send_dummy();
         break;
+        case 'd':
+            IgnSz = 0;
+        break;
         case 'G':
             SEND("Can address: ");
             printuhex(getCANID());
             newline();
         break;
         case 'I':
-            CAN_reinit();
+            CAN_reinit(0);
             SEND("Can address: ");
             printuhex(getCANID());
             newline();
+        break;
+        case 'p':
+            print_ign_buf();
         break;
         case 'R':
             SEND("Soft reset\n");
@@ -238,11 +340,15 @@ void cmd_parser(char *txt, uint8_t isUSB){
         break;
         default: // help
             SEND(
+            "'a' - add ID to ignore list (max 10 IDs)\n"
+            "'b' - reinit CAN with given baudrate\n"
             "'B' - send broadcast dummy byte\n"
             "'C' - send dummy byte over CAN\n"
+            "'d' - delete ignore list\n"
             "'f' - flush UART buffer\n"
             "'G' - get CAN address\n"
             "'I' - reinit CAN (with new address)\n"
+            "'p' - print ignore buffer\n"
             "'R' - software reset\n"
             "'s/S' - send data over CAN: s ID byte0 .. byteN\n"
             "'T' - gen time from start (ms)\n"
@@ -251,6 +357,8 @@ void cmd_parser(char *txt, uint8_t isUSB){
             );
         break;
     }
+eof:
+    newline();
     sendbuf();
 }
 
@@ -273,12 +381,20 @@ void printu(uint32_t val){
 void printuhex(uint32_t val){
     addtobuf("0x");
     uint8_t *ptr = (uint8_t*)&val + 3;
-    int i, j;
+    int8_t i, j;
     for(i = 0; i < 4; ++i, --ptr){
+        if(*ptr == 0 && i != 3) continue; // omit leading zeros
         for(j = 1; j > -1; --j){
             uint8_t half = (*ptr >> (4*j)) & 0x0f;
             if(half < 10) bufputchar(half + '0');
             else bufputchar(half - 10 + 'a');
         }
     }
+}
+
+// check Ignore_IDs & return 1 if ID isn't in list
+uint8_t isgood(uint16_t ID){
+    for(int i = 0; i < IgnSz; ++i)
+        if(Ignore_IDs[i] == ID) return 0;
+    return 1;
 }

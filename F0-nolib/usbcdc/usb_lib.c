@@ -357,7 +357,7 @@ int EP_Init(uint8_t number, uint8_t type, uint16_t txsz, uint16_t rxsz, void (*f
     if(lastaddr + txsz + rxsz >= USB_BTABLE_SIZE) return 2; // out of btable
     USB->EPnR[number] = (type << 9) | (number & USB_EPnR_EA);
     USB->EPnR[number] ^= USB_EPnR_STAT_RX | USB_EPnR_STAT_TX_1;
-    if(rxsz & 1 || rxsz > 992) return 3; // wrong rx buffer size
+    if(rxsz & 1 || rxsz > 512) return 3; // wrong rx buffer size
     uint16_t countrx = 0;
     if(rxsz < 64) countrx = rxsz / 2;
     else{
