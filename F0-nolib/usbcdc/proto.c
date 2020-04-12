@@ -264,6 +264,154 @@ TRUE_INLINE void print_ign_buf(){
     }
 }
 
+// print ID/mask of CAN->sFilterRegister[x] half
+static void printID(uint16_t FRn){
+    if(FRn & 0x1f) return; // trash
+    printuhex(FRn >> 5);
+}
+/*
+Can filtering: FSCx=0 (CAN->FS1R) -> 16-bit identifiers
+CAN->FMR = (sb)<<8 | FINIT - init filter in starting bank sb
+CAN->FFA1R FFAx = 1 -> FIFO1, 0 -> FIFO0
+CAN->FA1R FACTx=1 - filter active
+MASK: FBMx=0 (CAN->FM1R), two filters (n in FR1 and n+1 in FR2)
+    ID:   CAN->sFilterRegister[x].FRn[0..15]
+    MASK: CAN->sFilterRegister[x].FRn[16..31]
+    FR bits:  STID[10:0] RTR IDE EXID[17:15]
+LIST: FBMx=1, four filters (n&n+1 in FR1, n+2&n+3 in FR2)
+    IDn:   CAN->sFilterRegister[x].FRn[0..15]
+    IDn+1: CAN->sFilterRegister[x].FRn[16..31]
+*/
+TRUE_INLINE void list_filters(){
+    uint32_t fa = CAN->FA1R, ctr = 0, mask = 1;
+    while(fa){
+        if(fa & 1){
+            SEND("Filter "); printu(ctr); SEND(", FIFO");
+            if(CAN->FFA1R & mask) SEND("1");
+            else SEND("0");
+            SEND(" in ");
+            if(CAN->FM1R & mask){ // up to 4 filters in LIST mode
+                SEND("LIST mode, IDs: ");
+                printID(CAN->sFilterRegister[ctr].FR1 & 0xffff);
+                SEND(" ");
+                printID(CAN->sFilterRegister[ctr].FR1 >> 16);
+                SEND(" ");
+                printID(CAN->sFilterRegister[ctr].FR2 & 0xffff);
+                SEND(" ");
+                printID(CAN->sFilterRegister[ctr].FR2 >> 16);
+            }else{ // up to 2 filters in MASK mode
+                SEND("MASK mode: ");
+                if(!(CAN->sFilterRegister[ctr].FR1&0x1f)){
+                    SEND("ID="); printID(CAN->sFilterRegister[ctr].FR1 & 0xffff);
+                    SEND(", MASK="); printID(CAN->sFilterRegister[ctr].FR1 >> 16);
+                    SEND(" ");
+                }
+                if(!(CAN->sFilterRegister[ctr].FR2&0x1f)){
+                    SEND("ID="); printID(CAN->sFilterRegister[ctr].FR2 & 0xffff);
+                    SEND(", MASK="); printID(CAN->sFilterRegister[ctr].FR2 >> 16);
+                }
+            }
+            newline();
+        }
+        fa >>= 1;
+        ++ctr;
+        mask <<= 1;
+    }
+    sendbuf();
+}
+
+/**
+ * @brief add_filter - add/modify filter
+ * @param str - string in format "bank# FIFO# mode num0 .. num3"
+ * where bank# - 0..27
+ * if there's nothing after bank# - delete filter
+ * FIFO# - 0,1
+ * mode - 'I' for ID, 'M' for mask
+ * num0..num3 - IDs in ID mode, ID/MASK for mask mode
+ */
+static void add_filter(char *str){
+    uint32_t N;
+    str = omit_spaces(str);
+    char *n = getnum(str, &N);
+    if(n == str){
+        SEND("No bank# given");
+        return;
+    }
+    if(N > STM32F0FBANKNO-1){
+        SEND("bank# > 27");
+        return;
+    }
+    uint8_t bankno = (uint8_t)N;
+    str = omit_spaces(n);
+    if(!*str){ // deactivate filter
+        SEND("Deactivate filters in bank ");
+        printu(bankno);
+        CAN->FMR = CAN_FMR_FINIT;
+        CAN->FA1R &= ~(1<<bankno);
+        CAN->FMR &=~ CAN_FMR_FINIT;
+        return;
+    }
+    uint8_t fifono = 0;
+    if(*str == '1') fifono = 1;
+    else if(*str != '0'){
+        SEND("FIFO# is 0 or 1");
+        return;
+    }
+    str = omit_spaces(str + 1);
+    char c = *str;
+    uint8_t mode = 0; // ID
+    if(c == 'M' || c == 'm') mode = 1;
+    else if(c != 'I' && c != 'i'){
+        SEND("mode is 'M/m' for MASK and 'I/i' for IDLIST");
+        return;
+    }
+    str = omit_spaces(str + 1);
+    uint32_t filters[4];
+    uint32_t nfilt;
+    for(nfilt = 0; nfilt < 4; ++nfilt){
+        n = getnum(str, &N);
+        if(n == str) break;
+        filters[nfilt] = N;
+        str = omit_spaces(n);
+    }
+    if(nfilt == 0){
+        SEND("You should add at least one filter!");
+        return;
+    }
+    if(mode && (nfilt&1)){
+        SEND("In MASK mode you should point pairs of ID/MASK");
+        return;
+    }
+    CAN->FMR = CAN_FMR_FINIT;
+    uint32_t mask = 1<<bankno;
+    CAN->FA1R |= mask; // activate given filter
+    if(fifono) CAN->FFA1R |= mask; // set FIFO number
+    else CAN->FFA1R &= ~mask;
+    if(mode) CAN->FM1R &= ~mask; // MASK
+    else CAN->FM1R |= mask; // LIST
+    uint32_t F1 = (0x8f<<16);
+    uint32_t F2 = (0x8f<<16);
+    // reset filter registers to wrong value
+    CAN->sFilterRegister[bankno].FR1 = (0x8f<<16) | 0x8f;
+    CAN->sFilterRegister[bankno].FR2 = (0x8f<<16) | 0x8f;
+    switch(nfilt){
+        case 4:
+            F2 = filters[3] << 21;
+            // fallthrough
+        case 3:
+            CAN->sFilterRegister[bankno].FR2 = (F2 & 0xffff0000) | (filters[2] << 5);
+            // fallthrough
+        case 2:
+            F1 = filters[1] << 21;
+            // fallthrough
+        case 1:
+            CAN->sFilterRegister[bankno].FR1 = (F1 & 0xffff0000) | (filters[0] << 5);
+    }
+    CAN->FMR &=~ CAN_FMR_FINIT;
+    SEND("Added filter with ");
+    printu(nfilt); SEND(" parameters");
+}
+
 /**
  * @brief cmd_parser - command parsing
  * @param txt   - buffer with commands & data
@@ -277,24 +425,26 @@ void cmd_parser(char *txt, uint8_t isUSB){
      * parse long commands here
      */
     switch(_1st){
-        case 's':
-        case 'S':
-            sendCANcommand(txt + 1);
+        case 'a':
+            addIGN(txt + 1);
             goto eof;
         break;
         case 'b':
             CANini(txt + 1);
             goto eof;
         break;
-        case 'a':
-            addIGN(txt + 1);
+        case 'f':
+            add_filter(txt + 1);
             goto eof;
+        break;
+        case 's':
+        case 'S':
+            sendCANcommand(txt + 1);
+            goto eof;
+        break;
     }
     if(txt[1] != '\n') *txt = '?'; // help for wrong message length
     switch(_1st){
-        case 'f':
-            transmit_tbuf();
-        break;
         case 'B':
             can_send_broadcast();
         break;
@@ -314,6 +464,9 @@ void cmd_parser(char *txt, uint8_t isUSB){
             SEND("Can address: ");
             printuhex(getCANID());
             newline();
+        break;
+        case 'l':
+            list_filters();
         break;
         case 'p':
             print_ign_buf();
@@ -345,9 +498,10 @@ void cmd_parser(char *txt, uint8_t isUSB){
             "'B' - send broadcast dummy byte\n"
             "'C' - send dummy byte over CAN\n"
             "'d' - delete ignore list\n"
-            "'f' - flush UART buffer\n"
+            "'f' - add/delete filter, format: bank# FIFO# mode(M/I) num0 [num1 [num2 [num3]]]\n"
             "'G' - get CAN address\n"
             "'I' - reinit CAN (with new address)\n"
+            "'l' - list all active filters\n"
             "'p' - print ignore buffer\n"
             "'R' - software reset\n"
             "'s/S' - send data over CAN: s ID byte0 .. byteN\n"

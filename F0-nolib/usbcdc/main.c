@@ -137,6 +137,10 @@ int main(void){
             switchbuff(3);
             SEND("got message, ID=");
             printuhex(can_mesg->ID);
+            SEND(", filter #");
+            printu(can_mesg->filterNo);
+            SEND(", FIFO #");
+            printu(can_mesg->fifoNum);
             SEND(", len=");
             printu(len);
             SEND(", data: ");

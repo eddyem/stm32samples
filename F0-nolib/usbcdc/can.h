@@ -26,6 +26,9 @@
 
 #include "hardware.h"
 
+// amount of filter banks in STM32F0
+#define STM32F0FBANKNO      28
+
 // simple 1-byte commands
 #define CMD_TOGGLE      (0xDA)
 #define CMD_BCAST       (0xAD)
@@ -45,6 +48,8 @@
 typedef struct{
     uint8_t data[8];    // up to 8 bytes of data
     uint8_t length;     // data length
+    uint8_t filterNo;   // filter number
+    uint8_t fifoNum;    // message FIFO number
     uint16_t ID;        // ID of receiver
 } CAN_message;
 

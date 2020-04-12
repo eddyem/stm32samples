@@ -168,13 +168,15 @@ void CAN_setup(uint16_t speed){
     while((CAN->MSR & CAN_MSR_INAK)==CAN_MSR_INAK) if(--tmout == 0) break; /* (6) */
     // accept ALL
     CAN->FMR = CAN_FMR_FINIT; /* (7) */
-    CAN->FA1R = CAN_FA1R_FACT0; /* (8) */
+    CAN->FA1R = CAN_FA1R_FACT0 | CAN_FA1R_FACT1; /* (8) */
     // set to 1 all needed bits of CAN->FFA1R to switch given filters to FIFO1
 #if 0
     CAN->FM1R = CAN_FM1R_FBM0; /* (9) */
     CAN->sFilterRegister[0].FR1 = CANID << 5 | ((BCAST_ID << 5) << 16); /* (10) */
 #else
-    CAN->sFilterRegister[0].FR1 = 0;
+    CAN->sFilterRegister[0].FR1 = (1<<21)|(1<<5); // all odd IDs
+    CAN->FFA1R = 2; // filter 1 for FIFO1, filter 0 - for FIFO0
+    CAN->sFilterRegister[1].FR1 = (1<<21); // all even IDs
 #endif
     CAN->FMR &=~ CAN_FMR_FINIT; /* (12) */
     CAN->IER |= CAN_IER_ERRIE | CAN_IER_FOVIE0 | CAN_IER_FOVIE1; /* (13) */
@@ -352,6 +354,8 @@ static void can_process_fifo(uint8_t fifo_num){
         uint8_t len = box->RDTR & 0x7;
         msg.length = len;
         msg.ID = box->RIR >> 21;
+        msg.filterNo = (box->RDTR >> 8) & 0xff;
+        msg.fifoNum = fifo_num;
         if(len){ // message can be without data
             uint32_t hb = box->RDHR, lb = box->RDLR;
             switch(len){
