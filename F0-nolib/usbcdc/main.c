@@ -105,14 +105,15 @@ int main(void){
     switchbuff(0);
     SEND("Greetings! My address is ");
     printuhex(getCANID());
-    NL();
+    newline();
 
     if(RCC->CSR & RCC_CSR_IWDGRSTF){ // watchdog reset occured
-        SEND("WDGRESET=1\n"); NL();
+        SEND("WDGRESET=1\n");
     }
     if(RCC->CSR & RCC_CSR_SFTRSTF){ // software reset occured
-        SEND("SOFTRESET=1\n"); NL();
+        SEND("SOFTRESET=1\n");
     }
+    sendbuf();
     RCC->CSR |= RCC_CSR_RMVF; // remove reset flags
     iwdg_setup();
     USB_setup();
@@ -127,26 +128,27 @@ int main(void){
         can_proc();
         usb_proc();
         if(CAN_get_status() == CAN_FIFO_OVERRUN){
-            switchbuff(3);
+            register uint8_t o = switchbuff(3);
             SEND("CAN bus fifo overrun occured!\n");
-            newline(); sendbuf();
+            sendbuf(); switchbuff(o);
         }
         can_mesg = CAN_messagebuf_pop();
-        if(can_mesg && isgood(can_mesg->ID)){ // new data in buff
+        if(ShowMsgs && can_mesg && isgood(can_mesg->ID)){ // new data in buff
+            IWDG->KR = IWDG_REFRESH;
             len = can_mesg->length;
-            switchbuff(3);
-            SEND("got message, ID=");
+            printu(Tms);
+            SEND(" #");
             printuhex(can_mesg->ID);
-            SEND(", filter #");
+            /*SEND(", filter #");
             printu(can_mesg->filterNo);
             SEND(", FIFO #");
-            printu(can_mesg->fifoNum);
-            SEND(", len=");
+            printu(can_mesg->fifoNum);*/
+            /*SEND(", len=");
             printu(len);
-            SEND(", data: ");
+            SEND(", data: ");*/
             for(ctr = 0; ctr < len; ++ctr){
-                printuhex(can_mesg->data[ctr]);
                 SEND(" ");
+                printuhex(can_mesg->data[ctr]);
             }
             newline(); sendbuf();
         }

@@ -41,6 +41,9 @@ static CAN_status can_status = CAN_STOP;
 
 static void can_process_fifo(uint8_t fifo_num);
 
+static CAN_message loc_flood_msg;
+static CAN_message *flood_msg = NULL; // == loc_flood_msg - to flood
+
 CAN_status CAN_get_status(){
     CAN_status st = can_status;
     // give overrun message only once
@@ -205,9 +208,9 @@ void can_proc(){
     if(CAN->RF1R & CAN_RF1R_FMP1){
         can_process_fifo(1);
     }
+    IWDG->KR = IWDG_REFRESH;
     if(CAN->ESR & (CAN_ESR_BOFF | CAN_ESR_EPVF | CAN_ESR_EWGF)){ // much errors - restart CAN BUS
-        switchbuff(0);
-        SEND("\nToo much errors, restarting!\n");
+        SEND("\nToo much errors, restarting CAN!\n");
         SEND("Receive error counter: ");
         printu((CAN->ESR & CAN_ESR_REC)>>24);
         SEND("\nTransmit error counter: ");
@@ -235,6 +238,11 @@ void can_proc(){
         RCC->APB1RSTR |= RCC_APB1RSTR_CANRST;
         RCC->APB1RSTR &= ~RCC_APB1RSTR_CANRST;
         CAN_setup(0);
+    }
+    static uint32_t lastFloodTime = 0;
+    if(flood_msg && (Tms - lastFloodTime) > (FLOOD_PERIOD_MS-1)){ // flood every ~5ms
+        lastFloodTime = Tms;
+        can_send(flood_msg->data, flood_msg->length, flood_msg->ID);
     }
 #if 0
     static uint32_t esr, msr, tsr;
@@ -333,6 +341,14 @@ void can_send_broadcast(){
     MSG("Broadcast message sent\n");
 }
 
+void set_flood(CAN_message *msg){
+    if(!msg) flood_msg = NULL;
+    else{
+        memcpy(&loc_flood_msg, msg, sizeof(CAN_message));
+        flood_msg = &loc_flood_msg;
+    }
+}
+
 static void can_process_fifo(uint8_t fifo_num){
     if(fifo_num > 1) return;
     LED_on(LED1); // Turn on LED1 - message received
@@ -354,8 +370,8 @@ static void can_process_fifo(uint8_t fifo_num){
         uint8_t len = box->RDTR & 0x7;
         msg.length = len;
         msg.ID = box->RIR >> 21;
-        msg.filterNo = (box->RDTR >> 8) & 0xff;
-        msg.fifoNum = fifo_num;
+        //msg.filterNo = (box->RDTR >> 8) & 0xff;
+        //msg.fifoNum = fifo_num;
         if(len){ // message can be without data
             uint32_t hb = box->RDHR, lb = box->RDLR;
             switch(len){

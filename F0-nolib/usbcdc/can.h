@@ -28,6 +28,8 @@
 
 // amount of filter banks in STM32F0
 #define STM32F0FBANKNO      28
+// flood period in milliseconds
+#define FLOOD_PERIOD_MS     5
 
 // simple 1-byte commands
 #define CMD_TOGGLE      (0xDA)
@@ -48,8 +50,8 @@
 typedef struct{
     uint8_t data[8];    // up to 8 bytes of data
     uint8_t length;     // data length
-    uint8_t filterNo;   // filter number
-    uint8_t fifoNum;    // message FIFO number
+    //uint8_t filterNo;   // filter number
+    //uint8_t fifoNum;    // message FIFO number
     uint16_t ID;        // ID of receiver
 } CAN_message;
 
@@ -75,5 +77,7 @@ void can_send_broadcast();
 void can_proc();
 
 CAN_message *CAN_messagebuf_pop();
+
+void set_flood(CAN_message *msg);
 
 #endif // __CAN_H__
