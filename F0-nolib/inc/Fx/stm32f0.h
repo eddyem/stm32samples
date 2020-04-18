@@ -182,6 +182,11 @@ TRUE_INLINE void StartHSI48(){
 #define GPIO_MODER_MODER15_AF       ((uint32_t)0x80000000)
 
 
+/******************  FLASH Keys  **********************************************/
+#define RDP_Key                  ((uint16_t)0x00A5)
+#define FLASH_KEY1               ((uint32_t)0x45670123)
+#define FLASH_KEY2               ((uint32_t)0xCDEF89AB)
+
 /************************* ADC *************************/
 /* inner termometer calibration values
  *         Temp = (V30 - Vsense)/Avg_Slope + 30

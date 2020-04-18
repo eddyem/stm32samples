@@ -167,7 +167,7 @@ static CAN_message *parseCANmsg(char *txt){
                 return NULL;
             }
             canmsg.ID = (uint16_t)(N&0x7ff);
-            SEND("ID="); printuhex(canmsg.ID); newline();
+            //SEND("ID="); printuhex(canmsg.ID); newline();
             ctr = 0;
             continue;
         }
@@ -546,7 +546,6 @@ void printuhex(uint32_t val){
     uint8_t *ptr = (uint8_t*)&val + 3;
     int8_t i, j;
     for(i = 0; i < 4; ++i, --ptr){
-        if(*ptr == 0 && i != 3) continue; // omit leading zeros
         for(j = 1; j > -1; --j){
             uint8_t half = (*ptr >> (4*j)) & 0x0f;
             if(half < 10) bufputchar(half + '0');

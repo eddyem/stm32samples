@@ -37,13 +37,17 @@
 
 #define newline() do{bufputchar('\n');}while(0)
 
-void cmd_parser(const char *buf, uint8_t isUSB);
+extern uint8_t monitCAN;
+
+char *omit_spaces(char *buf);
+
+void cmd_parser(char *buf, uint8_t isUSB);
 void addtobuf(const char *txt);
 void bufputchar(char ch);
 void sendbuf();
 void printu(uint32_t val);
 void printuhex(uint32_t val);
-int getnum(const char *buf, int32_t *N);
+char *getnum(char *txt, uint32_t *N);
 
 #define TARGET_USB   1
 #define TARGET_USART 0

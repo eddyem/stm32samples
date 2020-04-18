@@ -35,8 +35,9 @@
  */
 typedef struct __attribute__((packed, aligned(4))){
     uint16_t userconf_sz;       // "magick number"
-    uint8_t  defflags;          // default flags
     uint16_t CANspeed;          // default CAN speed
+    uint8_t  defflags;          // default flags
+    uint8_t  driver_type;       // user's settings: type of stepper's driver
 } user_conf;
 
 extern user_conf the_conf; // global user config (read from FLASH to RAM)

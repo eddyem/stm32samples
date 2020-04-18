@@ -1,12 +1,10 @@
 /*
- *                                                                                                  geany_encoding=koi8-r
- * hardware.c - hardware-dependent macros & functions
+ * This file is part of the Stepper project.
+ * Copyright 2020 Edward V. Emelianov <edward.emelianoff@gmail.com>.
  *
- * Copyright 2018 Edward V. Emelianov <eddy@sao.ru, edward.emelianoff@gmail.com>
- *
- * This program is free software; you can redistribute it and/or modify
+ * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -15,10 +13,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- * MA 02110-1301, USA.
- *
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #include "hardware.h"
@@ -73,14 +68,44 @@ void iwdg_setup(){
     IWDG->KR = IWDG_REFRESH; /* (6) */
 }
 
-void gpio_setup(void){
+/*
+MODER   - input/output/alternate/analog
+OTYPER  - pushpull/opendrain
+OSPEEDR - low(x0)/med(01)/high(11)
+PUPDR   - no/pullup/pulldown/reserved
+AFRL, AFRH - alternate fno
+*/
+void gpio_setup(){
     // here we turn on clocking for all GPIO used
     RCC->AHBENR |= RCC_AHBENR_GPIOAEN | RCC_AHBENR_GPIOBEN | RCC_AHBENR_GPIOCEN | RCC_AHBENR_GPIOFEN
                    | RCC_AHBENR_DMAEN;
+    // setup pins need @start: Vio_ON (PF0, opendrain), ~FAULT (PF1, floating IN),
+    //  ~SLEEP (PC15, pushpull), DIR (PA4, pushpull), ~EN (PC13, pushpull)
+    // ~CS, microstepping2, (PC14, pushpull
     // PA8 - Tx/Rx
-    GPIOA->MODER = GPIO_MODER_MODER8_O;
-    // PB12..15 - board address, pullup input
-    GPIOB->PUPDR = GPIO_PUPDR_PUPDR12_0 | GPIO_PUPDR_PUPDR13_0 | GPIO_PUPDR_PUPDR14_0 | GPIO_PUPDR_PUPDR15_0;
+    // PB12..15 - board address, pullup input; PB0..2, PB10 - ESW, pullup inputs (inverse)
+    VIO_OFF();
+    SLEEP_ON();
+    DRV_DISABLE();
+    // PA. PP: PA4, PA8; AIN: PA0, PA1
+    GPIOA->MODER = GPIO_MODER_MODER8_O | GPIO_MODER_MODER4_O | GPIO_MODER_MODER1_AI | GPIO_MODER_MODER0_AI;
+    GPIOA->PUPDR = 0;
+    GPIOA->OTYPER = 0;
+    // PB. PUin: 0,1,2,10,12,13,14,15
+    GPIOB->MODER = 0;
+    GPIOB->PUPDR = GPIO_PUPDR0_PU | GPIO_PUPDR1_PU | GPIO_PUPDR2_PU | GPIO_PUPDR10_PU |
+            GPIO_PUPDR12_PU | GPIO_PUPDR13_PU | GPIO_PUPDR14_PU | GPIO_PUPDR15_PU;
+    GPIOB->OTYPER = 0;
+    // PC. PP: 13..15
+    GPIOC->MODER = GPIO_MODER_MODER13_O | GPIO_MODER_MODER14_O | GPIO_MODER_MODER15_O;
+    GPIOC->PUPDR = 0;
+    GPIOC->OTYPER = 0;
+    // PF. OD: 0; FLin: 1
+    GPIOF->MODER = GPIO_MODER_MODER0_O;
+    //GPIOF->PUPDR = GPIO_PUPDR1_PU;
+    GPIOF->PUPDR = 0;
+    GPIOF->OTYPER = 0;
+    // other pins will be set up later
 /*
     // Set LEDS (PC13/14) as output
     GPIOC->MODER = (GPIOC->MODER & ~(GPIO_MODER_MODER13  | GPIO_MODER_MODER14)
@@ -94,3 +119,8 @@ uint8_t refreshBRDaddr(){
     return (brdADDR = READ_BRD_ADDR());
 }
 uint8_t getBRDaddr(){return brdADDR;}
+
+void sleep(uint16_t ms){
+    uint32_t Tnew = Tms + ms;
+    while(Tnew != Tms) nop();
+}

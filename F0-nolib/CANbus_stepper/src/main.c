@@ -19,6 +19,9 @@
  * MA 02110-1301, USA.
  */
 #include "adc.h"
+#include "can.h"
+#include "can_process.h"
+#include "flash.h"
 #include "hardware.h"
 #include "proto.h"
 #include "usart.h"
@@ -44,14 +47,48 @@ void clstate_handler(uint16_t val){
     usart_putchar('\n');
 }*/
 
+#define USBBUF 63
+// usb getline
+static char *get_USB(){
+    static char tmpbuf[USBBUF+1], *curptr = tmpbuf;
+    static int rest = USBBUF;
+    uint8_t x = USB_receive((uint8_t*)curptr);
+    if(!x) return NULL;
+    curptr[x] = 0;
+    if(x == 1 && *curptr == 0x7f){ // backspace
+        if(curptr > tmpbuf){
+            --curptr;
+            USND("\b \b");
+        }
+        return NULL;
+    }
+    USB_sendstr(curptr); // echo
+    if(curptr[x-1] == '\n'){
+        curptr = tmpbuf;
+        rest = USBBUF;
+        // omit empty lines
+        if(tmpbuf[0] == '\n') return NULL;
+        // and wrong empty lines
+        if(tmpbuf[0] == '\r' && tmpbuf[1] == '\n') return NULL;
+        return tmpbuf;
+    }
+    curptr += x; rest -= x;
+    if(rest <= 0){ // buffer overflow
+        curptr = tmpbuf;
+        rest = USBBUF;
+    }
+    return NULL;
+}
+
 int main(void){
     uint32_t lastT = 0;
-    char tmpbuf[129];
     sysreset();
     SysTick_Config(6000, 1);
-    gpio_setup();
+    gpio_setup(); // + read board address
     usart_setup();
     adc_setup();
+    flashstorage_init();
+    /*
     if(RCC->CSR & RCC_CSR_IWDGRSTF){ // watchdog reset occured
         usart_send_blocking("WDGRESET=1\n", 11);
     }
@@ -59,35 +96,30 @@ int main(void){
         usart_send_blocking("SOFTRESET=1\n", 12);
     }
     RCC->CSR |= RCC_CSR_RMVF; // remove reset flags
+    */
+    CAN_setup(the_conf.CANspeed);
     USB_setup();
-    //iwdg_setup();
+    iwdg_setup();
 
     while (1){
         IWDG->KR = IWDG_REFRESH; // refresh watchdog
-        if(lastT > Tms || Tms - lastT > 499){
+        if(Tms - lastT > 499){
             lastT = Tms;
         }
+        can_proc();
         usb_proc();
         usart_proc(); // switch RS-485 to Rx after last byte sent
-        uint8_t r = 0;
-        if((r = USB_receive(tmpbuf, 128))){
-            tmpbuf[r] = 0;
-            cmd_parser(tmpbuf, TARGET_USB);
+        char *txt;
+        if((txt = get_USB())){
+            cmd_parser(txt, TARGET_USB);
         }
+        IWDG->KR = IWDG_REFRESH;
         if(usartrx()){ // usart1 received data, store in in buffer
-            char *txt = NULL;
-            r = usart_getline(&txt);
-/*
-buftgt(TARGET_USB);
-addtobuf("got ");
-printu(r);
-addtobuf(" bytes over USART:\n");
-addtobuf(txt);
-addtobuf("\n====\n");
-sendbuf();
-*/
+            usart_getline(&txt);
             cmd_parser(txt, TARGET_USART);
         }
+        IWDG->KR = IWDG_REFRESH;
+        can_messages_proc();
     }
     return 0;
 }

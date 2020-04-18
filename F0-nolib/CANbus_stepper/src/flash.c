@@ -38,6 +38,7 @@
 #include "adc.h"
 #include "flash.h"
 #include "proto.h"  // printout
+#include "steppers.h"
 #include <string.h> // memcpy
 
 // max amount of Config records stored (will be recalculate in flashstorage_init()
@@ -47,6 +48,7 @@ static uint32_t maxCnum = FLASH_BLOCK_SIZE / sizeof(user_conf);
      .userconf_sz = sizeof(user_conf)       \
     ,.defflags = 0                          \
     ,.CANspeed = 100                        \
+    ,.driver_type = DRV_NONE                \
     }
 
 static int erase_flash(const void*, const void*);
@@ -74,7 +76,7 @@ static int binarySearch(int r, const uint8_t *start, int stor_size){
         int mid = l + (r - l) / 2;
         const uint8_t *s = start + mid * stor_size;
         if(*((const uint16_t*)s) == stor_size){
-            if(*((const uint16_t*)(s + stor_size)) == 0xffff){
+            if(*((const uint16_t*)(s + stor_size)) == 0xffff){ // next is free
                 return mid;
             }else{ // element is to the right
                 l = mid + 1;
@@ -214,6 +216,20 @@ void dump_userconf(){
     SEND("\nuserconf_sz="); printu(the_conf.userconf_sz);
     SEND("\nflags="); printuhex(the_conf.defflags);
     SEND("\nCANspeed="); printu(the_conf.CANspeed);
+    SEND("\ndriver_type=");
+    const char *p = "NONE";
+    switch(the_conf.driver_type){
+        case DRV_2130:
+            p = "TMC2130";
+        break;
+        case DRV_4988:
+            p = "A4988";
+        break;
+        case DRV_8825:
+            p = "DRV8825";
+        break;
+    }
+    SEND(p);
     newline();
     sendbuf();
 }

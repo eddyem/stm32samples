@@ -1,6 +1,6 @@
 /*
  *                                                                                                  geany_encoding=koi8-r
- * usb.h
+ * can_process.h
  *
  * Copyright 2018 Edward V. Emelianov <eddy@sao.ru, edward.emelianoff@gmail.com>
  *
@@ -20,22 +20,19 @@
  * MA 02110-1301, USA.
  *
  */
-#pragma once
-#ifndef __USB_H__
-#define __USB_H__
+#include "can.h"
 
-#include "hardware.h"
+// timeout for trying to send data
+#define SEND_TIMEOUT_MS     (10)
 
-#define BUFFSIZE   (64)
+// 8-bit commands sent by master
+typedef enum{
+    CMD_PING,               // just echo it back
+    CMD_GETMCUTEMP,         // MCU temperature value
+    CMD_GETUVAL,            // answer with values of V12 and V5
+    CMD_GETU3V3,          // answer with values of V3.3
+} CAN_commands;
 
-// send string with constant length
-#define USND(str)  do{USB_send((uint8_t*)str, sizeof(str)-1);}while(0)
-
-void USB_setup();
-void usb_proc();
-void USB_send(const uint8_t *buf, uint16_t len);
-void USB_sendstr(const char *str);
-void USB_send_blk(const uint8_t *buf, uint16_t len);
-uint8_t USB_receive(uint8_t *buf);
-
-#endif // __USB_H__
+void can_messages_proc();
+#define SEND_CAN(a,b)  try2send(a, b, masterID)
+CAN_status try2send(uint8_t *buf, uint8_t len, uint16_t id);

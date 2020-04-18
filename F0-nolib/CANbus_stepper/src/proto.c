@@ -21,19 +21,30 @@
  *
  */
 #include "adc.h"
+#include "can.h"
+#include "flash.h"
 #include "hardware.h"
 #include "proto.h"
+#include "steppers.h"
 #include "usart.h"
 #include "usb.h"
 #include <string.h> // strlen, strcpy(
 
 extern volatile uint8_t canerror;
-
+uint8_t monitCAN = 0; // ==1 to show CAN messages
 #define BUFSZ UARTBUFSZ
 
 static char buff[BUFSZ+1], *bptr = buff;
 static uint8_t blen = 0, // length of data in `buff`
     USBcmd = 0; // ==1 if buffer prepared for USB
+
+char *omit_spaces(char *buf){
+    while(*buf){
+        if(*buf > ' ') break;
+        ++buf;
+    }
+    return buf;
+}
 
 void buftgt(uint8_t isUSB){
     USBcmd = isUSB;
@@ -44,7 +55,7 @@ void sendbuf(){
     if(blen == 0) return;
     if(USBcmd){
         *bptr = 0;
-        USB_send(buff);
+        USB_sendstr(buff);
     }else while(LINE_BUSY == usart_send(buff, blen)){IWDG->KR = IWDG_REFRESH;}
     bptr = buff;
     blen = 0;
@@ -55,7 +66,7 @@ void addtobuf(const char *txt){
     int l = strlen(txt);
     if(l > BUFSZ){
         sendbuf();
-        if(USBcmd) USB_send(txt);
+        if(USBcmd) USB_sendstr(txt);
         else usart_send_blocking(txt, l);
     }else{
         if(blen+l > BUFSZ){
@@ -105,19 +116,161 @@ static inline void showUIvals(){
     newline();
 }
 
-// check address & return 0 if wrong or address to roll to next non-digit
-static int chk485addr(const char *txt){
-    int32_t N;
-    int p = getnum(txt, &N);
-    if(!p){
-        USB_send("Not num\n");
-        return 0;
-    }
+// check address & return 0 if wrong or roll to next non-digit
+static char *chk485addr(char *txt){
+    uint32_t N;
+    char *nxt = getnum(txt, &N);
+    if(nxt == txt) return NULL;
     if(N == getBRDaddr()){
-        return p;
+        return nxt;
     }
-    USB_send("Not me\n");
-    return 0;
+    return NULL;
+}
+
+// parse `txt` to CAN_message
+static CAN_message *parseCANmsg(char *txt){
+    static CAN_message canmsg;
+    uint32_t N;
+    char *n;
+    int ctr = -1;
+    canmsg.ID = 0xffff;
+    do{
+        txt = omit_spaces(txt);
+        n = getnum(txt, &N);
+        if(txt == n) break;
+        txt = n;
+        if(ctr == -1){
+            if(N > 0x7ff){
+                SEND("ID should be 11-bit number!\n");
+                return NULL;
+            }
+            canmsg.ID = (uint16_t)(N&0x7ff);
+            ctr = 0;
+            continue;
+        }
+        if(ctr > 7){
+            SEND("ONLY 8 data bytes allowed!\n");
+            return NULL;
+        }
+        if(N > 0xff){
+            SEND("Every data portion is a byte!\n");
+            return NULL;
+        }
+        canmsg.data[ctr++] = (uint8_t)(N&0xff);
+    }while(1);
+    if(canmsg.ID == 0xffff){
+        SEND("NO ID given, send nothing!\n");
+        return NULL;
+    }
+    canmsg.length = (uint8_t) ctr;
+    return &canmsg;
+}
+
+// send command, format: ID (hex/bin/dec) data bytes (up to 8 bytes, space-delimeted)
+TRUE_INLINE void sendCANcommand(char *txt){
+    CAN_message *msg = parseCANmsg(txt);
+    if(!msg) return;
+    uint32_t N = 1000000;
+    while(CAN_BUSY == can_send(msg->data, msg->length, msg->ID)){
+        if(--N == 0) break;
+    }
+}
+
+static uint8_t userconf_changed = 0; // ==1 if user_conf was changed
+TRUE_INLINE void userconf_manip(char *txt){
+    txt = omit_spaces(txt);
+    switch(*txt){
+        case 'd': // dump
+            dump_userconf();
+        break;
+        case 's': // store
+            if(userconf_changed){
+                if(!store_userconf()){
+                    userconf_changed = 0;
+                    SEND("Stored!");
+                }else SEND("Error when storing!");
+            }
+        break;
+        default:
+            SEND("Wrong argument of userconf manipulation: ");
+            SEND(txt);
+    }
+}
+
+// a set of setters for user_conf
+TRUE_INLINE void setters(char *txt){
+    uint32_t U;
+    txt = omit_spaces(txt);
+    if(!*txt){
+        SEND("Setters need more arguments");
+        return;
+    }
+    char *nxt = getnum(txt + 1, &U);
+    switch(*txt){
+        case 'c': // set CAN speed
+            if(nxt == txt + 1){
+                SEND("No CAN speed given");
+                return;
+            }
+            if(U < 50){
+                SEND("Speed should be not less than 50kbps");
+                return;
+            }
+            if(U > 3000){
+                SEND("Speed should be not greater than 3000kbps");
+                return;
+            }
+            if(the_conf.CANspeed != (uint16_t)U){
+                the_conf.CANspeed = (uint16_t)U;
+                userconf_changed = 1;
+            }
+        break;
+        default:
+            SEND("Wrong argument of setters: ");
+            SEND(txt);
+    }
+}
+
+TRUE_INLINE void driver_commands(char *txt){
+    uint32_t U;
+    char *nxt;
+    const char *drvshould = "Driver type should be one of: 2130, 4988, 8825";
+    txt = omit_spaces(txt);
+    if(!*txt){
+        SEND("Driver commands need more arguments");
+        return;
+    }
+    switch(*txt){
+        case 'i': // init
+            initDriver();
+        break;
+        case 's': // set type
+            nxt = getnum(txt + 1, &U);
+            if(nxt == txt+1){
+                SEND(drvshould);
+                break;
+            }
+            switch(U){
+                case 2130:
+                    the_conf.driver_type = DRV_2130;
+                    SEND("TMC2130");
+                break;
+                case 4988:
+                    the_conf.driver_type = DRV_4988;
+                    SEND("A4988");
+                break;
+                case 8825:
+                    the_conf.driver_type = DRV_8825;
+                    SEND("DRV8825");
+                break;
+                default:
+                    SEND(drvshould);
+            }
+        break;
+        default:
+            SEND("Wrong argument of driver commands: ");
+            SEND(txt);
+    }
 }
 
 /**
@@ -125,36 +278,60 @@ static int chk485addr(const char *txt){
  * @param txt   - buffer with commands & data
  * @param isUSB - == 1 if data got from USB
  */
-void cmd_parser(const char *txt, uint8_t isUSB){
+void cmd_parser(char *txt, uint8_t isUSB){
     sendbuf();
     USBcmd = isUSB;
-    int p = 0;
     // we can't simple use &txt[p] as variable: it can be non-aligned by 4!!!
     if(isUSB == TARGET_USART){ // check address and roll message to nearest non-space
-        p = chk485addr(txt);
-        if(!p) return;
+        txt = chk485addr(txt);
+        if(!txt) return;
     }
-    // roll to non-space
-    char c;
-    while((c = txt[p])){
-        if(c == ' ' || c == '\t') ++p;
-        else break;
+    txt = omit_spaces(txt);
+    // long commands, commands with arguments
+    switch(*txt){
+        case 'D':
+            driver_commands(txt + 1);
+            goto eof;
+        break;
+        case 's':
+            sendCANcommand(txt + 1);
+            goto eof;
+        break;
+        case 'S': // setters
+            setters(txt + 1);
+            goto eof;
+        break;
+        case 'U':
+            userconf_manip(txt + 1);
+            goto eof;
+        break;
     }
-    //int16_t L = strlen(txt);
-    char _1st = txt[p];
-    switch(_1st){
+    if(txt[1] != '\n') *txt = '?'; // help for wrong message length
+    switch(*txt){
+        case '0':
+            can_accept_one();
+            SEND("Accept only my ID @CAN");
+        break;
+        case '@':
+            can_accept_any();
+            SEND("Accept any ID @CAN");
+        break;
         case 'a':
             showADCvals();
         break;
-        case 'D':
+        case 'b':
             SEND("Jump to bootloader.\n");
             sendbuf();
             Jump2Boot();
         break;
+        case 'd':
+            dump_userconf();
+        break;
         case 'g':
             SEND("Board address: ");
             printuhex(refreshBRDaddr());
-            newline();
+            SEND("\nCAN IN address (OUT=IN+1): ");
+            printuhex(getCANID());
         break;
         case 'j':
             printmcut();
@@ -162,22 +339,47 @@ void cmd_parser(const char *txt, uint8_t isUSB){
         case 'k':
             showUIvals();
         break;
+        case 'm':
+            monitCAN = !monitCAN;
+            SEND("CAN monitoring ");
+            if(monitCAN) SEND("ON");
+            else SEND("OFF");
+        break;
         case 't':
             if(ALL_OK != usart_send("TEST test\n", 10))
-                addtobuf("Can't send data over RS485\n");
-            else addtobuf("Sent\n");
+                SEND("Can't send data over RS485");
+            else SEND("Sent");
+        break;
+        case 'T':
+            SEND("Tms="); printu(Tms);
+        break;
+        case 'z':
+            flashstorage_init();
         break;
         default: // help
             SEND(
+            "0 - accept only data for this device\n"
+            "@ - accept any IDs\n"
             "a - get raw ADC values\n"
-            "D - switch to bootloader\n"
+            "b - switch to bootloader\n"
+            "d - dump userconf\n"
+            "Di - init stepper driver (8825, 4988, 2130)\n"
+            "Ds - set driver type\n"
             "g - get board address\n"
             "j - get MCU temperature\n"
             "k - get U values\n"
+            "m - start/stop monitoring CAN bus\n"
+            "s - send data over CAN: s ID [byte0..7]\n"
             "t - send test sequence over RS-485\n"
+            "T - print current time\n"
+            "Sc - set default CAN speed\n"
+            "Ud - userconf dump\n"
+            "Us - userconf store\n"
             );
         break;
     }
+eof:
+    newline();
     sendbuf();
 }
 
@@ -200,7 +402,7 @@ void printu(uint32_t val){
 void printuhex(uint32_t val){
     addtobuf("0x");
     uint8_t *ptr = (uint8_t*)&val + 3;
-    int i, j;
+    int8_t i, j;
     for(i = 0; i < 4; ++i, --ptr){
         for(j = 1; j > -1; --j){
             uint8_t half = (*ptr >> (4*j)) & 0x0f;
@@ -210,52 +412,73 @@ void printuhex(uint32_t val){
     }
 }
 
-/**
- * @brief getnum - read number from string omiting leading spaces
- * @param buf (i) - string to process
- * @param N (o)   - number read (or NULL for test)
- * @return amount of symbols processed (or 0 if none)
- */
-int getnum(const char *buf, int32_t *N){
-    char c;
-    int positive = -1, srd = 0;
-    int32_t val = 0;
-    while((c = *buf++)){
-        if(c == '\t' || c == ' '){
-            if(positive < 0){
-                ++srd;
-                continue; // beginning spaces
-            }
-            else break; // spaces after number
+// THERE'S NO OVERFLOW PROTECTION IN NUMBER READ PROCEDURES!
+// read decimal number
+static char *getdec(char *buf, uint32_t *N){
+    uint32_t num = 0;
+    while(*buf){
+        char c = *buf;
+        if(c < '0' || c > '9'){
+            break;
         }
-        if(c == '-'){
-            if(positive < 0){
-                ++srd;
-                positive = 0;
-                continue;
-            }else break; // there already was `-` or number
-        }
-        if(c < '0' || c > '9') break;
-        ++srd;
-        if(positive < 0) positive = 1;
-        val = val * 10 + (int32_t)(c - '0');
+        num *= 10;
+        num += c - '0';
+        ++buf;
     }
-    if(positive != -1){
-        if(positive == 0){
-            if(val == 0) return 0; // single '-' or -0000
-            val = -val;
+    *N = num;
+    return buf;
+}
+// read hexadecimal number (without 0x prefix!)
+static char *gethex(char *buf, uint32_t *N){
+    uint32_t num = 0;
+    while(*buf){
+        char c = *buf;
+        uint8_t M = 0;
+        if(c >= '0' && c <= '9'){
+            M = '0';
+        }else if(c >= 'A' && c <= 'F'){
+            M = 'A' - 10;
+        }else if(c >= 'a' && c <= 'f'){
+            M = 'a' - 10;
         }
-        if(N) *N = val;
-    }else return 0;
-uint8_t uold = USBcmd;
-USBcmd = TARGET_USB;
-addtobuf("Got num: ");
-if(val < 0){bufputchar('-'); val = -val;}
-printu(val);
-addtobuf(", N=");
-printu(srd);
-newline();
-sendbuf();
-USBcmd = uold;
-    return srd;
+        if(M){
+            num <<= 4;
+            num += c - M;
+        }else{
+            break;
+        }
+        ++buf;
+    }
+    *N = num;
+    return buf;
+}
+// read binary number (without 0b prefix!)
+static char *getbin(char *buf, uint32_t *N){
+    uint32_t num = 0;
+    while(*buf){
+        char c = *buf;
+        if(c < '0' || c > '1'){
+            break;
+        }
+        num <<= 1;
+        if(c == '1') num |= 1;
+        ++buf;
+    }
+    *N = num;
+    return buf;
+}
+
+/**
+ * @brief getnum - read uint32_t from string (dec, hex or bin: 127, 0x7f, 0b1111111)
+ * @param buf - buffer with number and so on
+ * @param N   - the number read
+ * @return pointer to first non-number symbol in buf (if it is == buf, there's no number)
+ */
+char *getnum(char *txt, uint32_t *N){
+    txt = omit_spaces(txt);
+    if(*txt == '0'){
+        if(txt[1] == 'x' || txt[1] == 'X') return gethex(txt+2, N);
+        if(txt[1] == 'b' || txt[1] == 'B') return getbin(txt+2, N);
+    }
+    return getdec(txt, N);
 }
