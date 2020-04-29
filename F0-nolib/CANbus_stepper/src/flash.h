@@ -30,13 +30,21 @@
 #define FLASH_SIZE_REG      ((uint32_t)0x1FFFF7CC)
 #define FLASH_SIZE          *((uint16_t*)FLASH_SIZE_REG)
 
+typedef struct{
+    uint8_t reverse : 1;
+} defflags_t;
+
 /*
  * struct to save user configurations
  */
 typedef struct __attribute__((packed, aligned(4))){
+    uint32_t maxsteps;          // maximal amount of steps from ESW0 to EWS3
     uint16_t userconf_sz;       // "magick number"
     uint16_t CANspeed;          // default CAN speed
-    uint8_t  defflags;          // default flags
+    uint16_t microsteps;        // microsteps amount per step
+    uint16_t accdecsteps;       // amount of steps need for full acceleration/deceleration cycle
+    uint16_t motspd;            // max motor speed ([3000 / motspd] steps per second)
+    defflags_t  defflags;       // default flags
     uint8_t  driver_type;       // user's settings: type of stepper's driver
 } user_conf;
 

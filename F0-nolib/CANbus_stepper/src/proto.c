@@ -192,14 +192,45 @@ TRUE_INLINE void userconf_manip(char *txt){
             }
         break;
         default:
-            SEND("Wrong argument of userconf manipulation: ");
-            SEND(txt);
+            SEND("\nUserconf commands:\n"
+                 "d - userconf dump\n"
+                 "s - userconf store\n"
+                 );
+    }
+}
+
+TRUE_INLINE void setdefflags(char *txt){
+    const char *needar = "Need argument 0 or 1 for flag";
+    txt = omit_spaces(txt);
+    char ch = *txt;
+    ++txt;
+    uint32_t U;
+    if(txt == getnum(txt, &U)){
+        SEND(needar);
+        return;
+    }
+    switch(ch){
+        case 'r':
+            if(U > 1){
+                SEND(needar);
+                return;
+            }
+            the_conf.defflags.reverse = U&1;
+        break;
+        default:
+            SEND("\nFlag commands:"
+                 "r - set/clear reverse\n"
+                 );
     }
 }
 
 // a set of setters for user_conf
 TRUE_INLINE void setters(char *txt){
     uint32_t U;
+    uint8_t u8;
+    const char *drvshould = "Driver type should be one of: 2130, 4988, 8825";
+    const char *usshould = "Microsteps amount is a power of two: 1..512";
+    const char *motspdshould = "Motor speed should be from 2 to " STR(0xffff/LOWEST_SPEED_DIV);
     txt = omit_spaces(txt);
     if(!*txt){
         SEND("Setters need more arguments");
@@ -207,6 +238,21 @@ TRUE_INLINE void setters(char *txt){
     }
     char *nxt = getnum(txt + 1, &U);
     switch(*txt){
+        case 'a': // accdecsteps
+            if(nxt == txt + 1){
+                SEND("No accdecsteps value given");
+                return;
+            }
+            if(U < ACCDECSTEPS_MIN || U > ACCDECSTEPS_MAX){
+                SEND("The value should be from" STR(ACCDECSTEPS_MIN) " to " STR(ACCDECSTEPS_MAX));
+                return;
+            }
+            if(the_conf.accdecsteps != (uint16_t) U){
+                the_conf.accdecsteps = (uint16_t) U;
+                userconf_changed = 1;
+                SEND("Set accdecsteps to "); printu(U);
+            }
+        break;
         case 'c': // set CAN speed
             if(nxt == txt + 1){
                 SEND("No CAN speed given");
@@ -222,54 +268,144 @@ TRUE_INLINE void setters(char *txt){
             }
             if(the_conf.CANspeed != (uint16_t)U){
                 the_conf.CANspeed = (uint16_t)U;
+                SEND("Set CAN speed to "); printu(U);
                 userconf_changed = 1;
             }
         break;
-        default:
-            SEND("Wrong argument of setters: ");
-            SEND(txt);
-    }
-}
-
-TRUE_INLINE void driver_commands(char *txt){
-    uint32_t U;
-    char *nxt;
-    const char *drvshould = "Driver type should be one of: 2130, 4988, 8825";
-    txt = omit_spaces(txt);
-    if(!*txt){
-        SEND("Driver commands need more arguments");
-        return;
-    }
-    switch(*txt){
-        case 'i': // init
-            initDriver();
-        break;
-        case 's': // set type
-            nxt = getnum(txt + 1, &U);
+        case 'd': // set driver type
             if(nxt == txt+1){
                 SEND(drvshould);
                 break;
             }
+            u8 = DRV_NONE;
             switch(U){
                 case 2130:
-                    the_conf.driver_type = DRV_2130;
+                    u8 = DRV_2130;
                     SEND("TMC2130");
                 break;
                 case 4988:
-                    the_conf.driver_type = DRV_4988;
+                    u8 = DRV_4988;
                     SEND("A4988");
                 break;
                 case 8825:
-                    the_conf.driver_type = DRV_8825;
+                    u8 = DRV_8825;
                     SEND("DRV8825");
                 break;
                 default:
                     SEND(drvshould);
             }
+            if(the_conf.driver_type != u8){
+                the_conf.driver_type = u8;
+                userconf_changed = 1;
+            }
+        break;
+        case 'F':
+            setdefflags(txt+1);
+        break;
+        case 'm': // microsteps
+            if(nxt == txt + 1){ // no number
+                SEND(usshould); break;
+            }
+            if(U < 1 || U > getMaxUsteps() || (U & (U-1)) != 0){ // U over of range or not power of two
+                SEND(usshould); break;
+            }
+            if(the_conf.microsteps != (uint16_t)U){
+                the_conf.microsteps = (uint16_t)U;
+                userconf_changed = 1;
+                SEND("Set microsteps to "); printu(U);
+            }
+        break;
+        case 'M': // maxsteps
+            if(nxt == txt + 1 || U > INT32_MAX){
+                SEND("Enter number from 0 (infinity) to INT32_MAX"); break;
+            }
+            if(U != the_conf.maxsteps){
+                the_conf.maxsteps = U;
+                userconf_changed = 1;
+            }
+        break;
+        case 's': // motor speed
+            if(nxt == txt + 1 || U < 2 || U > (0xffff/LOWEST_SPEED_DIV)){ // no number
+                SEND(motspdshould); break;
+            }
+            if(the_conf.motspd != (uint16_t)U){
+                the_conf.motspd = (uint16_t)U;
+                userconf_changed = 1;
+                SEND("Set motspd to "); printu(U);
+            }
         break;
         default:
-            SEND("Wrong argument of driver commands: ");
-            SEND(txt);
+            SEND("\nSetters commands:\n"
+                 "a - set accdecsteps\n"
+                 "c - set default CAN speed\n"
+                 "d - set driver type\n"
+                 "F - set flags"
+                 "m - set microsteps\n"
+                 "M - set maxsteps\n"
+                 "s - set motspd\n"
+                );
+    }
+}
+
+TRUE_INLINE void driver_commands(char *txt){
+    txt = omit_spaces(txt);
+    if(!*txt){
+        SEND("Driver commands need more arguments");
+        return;
+    }
+    char cmd = *txt++;
+    txt = omit_spaces(txt);
+    uint32_t U;
+    int8_t sign = 1;
+    if(*txt == '-'){
+        ++txt;
+        sign = -1;
+    }
+    char *nxt = getnum(txt, &U);
+    stp_status st;
+    switch(cmd){
+        case 'e':
+            SEND("ESW=");
+            printu(ESW_STATE());
+        break;
+        case 'i': // init
+            initDriver();
+        break;
+        case 'm':
+            if(nxt == txt + 1 || U > (INT32_MAX-1)){
+                SEND("Give right steps amount: from -INT32_MAX to INT32_MAX");
+                return;
+            }
+            if(sign > 0) st = stp_move((int32_t)U);
+            else st = stp_move(-(int32_t)U);
+            switch(st){
+                case STPS_ACTIVE:
+                    SEND("IsMoving");
+                break;
+                case STPS_ONESW:
+                    SEND("OnEndSwitch");
+                break;
+                case STPS_ZEROMOVE:
+                    SEND("ZeroMove");
+                break;
+                case STPS_TOOBIG:
+                    SEND("TooBigNumber");
+                break;
+                default:
+                    SEND("Move to given steps amount");
+            }
+        break;
+        case 's':
+            stp_stop();
+            SEND("Stop motor");
+        break;
+        default:
+            SEND("\nDriver commands:\n"
+                 "e - end-switches state\n"
+                 "i - init stepper driver (8825, 4988, 2130)\n"
+                 "m - move N steps\n"
+                 "s - stop\n"
+                );
     }
 }
 
@@ -363,18 +499,16 @@ void cmd_parser(char *txt, uint8_t isUSB){
             "a - get raw ADC values\n"
             "b - switch to bootloader\n"
             "d - dump userconf\n"
-            "Di - init stepper driver (8825, 4988, 2130)\n"
-            "Ds - set driver type\n"
+            "D? - stepper driver commands\n"
             "g - get board address\n"
             "j - get MCU temperature\n"
             "k - get U values\n"
             "m - start/stop monitoring CAN bus\n"
             "s - send data over CAN: s ID [byte0..7]\n"
+            "S? - parameter setters\n"
             "t - send test sequence over RS-485\n"
             "T - print current time\n"
-            "Sc - set default CAN speed\n"
-            "Ud - userconf dump\n"
-            "Us - userconf store\n"
+            "U? - options for user configuration\n"
             );
         break;
     }

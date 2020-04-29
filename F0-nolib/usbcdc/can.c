@@ -165,7 +165,7 @@ void CAN_setup(uint16_t speed){
     CAN->MCR &=~ CAN_MCR_SLEEP; /* (3) */
     CAN->MCR |= CAN_MCR_ABOM; /* allow automatically bus-off */
 
-    CAN->BTR |=  2 << 20 | 3 << 16 | (6000/speed) << 0; /* (4) */
+    CAN->BTR |=  2 << 20 | 3 << 16 | (6000/speed - 1); /* (4) */
     CAN->MCR &=~ CAN_MCR_INRQ; /* (5) */
     tmout = 16000000;
     while((CAN->MSR & CAN_MSR_INAK)==CAN_MSR_INAK) if(--tmout == 0) break; /* (6) */

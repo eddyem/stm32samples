@@ -46,9 +46,13 @@ static uint32_t maxCnum = FLASH_BLOCK_SIZE / sizeof(user_conf);
 
 #define USERCONF_INITIALIZER  {             \
      .userconf_sz = sizeof(user_conf)       \
-    ,.defflags = 0                          \
+    ,.defflags.reverse = 0                  \
     ,.CANspeed = 100                        \
     ,.driver_type = DRV_NONE                \
+    ,.microsteps = 16                       \
+    ,.accdecsteps = 100                     \
+    ,.motspd = 10                           \
+    ,.maxsteps = 50000                      \
     }
 
 static int erase_flash(const void*, const void*);
@@ -214,7 +218,6 @@ static int erase_flash(const void *start, const void *end){
 void dump_userconf(){
     SEND("userconf_addr="); printuhex((uint32_t)Flash_Data);
     SEND("\nuserconf_sz="); printu(the_conf.userconf_sz);
-    SEND("\nflags="); printuhex(the_conf.defflags);
     SEND("\nCANspeed="); printu(the_conf.CANspeed);
     SEND("\ndriver_type=");
     const char *p = "NONE";
@@ -230,6 +233,12 @@ void dump_userconf(){
         break;
     }
     SEND(p);
+    SEND("\nmicrosteps="); printu(the_conf.microsteps);
+    SEND("\naccdecsteps="); printu(the_conf.accdecsteps);
+    SEND("\nmotspd="); printu(the_conf.motspd);
+    SEND("\nmaxsteps="); printu(the_conf.maxsteps);
+    //flags
+    SEND("\nreverse="); bufputchar('0' + the_conf.defflags.reverse);
     newline();
     sendbuf();
 }

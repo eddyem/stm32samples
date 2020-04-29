@@ -18,6 +18,8 @@
 
 #include "hardware.h"
 
+TIM_TypeDef *TIMx = TIM15; // stepper's timer
+
 static uint8_t brdADDR = 0;
 
 void Jump2Boot(){
@@ -81,7 +83,7 @@ void gpio_setup(){
                    | RCC_AHBENR_DMAEN;
     // setup pins need @start: Vio_ON (PF0, opendrain), ~FAULT (PF1, floating IN),
     //  ~SLEEP (PC15, pushpull), DIR (PA4, pushpull), ~EN (PC13, pushpull)
-    // ~CS, microstepping2, (PC14, pushpull
+    // ~CS, microstepping2, (PC14, pushpull)
     // PA8 - Tx/Rx
     // PB12..15 - board address, pullup input; PB0..2, PB10 - ESW, pullup inputs (inverse)
     VIO_OFF();
@@ -113,6 +115,22 @@ void gpio_setup(){
                     GPIO_MODER_MODER13_O | GPIO_MODER_MODER14_O;
 */
     brdADDR = READ_BRD_ADDR();
+}
+
+// PA3 (STEP): TIM15_CH2; 48MHz -> 48kHz
+void timer_setup(){
+    RCC->APB2ENR |= RCC_APB2ENR_TIM15EN; // enable clocking
+    TIM15->CR1 &= ~TIM_CR1_CEN; // turn off timer
+    TIM15->CCMR1 = TIM_CCMR1_OC2M_2; // Force inactive
+    TIM15->PSC = 999;
+    TIM15->CCER = TIM_CCER_CC2E;
+    TIM15->CCR1 = 1; // very short pulse
+    TIM15->ARR = 1000;
+    // enable IRQ & update values
+    TIM15->EGR = TIM_EGR_UG;
+    TIM15->DIER = TIM_DIER_CC2IE;
+    NVIC_EnableIRQ(TIM15_IRQn);
+    NVIC_SetPriority(TIM15_IRQn, 0);
 }
 
 uint8_t refreshBRDaddr(){

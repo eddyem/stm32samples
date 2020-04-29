@@ -24,6 +24,7 @@
 #include "flash.h"
 #include "hardware.h"
 #include "proto.h"
+#include "steppers.h"
 #include "usart.h"
 #include "usb.h"
 #include "usb_lib.h"
@@ -81,7 +82,7 @@ static char *get_USB(){
 }
 
 int main(void){
-    uint32_t lastT = 0;
+    uint32_t lastT = 0, ostctr = 0;
     sysreset();
     SysTick_Config(6000, 1);
     gpio_setup(); // + read board address
@@ -120,6 +121,11 @@ int main(void){
         }
         IWDG->KR = IWDG_REFRESH;
         can_messages_proc();
+        if(ostctr != Tms){ // check steppers not more than once in 1ms
+            ostctr = Tms;
+            stp_process();
+        }
+
     }
     return 0;
 }

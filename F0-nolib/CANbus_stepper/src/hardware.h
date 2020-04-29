@@ -68,13 +68,27 @@
 #define RESET_UST2()    do{GPIOC->BRR = 1<<14;}while(0)
 #define CS_ACTIVE()     do{GPIOC->BRR = 1<<14;}while(0)
 #define CS_PASSIVE()    do{GPIOC->BSRR = 1<<14;}while(0)
+// microstepping0 (PA7), 1 (PA5) - set PP
+#define UST01_CFG_PP()  do{GPIOA->MODER = (GPIOA->MODER & ~(GPIO_MODER_MODER5|GPIO_MODER_MODER7)) | (GPIO_MODER_MODER5_O|GPIO_MODER_MODER7_O);}while(0)
+#define SET_UST0()      do{GPIOA->BSRR = 1<<7;}while(0)
+#define SET_UST1()      do{GPIOA->BSRR = 1<<5;}while(0)
+#define RESET_UST0()    do{GPIOA->BRR = 1<<7;}while(0)
+#define RESET_UST1()    do{GPIOA->BRR = 1<<5;}while(0)
+// end-switches state
+#define ESW_STATE()     ((GPIOB->IDR & 0x07) | ((GPIOB->IDR>>7) & 0x08))
 // configure ~CS as PP output
 //#define CS_CFG_OUT()    do{GPIOC->MODER = (GPIOC->MODER&~GPIO_MODER_MODER14) | GPIO_MODER_MODER14_O; }while(0)
 // ~CS as floating input
-;
 // Vio_ON, PF0 (inverse)
 #define VIO_ON()        do{GPIOF->BRR = 1;}while(0)
 #define VIO_OFF()       do{GPIOF->BSRR = 1;}while(0)
+
+// turn off timer of STEPS pin
+#define STEP_TIMER_OFF()    do{TIM15->CR1 &= ~TIM_CR1_CEN;}while(0)
+
+// timer for stepper
+extern TIM_TypeDef *TIMx;
+#define timer_isr       tim15_isr
 
 extern volatile uint32_t Tms;
 
@@ -84,4 +98,6 @@ void iwdg_setup();
 uint8_t getBRDaddr();
 uint8_t refreshBRDaddr();
 void sleep(uint16_t ms);
+void timer_setup();
+
 #endif // __HARDWARE_H__

@@ -544,8 +544,13 @@ void printu(uint32_t val){
 void printuhex(uint32_t val){
     addtobuf("0x");
     uint8_t *ptr = (uint8_t*)&val + 3;
-    int8_t i, j;
+    int8_t i, j, z=1;
     for(i = 0; i < 4; ++i, --ptr){
+        if(*ptr == 0){ // omit leading zeros
+            if(i == 3) z = 0;
+            if(z) continue;
+        }
+        else z = 0;
         for(j = 1; j > -1; --j){
             uint8_t half = (*ptr >> (4*j)) & 0x0f;
             if(half < 10) bufputchar(half + '0');
