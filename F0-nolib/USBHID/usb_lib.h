@@ -103,6 +103,7 @@ typedef enum{
 
 #define LANG_US (uint16_t)0x0409
 
+// const struct __attribute__((__packed__)) name
 #define _USB_STRING_(name, str)                  \
 static const struct name \
 {                          \
