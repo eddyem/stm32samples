@@ -135,7 +135,7 @@ void CAN_setup(){
     CAN->MCR &=~ CAN_MCR_SLEEP; /* (3) */
     CAN->MCR |= CAN_MCR_ABOM;
 
-    CAN->BTR |=  2 << 20 | 3 << 16 | 59 << 0; /* (4) */
+    CAN->BTR =  2 << 20 | 3 << 16 | 59 << 0; /* (4) */
     CAN->MCR &=~ CAN_MCR_INRQ; /* (5) */
     while((CAN->MSR & CAN_MSR_INAK)==CAN_MSR_INAK) /* (6) */
     {
