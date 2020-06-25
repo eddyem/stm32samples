@@ -23,7 +23,6 @@
 #include "can.h"
 #include "hardware.h"
 #include "proto.h"
-#include "usart.h"
 #include "usb.h"
 
 #include <string.h> // strlen
@@ -33,32 +32,20 @@ extern volatile uint8_t canerror;
 uint8_t ShowMsgs = 07;
 uint16_t Ignore_IDs[IGN_SIZE];
 uint8_t IgnSz = 0;
-static char buff[UARTBUFSZ+1], *bptr = buff;
-static uint8_t blen = 0, USBcmd = 0;
+static char buff[BUFSZ+1], *bptr = buff;
+static uint8_t blen = 0;
 
 void sendbuf(){
     IWDG->KR = IWDG_REFRESH;
     if(blen == 0) return;
     *bptr = 0;
-    if(USBcmd) USB_sendstr(buff);
-    if(USBcmd != 1){
-        usart_send(buff);
-        transmit_tbuf();
-    }
+    USB_sendstr(buff);
     bptr = buff;
     blen = 0;
 }
 
-// 1 - USB, 0 - USART, other number - both
-// @return old buff state
-uint8_t switchbuff(uint8_t isUSB){
-    uint8_t r = USBcmd;
-    USBcmd = isUSB;
-    return r;
-}
-
 void bufputchar(char ch){
-    if(blen > UARTBUFSZ-1){
+    if(blen > BUFSZ-1){
         sendbuf();
     }
     *bptr++ = ch;
@@ -415,9 +402,7 @@ static void add_filter(char *str){
  * @param txt   - buffer with commands & data
  * @param isUSB - == 1 if data got from USB
  */
-void cmd_parser(char *txt, uint8_t isUSB){
-    USBcmd = isUSB;
-    //int16_t L = (int16_t)strlen(txt);
+void cmd_parser(char *txt){
     char _1st = txt[0];
     /*
      * parse long commands here
@@ -447,28 +432,27 @@ void cmd_parser(char *txt, uint8_t isUSB){
     }
     if(txt[1] != '\n') *txt = '?'; // help for wrong message length
     switch(_1st){
-        case 'B':
-            can_send_broadcast();
-        break;
-        case 'C':
-            can_send_dummy();
-        break;
         case 'd':
             IgnSz = 0;
         break;
-        case 'G':
-            SEND("Can address: ");
-            printuhex(getCANID());
-            newline();
+        case 'D':
+            SEND("Go into DFU mode\n");
+            sendbuf();
+            Jump2Boot();
         break;
         case 'I':
             CAN_reinit(0);
-            SEND("Can address: ");
-            printuhex(getCANID());
-            newline();
         break;
         case 'l':
             list_filters();
+        break;
+        case 'o':
+            ledsON = 0;
+            LED_off(LED0);
+            LED_off(LED1);
+        break;
+        case 'O':
+            ledsON = 1;
         break;
         case 'p':
             print_ign_buf();
@@ -489,34 +473,23 @@ void cmd_parser(char *txt, uint8_t isUSB){
             printu(Tms);
             newline();
         break;
-        case 'U':
-            USND("Test string for USB; a very long string that don't fit into one 64-byte buffer, what will be with it?\n");
-        break;
-        case 'W':
-            SEND("Test watchdog\n");
-            sendbuf();
-            pause_ms(5); // a little pause to transmit data
-            while(1){nop();}
-        break;
         default: // help
             SEND(
             "'a' - add ID to ignore list (max 10 IDs)\n"
             "'b' - reinit CAN with given baudrate\n"
-            "'B' - send broadcast dummy byte\n"
-            "'C' - send dummy byte over CAN\n"
             "'d' - delete ignore list\n"
+            "'D' - activate DFU mode\n"
             "'f' - add/delete filter, format: bank# FIFO# mode(M/I) num0 [num1 [num2 [num3]]]\n"
             "'F' - send/clear flood message: F ID byte0 ... byteN\n"
-            "'G' - get CAN address\n"
-            "'I' - reinit CAN (with new address)\n"
+            "'I' - reinit CAN\n"
             "'l' - list all active filters\n"
+            "'o' - turn LEDs OFF\n"
+            "'O' - turn LEDs ON\n"
             "'p' - print ignore buffer\n"
             "'P' - pause/resume in packets displaying\n"
             "'R' - software reset\n"
             "'s/S' - send data over CAN: s ID byte0 .. byteN\n"
-            "'T' - gen time from start (ms)\n"
-            "'U' - send test string over USB\n"
-            "'W' - test watchdog\n"
+            "'T' - get time from start (ms)\n"
             );
         break;
     }

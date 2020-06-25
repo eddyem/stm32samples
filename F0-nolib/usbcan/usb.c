@@ -23,7 +23,6 @@
 
 #include "usb.h"
 #include "usb_lib.h"
-#include "usart.h"
 
 static volatile uint8_t tx_succesfull = 1;
 static volatile uint8_t rxNE = 0;

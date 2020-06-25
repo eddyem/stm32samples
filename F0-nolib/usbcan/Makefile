@@ -6,8 +6,6 @@ FAMILY		= F0
 # MCU code
 MCU			= F042x6
 # hardware definitions
-DEFS		+= -DUSARTNUM=1
-#DEFS		+= -DCHECK_TMOUT
 #DEFS		+= -DEBUG
 # change this linking script depending on particular MCU model,
 # for example, if you have STM32F103VBT6, you should write:

@@ -23,7 +23,6 @@
 #include "can.h"
 #include "hardware.h"
 #include "proto.h"
-#include "usart.h"
 
 #include <string.h> // memcpy
 
@@ -33,7 +32,6 @@ static uint8_t first_free_idx = 0;    // index of first empty cell
 static int8_t first_nonfree_idx = -1; // index of first data cell
 static uint16_t oldspeed = 100; // speed of last init
 
-static uint16_t CANID = 0xFFFF;
 #ifdef EBUG
 static uint32_t last_err_code = 0;
 #endif
@@ -62,9 +60,6 @@ static int CAN_messagebuf_push(CAN_message *msg){
     memcpy(&messages[first_free_idx++], msg, sizeof(CAN_message));
     // need to roll?
     if(first_free_idx == CAN_INMESSAGE_SIZE) first_free_idx = 0;
-    #ifdef EBUG
-    //MSG("1st free: "); printu(first_free_idx); NL();
-    #endif
     return 0;
 }
 
@@ -79,26 +74,11 @@ CAN_message *CAN_messagebuf_pop(){
     if(first_nonfree_idx == first_free_idx){ // buffer is empty - refresh it
         first_nonfree_idx = -1;
         first_free_idx = 0;
-#ifdef EBUG
-    //  MSG("refresh buffer\n"); NL();
-#endif
     }
     return msg;
 }
 
-// get CAN address data from GPIO pins
-void readCANID(){
-    uint8_t CAN_addr = READ_CAN_INV_ADDR();
-    CAN_addr = ~CAN_addr & 0x7;
-    CANID = (CAN_ID_PREFIX & CAN_ID_MASK) | CAN_addr;
-}
-
-uint16_t getCANID(){
-    return CANID;
-}
-
 void CAN_reinit(uint16_t speed){
-    readCANID();
     CAN->TSR |= CAN_TSR_ABRQ0 | CAN_TSR_ABRQ1 | CAN_TSR_ABRQ2;
     RCC->APB1RSTR |= RCC_APB1RSTR_CANRST;
     RCC->APB1RSTR &= ~RCC_APB1RSTR_CANRST;
@@ -134,7 +114,6 @@ void CAN_setup(uint16_t speed){
     else if(speed > 3000) speed = 3000;
     oldspeed = speed;
     uint32_t tmout = 16000000;
-    if(CANID == 0xFFFF) readCANID();
     // Configure GPIO: PB8 - CAN_Rx, PB9 - CAN_Tx
     /* (1) Select AF mode (10) on PB8 and PB9 */
     /* (2) AF4 for CAN signals */
@@ -173,14 +152,9 @@ void CAN_setup(uint16_t speed){
     CAN->FMR = CAN_FMR_FINIT; /* (7) */
     CAN->FA1R = CAN_FA1R_FACT0 | CAN_FA1R_FACT1; /* (8) */
     // set to 1 all needed bits of CAN->FFA1R to switch given filters to FIFO1
-#if 0
-    CAN->FM1R = CAN_FM1R_FBM0; /* (9) */
-    CAN->sFilterRegister[0].FR1 = CANID << 5 | ((BCAST_ID << 5) << 16); /* (10) */
-#else
     CAN->sFilterRegister[0].FR1 = (1<<21)|(1<<5); // all odd IDs
     CAN->FFA1R = 2; // filter 1 for FIFO1, filter 0 - for FIFO0
     CAN->sFilterRegister[1].FR1 = (1<<21); // all even IDs
-#endif
     CAN->FMR &=~ CAN_FMR_FINIT; /* (12) */
     CAN->IER |= CAN_IER_ERRIE | CAN_IER_FOVIE0 | CAN_IER_FOVIE1; /* (13) */
 
@@ -244,30 +218,6 @@ void can_proc(){
         lastFloodTime = Tms;
         can_send(flood_msg->data, flood_msg->length, flood_msg->ID);
     }
-#if 0
-    static uint32_t esr, msr, tsr;
-    uint32_t msr_now = CAN->MSR & 0xf;
-    if(esr != CAN->ESR || msr != msr_now || tsr != CAN->TSR){
-        MSG("Timestamp: ");
-        printu(Tms);
-        NL();
-    }
-    if((CAN->ESR) != esr){
-        esr = CAN->ESR;
-        MSG("CAN->ESR: ");
-        printuhex(esr); NL();
-    }
-    if(msr_now != msr){
-        msr = msr_now;
-        MSG("CAN->MSR & 0xf: ");
-        printuhex(msr); NL();
-    }
-    if(CAN->TSR != tsr){
-        tsr = CAN->TSR;
-        MSG("CAN->TSR: ");
-        printuhex(tsr); NL();
-    }
-#endif
 }
 
 CAN_status can_send(uint8_t *msg, uint8_t len, uint16_t target_id){
@@ -324,23 +274,6 @@ CAN_status can_send(uint8_t *msg, uint8_t len, uint16_t target_id){
     return CAN_OK;
 }
 
-void can_send_dummy(){
-    uint8_t msg = CMD_TOGGLE;
-    if(CAN_OK != can_send(&msg, 1, TARG_ID)) SEND("Bus busy!\n");
-    MSG("CAN->MSR: ");
-    printuhex(CAN->MSR); NL();
-    MSG("CAN->TSR: ");
-    printuhex(CAN->TSR); NL();
-    MSG("CAN->ESR: ");
-    printuhex(CAN->ESR); NL();
-}
-
-void can_send_broadcast(){
-    uint8_t msg = CMD_BCAST;
-    if(CAN_OK != can_send(&msg, 1, BCAST_ID)) SEND("Bus busy!\n");
-    MSG("Broadcast message sent\n");
-}
-
 void set_flood(CAN_message *msg){
     if(!msg) flood_msg = NULL;
     else{
@@ -354,13 +287,6 @@ static void can_process_fifo(uint8_t fifo_num){
     LED_on(LED1); // Turn on LED1 - message received
     CAN_FIFOMailBox_TypeDef *box = &CAN->sFIFOMailBox[fifo_num];
     volatile uint32_t *RFxR = (fifo_num) ? &CAN->RF1R : &CAN->RF0R;
-    /*
-    MSG("\nReceive, RDTR=");
-    #ifdef EBUG
-    printuhex(box->RDTR);
-    NL();
-    #endif
-    */
     // read all
     while(*RFxR & CAN_RF0R_FMP0){ // amount of messages pending
         // CAN_RDTxR: (16-31) - timestamp, (8-15) - filter match index, (0-3) - data length

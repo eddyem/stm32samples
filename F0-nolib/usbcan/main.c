@@ -22,7 +22,6 @@
 #include "can.h"
 #include "hardware.h"
 #include "proto.h"
-#include "usart.h"
 #include "usb.h"
 #include "usb_lib.h"
 
@@ -32,27 +31,6 @@ volatile uint32_t Tms = 0;
 void sys_tick_handler(void){
     ++Tms;
 }
-
-/*
-// usb getline
-static char *get_USB(){
-    static char tmpbuf[512], *curptr = tmpbuf;
-    static int rest = 511;
-    uint8_t x = USB_receive((uint8_t*)curptr);
-    curptr[x] = 0;
-    if(!x) return NULL;
-    if(curptr[x-1] == '\n'){
-        curptr = tmpbuf;
-        rest = 511;
-        return tmpbuf;
-    }
-    curptr += x; rest -= x;
-    if(rest <= 0){ // buffer overflow
-        curptr = tmpbuf;
-        rest = 511;
-    }
-    return NULL;
-}*/
 
 #define USBBUF 63
 // usb getline
@@ -81,14 +59,11 @@ static char *get_USB(){
     }
     curptr += x; rest -= x;
     if(rest <= 0){ // buffer overflow
-        usart_send("\nUSB buffer overflow!\n"); transmit_tbuf();
         curptr = tmpbuf;
         rest = USBBUF;
     }
     return NULL;
 }
-
-
 
 int main(void){
     uint32_t lastT = 0;
@@ -98,68 +73,44 @@ int main(void){
     sysreset();
     SysTick_Config(6000, 1);
     gpio_setup();
-    usart_setup();
-    readCANID();
+    USB_setup();
     CAN_setup(100);
-
-    switchbuff(0);
-    SEND("Greetings! My address is ");
-    printuhex(getCANID());
-    newline();
-
-    if(RCC->CSR & RCC_CSR_IWDGRSTF){ // watchdog reset occured
-        SEND("WDGRESET=1\n");
-    }
-    if(RCC->CSR & RCC_CSR_SFTRSTF){ // software reset occured
-        SEND("SOFTRESET=1\n");
-    }
-    sendbuf();
     RCC->CSR |= RCC_CSR_RMVF; // remove reset flags
     iwdg_setup();
-    USB_setup();
 
     while (1){
         IWDG->KR = IWDG_REFRESH; // refresh watchdog
-        if(lastT > Tms || Tms - lastT > 499){
-            LED_blink(LED0);
-            lastT = Tms;
-            transmit_tbuf(); // non-blocking transmission of data from UART buffer every 0.5s
+        if(lastT && (Tms - lastT > 199)){
+            LED_off(LED0);
+            lastT = 0;
         }
         can_proc();
         usb_proc();
         if(CAN_get_status() == CAN_FIFO_OVERRUN){
-            register uint8_t o = switchbuff(3);
             SEND("CAN bus fifo overrun occured!\n");
-            sendbuf(); switchbuff(o);
+            sendbuf();
         }
         can_mesg = CAN_messagebuf_pop();
-        if(ShowMsgs && can_mesg && isgood(can_mesg->ID)){ // new data in buff
-            IWDG->KR = IWDG_REFRESH;
-            len = can_mesg->length;
-            printu(Tms);
-            SEND(" #");
-            printuhex(can_mesg->ID);
-            /*SEND(", filter #");
-            printu(can_mesg->filterNo);
-            SEND(", FIFO #");
-            printu(can_mesg->fifoNum);*/
-            /*SEND(", len=");
-            printu(len);
-            SEND(", data: ");*/
-            for(ctr = 0; ctr < len; ++ctr){
-                SEND(" ");
-                printuhex(can_mesg->data[ctr]);
+        if(can_mesg && isgood(can_mesg->ID)){
+            LED_on(LED0);
+            lastT = Tms;
+            if(!lastT) lastT = 1;
+            if(ShowMsgs){ // new data in buff
+                IWDG->KR = IWDG_REFRESH;
+                len = can_mesg->length;
+                printu(Tms);
+                SEND(" #");
+                printuhex(can_mesg->ID);
+                for(ctr = 0; ctr < len; ++ctr){
+                    SEND(" ");
+                    printuhex(can_mesg->data[ctr]);
+                }
+                newline(); sendbuf();
             }
-            newline(); sendbuf();
-        }
-        if(usartrx()){ // usart1 received data, store in in buffer
-            usart_getline(&txt);
-            IWDG->KR = IWDG_REFRESH;
-            cmd_parser(txt, 0);
         }
         if((txt = get_USB())){
             IWDG->KR = IWDG_REFRESH;
-            cmd_parser(txt, 1);
+            cmd_parser(txt);
         }
     }
     return 0;

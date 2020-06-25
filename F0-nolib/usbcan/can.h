@@ -31,18 +31,6 @@
 // flood period in milliseconds
 #define FLOOD_PERIOD_MS     5
 
-// simple 1-byte commands
-#define CMD_TOGGLE      (0xDA)
-#define CMD_BCAST       (0xAD)
-// mask heading 8 bits of can ID
-#define CAN_ID_MASK     (0x7F8)
-// prefix to make ID from any number (0..7)
-#define CAN_ID_PREFIX   (0xAAA)
-// "target" ID: num=0
-#define TARG_ID         (CAN_ID_PREFIX & CAN_ID_MASK)
-// "broadcast" ID: all ones
-#define BCAST_ID        (0x7FF)
-
 // incoming message buffer size
 #define CAN_INMESSAGE_SIZE  (8)
 
@@ -50,8 +38,6 @@
 typedef struct{
     uint8_t data[8];    // up to 8 bytes of data
     uint8_t length;     // data length
-    //uint8_t filterNo;   // filter number
-    //uint8_t fifoNum;    // message FIFO number
     uint16_t ID;        // ID of receiver
 } CAN_message;
 
@@ -65,15 +51,10 @@ typedef enum{
 
 CAN_status CAN_get_status();
 
-void readCANID();
-uint16_t getCANID();
-
 void CAN_reinit(uint16_t speed);
 void CAN_setup(uint16_t speed);
 
 CAN_status can_send(uint8_t *msg, uint8_t len, uint16_t target_id);
-void can_send_dummy();
-void can_send_broadcast();
 void can_proc();
 
 CAN_message *CAN_messagebuf_pop();

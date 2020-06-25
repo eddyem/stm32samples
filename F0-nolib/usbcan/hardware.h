@@ -33,17 +33,17 @@
 #define FORMUSART(X)    CONCAT(USART, X)
 #define USARTX          FORMUSART(USARTNUM)
 
-// LEDS: 0 - PC13, 1 - PC14
+// LEDS: 0 - PB0, 1 - PB1
 // LED0
-#define LED0_port   GPIOC
-#define LED0_pin    (1<<13)
+#define LED0_port   GPIOB
+#define LED0_pin    (1<<0)
 // LED1
-#define LED1_port   GPIOC
-#define LED1_pin    (1<<14)
+#define LED1_port   GPIOB
+#define LED1_pin    (1<<1)
 
-#define LED_blink(x)    pin_toggle(x ## _port, x ## _pin)
-#define LED_on(x)       pin_clear(x ## _port, x ## _pin)
-#define LED_off(x)      pin_set(x ## _port, x ## _pin)
+#define LED_blink(x)    do{if(ledsON) pin_toggle(x ## _port, x ## _pin);}while(0)
+#define LED_on(x)       do{if(ledsON) pin_clear(x ## _port, x ## _pin);}while(0)
+#define LED_off(x)      do{pin_set(x ## _port, x ## _pin);}while(0)
 
 
 // CAN address - PB14(0), PB15(1), PA8(2)
@@ -52,8 +52,11 @@
 
 extern volatile uint32_t Tms;
 
+extern uint8_t ledsON;
+
 void gpio_setup(void);
 void iwdg_setup();
 void pause_ms(uint32_t pause);
+void Jump2Boot();
 
 #endif // __HARDWARE_H__

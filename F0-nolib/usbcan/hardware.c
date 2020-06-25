@@ -22,24 +22,17 @@
  */
 
 #include "hardware.h"
-#include "usart.h"
+
+uint8_t ledsON = 0;
 
 void gpio_setup(void){
-    // here we turn on clocking for all periph.
-    RCC->AHBENR |= RCC_AHBENR_GPIOAEN | RCC_AHBENR_GPIOBEN | RCC_AHBENR_GPIOCEN | RCC_AHBENR_DMAEN;
-    // Set LEDS (PC13/14) as output
-    GPIOC->MODER = (GPIOC->MODER & ~(GPIO_MODER_MODER13  | GPIO_MODER_MODER14)
-                    ) |
-                    GPIO_MODER_MODER13_O | GPIO_MODER_MODER14_O;
-    // PB14(0), PB15(1), PA8(2) - CAN address, pullup inputs
-    GPIOA->PUPDR = (GPIOA->PUPDR & ~(GPIO_PUPDR_PUPDR8)
-                    ) |
-                    GPIO_PUPDR_PUPDR8_0;
-    GPIOB->PUPDR = (GPIOB->PUPDR & ~(GPIO_PUPDR_PUPDR14 | GPIO_PUPDR_PUPDR15)
-                    ) |
-                    GPIO_PUPDR_PUPDR14_0 | GPIO_PUPDR_PUPDR15_0;
+    RCC->AHBENR |= RCC_AHBENR_GPIOBEN;
+    // Set LEDS (PB0/1) as output
     pin_set(LED0_port, LED0_pin); // clear LEDs
     pin_set(LED1_port, LED1_pin);
+    GPIOB->MODER = (GPIOB->MODER & ~(GPIO_MODER_MODER0  | GPIO_MODER_MODER1)
+                    ) |
+                    GPIO_MODER_MODER0_O | GPIO_MODER_MODER1_O;
 }
 
 void iwdg_setup(){
@@ -69,4 +62,36 @@ void iwdg_setup(){
 void pause_ms(uint32_t pause){
     uint32_t Tnxt = Tms + pause;
     while(Tms < Tnxt) nop();
+}
+
+void Jump2Boot(){
+    void (*SysMemBootJump)(void);
+    volatile uint32_t addr = 0x1FFFC800;
+    // reset systick
+    SysTick->CTRL = 0;
+    // reset clocks
+
+    RCC->APB1RSTR = RCC_APB1RSTR_CECRST    | RCC_APB1RSTR_DACRST    | RCC_APB1RSTR_PWRRST    | RCC_APB1RSTR_CRSRST  |
+                    RCC_APB1RSTR_CANRST    | RCC_APB1RSTR_USBRST    | RCC_APB1RSTR_I2C2RST   | RCC_APB1RSTR_I2C1RST |
+                    RCC_APB1RSTR_USART4RST | RCC_APB1RSTR_USART3RST | RCC_APB1RSTR_USART2RST | RCC_APB1RSTR_SPI2RST |
+                    RCC_APB1RSTR_WWDGRST   | RCC_APB1RSTR_TIM14RST  |
+#ifdef STM32F072xB
+            RCC_APB1RSTR_TIM7RST   | RCC_APB1RSTR_TIM6RST |
+#endif
+                    RCC_APB1RSTR_TIM3RST   | RCC_APB1RSTR_TIM2RST;
+    RCC->APB2RSTR = RCC_APB2RSTR_DBGMCURST | RCC_APB2RSTR_TIM17RST | RCC_APB2RSTR_TIM16RST |
+#ifdef STM32F072xB
+            RCC_APB2RSTR_TIM15RST |
+#endif
+                    RCC_APB2RSTR_USART1RST | RCC_APB2RSTR_SPI1RST  | RCC_APB2RSTR_TIM1RST  | RCC_APB2RSTR_ADCRST   | RCC_APB2RSTR_SYSCFGRST;
+    RCC->AHBRSTR = 0;
+    RCC->APB1RSTR = 0;
+    RCC->APB2RSTR = 0;
+    // remap memory to 0 (only for STM32F0)
+    SYSCFG->CFGR1 = 0x01; __DSB(); __ISB();
+    SysMemBootJump = (void (*)(void)) (*((uint32_t *)(addr + 4)));
+    // set main stack pointer
+    __set_MSP(*((uint32_t *)addr));
+    // jump to bootloader
+    SysMemBootJump();
 }
