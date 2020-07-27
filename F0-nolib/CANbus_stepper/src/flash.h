@@ -43,7 +43,7 @@ typedef struct __attribute__((packed, aligned(4))){
     uint16_t CANspeed;          // default CAN speed
     uint16_t microsteps;        // microsteps amount per step
     uint16_t accdecsteps;       // amount of steps need for full acceleration/deceleration cycle
-    uint16_t motspd;            // max motor speed ([3000 / motspd] steps per second)
+    uint16_t motspd;            // max motor speed (steps per second)
     defflags_t  defflags;       // default flags
     uint8_t  driver_type;       // user's settings: type of stepper's driver
 } user_conf;

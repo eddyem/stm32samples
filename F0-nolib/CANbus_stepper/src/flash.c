@@ -48,10 +48,10 @@ static uint32_t maxCnum = FLASH_BLOCK_SIZE / sizeof(user_conf);
      .userconf_sz = sizeof(user_conf)       \
     ,.defflags.reverse = 0                  \
     ,.CANspeed = 100                        \
-    ,.driver_type = DRV_NONE                \
+    ,.driver_type = DRV_8825                \
     ,.microsteps = 16                       \
-    ,.accdecsteps = 100                     \
-    ,.motspd = 10                           \
+    ,.accdecsteps = 25                      \
+    ,.motspd = 1000                         \
     ,.maxsteps = 50000                      \
     }
 

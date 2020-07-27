@@ -1,5 +1,4 @@
 EESchema Schematic File Version 4
-LIBS:stm32-cache
 EELAYER 30 0
 EELAYER END
 $Descr A3 16535 11693
@@ -1888,4 +1887,6 @@ F 3 "" H 1600 2240 50  0000 C CNN
 $EndComp
 Text Label 1200 4540 2    60   ~ 0
 12Vin
+Text Notes 3850 5975 0    50   ~ 0
+TODO:\nESW0 & ESW2 should be @ encoder interface!\nTIM1: ch1 - PA8, ch2 - PA9\nTIM2: ch2 - PA1, PB3, \nTIM3: ch1 - PA6, PB4, ch2 - PA7, PB5
 $EndSCHEMATC

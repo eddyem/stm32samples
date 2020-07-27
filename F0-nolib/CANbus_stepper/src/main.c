@@ -102,9 +102,10 @@ int main(void){
     USB_setup();
     iwdg_setup();
 
-    while (1){
+     while (1){
         IWDG->KR = IWDG_REFRESH; // refresh watchdog
         if(Tms - lastT > 499){
+            sendbuf();
             lastT = Tms;
         }
         can_proc();

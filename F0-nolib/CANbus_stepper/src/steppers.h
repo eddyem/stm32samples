@@ -21,10 +21,20 @@
 
 #include <stm32f0.h>
 
-// the lowest speed equal to [max speed] / LOWEST_SPEED_DIV
-#define LOWEST_SPEED_DIV    30
+// TIM15->PSC for 4MHz (48MHz/(PSC+1))
+#define TIM15PSC            47
+// TIM15->CCR2: 20us for pulse duration, according to datasheet 1.9us is enough
+#define TIM15CCR2           20
+// TIM15->ARR minimum value
+#define TIM15ARRMIN         (2*TIM15CCR2)
+// timer settings give DEFTICKSPERSEC ticks per second
+#define DEFTICKSPERSEC      (48000000/(TIM15PSC+1))
+// max speed (steps per second)
+#define MAX_SPEED           10000
+// The lowest speed @acceleration (= current speed / LOW_SPEED_DIVISOR)
+#define LOW_SPEED_DIVISOR   30
 // min/max value of ACCDECSTEPS
-#define ACCDECSTEPS_MIN     30
+#define ACCDECSTEPS_MIN     1
 #define ACCDECSTEPS_MAX     2000
 
 typedef enum{
@@ -59,14 +69,18 @@ typedef enum{
 } stp_status;
 
 extern int32_t mot_position;
+#define stppos()    (mot_position)
 extern uint32_t steps_left;
+#define stpleft()   (steps_left)
 extern stp_state state;
-#define stp_getstate()  (state)
+#define stpstate()  (state)
 
 drv_type initDriver();
 drv_type getDrvType();
 uint16_t getMaxUsteps();
 
+const char *stp_getstate();
+const char *stp_getdrvtype();
 void stp_chspd();
 stp_status stp_move(int32_t steps);
 void stp_stop();

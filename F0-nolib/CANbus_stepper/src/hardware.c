@@ -17,6 +17,8 @@
  */
 
 #include "hardware.h"
+#include "proto.h"
+#include "steppers.h"
 
 TIM_TypeDef *TIMx = TIM15; // stepper's timer
 
@@ -117,20 +119,30 @@ void gpio_setup(){
     brdADDR = READ_BRD_ADDR();
 }
 
-// PA3 (STEP): TIM15_CH2; 48MHz -> 48kHz
+// PA3 (STEP): TIM15_CH2; 48MHz -> 1MHz
 void timer_setup(){
+    // PA3  - Tim15Ch2 (AF0)
+    GPIOA->AFR[0] = (GPIOA->AFR[0] & ~GPIO_AFRL_AFRL3);
+    GPIOA->MODER = (GPIOA->MODER & ~GPIO_MODER_MODER3) | GPIO_MODER_MODER3_AF; // set alternate output
     RCC->APB2ENR |= RCC_APB2ENR_TIM15EN; // enable clocking
-    TIM15->CR1 &= ~TIM_CR1_CEN; // turn off timer
+    TIM15->CR1 = 0; // turn off timer
     TIM15->CCMR1 = TIM_CCMR1_OC2M_2; // Force inactive
-    TIM15->PSC = 999;
-    TIM15->CCER = TIM_CCER_CC2E;
-    TIM15->CCR1 = 1; // very short pulse
-    TIM15->ARR = 1000;
+    TIM15->PSC = TIM15PSC;
+    TIM15->CCR2 = TIM15CCR2;
+    TIM15->ARR = 1000; // this value will be changed later
+    TIM15->CCER = TIM_CCER_CC2E; // enable PWM out
+    TIM15->BDTR = TIM_BDTR_MOE; // enable main output
     // enable IRQ & update values
     TIM15->EGR = TIM_EGR_UG;
     TIM15->DIER = TIM_DIER_CC2IE;
     NVIC_EnableIRQ(TIM15_IRQn);
     NVIC_SetPriority(TIM15_IRQn, 0);
+/*
+    TIM15->CCMR1 = TIM_CCMR1_OC2M_2 | TIM_CCMR1_OC2M_1; // PWM mode 1: active->inacive
+    TIM15->BDTR = TIM_BDTR_MOE;
+    TIM15->CR1 = TIM_CR1_CEN;
+*/
+    MSG("Timer is ON\n");
 }
 
 uint8_t refreshBRDaddr(){

@@ -18,6 +18,7 @@
 #include "flash.h"
 #include "hardware.h"
 #include "proto.h"
+#include "spi.h"
 #include "steppers.h"
 
 static drv_type driver = DRV_NONE;
@@ -32,11 +33,6 @@ static const uint16_t maxusteps[] = {
     [DRV_2130] = 256
 };
 
-// amount of steps need for full acceleration/deceleration cycle
-#define ACCDECSTEPS (the_conf.accdecsteps)
-// amount of microsteps in each step
-#define USTEPS      (the_conf.microsteps)
-
 int32_t mot_position = -1;  // current position of motor (from zero endswitch, -1 means inactive)
 uint32_t steps_left = 0;    // amount of steps left
 stp_state state = STP_SLEEP;// current state of motor
@@ -44,6 +40,7 @@ stp_state state = STP_SLEEP;// current state of motor
 static uint16_t stplowarr, stphigharr, stpsteparr;
 static int8_t dir = 0; // moving direction: -1 (negative) or 1 (positive)
 
+#if 0
 /**
  * @brief checkDrv - test if driver connected
  */
@@ -109,17 +106,19 @@ static void checkDrv(){
 ret:
     DRV_DISABLE();
     EN_CFG_OUT(); // return OUT conf
-    SLEEP_OFF();
+    SLEEP_ON();
     SLP_CFG_OUT();
 #ifdef EBUG
     sendbuf();
 #endif
 }
-
+#endif
 static drv_type ini2130(){ // init 2130: SPI etc.
     if(driver != DRV_2130) return DRV_MAILF;
-    ;
-    return DRV_MAILF;
+    VIO_ON();
+    spi_setup();
+    CS_ACTIVE();
+    return DRV_2130;
 }
 
 static drv_type ini4988_8825(){ // init 4988 or 8825
@@ -135,7 +134,9 @@ static drv_type ini4988_8825(){ // init 4988 or 8825
         SEND("Configure microstepping first\n");
         return DRV_MAILF;
     }
+    if(driver == DRV_4988) VIO_ON();
     // init microstepping pins and set config
+    DRV_RESET_ON(); // reset counters
     UST01_CFG_PP();
     uint8_t PINS = 0;
     if(the_conf.microsteps == 16 && driver == DRV_4988) PINS = 7; // microstepping settings for 4988 in 1/16 differs from 8825
@@ -153,6 +154,8 @@ static drv_type ini4988_8825(){ // init 4988 or 8825
     timer_setup();
     // recalculate defaults
     stp_chspd();
+    DRV_RESET_OFF(); // normal mode
+    SLEEP_OFF();
     SEND("Init OK\n");
     return driver;
 }
@@ -162,6 +165,10 @@ static drv_type ini4988_8825(){ // init 4988 or 8825
  * @return driver type
  */
 drv_type initDriver(){
+    stp_stop();
+    DRV_DISABLE();
+    VIO_OFF();
+    SLEEP_ON();
     if(driver != DRV_NOTINIT){ // reset all settings
         MSG("clear GPIO & other setup\n");
         STEP_TIMER_OFF();
@@ -169,7 +176,8 @@ drv_type initDriver(){
         gpio_setup(); // reset pins control
     }
     driver = the_conf.driver_type;
-    checkDrv();
+    //checkDrv();
+    state = STP_SLEEP;
     if(driver > DRV_MAX-1) return (driver = DRV_NONE);
     MSG("init pins\n");
     switch(driver){
@@ -192,14 +200,55 @@ uint16_t getMaxUsteps(){
     return maxusteps[driver];
 }
 
+static const char *stpstates[] = {
+     [STP_SLEEP] = "Relax"
+    ,[STP_ACCEL] = "Accelerated"
+    ,[STP_MOVE] = "Moving"
+    ,[STP_MVSLOW] = "Slowmoving"
+    ,[STP_DECEL] = "Decelerated"
+    ,[STP_STOP] = "Stopping"
+    ,[STP_STOPZERO] = "Stop0"
+    ,[STP_MOVE0] = "Moveto0"
+    ,[STP_MOVE1] = "Moveto1"
+};
+const char *stp_getstate(){
+    return stpstates[state];
+}
+
+static const char *drvtypes[] = {
+     [DRV_NONE] = "Absent"
+    ,[DRV_NOTINIT] = "NotInit"
+    ,[DRV_MAILF] = "Mailfunction"
+    ,[DRV_8825] = "DRV8825"
+    ,[DRV_4988] = "A4988"
+    ,[DRV_2130] = "TMC2130"
+};
+const char *stp_getdrvtype(){
+    return drvtypes[driver];
+}
+
 void stp_chspd(){
-    int i;
-    for(i = 0; i < 2; ++i){
-        uint16_t spd = the_conf.motspd;
-        stplowarr = spd;
-        stphigharr = spd * LOWEST_SPEED_DIV;
-        stpsteparr = (spd * (LOWEST_SPEED_DIV - 1)) / ((uint16_t)ACCDECSTEPS) + 1;
+    uint32_t arrval = DEFTICKSPERSEC / the_conf.motspd;
+    arrval /= the_conf.microsteps;
+    if(arrval > 0xffff){
+        SEND("The speed is too little for this microstepping settings, set min available\n");
+        arrval = 0xffff;
+    }else if(arrval < TIM15ARRMIN){
+        SEND("The speed is too big for this microstepping settings, set max available\n");
+        arrval = TIM15ARRMIN;
     }
+    stplowarr = (uint16_t)arrval;
+    arrval *= LOW_SPEED_DIVISOR;
+    if(arrval > 0xffff) arrval = 0xffff;
+    stphigharr = (uint16_t)arrval;
+    stpsteparr = (stphigharr - stplowarr) / ((uint16_t)the_conf.accdecsteps);
+    if(stpsteparr < 1) stpsteparr = 1;
+#ifdef EBUG
+    SEND("stplowarr="); printu(stplowarr);
+    SEND("\nstphigharr="); printu(stphigharr);
+    SEND("\nstpsteparr="); printu(stpsteparr);
+    newline();
+#endif
 }
 
 // check end-switches for stepper motors
@@ -221,8 +270,10 @@ void stp_process(){
         case STP_MVSLOW:
             if((esw&1) && dir == -1){ // move through ESW0
                 state = STP_STOPZERO; // stop @ end-switch
+                MSG("ESW0 active\n");
             }else if((esw&8) && dir ==  1){ // move through ESW3
                 state = STP_STOP; // stop @ ESW3
+                MSG("ESW3 active\n");
             }
         break;
         default: // stopping states - do nothing
@@ -233,17 +284,26 @@ void stp_process(){
 // move motor to `steps` steps, @return 0 if all OK
 stp_status stp_move(int32_t steps){
     if(state != STP_SLEEP && state != STP_MOVE0 && state != STP_MOVE1) return STPS_ACTIVE;
-    if(steps == 0)
+    if(steps == 0){
+        MSG("Zero move\n");
         return STPS_ZEROMOVE;
-    if(the_conf.maxsteps && steps > (int32_t)the_conf.maxsteps) return STPS_TOOBIG;
+    }
+    if(the_conf.maxsteps && steps > (int32_t)the_conf.maxsteps){
+        MSG("Too much steps\n");
+        return STPS_TOOBIG;
+    }
     int8_t d;
     if(steps < 0){
+        MSG("Negative direction\n");
         d = -1;
         steps = -steps;
     }else d = 1; // positive direction
     // check end-switches
     uint8_t esw = ESW_STATE();
-    if(((esw&1) && d == -1) || ((esw&8) && d == 1)) return STPS_ONESW; // can't move through esw
+    if(((esw&1) && d == -1) || ((esw&8) && d == 1)){
+        MSG("Stay @esw\n");
+        return STPS_ONESW; // can't move through esw
+    }
     dir = d;
     // change value of DIR pin
     if(the_conf.defflags.reverse){
@@ -264,14 +324,16 @@ stp_status stp_move(int32_t steps){
     TIMx->ARR = stphigharr;
     TIMx->CCMR1 = TIM_CCMR1_OC2M_2 | TIM_CCMR1_OC2M_1; // PWM mode 1: active->inacive, preload enable
     TIMx->CR1 |= TIM_CR1_CEN;
-    if(steps < ACCDECSTEPS*2) state = STP_MVSLOW; // move without acceleration
+    if(steps < the_conf.accdecsteps*2) state = STP_MVSLOW; // move without acceleration
     else state = STP_ACCEL; // move with acceleration
+    MSG("Start moving\n");
     return STPS_ALLOK;
 }
 
 // change ARR value
 void stp_chARR(uint32_t val){
-    if(val < 2) val = 2;
+    if(val < TIM15ARRMIN) val = TIM15ARRMIN;
+    else if(val > 0xffff) val = 0xffff;
     TIMx->ARR = (uint32_t)val;
 }
 
@@ -292,51 +354,67 @@ void stp_stop(){ // stop motor by demand or @ end-switch
 void timer_isr(){
     static uint16_t ustep = 0;
     uint16_t tmp, arrval;
-    if(USTEPS == ++ustep){ // prevent stop @ not full step
+    TIMx->SR = 0;
+    if(the_conf.microsteps == ++ustep){ // prevent stop @ not full step
         ustep = 0;
-        if(state == STP_STOPZERO)
+        if(state == STP_STOPZERO){
+            MSG("Stop @zero\n");
             mot_position = 0;
-        else{
-            if(0 == --steps_left) state = STP_STOP;
+        }else{
+            if(0 == --steps_left){
+                MSG("End moving\n");
+                state = STP_STOP;
+            }
             mot_position += dir;
         }
+        //SEND("Left ");printu(steps_left); newline(); sendbuf();
     }else return;
+    //SEND("state="); printu(state); newline(); sendbuf();
     switch(state){
         case STP_ACCEL: // acceleration phase
+            //SEND("ACC"); newline(); sendbuf();
             arrval = (uint16_t)TIMx->ARR - stpsteparr;
             tmp = stplowarr;
             if(arrval <= tmp || arrval > stphigharr){
                 arrval = tmp;
                 state = STP_MOVE; // end of acceleration phase
+                MSG("Accel end\n");
             }
             TIMx->ARR = arrval;
         break;
         case STP_DECEL: // deceleration phase
+            //SEND("DEC"); newline(); sendbuf();
             arrval = (uint16_t)TIMx->ARR + stpsteparr;
             tmp = stphigharr;
             if(arrval >= tmp || arrval < stplowarr){
                 arrval = tmp;
                 state = STP_MVSLOW; // end of deceleration phase, move @ lowest speed
+                MSG("Decel end\n");
             }
             TIMx->ARR = arrval;
         break;
         case STP_MOVE:   // moving with constant speed phases
-            if(steps_left <= ACCDECSTEPS){
+            //SEND("MOVE"); newline(); sendbuf();
+            if(steps_left <= the_conf.accdecsteps){
+                MSG("Decel start\n");
                 state = STP_DECEL; // change moving status to decelerate
             }
         break;
         case STP_MVSLOW:
+            //SEND("MVSLOW"); newline(); sendbuf();
             // nothing to do here: all done before switch()
         break;
         default: // STP_STOP, STP_STOPZERO
+            //SEND("DEFAULT"); newline(); sendbuf();
             ustep = 0;
-            TIMx->CCMR1 = TIM_CCMR1_OC1M_2; // Force inactive
+            TIMx->CCMR1 = TIM_CCMR1_OC2M_2; // Force inactive
             TIMx->CR1 &= ~TIM_CR1_CEN; // stop timer
             DRV_DISABLE();
+            CLEAR_DIR();
             dir = 0;
             steps_left = 0;
             state = STP_SLEEP;
+            MSG("Stop motor\n");
         break;
     }
-    TIMx->SR = 0;
 }

@@ -218,7 +218,7 @@ TRUE_INLINE void setdefflags(char *txt){
             the_conf.defflags.reverse = U&1;
         break;
         default:
-            SEND("\nFlag commands:"
+            SEND("\nFlag commands:\n"
                  "r - set/clear reverse\n"
                  );
     }
@@ -230,7 +230,7 @@ TRUE_INLINE void setters(char *txt){
     uint8_t u8;
     const char *drvshould = "Driver type should be one of: 2130, 4988, 8825";
     const char *usshould = "Microsteps amount is a power of two: 1..512";
-    const char *motspdshould = "Motor speed should be from 2 to " STR(0xffff/LOWEST_SPEED_DIV);
+    const char *motspdshould = "Motor speed should be from 1 to " STR(10000);
     txt = omit_spaces(txt);
     if(!*txt){
         SEND("Setters need more arguments");
@@ -322,10 +322,11 @@ TRUE_INLINE void setters(char *txt){
             if(U != the_conf.maxsteps){
                 the_conf.maxsteps = U;
                 userconf_changed = 1;
+                SEND("Set maxsteps to "); printu(U);
             }
         break;
         case 's': // motor speed
-            if(nxt == txt + 1 || U < 2 || U > (0xffff/LOWEST_SPEED_DIV)){ // no number
+            if(nxt == txt + 1 || U < 1 || U > MAX_SPEED){ // no number
                 SEND(motspdshould); break;
             }
             if(the_conf.motspd != (uint16_t)U){
@@ -339,7 +340,7 @@ TRUE_INLINE void setters(char *txt){
                  "a - set accdecsteps\n"
                  "c - set default CAN speed\n"
                  "d - set driver type\n"
-                 "F - set flags"
+                 "F - set flags\n"
                  "m - set microsteps\n"
                  "M - set maxsteps\n"
                  "s - set motspd\n"
@@ -364,6 +365,17 @@ TRUE_INLINE void driver_commands(char *txt){
     char *nxt = getnum(txt, &U);
     stp_status st;
     switch(cmd){
+        case '0':
+            state = STP_MOVE0;
+            stp_process();
+        break;
+        case '1':
+            state = STP_MOVE1;
+            stp_process();
+        break;
+        case 'd':
+            SEND(stp_getdrvtype());
+        break;
         case 'e':
             SEND("ESW=");
             printu(ESW_STATE());
@@ -371,8 +383,12 @@ TRUE_INLINE void driver_commands(char *txt){
         case 'i': // init
             initDriver();
         break;
+        case 'l':
+            SEND("Stepsleft=");
+            printu(stpleft());
+        break;
         case 'm':
-            if(nxt == txt + 1 || U > (INT32_MAX-1)){
+            if(nxt == txt || U > (INT32_MAX-1)){
                 SEND("Give right steps amount: from -INT32_MAX to INT32_MAX");
                 return;
             }
@@ -395,16 +411,32 @@ TRUE_INLINE void driver_commands(char *txt){
                     SEND("Move to given steps amount");
             }
         break;
+        case 'p':
+            SEND("Motpos=");
+            if(stppos() < 0){
+                U = (uint32_t) -stppos();
+                bufputchar('-');
+            }else U = (uint32_t) stppos();
+            printu(U);
+        break;
         case 's':
             stp_stop();
             SEND("Stop motor");
         break;
+        case 'S':
+            SEND(stp_getstate());
+        break;
         default:
             SEND("\nDriver commands:\n"
+                 "0/1 - move to ESW0/ESW3 and stop there\n"
+                 "d - current driver type\n"
                  "e - end-switches state\n"
                  "i - init stepper driver (8825, 4988, 2130)\n"
+                 "l - steps left\n"
                  "m - move N steps\n"
+                 "p - motor position\n"
                  "s - stop\n"
+                 "S - state\n"
                 );
     }
 }
@@ -448,6 +480,9 @@ void cmd_parser(char *txt, uint8_t isUSB){
             can_accept_one();
             SEND("Accept only my ID @CAN");
         break;
+        case '1':
+            timer_setup();
+        break;
         case '@':
             can_accept_any();
             SEND("Accept any ID @CAN");
@@ -459,9 +494,6 @@ void cmd_parser(char *txt, uint8_t isUSB){
             SEND("Jump to bootloader.\n");
             sendbuf();
             Jump2Boot();
-        break;
-        case 'd':
-            dump_userconf();
         break;
         case 'g':
             SEND("Board address: ");
@@ -498,7 +530,6 @@ void cmd_parser(char *txt, uint8_t isUSB){
             "@ - accept any IDs\n"
             "a - get raw ADC values\n"
             "b - switch to bootloader\n"
-            "d - dump userconf\n"
             "D? - stepper driver commands\n"
             "g - get board address\n"
             "j - get MCU temperature\n"

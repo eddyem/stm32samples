@@ -68,12 +68,15 @@
 #define RESET_UST2()    do{GPIOC->BRR = 1<<14;}while(0)
 #define CS_ACTIVE()     do{GPIOC->BRR = 1<<14;}while(0)
 #define CS_PASSIVE()    do{GPIOC->BSRR = 1<<14;}while(0)
-// microstepping0 (PA7), 1 (PA5) - set PP
-#define UST01_CFG_PP()  do{GPIOA->MODER = (GPIOA->MODER & ~(GPIO_MODER_MODER5|GPIO_MODER_MODER7)) | (GPIO_MODER_MODER5_O|GPIO_MODER_MODER7_O);}while(0)
+// microstepping0 (PA7), 1 (PA5), ~reset (PA6) - PP config
+#define UST01_CFG_PP()  do{GPIOA->MODER = (GPIOA->MODER & ~(GPIO_MODER_MODER5|GPIO_MODER_MODER6|GPIO_MODER_MODER7)) | (GPIO_MODER_MODER5_O|GPIO_MODER_MODER6_O|GPIO_MODER_MODER7_O);}while(0)
 #define SET_UST0()      do{GPIOA->BSRR = 1<<7;}while(0)
 #define SET_UST1()      do{GPIOA->BSRR = 1<<5;}while(0)
 #define RESET_UST0()    do{GPIOA->BRR = 1<<7;}while(0)
 #define RESET_UST1()    do{GPIOA->BRR = 1<<5;}while(0)
+// ~RESET pin (inverse), PA6
+#define DRV_RESET_ON()  do{GPIOA->BRR = 1<<6;}while(0)
+#define DRV_RESET_OFF() do{GPIOA->BSRR = 1<<6;}while(0)
 // end-switches state
 #define ESW_STATE()     ((GPIOB->IDR & 0x07) | ((GPIOB->IDR>>7) & 0x08))
 // configure ~CS as PP output
