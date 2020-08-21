@@ -1,0 +1,307 @@
+EESchema-LIBRARY Version 2.4
+#encoding utf-8
+#
+# +12V-Chiller_control-rescue
+#
+DEF +12V-Chiller_control-rescue #PWR 0 0 Y Y 1 F P
+F0 "#PWR" 0 -150 50 H I C CNN
+F1 "+12V-Chiller_control-rescue" 0 140 50 H V C CNN
+F2 "" 0 0 50 H I C CNN
+F3 "" 0 0 50 H I C CNN
+DRAW
+P 2 0 1 0 -30 50 0 100 N
+P 2 0 1 0 0 0 0 100 N
+P 2 0 1 0 0 100 30 50 N
+X +12V 1 0 0 0 U 50 50 1 1 W N
+ENDDRAW
+ENDDEF
+#
+# +3.3V-Chiller_control-rescue
+#
+DEF +3.3V-Chiller_control-rescue #PWR 0 0 Y Y 1 F P
+F0 "#PWR" 0 -150 50 H I C CNN
+F1 "+3.3V-Chiller_control-rescue" 0 140 50 H V C CNN
+F2 "" 0 0 50 H I C CNN
+F3 "" 0 0 50 H I C CNN
+DRAW
+P 2 0 1 0 -30 50 0 100 N
+P 2 0 1 0 0 0 0 100 N
+P 2 0 1 0 0 100 30 50 N
+X +3V3 1 0 0 0 U 50 50 1 1 W N
+ENDDRAW
+ENDDEF
+#
+# C-Chiller_control-rescue
+#
+DEF C-Chiller_control-rescue C 0 10 N Y 1 F N
+F0 "C" 25 100 50 H V L CNN
+F1 "C-Chiller_control-rescue" 25 -100 50 H V L CNN
+F2 "" 38 -150 50 H I C CNN
+F3 "" 0 0 50 H I C CNN
+$FPLIST
+ C_*
+$ENDFPLIST
+DRAW
+P 2 0 1 20 -80 -30 80 -30 N
+P 2 0 1 20 -80 30 80 30 N
+X ~ 1 0 150 110 D 50 50 1 1 P
+X ~ 2 0 -150 110 U 50 50 1 1 P
+ENDDRAW
+ENDDEF
+#
+# CP-Chiller_control-rescue
+#
+DEF CP-Chiller_control-rescue C 0 10 N Y 1 F N
+F0 "C" 25 100 50 H V L CNN
+F1 "CP-Chiller_control-rescue" 25 -100 50 H V L CNN
+F2 "" 38 -150 50 H I C CNN
+F3 "" 0 0 50 H I C CNN
+$FPLIST
+ CP_*
+$ENDFPLIST
+DRAW
+S -90 20 -90 40 0 1 0 N
+S -90 20 90 20 0 1 0 N
+S 90 -20 -90 -40 0 1 0 F
+S 90 40 -90 40 0 1 0 N
+S 90 40 90 20 0 1 0 N
+P 2 0 1 0 -70 90 -30 90 N
+P 2 0 1 0 -50 110 -50 70 N
+X ~ 1 0 150 110 D 50 50 1 1 P
+X ~ 2 0 -150 110 U 50 50 1 1 P
+ENDDRAW
+ENDDEF
+#
+# Conn_01x02-Chiller_control-rescue
+#
+DEF Conn_01x02-Chiller_control-rescue J 0 40 Y N 1 F N
+F0 "J" 0 100 50 H V C CNN
+F1 "Conn_01x02-Chiller_control-rescue" 0 -200 50 H V C CNN
+F2 "" 0 0 50 H I C CNN
+F3 "" 0 0 50 H I C CNN
+$FPLIST
+ Connector*:*_??x*mm*
+ Connector*:*1x??x*mm*
+ Pin?Header?Straight?1X*
+ Pin?Header?Angled?1X*
+ Socket?Strip?Straight?1X*
+ Socket?Strip?Angled?1X*
+$ENDFPLIST
+DRAW
+S -50 -95 0 -105 1 1 6 N
+S -50 5 0 -5 1 1 6 N
+S -50 50 50 -150 1 1 10 f
+X Pin_1 1 -200 0 150 R 50 50 1 1 P
+X Pin_2 2 -200 -100 150 R 50 50 1 1 P
+ENDDRAW
+ENDDEF
+#
+# D-Chiller_control-rescue
+#
+DEF D-Chiller_control-rescue D 0 40 N N 1 F N
+F0 "D" 0 100 50 H V C CNN
+F1 "D-Chiller_control-rescue" 0 -100 50 H V C CNN
+F2 "" 0 0 50 H I C CNN
+F3 "" 0 0 50 H I C CNN
+$FPLIST
+ TO-???*
+ *SingleDiode
+ *_Diode_*
+ *SingleDiode*
+ D_*
+$ENDFPLIST
+DRAW
+P 2 0 1 8 -50 50 -50 -50 N
+P 2 0 1 0 50 0 -50 0 N
+P 4 0 1 8 50 50 50 -50 -50 0 50 50 N
+X K 1 -150 0 100 R 50 50 1 1 P
+X A 2 150 0 100 L 50 50 1 1 P
+ENDDRAW
+ENDDEF
+#
+# G5LE-1-socket-rescue
+#
+DEF G5LE-1-socket-rescue K 0 40 Y Y 1 F N
+F0 "K" 450 150 50 H V L CNN
+F1 "G5LE-1-socket-rescue" 450 50 50 H V L CNN
+F2 "Relay_THT:Relay_SPDT_OMRON-G5LE-1" 450 -50 50 H I L CNN
+F3 "" 0 -400 50 H I C CNN
+$FPLIST
+ Relay*SPDT*Omron*G5LE?1*
+$ENDFPLIST
+DRAW
+S -400 200 400 -200 0 1 10 f
+S -325 75 -75 -75 0 1 10 N
+P 2 0 0 0 100 150 100 200 N
+P 2 0 0 0 300 150 300 200 N
+P 4 0 0 0 300 150 300 100 275 125 300 150 N
+P 2 0 1 10 -300 -75 -100 75 N
+P 2 0 1 0 -200 -200 -200 -75 N
+P 2 0 1 0 -200 200 -200 75 N
+P 2 0 1 10 -75 0 -50 0 N
+P 2 0 1 10 -25 0 0 0 N
+P 2 0 1 10 25 0 50 0 N
+P 2 0 1 10 25 0 50 0 N
+P 2 0 1 10 75 0 100 0 N
+P 2 0 1 10 125 0 150 0 N
+P 2 0 1 20 200 -100 125 150 N
+P 2 0 1 0 200 -100 200 -200 N
+P 3 0 1 0 100 100 125 125 100 150 F
+X ~ 1 200 -300 100 U 50 50 1 1 P
+X ~ 2 -200 -300 100 U 50 50 1 1 P
+X ~ 3 300 300 100 D 50 50 1 1 P
+X ~ 4 100 300 100 D 50 50 1 1 P
+X ~ 5 -200 300 100 D 50 50 1 1 P
+ENDDRAW
+ENDDEF
+#
+# GND-Chiller_control-rescue
+#
+DEF GND-Chiller_control-rescue #PWR 0 0 Y Y 1 F P
+F0 "#PWR" 0 -250 50 H I C CNN
+F1 "GND-Chiller_control-rescue" 0 -150 50 H V C CNN
+F2 "" 0 0 50 H I C CNN
+F3 "" 0 0 50 H I C CNN
+DRAW
+P 6 0 1 0 0 0 0 -50 50 -50 0 -100 -50 -50 0 -50 N
+X GND 1 0 0 0 D 50 50 1 1 W N
+ENDDRAW
+ENDDEF
+#
+# GND-socket-rescue
+#
+DEF GND-socket-rescue #PWR 0 0 Y Y 1 F P
+F0 "#PWR" 0 -250 50 H I C CNN
+F1 "GND-socket-rescue" 0 -150 50 H V C CNN
+F2 "" 0 0 50 H I C CNN
+F3 "" 0 0 50 H I C CNN
+DRAW
+P 6 0 1 0 0 0 0 -50 50 -50 0 -100 -50 -50 0 -50 N
+X GND 1 0 0 0 D 50 50 1 1 W N
+ENDDRAW
+ENDDEF
+#
+# L-Chiller_control-rescue
+#
+DEF L-Chiller_control-rescue L 0 40 N N 1 F N
+F0 "L" -50 0 50 V V C CNN
+F1 "L-Chiller_control-rescue" 75 0 50 V V C CNN
+F2 "" 0 0 50 H I C CNN
+F3 "" 0 0 50 H I C CNN
+$FPLIST
+ Choke_*
+ *Coil*
+ Inductor_*
+ L_*
+$ENDFPLIST
+DRAW
+A 0 -75 25 -899 899 0 1 0 N 0 -100 0 -50
+A 0 -25 25 -899 899 0 1 0 N 0 -50 0 0
+A 0 25 25 -899 899 0 1 0 N 0 0 0 50
+A 0 75 25 -899 899 0 1 0 N 0 50 0 100
+X 1 1 0 150 50 D 50 50 1 1 P
+X 2 2 0 -150 50 U 50 50 1 1 P
+ENDDRAW
+ENDDEF
+#
+# Q_NMOS_GSD-Chiller_control-rescue
+#
+DEF Q_NMOS_GSD-Chiller_control-rescue Q 0 0 Y N 1 F N
+F0 "Q" 200 50 50 H V L CNN
+F1 "Q_NMOS_GSD-Chiller_control-rescue" 200 -50 50 H V L CNN
+F2 "" 200 100 50 H I C CNN
+F3 "" 0 0 50 H I C CNN
+DRAW
+C 65 0 111 0 1 10 N
+C 100 -70 11 0 1 0 F
+C 100 70 11 0 1 0 F
+P 2 0 1 0 2 0 10 0 N
+P 2 0 1 0 30 -70 100 -70 N
+P 2 0 1 10 30 -50 30 -90 N
+P 2 0 1 0 30 0 100 0 N
+P 2 0 1 10 30 20 30 -20 N
+P 2 0 1 0 30 70 100 70 N
+P 2 0 1 10 30 90 30 50 N
+P 2 0 1 0 100 -70 100 -100 N
+P 2 0 1 0 100 -70 100 0 N
+P 2 0 1 0 100 100 100 70 N
+P 3 0 1 10 10 75 10 -75 10 -75 N
+P 4 0 1 0 40 0 80 15 80 -15 40 0 F
+P 4 0 1 0 100 -70 130 -70 130 70 100 70 N
+P 4 0 1 0 110 20 115 15 145 15 150 10 N
+P 4 0 1 0 130 15 115 -10 145 -10 130 15 N
+X G 1 -200 0 200 R 50 50 1 1 I
+X S 2 100 -200 100 U 50 50 1 1 P
+X D 3 100 200 100 D 50 50 1 1 P
+ENDDRAW
+ENDDEF
+#
+# Q_NMOS_GSD-socket-rescue
+#
+DEF Q_NMOS_GSD-socket-rescue Q 0 0 Y N 1 F N
+F0 "Q" 200 50 50 H V L CNN
+F1 "Q_NMOS_GSD-socket-rescue" 200 -50 50 H V L CNN
+F2 "" 200 100 50 H I C CNN
+F3 "" 0 0 50 H I C CNN
+DRAW
+C 65 0 111 0 1 10 N
+C 100 -70 11 0 1 0 F
+C 100 70 11 0 1 0 F
+P 2 0 1 0 2 0 10 0 N
+P 2 0 1 0 30 -70 100 -70 N
+P 2 0 1 10 30 -50 30 -90 N
+P 2 0 1 0 30 0 100 0 N
+P 2 0 1 10 30 20 30 -20 N
+P 2 0 1 0 30 70 100 70 N
+P 2 0 1 10 30 90 30 50 N
+P 2 0 1 0 100 -70 100 -100 N
+P 2 0 1 0 100 -70 100 0 N
+P 2 0 1 0 100 100 100 70 N
+P 3 0 1 10 10 75 10 -75 10 -75 N
+P 4 0 1 0 40 0 80 15 80 -15 40 0 F
+P 4 0 1 0 100 -70 130 -70 130 70 100 70 N
+P 4 0 1 0 110 20 115 15 145 15 150 10 N
+P 4 0 1 0 130 15 115 -10 145 -10 130 15 N
+X G 1 -200 0 200 R 50 50 1 1 I
+X S 2 100 -200 100 U 50 50 1 1 P
+X D 3 100 200 100 D 50 50 1 1 P
+ENDDRAW
+ENDDEF
+#
+# R-Chiller_control-rescue
+#
+DEF R-Chiller_control-rescue R 0 0 N Y 1 F N
+F0 "R" 80 0 50 V V C CNN
+F1 "R-Chiller_control-rescue" 0 0 50 V V C CNN
+F2 "" -70 0 50 V I C CNN
+F3 "" 0 0 50 H I C CNN
+$FPLIST
+ R_*
+ R_*
+$ENDFPLIST
+DRAW
+S -40 -100 40 100 0 1 10 N
+X ~ 1 0 150 50 D 50 50 1 1 P
+X ~ 2 0 -150 50 U 50 50 1 1 P
+ENDDRAW
+ENDDEF
+#
+# R-socket-rescue
+#
+DEF R-socket-rescue R 0 0 N Y 1 F N
+F0 "R" 80 0 50 V V C CNN
+F1 "R-socket-rescue" 0 0 50 V V C CNN
+F2 "" -70 0 50 V I C CNN
+F3 "" 0 0 50 H I C CNN
+$FPLIST
+ R_*
+ R_*
+$ENDFPLIST
+DRAW
+S -40 -100 40 100 0 1 10 N
+X ~ 1 0 150 50 D 50 50 1 1 P
+X ~ 2 0 -150 50 U 50 50 1 1 P
+ENDDRAW
+ENDDEF
+#
+#End Library

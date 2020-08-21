@@ -244,7 +244,6 @@ void dma1_channel4_5_isr(){
         DMA1->IFCR |= DMA_IFCR_CTCIF4; // clear TC flag
         DMA1_Channel4->CCR &= ~DMA_CCR_EN;
         txrdy = 1;
-        RS485_RX(); // switch to Rx
     }
 }
 // USART1

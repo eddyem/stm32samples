@@ -1,0 +1,6 @@
+(fp_lib_table
+  (lib (name TestPoint)(type KiCad)(uri ${KISYSMOD}/TestPoint.pretty)(options "")(descr ""))
+  (lib (name Fuse)(type KiCad)(uri ${KISYSMOD}/Fuse.pretty)(options "")(descr ""))
+  (lib (name MyFootprints)(type KiCad)(uri /home/eddy/Docs/SAO/ELECTRONICS/STM32/F0-srcs/CANbus_stepper/my_footprints.pretty)(options "")(descr ""))
+  (lib (name Connector_Dsub)(type KiCad)(uri /usr/share/kicad/kicad-footprints/Connector_Dsub.pretty)(options "")(descr ""))
+)
