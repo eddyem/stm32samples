@@ -93,6 +93,7 @@ int main(void){
             IWDG->KR = IWDG_REFRESH;
             cmd_parser(txt);
         }
+        buzzer_chk();
     }
     return 0;
 }

@@ -23,8 +23,9 @@
 
 #include "adc.h"
 #include "hardware.h"
+#include "proto.h"
 
-uint8_t ledsON = 0;
+buzzer_state buzzer = BUZZER_OFF; // buzzer state
 
 void adc_setup(){
     uint16_t ctr = 0; // 0xfff0 - more than 1.3ms
@@ -187,6 +188,62 @@ void Jump2Boot(){
     SysMemBootJump();
 }
 
+void buzzer_chk(){ // check buzzer state
+    static uint32_t lastTms = 0;
+    static buzzer_state oldstate = BUZZER_OFF;
+    uint32_t B, S; // length of beep and silence
+    if(buzzer == oldstate){ // keep current state
+        if(lastTms > Tms) return;
+        switch(buzzer){ // beep on/off
+            case BUZZER_LONG:
+                B = LONG_BUZZER_PERIOD;
+                S = LONG_BUZZER_PAUSE;
+                SEND("long ");
+            break;
+            case BUZZER_SHORT:
+                B = SHORT_BUZZER_PERIOD;
+                S = SHORT_BUZZER_PAUSE;
+                SEND("short ");
+            break;
+            default:
+            return;
+        }
+        if(CHK(BUZZER)){ // is ON
+            SEND("1->0\n");
+            OFF(BUZZER);
+            lastTms = Tms + S;
+        }else{ // is OFF
+            SEND("0->1\n");
+            ON(BUZZER);
+            lastTms = Tms + B;
+        }
+        sendbuf();
+        return;
+    }
+    SEND("New state: ");
+    switch(buzzer){ // change buzzer state
+        case BUZZER_ON:
+            ON(BUZZER);
+            SEND("on");
+        break;
+        case BUZZER_OFF:
+            OFF(BUZZER);
+            SEND("off");
+        break;
+        case BUZZER_LONG:
+            ON(BUZZER);
+            lastTms = Tms + LONG_BUZZER_PERIOD;
+            SEND("long");
+        break;
+        case BUZZER_SHORT:
+            ON(BUZZER);
+            lastTms = Tms + SHORT_BUZZER_PERIOD;
+            SEND("short");
+        break;
+    }
+    newline(); sendbuf();
+    oldstate = buzzer;
+}
 
 void exti4_15_isr(){
     EXTI->PR |= EXTI_PR_PR7; // clear pending bit

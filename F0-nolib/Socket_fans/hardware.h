@@ -61,16 +61,30 @@
 #define ON(x)           do{pin_set(x ## _port, x ## _pin);}while(0)
 #define OFF(x)          do{pin_clear(x ## _port, x ## _pin);}while(0)
 
+typedef enum{
+    BUZZER_OFF,     // buzzer is off
+    BUZZER_ON,      // continuous beeep
+    BUZZER_SHORT,   // short beeps with longer pause
+    BUZZER_LONG     // long beeps with shorter pause
+} buzzer_state;
+
+// Length of long and short time periods (ms)
+#define LONG_BUZZER_PERIOD      (4000)
+#define LONG_BUZZER_PAUSE       (6000)
+#define SHORT_BUZZER_PERIOD     (500)
+#define SHORT_BUZZER_PAUSE      (9500)
+
 extern volatile uint32_t Tms;
 extern volatile uint32_t Cooler0speed;
 extern volatile uint32_t Cooler1speed;
 extern volatile uint32_t Cooler1RPM;
-extern uint8_t ledsON;
+extern buzzer_state buzzer;
 
 void HW_setup(void);
 void adc_setup();
 void iwdg_setup();
 void pause_ms(uint32_t pause);
 void Jump2Boot();
+void buzzer_chk();
 
 #endif // __HARDWARE_H__

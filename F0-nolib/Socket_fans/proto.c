@@ -203,6 +203,30 @@ static inline void changeRPM(char *str){
     }
 }
 
+static inline void buzzercmd(char cmd){
+    SEND("Buzzer: ");
+    switch(cmd){
+        case '0':
+            buzzer = BUZZER_OFF;
+            SEND("off");
+        break;
+        case '1':
+            buzzer = BUZZER_ON;
+            SEND("on");
+        break;
+        case 'l':
+            buzzer = BUZZER_LONG;
+            SEND("long beeps");
+        break;
+        case 's':
+            buzzer = BUZZER_SHORT;
+            SEND("short beeps");
+        break;
+        default:
+            SEND("wrong command");
+    }
+}
+
 /**
  * @brief cmd_parser - command parsing
  * @param txt   - buffer with commands & data
@@ -224,6 +248,10 @@ void cmd_parser(char *txt){
         break;
         case 'A': // ADC raw values
             ADCget(txt[1]);
+            goto eof;
+        break;
+        case 'b': // buzzer
+            buzzercmd(txt[1]);
             goto eof;
         break;
         case 'C': // Cooler RPM
@@ -290,6 +318,7 @@ void cmd_parser(char *txt){
             "'Ax' - get ADC raw value (x=0..7)\n"
             "'a' - show current value of ADC1->DR\n"
             "'B' - buttons' state\n"
+            "'bx' - buzzer: x==0 - off, x==1 - on, x==l - long beeps, x==s - short beeps\n"
             "'Cx' - get cooler x (0/1) RPM\n"
             "'D' - activate DFU mode\n"
             "'M' - get MCU temperature\n"
