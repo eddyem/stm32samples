@@ -25,6 +25,7 @@
 #include "hardware.h"
 #include "proto.h"
 
+volatile uint32_t Cooler1RPM; // Cooler1 RPM counter by EXTI @PA7
 buzzer_state buzzer = BUZZER_OFF; // buzzer state
 
 void adc_setup(){
@@ -103,9 +104,6 @@ static inline void timers_setup(){
     RCC->APB2ENR |= RCC_APB2ENR_TIM1EN; // enable clocking
     TIM1->PSC = 19; // F=48/20 = 2.4MHz
     TIM1->ARR = 100; // PWM frequency = 2.4/101 = 23.76kHz
-    TIM1->CCR1 = 20; // near 20% PWM duty cycle
-    TIM1->CCR2 = 20; // near 20% PWM duty cycle
-    //TIM1->CCR3 = 20; // CCR3 is zero - should be activated on cooler3 settings
     // PWM mode 1 (OCxM = 110), preload enable
     TIM1->CCMR1 =   TIM_CCMR1_OC1M_2 | TIM_CCMR1_OC1M_1 | TIM_CCMR1_OC1PE |
                     TIM_CCMR1_OC2M_2 | TIM_CCMR1_OC2M_1 | TIM_CCMR1_OC2PE;

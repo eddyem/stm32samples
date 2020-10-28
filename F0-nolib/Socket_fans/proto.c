@@ -29,9 +29,6 @@
 
 static char buff[BUFSZ+1], *bptr = buff;
 static uint8_t blen = 0;
-volatile uint32_t Cooler0speed; // RPM of cooler0
-volatile uint32_t Cooler1RPM; // Cooler1 RPM counter by EXTI @PA7
-volatile uint32_t Cooler1speed; // RPM of cooler0
 
 void sendbuf(){
     IWDG->KR = IWDG_REFRESH;
@@ -171,11 +168,7 @@ static inline void coolerRPM(char n){
     SEND("RPM");
     bufputchar(n);
     bufputchar('=');
-    if(n == '0'){ // cooler0
-        printu(Cooler0speed);
-    }else{ // cooler1
-        printu(Cooler1speed);
-    }
+    printu(Coolerspeed[n - '0']);
 }
 
 // change Coolerx RPM
@@ -227,6 +220,15 @@ static inline void buzzercmd(char cmd){
     }
 }
 
+static inline void gett(char chno){
+    if(chno < '0' || chno > '3'){
+        SEND("Temperature channel should be 0..3");
+        return;
+    }
+    bufputchar('T'); bufputchar(chno); bufputchar('=');
+    printi(getNTC(chno - '0'));
+}
+
 /**
  * @brief cmd_parser - command parsing
  * @param txt   - buffer with commands & data
@@ -264,6 +266,10 @@ void cmd_parser(char *txt){
         break;
         case 'S': // set RPM
             changeRPM(txt+1);
+            goto eof;
+        break;
+        case 't':
+            gett(txt[1]);
             goto eof;
         break;
     }
@@ -326,6 +332,7 @@ void cmd_parser(char *txt){
             "'rx' - relay on/off (x=1/0) or get status\n"
             "'Sx y' - set coolerx RPM to y\n"
             "'T' - get time from start (ms)\n"
+            "'tx' - get temperature x (0..3)\n"
             "'V' - get voltage\n"
             "'Z' - reinit ADC\n"
             );
@@ -349,6 +356,15 @@ void printu(uint32_t val){
         }
     }
     addtobuf(bufptr);
+}
+
+// print 32bit signed int
+void printi(int32_t val){
+    if(val < 0){
+        val = -val;
+        bufputchar('-');
+    }
+    printu(val);
 }
 
 // print 32bit unsigned int as hex

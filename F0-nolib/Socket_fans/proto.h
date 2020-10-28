@@ -46,6 +46,7 @@ void cmd_parser(char *buf);
 void addtobuf(const char *txt);
 void bufputchar(char ch);
 void printu(uint32_t val);
+void printi(int32_t val);
 void printuhex(uint32_t val);
 void sendbuf();
 

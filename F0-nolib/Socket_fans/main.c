@@ -20,20 +20,23 @@
  */
 
 #include "hardware.h"
+#include "monitor.h"
 #include "proto.h"
 #include "usb.h"
 #include "usb_lib.h"
 
 volatile uint32_t Tms = 0;
 
+volatile uint32_t Coolerspeed[2]; // RPM of cooler0/1
+
 /* Called when systick fires */
 void sys_tick_handler(void){
     static uint32_t actr = 0;
     ++Tms;
     if(++actr == 1000){ // RPM counter
-        Cooler0speed = TIM3->CNT/2;
+        Coolerspeed[0] = TIM3->CNT/2;
         TIM3->CNT = 0;
-        Cooler1speed = Cooler1RPM/2;
+        Coolerspeed[1] = Cooler1RPM/2;
         Cooler1RPM = 0;
         actr = 0;
     }
@@ -73,7 +76,7 @@ static char *get_USB(){
 }
 
 int main(void){
-    //uint32_t lastT = 0;
+    uint32_t lastT = 0;
     char *txt;
     sysreset();
     SysTick_Config(6000, 1);
@@ -82,12 +85,15 @@ int main(void){
     RCC->CSR |= RCC_CSR_RMVF; // remove reset flags
     iwdg_setup();
 
+    ON(COOLER0); // turn on power, manage only by PWM
+    ON(COOLER1);
+
     while (1){
         IWDG->KR = IWDG_REFRESH; // refresh watchdog
-        /*if(lastT && (Tms - lastT > 199)){
-            LED_off(LED0);
-            lastT = 0;
-        }*/
+        if(Tms - lastT > MONITOR_PERIOD){
+            process_monitor();
+            lastT = Tms;
+        }
         usb_proc();
         if((txt = get_USB())){
             IWDG->KR = IWDG_REFRESH;

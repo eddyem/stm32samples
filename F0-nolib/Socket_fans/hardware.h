@@ -75,8 +75,7 @@ typedef enum{
 #define SHORT_BUZZER_PAUSE      (9500)
 
 extern volatile uint32_t Tms;
-extern volatile uint32_t Cooler0speed;
-extern volatile uint32_t Cooler1speed;
+extern volatile uint32_t Coolerspeed[2];
 extern volatile uint32_t Cooler1RPM;
 extern buzzer_state buzzer;
 
