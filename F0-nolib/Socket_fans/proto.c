@@ -22,10 +22,14 @@
  */
 #include "adc.h"
 #include "hardware.h"
+#include "monitor.h"
 #include "proto.h"
 #include "usb.h"
 
 #include <string.h> // strlen
+
+
+uint8_t showMon = 0; // start monitoring @ each 5s
 
 static char buff[BUFSZ+1], *bptr = buff;
 static uint8_t blen = 0;
@@ -130,6 +134,7 @@ char *getnum(char *txt, uint32_t *N){
     return getdec(txt, N);
 }
 
+// change pin state
 static void onoff(char state, GPIO_TypeDef *port, uint32_t pin, char *text){
     switch(state){
         case '0': // off
@@ -153,32 +158,54 @@ static inline void ADCget(char chno){
         return;
     }
     int nch = chno - '0';
-    SEND("ADCval");
+    SEND("ADCVAL");
     bufputchar(chno);
     bufputchar('=');
     printu(getADCval(nch));
 }
 
-// get coolerx RPM
-static inline void coolerRPM(char n){
+// get coolerx RPS
+static inline void coolerRPS(char n){
     if(n < '0' || n > '1'){
-        SEND("Cooler number should be 0 or 1\n");
+        SEND("Cooler number should be 0 or 1");
         return;
     }
-    SEND("RPM");
+    SEND("RPS");
     bufputchar(n);
     bufputchar('=');
     printu(Coolerspeed[n - '0']);
 }
 
-// change Coolerx RPM
-static inline void changeRPM(char *str){
+static inline void getPWM(char n){
+    if(n < '0' || n > '2'){
+        SEND("Cooler number should be from 0 to 2");
+        return;
+    }
+    SEND("PWM");
+    bufputchar(n);
+    bufputchar('=');
+    uint32_t pwm;
+    switch(n){
+        case '0':
+            pwm = TIM1->CCR1;
+        break;
+        case '1':
+            pwm = TIM1->CCR2;
+        break;
+        default:
+            pwm = TIM1->CCR3;
+    }
+    printu(pwm);
+}
+
+// change Coolerx PWM
+static inline void changePWM(char *str){
     char channel = *str++;
     str = omit_spaces(str);
     uint32_t rpm;
     getnum(str, &rpm);
     if(rpm > 100){
-        SEND("RPM should be from 0 to 100%\n");
+        SEND("PWM should be from 0 to 100%");
         return;
     }
     switch(channel){
@@ -192,41 +219,91 @@ static inline void changeRPM(char *str){
             TIM1->CCR3 = rpm;
         break;
         default:
-            SEND("Cooler number should be from 0 to 2\n");
+            SEND("Cooler number should be from 0 to 2");
     }
 }
 
 static inline void buzzercmd(char cmd){
-    SEND("Buzzer: ");
+    SEND("BUZZER=");
     switch(cmd){
         case '0':
             buzzer = BUZZER_OFF;
-            SEND("off");
+            SEND("OFF");
         break;
         case '1':
             buzzer = BUZZER_ON;
-            SEND("on");
+            SEND("ON");
         break;
         case 'l':
             buzzer = BUZZER_LONG;
-            SEND("long beeps");
+            SEND("LONG");
         break;
         case 's':
             buzzer = BUZZER_SHORT;
-            SEND("short beeps");
+            SEND("SHORT");
         break;
         default:
-            SEND("wrong command");
+            SEND("BADSTATE");
     }
 }
 
-static inline void gett(char chno){
+void gett(char chno){
     if(chno < '0' || chno > '3'){
         SEND("Temperature channel should be 0..3");
         return;
     }
     bufputchar('T'); bufputchar(chno); bufputchar('=');
     printi(getNTC(chno - '0'));
+}
+
+static inline void chkButtons(){
+    SEND("BUTTON0=");
+    bufputchar('1' - CHK(BUTTON0)); // buttons are inverted
+    SEND("\nBUTTON1=");
+    bufputchar('1' - CHK(BUTTON1));
+}
+
+// show current device state: T, RPM, PWM, relay
+void showState(){
+    SEND("TIME=");
+    printu(Tms);
+    newline();
+    for(char x = '0'; x < '4'; ++x){
+        gett(x);
+        newline();
+    }
+    SEND("BUZZER=");
+    switch(buzzer){
+        case BUZZER_ON:
+            SEND("ON");
+        break;
+        case BUZZER_OFF:
+            SEND("OFF");
+        break;
+        case BUZZER_SHORT:
+            SEND("SHORT");
+        break;
+        case BUZZER_LONG:
+            SEND("LONG");
+        break;
+    }
+    newline();
+    chkButtons();
+    newline();
+    coolerRPS('0');
+    newline();
+    coolerRPS('1');
+    newline();
+    for(char x = '0'; x < '3'; ++x){
+        getPWM(x);
+        newline();
+    }
+    onoff('c', COOLER0_port, COOLER0_pin, "COOLER0");
+    newline();
+    onoff('c', COOLER1_port, COOLER1_pin, "COOLER1");
+    newline();
+    onoff('c', RELAY_port, RELAY_pin, "RELAY");
+    NL();
 }
 
 /**
@@ -241,11 +318,11 @@ void cmd_parser(char *txt){
      */
     switch(_1st){
         case '0': // cooler0: set/clear/check
-            onoff(txt[1], COOLER0_port, COOLER0_pin, "Cooler0");
+            onoff(txt[1], COOLER0_port, COOLER0_pin, "COOLER0");
             goto eof;
         break;
-        case '1': // cooler0: set/clear/check
-            onoff(txt[1], COOLER1_port, COOLER1_pin, "Cooler1");
+        case '1': // cooler1: set/clear/check
+            onoff(txt[1], COOLER1_port, COOLER1_pin, "COOLER1");
             goto eof;
         break;
         case 'A': // ADC raw values
@@ -256,16 +333,20 @@ void cmd_parser(char *txt){
             buzzercmd(txt[1]);
             goto eof;
         break;
-        case 'C': // Cooler RPM
-            coolerRPM(txt[1]);
+        case 'C': // Get real Cooler RPM
+            coolerRPS(txt[1]);
+            goto eof;
+        break;
+        case 'G': // get cooler PWM from settings
+            getPWM(txt[1]);
             goto eof;
         break;
         case 'r': // relay: set/clear/check
-            onoff(txt[1], RELAY_port, RELAY_pin, "Relay");
+            onoff(txt[1], RELAY_port, RELAY_pin, "RELAY");
             goto eof;
         break;
-        case 'S': // set RPM
-            changeRPM(txt+1);
+        case 'S': // set PWM
+            changePWM(txt+1);
             goto eof;
         break;
         case 't':
@@ -275,24 +356,26 @@ void cmd_parser(char *txt){
     }
     if(txt[1] != '\n') *txt = '?'; // help for wrong message length
     switch(_1st){
-        case 'a':
-            SEND("ADC1->DR=");
-            printu(ADC1->DR);
-        break;
         case 'B':
-            SEND("Button0=");
-            bufputchar('1' - CHK(BUTTON0)); // buttons are inverted
-            SEND("\nButton1=");
-            bufputchar('1' - CHK(BUTTON1));
+            chkButtons();
         break;
         case 'D':
             SEND("Go into DFU mode\n");
             sendbuf();
             Jump2Boot();
         break;
+        case 'E':
+            showState();
+        break;
         case 'M': // MCU temperature
-            SEND("MCUtemp=");
+            SEND("MCUTEMP=");
             printu(getMCUtemp());
+        break;
+        case 'm': // toggle monitoring
+            showMon = !showMon;
+            SEND("MONITORING=");
+            if(showMon) SEND("on");
+            else SEND("off");
         break;
         case 'R':
             SEND("Soft reset\n");
@@ -300,8 +383,11 @@ void cmd_parser(char *txt){
             pause_ms(5); // a little pause to transmit data
             NVIC_SystemReset();
         break;
+        case 's':
+            showSettings();
+        break;
         case 'T':
-            SEND("Time (ms): ");
+            SEND("TIME=");
             printu(Tms);
             newline();
         break;
@@ -317,24 +403,34 @@ void cmd_parser(char *txt){
             adc_setup();
             SEND("ADC restarted\n");
         break;
+        case '!':
+            SetDontProcess(!GetDontProcess());
+            if(GetDontProcess()) SEND("\n\tManual");
+            else SEND("\n\tAutomatic");
+            SEND(" mode\n");
+        break;
         default: // help
             SEND(
             "'0x' - turn cooler0 on/off (x=1/0) or get status (x - any other)\n"
             "'1x' - turn cooler1 on/off (x=1/0) or get status (x - any other)\n"
             "'Ax' - get ADC raw value (x=0..7)\n"
-            "'a' - show current value of ADC1->DR\n"
             "'B' - buttons' state\n"
             "'bx' - buzzer: x==0 - off, x==1 - on, x==l - long beeps, x==s - short beeps\n"
-            "'Cx' - get cooler x (0/1) RPM\n"
+            "'Cx' - get cooler x (0/1) RPS\n"
             "'D' - activate DFU mode\n"
+            "'E' - show current state\n"
+            "'Gx' - get cooler x (0..3) PWM settings\n"
             "'M' - get MCU temperature\n"
+            "'m' - toggle monitoring\n"
             "'R' - software reset\n"
             "'rx' - relay on/off (x=1/0) or get status\n"
-            "'Sx y' - set coolerx RPM to y\n"
+            "'Sx y' - set coolerx PWM to y\n"
+            "'s' - show settings\n"
             "'T' - get time from start (ms)\n"
             "'tx' - get temperature x (0..3)\n"
             "'V' - get voltage\n"
             "'Z' - reinit ADC\n"
+            "'!' - switch between manual and automatic modes\n"
             );
         break;
     }

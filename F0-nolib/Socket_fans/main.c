@@ -76,7 +76,7 @@ static char *get_USB(){
 }
 
 int main(void){
-    uint32_t lastT = 0;
+    uint32_t lastT = 0, lastTmon = 0;
     char *txt;
     sysreset();
     SysTick_Config(6000, 1);
@@ -94,11 +94,17 @@ int main(void){
             process_monitor();
             lastT = Tms;
         }
+        if(showMon && Tms - lastTmon > 4999){
+            showState();
+            IWDG->KR = IWDG_REFRESH;
+            lastTmon = Tms;
+        }
         usb_proc();
         if((txt = get_USB())){
             IWDG->KR = IWDG_REFRESH;
             cmd_parser(txt);
         }
+        IWDG->KR = IWDG_REFRESH;
         buzzer_chk();
     }
     return 0;

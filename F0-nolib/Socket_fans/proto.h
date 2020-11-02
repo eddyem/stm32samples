@@ -42,13 +42,17 @@
 // newline with buffer sending
 #define NL() do{bufputchar('\n'); sendbuf();}while(0)
 
+extern uint8_t showMon;
+
 void cmd_parser(char *buf);
 void addtobuf(const char *txt);
 void bufputchar(char ch);
+void gett(char chno);
 void printu(uint32_t val);
 void printi(int32_t val);
 void printuhex(uint32_t val);
 void sendbuf();
+void showState();
 
 char *omit_spaces(char *buf);
 char *getnum(char *buf, uint32_t *N);

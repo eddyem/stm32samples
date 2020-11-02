@@ -160,7 +160,6 @@ void Jump2Boot(){
     // reset systick
     SysTick->CTRL = 0;
     // reset clocks
-
     RCC->APB1RSTR = RCC_APB1RSTR_CECRST    | RCC_APB1RSTR_DACRST    | RCC_APB1RSTR_PWRRST    | RCC_APB1RSTR_CRSRST  |
                     RCC_APB1RSTR_CANRST    | RCC_APB1RSTR_USBRST    | RCC_APB1RSTR_I2C2RST   | RCC_APB1RSTR_I2C1RST |
                     RCC_APB1RSTR_USART4RST | RCC_APB1RSTR_USART3RST | RCC_APB1RSTR_USART2RST | RCC_APB1RSTR_SPI2RST |
@@ -177,6 +176,15 @@ void Jump2Boot(){
     RCC->AHBRSTR = 0;
     RCC->APB1RSTR = 0;
     RCC->APB2RSTR = 0;
+/*    // reset GPIO - DON'T WORK! ???
+    GPIOA->MODER = 0; GPIOA->PUPDR = 0; GPIOA->ODR = 0;
+    GPIOB->MODER = 0; GPIOB->PUPDR = 0; GPIOB->ODR = 0;
+    GPIOC->MODER = 0; GPIOC->PUPDR = 0; GPIOC->ODR = 0;
+#ifdef STM32F072xB
+    GPIOD->MODER = 0; GPIOD->PUPDR = 0; GPIOD->ODR = 0;
+    GPIOE->MODER = 0; GPIOE->PUPDR = 0; GPIOE->ODR = 0;
+#endif
+    GPIOF->MODER = 0; GPIOF->PUPDR = 0; GPIOF->ODR = 0; */
     // remap memory to 0 (only for STM32F0)
     SYSCFG->CFGR1 = 0x01; __DSB(); __ISB();
     SysMemBootJump = (void (*)(void)) (*((uint32_t *)(addr + 4)));
@@ -196,50 +204,39 @@ void buzzer_chk(){ // check buzzer state
             case BUZZER_LONG:
                 B = LONG_BUZZER_PERIOD;
                 S = LONG_BUZZER_PAUSE;
-                SEND("long ");
             break;
             case BUZZER_SHORT:
                 B = SHORT_BUZZER_PERIOD;
                 S = SHORT_BUZZER_PAUSE;
-                SEND("short ");
             break;
             default:
             return;
         }
         if(CHK(BUZZER)){ // is ON
-            SEND("1->0\n");
             OFF(BUZZER);
             lastTms = Tms + S;
         }else{ // is OFF
-            SEND("0->1\n");
             ON(BUZZER);
             lastTms = Tms + B;
         }
-        sendbuf();
         return;
     }
-    SEND("New state: ");
     switch(buzzer){ // change buzzer state
         case BUZZER_ON:
             ON(BUZZER);
-            SEND("on");
         break;
         case BUZZER_OFF:
             OFF(BUZZER);
-            SEND("off");
         break;
         case BUZZER_LONG:
             ON(BUZZER);
             lastTms = Tms + LONG_BUZZER_PERIOD;
-            SEND("long");
         break;
         case BUZZER_SHORT:
             ON(BUZZER);
             lastTms = Tms + SHORT_BUZZER_PERIOD;
-            SEND("short");
         break;
     }
-    newline(); sendbuf();
     oldstate = buzzer;
 }
 

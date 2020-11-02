@@ -91,21 +91,21 @@ int16_t getNTC(int nch){
     if(nch < 0 || nch > 3) return -30000;
     uint16_t val = getADCval(nch);
     // find interval
-    int idx = (NKNOTS+1)/2; // middle
-    while(idx > 0 && idx < NKNOTS){
-        int16_t left = ADU[idx];
-        int half = idx / 2;
-        if(val < left){
+    int idx = (NKNOTS)/2, left = 0, right = NKNOTS-1; // left, right, middle
+    while(idx > left && idx < right){
+        int16_t midval = ADU[idx];
+        if(val < midval){
             if(idx == 0) break;
             if(val > ADU[idx-1]){ // found
                 --idx;
                 break;
             }
-            idx = half;
+            right = idx - 1;
+            idx = (left + right)/2;
         }else{
-            if(idx == NKNOTS - 1) break; // more than max value
             if(val < ADU[idx+1]) break;  // found
-            idx += half;
+            left = idx + 1;
+            idx = (left + right)/2;
         }
     }
     if(idx < 0) idx = 0;

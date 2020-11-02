@@ -1,0 +1,5 @@
+/* >>> file start: js/crossStorageServ.js */
+var _typeof="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(e){return typeof e}:function(e){return e&&"function"==typeof Symbol&&e.constructor===Symbol&&e!==Symbol.prototype?"symbol":typeof e};!function(){function e(e){var t="LJ.CrossStorage"===e.data.source;if(!t)return null;var n=e.data;if("object"===("undefined"==typeof n?"undefined":_typeof(n))&&n.fn&&("getItem"===n.fn&&o.parent.postMessage({crossStorageServResponse:localStorage.getItem(n.args[0]),requestID:n.requestID},"*"),"setItem"===n.fn)){var r=n.args[1],f="";"string"==typeof r?f=r:"object"===("undefined"==typeof r?"undefined":_typeof(r))&&(f=JSON.stringify(r)),localStorage.setItem(n.args[0],f)}}function t(){try{return window.self!==window.top}catch(e){return!0}}if(!t())return null;var o=window;"object"===("undefined"==typeof LJMocks?"undefined":_typeof(LJMocks))&&LJMocks.window&&(o=LJMocks.window),o.addEventListener("message",e)}();
+/* <<< file end: js/crossStorageServ.js */
+
+//# map link was there [crossStorageServ.js.map]

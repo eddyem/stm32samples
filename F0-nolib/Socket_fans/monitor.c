@@ -33,23 +33,50 @@ static const int16_t tmax[3] = {900, 800, 600}; // critical T, turn off power af
 static const int16_t t3max = 850;
 
 static uint8_t dontprocess = 0; // don't process monitor
-
 static uint32_t TOff = 0; // time to turn off power
+
+// show hardcoded settings
+void showSettings(){
+    SEND("Thysteresis=30\n");
+    SEND("Tmin={400, 350, 350}\n");
+    SEND("Tmax={900, 800, 600}\n");
+    SEND("T3max=850");
+}
+
 static void chkOffRelay(){
+    static uint32_t scntr = 0;
+    if(!TOff){ // warning cleared
+        scntr = 0;
+        return;
+    }
     if(Tms > TOff){
         TOff = 0;
         OFF(RELAY);
-        SEND("Turn off power");
+        //TIM1->CCR1 = 0; TIM1->CCR2 = 0; TIM1->CCR3 = 0;
+        //dontprocess = 1;
+        SEND("POWEROFF");
         buzzer = BUZZER_OFF;
-    }else SEND("TCRITSHUTDOWNn");
+        scntr = 0;
+    }else{
+        SEND("TCRITSHUTDOWN");
+        printu(++scntr);
+    }
     NL();
 }
 static void startOff(){
-    SEND("TCRITSHUTDOWN"); NL();
+    SEND("TCRITSHUTDOWN0"); NL();
     TOff = Tms + TturnOff;
     if(TOff == 0) TOff = 1;
-    buzzer = BUZZER_LONG;
+    buzzer = BUZZER_ON;
 }
+
+void SetDontProcess(uint8_t newstate){ // set dontprocess value
+    dontprocess = newstate;
+}
+uint8_t GetDontProcess(){ // get dontprocess value
+    return dontprocess;
+}
+
 
 // check buttons state
 static void chkButtons(){
@@ -57,7 +84,7 @@ static void chkButtons(){
     if(CHK(BUTTON0) == 0){ // button 0 pressed - turn on power if was off
         if(CHK(RELAY) == 0){
             ON(RELAY);
-            SEND("Button0: relay ON");NL();
+            SEND("POWERON"); NL();
         }
         dontprocess = 0;
     }
@@ -71,9 +98,12 @@ static void chkButtons(){
          TIM1->CCR1 = 0; TIM1->CCR2 = 0; TIM1->CCR3 = 0;
          OFF(RELAY);
          dontprocess = 1;
-         SEND("Everything is OFF immediately");NL();
+         SEND("POWEROFF"); NL();
     }else Tpressed = 0;
 }
+
+// maximum value of coolerproblem counter
+#define MAXCOOLERPROBLEM        (10)
 
 // monitor temperatures and do something
 void process_monitor(){
@@ -92,9 +122,8 @@ void process_monitor(){
         if(T < tmin[x] - Thysteresis){ // turn off fan
             *ccr = 0;
         }else if(T > tmax[x] + Thysteresis){
-            if(TOff){
-                chkOffRelay();
-            }else{
+            gett('0'+x); NL();
+            if(!TOff){
                 offreason[x] = 1;
                 startOff();
                 *ccr = 100;
@@ -104,18 +133,17 @@ void process_monitor(){
             // check working fan
             int chk = (x==0) ? CHK(COOLER0) : CHK(COOLER1);
             if(chk){ // fan is working, check RPM
-                if(RPM && speed == 0){
-SEND("RPM: "); printu(RPM); SEND(", speed: "); printu(speed); newline();
-                    SEND("Cooler"); bufputchar('0'+x); SEND(" died!");NL();
-                    buzzer = BUZZER_SHORT;
-                    coolerproblem[x] = 1;
+                if(RPM && (speed == 0)){
+                    if(coolerproblem[x] > MAXCOOLERPROBLEM){
+                        buzzer = BUZZER_SHORT;
+                        SEND("COOLER"); bufputchar('0'+x); SEND("DEAD");NL();
+                    }else ++coolerproblem[x];
                 }else if(coolerproblem[x]){
                     buzzer = BUZZER_OFF;
                     coolerproblem[x] = 0;
-                    SEND("Cooler OK");NL();
+                    SEND("COOLER"); bufputchar('0'+x); SEND("OK");NL();
                 }
             }else{ // turn on fan
-                SEND("Turn fan ON"); NL();
                 if(x==0) ON(COOLER0);
                 else ON(COOLER1);
             }
@@ -125,7 +153,6 @@ SEND("RPM: "); printu(RPM); SEND(", speed: "); printu(speed); newline();
                 uint32_t pwm = 20 + tx;
                 if(pwm < 20) pwm = 20;
                 else if(pwm > 100) pwm = 100;
-SEND("Set pwm"); bufputchar('0'+x);SEND(" to "); printu(pwm);NL();
                 *ccr = pwm;
             }
         }
@@ -135,9 +162,8 @@ SEND("Set pwm"); bufputchar('0'+x);SEND(" to "); printu(pwm);NL();
     if(T < tmin[2] - Thysteresis){ // turn off fan
         TIM1->CCR3 = 0;
     }else if(T > tmax[2] + Thysteresis){
-        if(TOff){
-            chkOffRelay();
-        }else{
+        gett('2'); NL();
+        if(!TOff){
             offreason[2] = 1;
             startOff();
             TIM1->CCR3 = 100;
@@ -150,15 +176,18 @@ SEND("Set pwm"); bufputchar('0'+x);SEND(" to "); printu(pwm);NL();
             uint32_t pwm = 40 + tx;
             if(pwm < 40) pwm = 40;
             else if(pwm > 100) pwm = 100;
-SEND("Set pwm3 to "); printu(pwm);NL();
             TIM1->CCR3 = pwm;
         }
     }
     // T3 - turn off power after TturnOff
     if(getNTC(3) > t3max){
-        if(TOff){
-            chkOffRelay();
-        }else{
+        gett('3'); NL();
+        // all coolers to max value
+        TIM1->CCR1 = 100;
+        TIM1->CCR2 = 100;
+        TIM1->CCR3 = 100;
+        ON(COOLER0); ON(COOLER1);
+        if(!TOff){
             offreason[3] = 1;
             startOff();
         }
@@ -172,9 +201,10 @@ SEND("Set pwm3 to "); printu(pwm);NL();
                 break;
             }
         if(!stillbad){
-            SEND("No reason to panic");NL();
+            SEND("CLRPANIC");NL();
             TOff = 0;
             buzzer = BUZZER_OFF;
         }
+        chkOffRelay();
     }
 }
