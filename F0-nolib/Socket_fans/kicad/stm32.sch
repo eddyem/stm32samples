@@ -624,17 +624,6 @@ F 3 "" H 3645 2545 50  0001 C CNN
 	0    1    1    0   
 $EndComp
 $Comp
-L stm32-rescue:Q_NMOS_GSD-Chiller_control-rescue Q3
-U 1 1 5BEEBD24
-P 3995 2545
-F 0 "Q3" H 4195 2595 50  0000 L CNN
-F 1 "IRLML2502" H 3670 2695 50  0000 L CNN
-F 2 "Package_TO_SOT_SMD:SOT-23_Handsoldering" H 4195 2645 50  0001 C CNN
-F 3 "" H 3995 2545 50  0001 C CNN
-	1    3995 2545
-	1    0    0    -1  
-$EndComp
-$Comp
 L stm32-rescue:GND-Chiller_control-rescue #PWR014
 U 1 1 5BEEBD2B
 P 4095 2770
@@ -649,7 +638,6 @@ Text Notes 3240 2045 0    60   ~ 0
 Cooler channels
 Text Notes 700  3335 0    60   ~ 0
 Thermal
-Connection ~ 4095 2745
 Wire Wire Line
 	4095 2770 4095 2745
 Wire Wire Line
@@ -1322,7 +1310,7 @@ Wire Notes Line
 	3250 1500 3250 525 
 Text Label 7865 4600 0    50   ~ 0
 TIM3_CH1
-Text Label 4615 2970 2    50   ~ 0
+Text Label 4565 2960 1    50   ~ 0
 TIM3_CH1
 Text Label 6565 3600 2    60   ~ 0
 Relay
@@ -1344,8 +1332,6 @@ F 3 "" H 4590 2045 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	4140 2745 4095 2745
-Wire Wire Line
 	4440 2445 4865 2445
 Wire Wire Line
 	4440 2445 4440 2045
@@ -1354,13 +1340,13 @@ Wire Wire Line
 $Comp
 L stm32-rescue:R-Chiller_control-rescue R19
 U 1 1 5F4CEB3C
-P 4615 2695
-F 0 "R19" V 4695 2695 50  0000 C CNN
-F 1 "510" V 4615 2695 50  0000 C CNN
-F 2 "Resistor_SMD:R_0603_1608Metric_Pad1.05x0.95mm_HandSolder" V 4545 2695 50  0001 C CNN
-F 3 "" H 4615 2695 50  0001 C CNN
-	1    4615 2695
-	-1   0    0    1   
+P 4715 2545
+F 0 "R19" V 4635 2535 50  0000 C CNN
+F 1 "510" V 4715 2545 50  0000 C CNN
+F 2 "Resistor_SMD:R_0603_1608Metric_Pad1.05x0.95mm_HandSolder" V 4645 2545 50  0001 C CNN
+F 3 "" H 4715 2545 50  0001 C CNN
+	1    4715 2545
+	0    -1   -1   0   
 $EndComp
 $Comp
 L stm32-rescue:R-Chiller_control-rescue R21
@@ -1374,11 +1360,7 @@ F 3 "" H 4865 2795 50  0001 C CNN
 	-1   0    0    1   
 $EndComp
 Wire Wire Line
-	4615 2545 4865 2545
-Wire Wire Line
 	4865 2985 4865 2945
-Wire Wire Line
-	4615 2970 4615 2845
 $Comp
 L Device:D_Schottky D6
 U 1 1 5F4E7DE3
@@ -1423,17 +1405,6 @@ F 3 "" H 3635 3740 50  0001 C CNN
 	0    1    1    0   
 $EndComp
 $Comp
-L stm32-rescue:Q_NMOS_GSD-Chiller_control-rescue Q2
-U 1 1 5F506980
-P 3985 3740
-F 0 "Q2" H 4185 3790 50  0000 L CNN
-F 1 "IRLML2502" H 3660 3890 50  0000 L CNN
-F 2 "Package_TO_SOT_SMD:SOT-23_Handsoldering" H 4185 3840 50  0001 C CNN
-F 3 "" H 3985 3740 50  0001 C CNN
-	1    3985 3740
-	1    0    0    -1  
-$EndComp
-$Comp
 L stm32-rescue:GND-Chiller_control-rescue #PWR012
 U 1 1 5F506986
 P 4085 3965
@@ -1466,7 +1437,7 @@ Wire Wire Line
 	3485 3940 3785 3940
 Text Label 4855 4180 0    50   ~ 0
 TIM1_CH2
-Text Label 4605 4165 2    50   ~ 0
+Text Label 4555 4165 1    50   ~ 0
 TIM14_CH1
 $Comp
 L Connector:Conn_01x04_Male J5
@@ -1493,8 +1464,6 @@ F 3 "" H 4580 3240 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	4130 3940 4085 3940
-Wire Wire Line
 	4430 3640 4855 3640
 Wire Wire Line
 	4430 3640 4430 3240
@@ -1503,13 +1472,13 @@ Wire Wire Line
 $Comp
 L stm32-rescue:R-Chiller_control-rescue R18
 U 1 1 5F5069B5
-P 4605 3890
-F 0 "R18" V 4685 3890 50  0000 C CNN
-F 1 "510" V 4605 3890 50  0000 C CNN
-F 2 "Resistor_SMD:R_0603_1608Metric_Pad1.05x0.95mm_HandSolder" V 4535 3890 50  0001 C CNN
-F 3 "" H 4605 3890 50  0001 C CNN
-	1    4605 3890
-	-1   0    0    1   
+P 4705 3740
+F 0 "R18" V 4625 3740 50  0000 C CNN
+F 1 "510" V 4705 3740 50  0000 C CNN
+F 2 "Resistor_SMD:R_0603_1608Metric_Pad1.05x0.95mm_HandSolder" V 4635 3740 50  0001 C CNN
+F 3 "" H 4705 3740 50  0001 C CNN
+	1    4705 3740
+	0    -1   -1   0   
 $EndComp
 $Comp
 L stm32-rescue:R-Chiller_control-rescue R20
@@ -1523,11 +1492,7 @@ F 3 "" H 4855 3990 50  0001 C CNN
 	-1   0    0    1   
 $EndComp
 Wire Wire Line
-	4605 3740 4855 3740
-Wire Wire Line
 	4855 4180 4855 4140
-Wire Wire Line
-	4605 4165 4605 4040
 Connection ~ 4440 2045
 Wire Wire Line
 	4740 2045 4740 2345
@@ -1974,7 +1939,7 @@ L Device:CP C10
 U 1 1 5F97B2AC
 P 1800 1305
 F 0 "C10" H 1820 1395 50  0000 L CNN
-F 1 "47u" H 1918 1260 50  0000 L CNN
+F 1 "47u, 25V" H 1810 1205 50  0000 L CNN
 F 2 "Capacitor_THT:CP_Radial_D8.0mm_P3.50mm" H 1838 1155 50  0001 C CNN
 F 3 "~" H 1800 1305 50  0001 C CNN
 	1    1800 1305
@@ -1999,4 +1964,81 @@ $EndComp
 Wire Wire Line
 	1545 1455 1800 1455
 Connection ~ 1800 1455
+$Comp
+L stm32-rescue:Q_NMOS_GSD-Chiller_control-rescue Q2
+U 1 1 5F506980
+P 3985 3740
+F 0 "Q2" H 4185 3790 50  0000 L CNN
+F 1 "IRLML2502" H 3660 3890 50  0000 L CNN
+F 2 "Package_TO_SOT_SMD:SOT-23_Handsoldering" H 4185 3840 50  0001 C CNN
+F 3 "" H 3985 3740 50  0001 C CNN
+	1    3985 3740
+	1    0    0    -1  
+$EndComp
+$Comp
+L stm32-rescue:Q_NMOS_GSD-Chiller_control-rescue Q3
+U 1 1 5BEEBD24
+P 3995 2545
+F 0 "Q3" H 4195 2595 50  0000 L CNN
+F 1 "IRLML2502" H 3670 2695 50  0000 L CNN
+F 2 "Package_TO_SOT_SMD:SOT-23_Handsoldering" H 4195 2645 50  0001 C CNN
+F 3 "" H 3995 2545 50  0001 C CNN
+	1    3995 2545
+	1    0    0    -1  
+$EndComp
+Connection ~ 4095 2745
+$Comp
+L Device:D_Zener D10
+U 1 1 5FA13F5D
+P 4395 2695
+F 0 "D10" V 4290 2770 50  0000 C CNN
+F 1 "MM3Z3V6" H 4425 2615 50  0000 C CNN
+F 2 "Diode_SMD:D_0805_2012Metric_Pad1.15x1.40mm_HandSolder" H 4395 2695 50  0001 C CNN
+F 3 "" H 4395 2695 50  0000 C CNN
+	1    4395 2695
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	4565 2545 4565 2960
+Wire Wire Line
+	4565 2545 4395 2545
+Connection ~ 4565 2545
+$Comp
+L stm32-rescue:GND-Chiller_control-rescue #PWR035
+U 1 1 5FA29C2B
+P 4395 2845
+F 0 "#PWR035" H 4395 2595 50  0001 C CNN
+F 1 "GND" H 4395 2695 50  0000 C CNN
+F 2 "" H 4395 2845 50  0000 C CNN
+F 3 "" H 4395 2845 50  0000 C CNN
+	1    4395 2845
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:D_Zener D8
+U 1 1 5FA2A4CC
+P 4385 3890
+F 0 "D8" V 4480 3940 50  0000 C CNN
+F 1 "MM3Z3V6" H 4410 3805 50  0000 C CNN
+F 2 "Diode_SMD:D_0805_2012Metric_Pad1.15x1.40mm_HandSolder" H 4385 3890 50  0001 C CNN
+F 3 "" H 4385 3890 50  0000 C CNN
+	1    4385 3890
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	4555 3740 4555 4165
+Wire Wire Line
+	4555 3740 4385 3740
+Connection ~ 4555 3740
+$Comp
+L stm32-rescue:GND-Chiller_control-rescue #PWR034
+U 1 1 5FA4096E
+P 4385 4040
+F 0 "#PWR034" H 4385 3790 50  0001 C CNN
+F 1 "GND" H 4385 3890 50  0000 C CNN
+F 2 "" H 4385 4040 50  0000 C CNN
+F 3 "" H 4385 4040 50  0000 C CNN
+	1    4385 4040
+	1    0    0    -1  
+$EndComp
 $EndSCHEMATC
