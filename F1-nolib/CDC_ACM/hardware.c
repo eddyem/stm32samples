@@ -23,6 +23,12 @@
 
 #include "hardware.h"
 
+// pause in milliseconds for some purposes
+void pause_ms(uint32_t pause){
+    uint32_t Tnxt = Tms + pause;
+    while(Tms < Tnxt) nop();
+}
+
 static inline void gpio_setup(){
     // Enable clocks to the GPIO subsystems (PB for ADC), turn on AFIO clocking to disable SWD/JTAG
     RCC->APB2ENR |= RCC_APB2ENR_IOPAEN | RCC_APB2ENR_IOPCEN | RCC_APB2ENR_AFIOEN;

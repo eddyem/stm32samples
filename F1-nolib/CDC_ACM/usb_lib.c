@@ -22,7 +22,6 @@
  */
 
 #include <stdint.h>
-#include "usart.h"
 #include "usb_lib.h"
 
 ep_t endpoints[STM32ENDPOINTS];
@@ -88,9 +87,7 @@ static const uint8_t USB_ConfigDescriptor[] = {
     0x00, /* iConfiguration: Index of string descriptor describing the configuration */
     0x80, /* bmAttributes - Bus powered */
     0x32, /* MaxPower 100 mA */
-
     /*---------------------------------------------------------------------------*/
-
     /*Interface Descriptor */
     0x09, /* bLength: Interface Descriptor size */
     0x04, /* bDescriptorType: Interface */
@@ -101,44 +98,38 @@ static const uint8_t USB_ConfigDescriptor[] = {
     0x02, /* bInterfaceSubClass: Abstract Control Model */
     0x01, /* bInterfaceProtocol: Common AT commands */
     0x00, /* iInterface: */
-
     /*Header Functional Descriptor*/
     0x05, /* bLength: Endpoint Descriptor size */
     0x24, /* bDescriptorType: CS_INTERFACE */
     0x00, /* bDescriptorSubtype: Header Func Desc */
     0x10, /* bcdCDC: spec release number */
     0x01,
-
     /*Call Management Functional Descriptor*/
     0x05, /* bFunctionLength */
     0x24, /* bDescriptorType: CS_INTERFACE */
     0x01, /* bDescriptorSubtype: Call Management Func Desc */
     0x00, /* bmCapabilities: D0+D1 */
     0x01, /* bDataInterface: 1 */
-
     /*ACM Functional Descriptor*/
     0x04, /* bFunctionLength */
     0x24, /* bDescriptorType: CS_INTERFACE */
     0x02, /* bDescriptorSubtype: Abstract Control Management desc */
     0x02, /* bmCapabilities */
-
     /*Union Functional Descriptor*/
     0x05, /* bFunctionLength */
     0x24, /* bDescriptorType: CS_INTERFACE */
     0x06, /* bDescriptorSubtype: Union func desc */
     0x00, /* bMasterInterface: Communication class interface */
     0x01, /* bSlaveInterface0: Data Class Interface */
-
     /*Endpoint 1 Descriptor*/
     0x07, /* bLength: Endpoint Descriptor size */
     0x05, /* bDescriptorType: Endpoint */
-    0x81, /* bEndpointAddress IN1 */
+    0x8A, /* bEndpointAddress IN10 */
     0x03, /* bmAttributes: Interrupt */
     (USB_EP1BUFSZ & 0xff), /* wMaxPacketSize LO: */
     (USB_EP1BUFSZ >> 8), /* wMaxPacketSize HI: */
     0x10, /* bInterval: */
     /*---------------------------------------------------------------------------*/
-
     /*Data class interface descriptor*/
     0x09, /* bLength: Endpoint Descriptor size */
     0x04, /* bDescriptorType: */
@@ -149,20 +140,18 @@ static const uint8_t USB_ConfigDescriptor[] = {
     0x02, /* bInterfaceSubClass: */
     0x00, /* bInterfaceProtocol: */
     0x00, /* iInterface: */
-
     /*Endpoint IN3 Descriptor*/
     0x07, /* bLength: Endpoint Descriptor size */
     0x05, /* bDescriptorType: Endpoint */
-    0x83, /* bEndpointAddress IN3 */
+    0x81, /* bEndpointAddress: IN1 */
     0x02, /* bmAttributes: Bulk */
     (USB_TXBUFSZ & 0xff), /* wMaxPacketSize: 64 */
     (USB_TXBUFSZ >> 8),
     0x00, /* bInterval: ignore for Bulk transfer */
-
-    /*Endpoint OUT2 Descriptor*/
+    /*Endpoint OUT1 Descriptor*/
     0x07, /* bLength: Endpoint Descriptor size */
     0x05, /* bDescriptorType: Endpoint */
-    0x02, /* bEndpointAddress */
+    0x01, /* bEndpointAddress: OUT1 */
     0x02, /* bmAttributes: Bulk */
     (USB_TXBUFSZ & 0xff), /* wMaxPacketSize: 64 */
     (USB_TXBUFSZ >> 8),
@@ -181,17 +170,17 @@ USB_STRING(USB_StringProdDescriptor, u"USB-Serial Controller");
  */
 // SET_LINE_CODING
 void WEAK linecoding_handler(usb_LineCoding __attribute__((unused)) *lcd){
-    MSG("linecoding_handler()");
+    //MSG("linecoding_handler()");
 }
 
 // SET_CONTROL_LINE_STATE
 void WEAK clstate_handler(uint16_t __attribute__((unused)) val){
-    MSG("clstate_handler()");
+    //MSG("clstate_handler()");
 }
 
 // SEND_BREAK
 void WEAK break_handler(){
-    MSG("break_handler()");
+    //MSG("break_handler()");
 }
 
 static void wr0(const uint8_t *buf, uint16_t size){
@@ -225,35 +214,27 @@ static void wr0(const uint8_t *buf, uint16_t size){
 static inline void get_descriptor(){
     switch(setup_packet.wValue){
         case DEVICE_DESCRIPTOR:
-            //MSG("DEVICE_D");
             wr0(USB_DeviceDescriptor, sizeof(USB_DeviceDescriptor));
         break;
         case CONFIGURATION_DESCRIPTOR:
-            //MSG("CONF_D");
             wr0(USB_ConfigDescriptor, sizeof(USB_ConfigDescriptor));
         break;
         case STRING_LANG_DESCRIPTOR:
-            //MSG("S_L_D");
             wr0((const uint8_t *)&USB_StringLangDescriptor, STRING_LANG_DESCRIPTOR_SIZE_BYTE);
         break;
         case STRING_MAN_DESCRIPTOR:
-            //MSG("S_M_D");
             wr0((const uint8_t *)&USB_StringManufacturingDescriptor, USB_StringManufacturingDescriptor.bLength);
         break;
         case STRING_PROD_DESCRIPTOR:
-            //MSG("S_P_D");
             wr0((const uint8_t *)&USB_StringProdDescriptor, USB_StringProdDescriptor.bLength);
         break;
         case STRING_SN_DESCRIPTOR:
-            //MSG("S_SN_D");
             wr0((const uint8_t *)&USB_StringSerialDescriptor, USB_StringSerialDescriptor.bLength);
         break;
         case DEVICE_QUALIFIER_DESCRIPTOR:
-            //MSG("D_Q_D");
             wr0(USB_DeviceQualifierDescriptor, USB_DeviceQualifierDescriptor[0]);
         break;
         default:
-            DBG("WTF?");
         break;
     }
 }
@@ -266,15 +247,12 @@ static inline void std_d2h_req(){
             get_descriptor();
         break;
         case GET_STATUS:
-            //MSG("GET_STAT");
             EP_WriteIRQ(0, (uint8_t *)&state, 2); // send status: Bus Powered
         break;
         case GET_CONFIGURATION:
-            //MSG("GET_CONF");
             EP_WriteIRQ(0, &configuration, 1);
         break;
         default:
-            DBG("WTF?");
         break;
     }
 }
@@ -282,18 +260,15 @@ static inline void std_d2h_req(){
 static inline void std_h2d_req(){
     switch(setup_packet.bRequest){
         case SET_ADDRESS:
-            //MSG("SET_ADDR");
             // new address will be assigned later - after  acknowlegement or request to host
             USB_Dev.USB_Addr = setup_packet.wValue;
         break;
         case SET_CONFIGURATION:
-            //MSG("SET_CONF");
             // Now device configured
             USB_Dev.USB_Status = USB_STATE_CONFIGURED;
             configuration = setup_packet.wValue;
         break;
         default:
-            DBG("WTF?");
         break;
     }
 }
@@ -315,7 +290,6 @@ static void EP0_Handler(){
     if(rxflag && SETUP_FLAG(epstatus)){
         switch(reqtype){
             case STANDARD_DEVICE_REQUEST_TYPE: // standard device request
-                //DBG("SDRT");
                 if(dev2host){
                     std_d2h_req();
                 }else{
@@ -324,43 +298,33 @@ static void EP0_Handler(){
                 }
             break;
             case STANDARD_ENDPOINT_REQUEST_TYPE: // standard endpoint request
-                //DBG("SERT");
                 if(setup_packet.bRequest == CLEAR_FEATURE){
-                    //MSG("CLEAR_F");
                     EP_WriteIRQ(0, (uint8_t *)0, 0);
                 }else{
-                    DBG("WTF?");
                 }
             break;
             case CONTROL_REQUEST_TYPE:
-                //DBG("CRT");
                 switch(setup_packet.bRequest){
                     case GET_LINE_CODING:
-                        //MSG("GET_LINE_C");
                         EP_WriteIRQ(0, (uint8_t*)&lineCoding, sizeof(lineCoding));
                     break;
                     case SET_LINE_CODING: // omit this for next stage, when data will come
-                        //MSG("SET_LINE_C");
                     break;
                     case SET_CONTROL_LINE_STATE:
-                        //MSG("SET_CLS");
                         usbON = 1;
                         clstate_handler(setup_packet.wValue);
                     break;
                     case SEND_BREAK:
-                        //MSG("SEND_BREAK");
                         usbON = 0;
                         break_handler();
                     break;
                     default:
-                        DBG("WTF?");
                     break;
                 }
                 if(setup_packet.bRequest != GET_LINE_CODING) EP_WriteIRQ(0, (uint8_t *)0, 0);
             break;
             default:
                 EP_WriteIRQ(0, (uint8_t *)0, 0);
-                DBG("WTF?");
         }
     }else if(rxflag){ // got data over EP0 or host acknowlegement
         if(endpoints[0].rx_cnt){
@@ -374,7 +338,6 @@ static void EP0_Handler(){
             USB->DADDR = USB_DADDR_EF | USB_Dev.USB_Addr;
             // change state to ADRESSED
             USB_Dev.USB_Status = USB_STATE_ADDRESSED;
-            //DBG("Addressed");
         }
     }
     epstatus = KEEP_DTOG(USB->EPnR[0]);
@@ -424,7 +387,6 @@ int EP_Init(uint8_t number, uint8_t type, uint16_t txsz, uint16_t rxsz, void (*f
 // standard IRQ handler
 void usb_lp_can_rx0_isr(){
     if(USB->ISTR & USB_ISTR_RESET){
-        //DBG("USB reset");
         usbON = 0;
         // Reinit registers
         USB->CNTR = USB_CNTR_RESETM | USB_CNTR_CTRM | USB_CNTR_SUSPM | USB_CNTR_WKUPM;
@@ -466,13 +428,11 @@ void usb_lp_can_rx0_isr(){
         if(endpoints[n].func) endpoints[n].func(endpoints[n]);
     }
     if(USB->ISTR & USB_ISTR_SUSP){ // suspend -> still no connection, may sleep
-        //DBG("USB suspend");
         usbON = 0;
         USB->CNTR |= USB_CNTR_FSUSP | USB_CNTR_LP_MODE;
         USB->ISTR = ~USB_ISTR_SUSP;
     }
     if(USB->ISTR & USB_ISTR_WKUP){ // wakeup
-        //DBG("USB wakeup");
         USB->CNTR &= ~(USB_CNTR_FSUSP | USB_CNTR_LP_MODE); // clear suspend flags
         USB->ISTR = ~USB_ISTR_WKUP;
     }

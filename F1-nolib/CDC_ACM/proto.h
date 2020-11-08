@@ -1,6 +1,6 @@
 /*
  *                                                                                                  geany_encoding=koi8-r
- * usb.h
+ * proto.h
  *
  * Copyright 2018 Edward V. Emelianov <eddy@sao.ru, edward.emelianoff@gmail.com>
  *
@@ -21,19 +21,35 @@
  *
  */
 #pragma once
-#ifndef __USB_H__
-#define __USB_H__
+#ifndef __PROTO_H__
+#define __PROTO_H__
 
+#include "stm32f1.h"
 #include "hardware.h"
 
-// send string with constant length
-#define USND(str)  do{USB_send((uint8_t*)str, sizeof(str)-1);}while(0)
+#define BUFSZ   (64)
 
-void USB_setup();
-void usb_proc();
-void USB_send(const uint8_t *buf, uint16_t len);
-void USB_sendstr(const char *str);
-void USB_send_blk(const uint8_t *buf, uint16_t len);
-uint8_t USB_receive(uint8_t *buf);
+// macro for static strings
+#define SEND(str) do{addtobuf(str);}while(0)
 
-#endif // __USB_H__
+#ifdef EBUG
+#define MSG(str)  do{addtobuf(__FILE__ " (L" STR(__LINE__) "): " str);}while(0)
+#else
+#define MSG(str)
+#endif
+
+#define newline() do{bufputchar('\n');}while(0)
+// newline with buffer sending over USART
+#define NL() do{bufputchar('\n'); sendbuf();}while(0)
+
+void cmd_parser(char *buf);
+void addtobuf(const char *txt);
+void bufputchar(char ch);
+void printu(uint32_t val);
+void printuhex(uint32_t val);
+void sendbuf();
+
+char *omit_spaces(char *buf);
+char *getnum(char *buf, uint32_t *N);
+
+#endif // __PROTO_H__

@@ -40,6 +40,9 @@
 #define LED_on(x)       pin_clear(x ## _port, x ## _pin)
 #define LED_off(x)      pin_set(x ## _port, x ## _pin)
 
+extern volatile uint32_t Tms;
+
+void pause_ms(uint32_t pause);
 void hw_setup();
 
 #endif // __HARDWARE_H__

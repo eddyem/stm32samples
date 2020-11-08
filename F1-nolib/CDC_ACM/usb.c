@@ -22,34 +22,20 @@
  */
 #include "usb.h"
 #include "usb_lib.h"
-#include "usart.h"
 
 static volatile uint8_t tx_succesfull = 1;
-
-// interrupt IN handler (never used?)
-static void EP1_Handler(){
-    DBG("EP1");
-    uint16_t epstatus = KEEP_DTOG(USB->EPnR[1]);
-    if(RX_FLAG(epstatus)) epstatus = (epstatus & ~USB_EPnR_STAT_TX) ^ USB_EPnR_STAT_RX; // set valid RX
-    else epstatus = epstatus & ~(USB_EPnR_STAT_TX|USB_EPnR_STAT_RX);
-    // clear CTR
-    epstatus = (epstatus & ~(USB_EPnR_CTR_RX|USB_EPnR_CTR_TX));
-    USB->EPnR[1] = epstatus;
-}
-
-// data IN/OUT handlers
-static void transmit_Handler(){ // EP3IN
-    tx_succesfull = 1;
-    uint16_t epstatus = KEEP_DTOG_STAT(USB->EPnR[3]);
-    // clear CTR keep DTOGs & STATs
-    USB->EPnR[3] = (epstatus & ~(USB_EPnR_CTR_TX)); // clear TX ctr
-}
-
 static uint8_t rxNE = 0;
-static void receive_Handler(){ // EP2OUT
-    rxNE = 1;
-    uint16_t epstatus = KEEP_DTOG_STAT(USB->EPnR[2]);
-    USB->EPnR[2] = (epstatus & ~(USB_EPnR_CTR_RX)); // clear RX ctr
+
+static void rxtx_Handler(){
+    uint16_t epstatus = KEEP_DTOG(USB->EPnR[1]);
+    if(RX_FLAG(epstatus)){
+        rxNE = 1;
+        epstatus = (epstatus & ~(USB_EPnR_STAT_TX|USB_EPnR_CTR_RX)) ^ USB_EPnR_STAT_RX; // keep stat Tx & set valid RX, clear CTR Rx
+    }else{
+        tx_succesfull = 1;
+        epstatus = (epstatus & ~(USB_EPnR_STAT_TX|USB_EPnR_CTR_TX)) ^ USB_EPnR_STAT_RX; // keep stat Tx & set valid RX, clear CTR Tx
+    }
+    USB->EPnR[1] = epstatus;
 }
 
 void USB_setup(){
@@ -64,8 +50,8 @@ void USB_setup(){
     USB->ISTR   = 0;
     USB->CNTR   = USB_CNTR_RESETM | USB_CNTR_WKUPM; // allow only wakeup & reset interrupts
     NVIC_EnableIRQ(USB_LP_CAN1_RX0_IRQn);
-    DBG("USB irq enabled");
 }
+
 
 static int usbwr(const uint8_t *buf, uint16_t l){
     uint32_t ctra = 1000000;
@@ -73,12 +59,12 @@ static int usbwr(const uint8_t *buf, uint16_t l){
         IWDG->KR = IWDG_REFRESH;
     }
     tx_succesfull = 0;
-    EP_Write(3, buf, l);
+    EP_Write(1, buf, l);
     ctra = 1000000;
     while(--ctra && tx_succesfull == 0){
         IWDG->KR = IWDG_REFRESH;
     }
-    if(tx_succesfull == 0){usbON = 0; DBG("USB disconnected"); return 1;} // usb is OFF?
+    if(tx_succesfull == 0){usbON = 0; return 1;} // usb is OFF?
     return 0;
 }
 
@@ -89,7 +75,7 @@ static uint8_t buflen = 0; // amount of symbols in usbbuff
 static void send_next(){
     if(!buflen || !tx_succesfull) return;
     tx_succesfull = 0;
-    EP_Write(3, usbbuff, buflen);
+    EP_Write(1, usbbuff, buflen);
     buflen = 0;
 }
 
@@ -105,6 +91,14 @@ void USB_send(const uint8_t *buf, uint16_t len){
         return;
     }
     while(len--) usbbuff[buflen++] = *buf++;
+}
+
+// send zero-terminated string
+void USB_sendstr(const char *str){
+    uint16_t l = 0;
+    const char *ptr = str;
+    while(*ptr++) ++l;
+    USB_send((uint8_t*)str, l);
 }
 
 // blocking sending
@@ -132,16 +126,13 @@ void usb_proc(){
         case USB_STATE_CONFIGURED:
             // make new BULK endpoint
             // Buffer have 1024 bytes, but last 256 we use for CAN bus (30.2 of RM: USB main features)
-            EP_Init(1, EP_TYPE_INTERRUPT, USB_EP1BUFSZ, 0, EP1_Handler); // IN1 - transmit
-            EP_Init(2, EP_TYPE_BULK, 0, USB_RXBUFSZ, receive_Handler); // OUT2 - receive data
-            EP_Init(3, EP_TYPE_BULK, USB_TXBUFSZ, 0, transmit_Handler); // IN3 - transmit data
+            //EP_Init(1, EP_TYPE_INTERRUPT, USB_EP1BUFSZ, 0, EP1_Handler); // IN1 - transmit
+            EP_Init(1, EP_TYPE_BULK, USB_TXBUFSZ, USB_RXBUFSZ, rxtx_Handler); // INOUT1 - transmit/receive data
             USB_Dev.USB_Status = USB_STATE_CONNECTED;
-            DBG("Connected");
         break;
         case USB_STATE_DEFAULT:
         case USB_STATE_ADDRESSED:
             if(usbON){
-                DBG("def/adr");
                 usbON = 0;
             }
         break;
@@ -158,11 +149,10 @@ void usb_proc(){
  */
 uint8_t USB_receive(uint8_t *buf){
     if(!usbON || !rxNE) return 0;
-    //DBG("Get data");
-    uint8_t sz = EP_Read(2, (uint16_t*)buf);
-    uint16_t epstatus = KEEP_DTOG(USB->EPnR[2]);
+    uint8_t sz = EP_Read(1, (uint16_t*)buf);
+    uint16_t epstatus = KEEP_DTOG(USB->EPnR[1]);
     // keep stat_tx & set ACK rx
-    USB->EPnR[2] = (epstatus & ~(USB_EPnR_STAT_TX)) ^ USB_EPnR_STAT_RX;
+    USB->EPnR[1] = (epstatus & ~(USB_EPnR_STAT_TX)) ^ USB_EPnR_STAT_RX;
     rxNE = 0;
     return sz;
 }

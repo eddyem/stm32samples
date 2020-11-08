@@ -14,6 +14,7 @@ This directory contains examples for F0 without any library
 - QuadEncoder - sample code for working with quadrature encoder (via timer)
 - Servo - simple servo (like SG-90) controller
 - Snippets - some small code snippets
+- Socket_fans - fan manager
 - TM1637 - work with 7-segment LED indicators based on TM1637
 - tsys01_nucleo - read two TSYS01 sensors using STM32F042
 - uart - USART over DMA with hardware end-of-string detection
@@ -22,3 +23,4 @@ This directory contains examples for F0 without any library
 - uart_nucleo - USART over DMA for STM32F042-nucleo
 - usbcan - USB<>CAN bridge using PL2303 emulation
 - USBHID - USB HID keyboard + mouse
+- USB_pl2303_snippet - full minimal snippet of PL2303 emulation for STM32F072xB
