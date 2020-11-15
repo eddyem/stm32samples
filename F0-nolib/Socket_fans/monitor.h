@@ -25,7 +25,6 @@
 #define MONITOR_PERIOD      (999)
 
 void process_monitor();
-void showSettings();
 void SetDontProcess(uint8_t newstate);
 uint8_t GetDontProcess();
 #define MONITOR_H__

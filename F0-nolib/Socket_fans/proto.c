@@ -21,6 +21,7 @@
  *
  */
 #include "adc.h"
+#include "flash.h"
 #include "hardware.h"
 #include "monitor.h"
 #include "proto.h"
@@ -306,6 +307,104 @@ void showState(){
     NL();
 }
 
+static uint8_t userconf_changed = 0; // ==1 if user_conf was changed
+static const char *nshould = "N should be from 0 to ";
+static const char *changed = "Changed OK\n";
+static const char *notchanged = "Not changed: the same value\n";
+static inline void setArrval(int16_t *arr, uint8_t maxelem, char *params){
+    uint32_t N, val;
+    int16_t sign = 1;
+    char *next = getnum(params, &N);
+    if(N > maxelem){
+        SEND(nshould);
+        printu(maxelem); newline();
+        return;
+    }
+    next = omit_spaces(next);
+    if(*next == '-'){
+        next = omit_spaces(next+1);
+        sign = -1;
+    }
+    char *rest = getnum(next, &val);
+    if(*rest && *rest != '\n'){
+        SEND("Arguments are: N T, where N is channel number, T - temperature\n");
+        return;
+    }
+    sign *= (int16_t)val;
+    if(arr[N] != sign){
+        arr[N] = sign;
+        userconf_changed = 1;
+        SEND(changed);
+    }else SEND(notchanged);
+}
+static inline void setval(uint32_t *var, char *params){
+    uint32_t val;
+    char *next = getnum(params, &val);
+    if(*next && *next != '\n'){
+        SEND("Argument is 32-bit number\n");
+        return;
+    }
+    if(*var != val){
+        *var = val;
+        userconf_changed = 1;
+        SEND(changed);
+    }else SEND(notchanged);
+}
+static inline void showSettings(){
+    int i;
+    SEND("Tturnoff="); printu(the_conf.Tturnoff); newline();
+    SEND("Thysteresis="); printu(the_conf.Thyst); newline();
+    SEND("Tmin={");
+    for(i = 0; i < TMINNO; ++i){
+        if(i) SEND(", ");
+        printu(the_conf.Tmin[i]);
+    }
+    SEND("}\n");
+    SEND("Tmax={");
+    for(i = 0; i < TMAXNO; ++i){
+        if(i) SEND(", ");
+        printu(the_conf.Tmax[i]);
+    }
+    SEND("}\n");
+}
+static inline void setters(char *txt){ // setters
+    txt = omit_spaces(txt);
+    if(!*txt){
+        SEND("Setters need more arguments");
+        return;
+    }
+    char *next = omit_spaces(txt+1);
+    switch(*txt){
+        case '<': // Tmin
+            setArrval(the_conf.Tmin, TMINNO-1, next);
+        break;
+        case '>': // Tmax
+            setArrval(the_conf.Tmax, TMAXNO-1, next);
+        break;
+        case 'H': // Thyst
+            setval(&the_conf.Thyst, next);
+        break;
+        case 'O': // Tturnoff
+            setval(&the_conf.Tturnoff, next);
+        break;
+        case 'S': // save settings
+            if(userconf_changed){
+                if(!store_userconf()){
+                    userconf_changed = 0;
+                    SEND("Stored!");
+                }else SEND("Error when storing!");
+            }
+        break;
+        default:
+            SEND("Setters:\n"
+                 "< N T - set nth (0..2) Tmin (T/10degrC)\n"
+                 "> N T - set Tmax\n"
+                 "H T - set temperature hysteresis (T/10degrC)\n"
+                 "O t - time to turn off after emergency (t in ms)\n"
+                 "S - save settings\n");
+    }
+}
+
 /**
  * @brief cmd_parser - command parsing
  * @param txt   - buffer with commands & data
@@ -341,14 +440,17 @@ void cmd_parser(char *txt){
             getPWM(txt[1]);
             goto eof;
         break;
+        case 'P': // set PWM
+            changePWM(txt+1);
+            goto eof;
+        break;
         case 'r': // relay: set/clear/check
             onoff(txt[1], RELAY_port, RELAY_pin, "RELAY");
             goto eof;
         break;
-        case 'S': // set PWM
-            changePWM(txt+1);
+        case 'S': // setters
+            setters(&txt[1]);
             goto eof;
-        break;
         case 't':
             gett(txt[1]);
             goto eof;
@@ -422,9 +524,10 @@ void cmd_parser(char *txt){
             "'Gx' - get cooler x (0..3) PWM settings\n"
             "'M' - get MCU temperature\n"
             "'m' - toggle monitoring\n"
+            "'Px y' - set coolerx PWM to y\n"
             "'R' - software reset\n"
             "'rx' - relay on/off (x=1/0) or get status\n"
-            "'Sx y' - set coolerx PWM to y\n"
+            "'S' - setters\n"
             "'s' - show settings\n"
             "'T' - get time from start (ms)\n"
             "'tx' - get temperature x (0..3)\n"

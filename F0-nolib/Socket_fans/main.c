@@ -19,6 +19,7 @@
  * MA 02110-1301, USA.
  */
 
+#include "flash.h"
 #include "hardware.h"
 #include "monitor.h"
 #include "proto.h"
@@ -80,6 +81,7 @@ int main(void){
     char *txt;
     sysreset();
     SysTick_Config(6000, 1);
+    flashstorage_init();
     HW_setup();
     USB_setup();
     RCC->CSR |= RCC_CSR_RMVF; // remove reset flags

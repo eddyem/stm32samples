@@ -17,31 +17,24 @@
  */
 
 #include "adc.h"
+#include "flash.h"
 #include "monitor.h"
 #include "proto.h"
 
 // when critical T reached wait for TturnOff ms and after that turn off system
-#define TturnOff    (20000)
+#define TturnOff    the_conf.Tturnoff
 // don't mind when button 2 pressed again after t<5s
 #define TbtnPressed (5000)
 
 // settings
 // T0 - CPU, T1 - HDD, T2 - inner T, T3 - power source
-static const int16_t Thysteresis = 30; // hysteresis by T=3degC
-static const int16_t tmin[3] = {400, 350, 350}; // turn off fans when T[x]<tmin[x]+Th, turn on when >tmin+Th
-static const int16_t tmax[3] = {900, 800, 600}; // critical T, turn off power after TturnOff milliseconds
-static const int16_t t3max = 850;
+#define Thysteresis (int16_t)the_conf.Thyst
+#define tmin        the_conf.Tmin
+#define tmax        the_conf.Tmax
+#define t3max       the_conf.Tmax[TMAXNO-1]
 
 static uint8_t dontprocess = 0; // don't process monitor
 static uint32_t TOff = 0; // time to turn off power
-
-// show hardcoded settings
-void showSettings(){
-    SEND("Thysteresis=30\n");
-    SEND("Tmin={400, 350, 350}\n");
-    SEND("Tmax={900, 800, 600}\n");
-    SEND("T3max=850");
-}
 
 static void chkOffRelay(){
     static uint32_t scntr = 0;
