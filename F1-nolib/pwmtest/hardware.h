@@ -22,8 +22,8 @@
 
 #include "stm32f1.h"
 
-#define HIGHSPEED
-#define LEDS_NUM    (60)
+// frequency of TIM1 clocking
+#define TIM1FREQ    (72000000)
 
 // LED0 - PC13 (bluepill), blinking each second
 #define LED0_port   GPIOC
@@ -41,5 +41,11 @@
 
 void hw_setup();
 void iwdg_setup();
+
+#define PWM_ON()        do{TIM1->CR1 = TIM_CR1_CEN | TIM_CR1_ARPE;}while(0)
+#define PWM_OFF()       do{TIM1->CR1 = TIM_CR1_ARPE;}while(0)
+
+int changePWMfreq(uint32_t freq);
+int changePWMduty(uint32_t duty);
 
 #endif // __HARDWARE_H__

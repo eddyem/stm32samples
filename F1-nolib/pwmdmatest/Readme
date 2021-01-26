@@ -1,0 +1,2 @@
+Generate signals on PA8 by PWM through DMA @ TIM1_CC1.
+Example for slow and high speed. High speed example works with 1-meter WS2815 LED strip (60 LEDs).

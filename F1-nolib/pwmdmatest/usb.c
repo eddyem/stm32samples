@@ -16,17 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-//#include <string.h>
-
 #include "usb.h"
 #include "usb_lib.h"
-
-static int sstrlen(const char *s){
-    if(!s) return 0;
-    int l = 0;
-    while(*s++) ++l;
-    return l;
-}
 
 static volatile uint8_t tx_succesfull = 1;
 static volatile uint8_t rxNE = 0;
@@ -96,8 +87,22 @@ static void send_next(){
     buflen = 0;
 }
 
+// unblocking sending - just fill a buffer
+void USB_send(const char *buf, uint16_t len){
+    if(!usbON || !len) return;
+    if(len > USB_TXBUFSZ-1 - buflen){
+        usbwr(usbbuff, buflen);
+        buflen = 0;
+    }
+    if(len > USB_TXBUFSZ-1){
+        USB_send_blk(buf, len);
+        return;
+    }
+    while(len--) usbbuff[buflen++] = *buf++;
+}
+
 // blocking sending
-static void _USB_send_blk(const char *buf, int len){
+void USB_send_blk(const char *buf, uint16_t len){
     if(!usbON || !len) return; // USB disconnected
     if(buflen){
         usbwr(usbbuff, buflen);
@@ -114,26 +119,6 @@ static void _USB_send_blk(const char *buf, int len){
     if(needzlp){
         usbwr(NULL, 0);
     }
-}
-
-// unblocking sending - just fill a buffer
-void USB_send(const char *buf){
-    if(!usbON || !buf || !*buf) return;
-    int len = sstrlen(buf);
-    if(len > USB_TXBUFSZ-1 - buflen){
-        usbwr(usbbuff, buflen);
-        buflen = 0;
-    }
-    if(len > USB_TXBUFSZ-1){
-        _USB_send_blk(buf, len);
-        return;
-    }
-    while(len--) usbbuff[buflen++] = *buf++;
-}
-
-void USB_send_blk(const char *buf){
-    int len = sstrlen(buf);
-    _USB_send_blk(buf, len);
 }
 
 void usb_proc(){

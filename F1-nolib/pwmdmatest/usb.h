@@ -15,13 +15,19 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 #pragma once
-#ifndef PROTO_H__
-#define PROTO_H__
+#ifndef __USB_H__
+#define __USB_H__
 
-#include <stm32f1.h>
+#include "hardware.h"
 
-const char *parse_cmd(const char *buf);
-char *u2str(uint32_t val);
+#define BUFFSIZE   (64)
 
-#endif // PROTO_H__
+void USB_setup();
+void usb_proc();
+void USB_send(const char *buf, uint16_t len);
+void USB_send_blk(const char *buf, uint16_t len);
+uint8_t USB_receive(uint8_t *buf);
+
+#endif // __USB_H__

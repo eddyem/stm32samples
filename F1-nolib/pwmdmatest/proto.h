@@ -19,9 +19,6 @@
 #ifndef PROTO_H__
 #define PROTO_H__
 
-#include <stm32f1.h>
-
 const char *parse_cmd(const char *buf);
-char *u2str(uint32_t val);
 
 #endif // PROTO_H__
