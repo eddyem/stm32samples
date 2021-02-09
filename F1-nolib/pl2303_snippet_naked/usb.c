@@ -1,5 +1,5 @@
 /*
- * This file is part of the si7005 project.
+ * This file is part of the pl2303 project.
  * Copyright 2020 Edward V. Emelianov <edward.emelianoff@gmail.com>.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -21,13 +21,6 @@
 
 static volatile uint8_t tx_succesfull = 1;
 static volatile uint8_t rxNE = 0;
-
-static int sstrlen(const char *s){
-    if(!s) return 0;
-    int l = 0;
-    while(*s++) ++l;
-    return l;
-}
 
 // interrupt IN handler (never used?)
 static void EP1_Handler(){
@@ -68,13 +61,13 @@ void USB_setup(){
     NVIC_EnableIRQ(USB_LP_CAN1_RX0_IRQn);
 }
 
-static int usbwr(const char *buf, int l){
+static int usbwr(const uint8_t *buf, uint16_t l){
     uint32_t ctra = 1000000;
     while(--ctra && tx_succesfull == 0){
         IWDG->KR = IWDG_REFRESH;
     }
     tx_succesfull = 0;
-    EP_Write(3, (uint8_t*)buf, l);
+    EP_Write(3, buf, l);
     ctra = 1000000;
     while(--ctra && tx_succesfull == 0){
         IWDG->KR = IWDG_REFRESH;
@@ -83,20 +76,19 @@ static int usbwr(const char *buf, int l){
     return 0;
 }
 
-static char usbbuff[USB_TXBUFSZ-1]; // temporary buffer (63 - to prevent need of ZLP)
-static int buflen = 0; // amount of symbols in usbbuff
+static uint8_t usbbuff[USB_TXBUFSZ-1]; // temporary buffer (63 - to prevent need of ZLP)
+static uint8_t buflen = 0; // amount of symbols in usbbuff
 
 // send next up to 63 bytes of data in usbbuff
 static void send_next(){
     if(!buflen || !tx_succesfull) return;
     tx_succesfull = 0;
-    EP_Write(3, (uint8_t*)usbbuff, buflen);
+    EP_Write(3, usbbuff, buflen);
     buflen = 0;
 }
 
 // unblocking sending - just fill a buffer
-void USB_send(const char *buf){
-    int len = sstrlen(buf);
+void USB_send(const uint8_t *buf, uint16_t len){
     if(!usbON || !len) return;
     if(len > USB_TXBUFSZ-1 - buflen){
         usbwr(usbbuff, buflen);
@@ -110,7 +102,7 @@ void USB_send(const char *buf){
 }
 
 // blocking sending
-void USB_send_blk(const char *buf, int len){
+void USB_send_blk(const uint8_t *buf, uint16_t len){
     if(!usbON || !len) return; // USB disconnected
     if(buflen){
         usbwr(usbbuff, buflen);
@@ -119,7 +111,7 @@ void USB_send_blk(const char *buf, int len){
     int needzlp = 0;
     while(len){
         if(len == USB_TXBUFSZ) needzlp = 1;
-        int s = (len > USB_TXBUFSZ) ? USB_TXBUFSZ : len;
+        uint16_t s = (len > USB_TXBUFSZ) ? USB_TXBUFSZ : len;
         if(usbwr(buf, s)) return;
         len -= s;
         buf += s;
@@ -156,9 +148,9 @@ void usb_proc(){
  * @param buf (i) - buffer[64] for received data
  * @return amount of received bytes
  */
-int USB_receive(char *buf){
+uint8_t USB_receive(uint8_t *buf){
     if(!usbON || !rxNE) return 0;
-    int sz = EP_Read(2, (uint16_t*)buf);
+    uint8_t sz = EP_Read(2, (uint16_t*)buf);
     uint16_t epstatus = KEEP_DTOG(USB->EPnR[2]);
     // keep stat_tx & set ACK rx
     USB->EPnR[2] = (epstatus & ~(USB_EPnR_STAT_TX)) ^ USB_EPnR_STAT_RX;

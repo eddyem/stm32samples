@@ -1,5 +1,5 @@
 /*
- * This file is part of the pl2303 project.
+ * This file is part of the si7005 project.
  * Copyright 2020 Edward V. Emelianov <edward.emelianoff@gmail.com>.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -26,8 +26,8 @@
 
 void USB_setup();
 void usb_proc();
-void USB_send(const uint8_t *buf, uint16_t len);
-void USB_send_blk(const uint8_t *buf, uint16_t len);
-uint8_t USB_receive(uint8_t *buf);
+void USB_send(const char *buf);
+void USB_send_blk(const char *buf, int len);
+int USB_receive(char *buf);
 
 #endif // __USB_H__

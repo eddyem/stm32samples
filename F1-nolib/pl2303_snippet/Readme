@@ -1,1 +1,2 @@
 Base USB-CDC snippet with PL2303 emulation
+With functions of integer read & decimal print.

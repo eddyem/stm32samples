@@ -1,5 +1,5 @@
 /*
- * This file is part of the si7005 project.
+ * This file is part of the pl2303 project.
  * Copyright 2020 Edward V. Emelianov <edward.emelianoff@gmail.com>.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -17,26 +17,17 @@
  */
 
 #pragma once
-#ifndef __HARDWARE_H__
-#define __HARDWARE_H__
+#ifndef __USB_H__
+#define __USB_H__
 
-#include "stm32f1.h"
+#include "hardware.h"
 
-// LED0 - PC13 (bluepill), blinking each second
-#define LED0_port   GPIOC
-#define LED0_pin    (1<<13)
+#define BUFFSIZE   (64)
 
-// USB pullup (not present in bluepill, should be soldered) - PA15
-#define USBPU_port  GPIOA
-#define USBPU_pin   (1<<15)
-#define USBPU_ON()  pin_set(USBPU_port, USBPU_pin)
-#define USBPU_OFF() pin_clear(USBPU_port, USBPU_pin)
+void USB_setup();
+void usb_proc();
+void USB_send(const uint8_t *buf, uint16_t len);
+void USB_send_blk(const uint8_t *buf, uint16_t len);
+uint8_t USB_receive(uint8_t *buf);
 
-#define LED_blink(x)    pin_toggle(x ## _port, x ## _pin)
-#define LED_on(x)       pin_clear(x ## _port, x ## _pin)
-#define LED_off(x)      pin_set(x ## _port, x ## _pin)
-
-void hw_setup();
-void iwdg_setup();
-
-#endif // __HARDWARE_H__
+#endif // __USB_H__

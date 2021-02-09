@@ -1,5 +1,5 @@
 /*
- * This file is part of the si7005 project.
+ * This file is part of the pl2303 project.
  * Copyright 2020 Edward V. Emelianov <edward.emelianoff@gmail.com>.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -21,8 +21,6 @@
 #include "usb.h"
 #include "usb_lib.h"
 
-#define USBBUFSZ    127
-
 volatile uint32_t Tms = 0;
 
 /* Called when systick fires */
@@ -32,21 +30,20 @@ void sys_tick_handler(void){
 
 // usb getline
 char *get_USB(){
-    static char tmpbuf[USBBUFSZ+1], *curptr = tmpbuf;
-    static int rest = USBBUFSZ;
-    int x = USB_receive(curptr);
+    static char tmpbuf[512], *curptr = tmpbuf;
+    static int rest = 511;
+    uint8_t x = USB_receive((uint8_t*)curptr);
     curptr[x] = 0;
     if(!x) return NULL;
     if(curptr[x-1] == '\n'){
         curptr = tmpbuf;
-        rest = USBBUFSZ;
+        rest = 511;
         return tmpbuf;
     }
     curptr += x; rest -= x;
     if(rest <= 0){ // buffer overflow
         curptr = tmpbuf;
-        rest = USBBUFSZ;
-        USB_send("USB buffer overflow\n");
+        rest = 511;
     }
     return NULL;
 }
@@ -79,7 +76,7 @@ int main(void){
             if(ans){
                 uint16_t l = 0; char *p = ans;
                 while(*p++) l++;
-                USB_send(ans);
+                USB_send((uint8_t*)ans, l);
             }
         }
     }
