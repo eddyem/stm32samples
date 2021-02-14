@@ -18,6 +18,7 @@
 
 #include "dewpoint.h"
 #include "hardware.h"
+#include "htu21d.h"
 #include "proto.h"
 #include "si7005.h"
 #include "usb.h"
@@ -68,6 +69,7 @@ int main(void){
     StartHSE();
     hw_setup();
     si7005_setup();
+    HTU21D_setup();
     SysTick_Config(72000);
 
     RCC->CSR |= RCC_CSR_RMVF; // remove reset flags
@@ -85,17 +87,20 @@ int main(void){
         }
         usb_proc();
         si7005_process();
+        HTU21D_process();
+        HTU21D_status h = HTU21D_get_status();
         si7005_status s = si7005_get_status();
-        if(s == SI7005_HRDY){ // humidity can be shown
-            //USB_send(u2str(Tms)); USB_send("\n");
-            mH = si7005_getH();
+
+        if(s == SI7005_HRDY || h == HTU21D_HRDY){ // humidity can be shown
+            if(s == SI7005_HRDY) mH = si7005_getH();
+            else mH = HTU21D_getH();
             USB_send("Hum=");
             USB_send(u2str(mH));
             USB_send("*10%\n");
             showd(mT, mH);
-        }else if(s == SI7005_TRDY){ // T can be shown
-            //USB_send(u2str(Tms)); USB_send("\n");
-            mT = si7005_getT();
+        }else if(s == SI7005_TRDY || h == HTU21D_TRDY){ // T can be shown
+            if(s == SI7005_TRDY) mT = si7005_getT();
+            else mT = HTU21D_getT();
             int32_t T = mT;
             USB_send("T=");
             if(T < 0){
@@ -105,9 +110,10 @@ int main(void){
             USB_send(u2str(T));
             USB_send("*10degrC\n");
             showd(mT, mH);
-        }else if(s == SI7005_ERR){
+        }else if(s == SI7005_ERR || h == HTU21D_ERR){
             USB_send("Error in H/T measurement\n");
             si7005_setup();
+            HTU21D_setup();
         }
 
         char *txt, *ans;

@@ -54,7 +54,7 @@ float ln(uint16_t RH){
     }
     if(idx < 0) idx = 0;
     else if(idx > NKNOTS-1) idx = NKNOTS - 1;
-    USB_send("idx="); USB_send(u2str(idx)); USB_send("\n");
+    //USB_send("idx="); USB_send(u2str(idx)); USB_send("\n");
     float l = Y[idx] + K[idx]*(RH - X[idx]);
 #undef NKNOTS
     return l;

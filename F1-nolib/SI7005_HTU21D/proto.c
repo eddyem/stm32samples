@@ -17,6 +17,7 @@
  */
 
 #include "dewpoint.h"
+#include "htu21d.h"
 #include "proto.h"
 #include "si7005.h"
 #include "usb.h"
@@ -156,10 +157,10 @@ char *getnum(const char *txt, uint32_t *N){
 const char* helpmsg =
     "'0' - reset I2C\n"
     "'I' - read SI7005 device ID\n"
-    "'H' - start Humidity measurement\n"
+    "'hH' - start Humidity measurement (h-si,H-htu)\n"
     "'N' - read number (0..1000) and show its ln\n"
     "'R' - software reset\n"
-    "'T' - start Temperature measurement\n"
+    "'tT' - start Temperature measurement (t-si,T-htu)\n"
     "'W' - test watchdog\n"
 ;
 
@@ -169,6 +170,7 @@ const char *parse_cmd(const char *buf){
         switch(*buf){
             case '0':
                 si7005_setup();
+                HTU21D_setup();
                 return "Reset I2C\n";
             break;
             /*case 'p':
@@ -185,16 +187,21 @@ const char *parse_cmd(const char *buf){
                     USB_send("\n");
                 }else USB_send("Can't read ID\n");
             break;
+            case 'h':
+                if(si7005_cmdH()) USB_send("SI7005 not found\n");
+            break;
             case 'H':
-                if(si7005_cmdH()) USB_send("Humid. read error\n");
+                if(HTU21D_cmdH()) USB_send("HTU21D not found\n");
             break;
             case 'R':
                 USB_send("Soft reset\n");
                 NVIC_SystemReset();
             break;
+            case 't':
+                if(si7005_cmdT()) USB_send("SI7005 not found\n");
+            break;
             case 'T':
-                if(si7005_cmdT()) USB_send("Temper. read error\n");
-                //USB_send(u2str(Tms)); USB_send("\n");
+                if(HTU21D_cmdT()) USB_send("HTU21D not found\n");
             break;
             case 'W':
                 USB_send("Wait for reboot\n");

@@ -83,6 +83,7 @@ int si7005_cmdT(){
     sistatus = SI7005_BUSY;
 	i2c_status st = i2c_7bit_send(cmd, 2);
 	if(st != I2C_OK){
+        sistatus = SI7005_ERR;
 		return 1;
 	}
     DBG("Wait for T\n");
@@ -101,6 +102,7 @@ int si7005_cmdH(){
     sistatus = SI7005_BUSY;
 	i2c_status st = i2c_7bit_send(cmd, 2);
 	if(st != I2C_OK){
+        sistatus = SI7005_ERR;
 		return 1;
 	}
 	state = WAITFORH;
@@ -117,7 +119,7 @@ int32_t si7005_getT(){ // T*10
     return d;
 }
 uint32_t si7005_getH(){ // hum * 10
-    if(sistatus != SI7005_HRDY) return 0;
+    if(sistatus != SI7005_HRDY) return 5000;
     TH >>= 4;
     uint32_t d = (TH*10)/16 - 240;
     sistatus = SI7005_RELAX;
