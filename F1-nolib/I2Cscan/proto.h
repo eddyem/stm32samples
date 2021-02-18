@@ -26,5 +26,6 @@ char *omit_spaces(const char *buf);
 char *getnum(const char *buf, uint32_t *N);
 char *u2str(uint32_t val);
 char *i2str(int32_t val);
+char *u2hexstr(uint32_t val);
 
 #endif // PROTO_H__

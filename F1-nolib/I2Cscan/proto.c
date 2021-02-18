@@ -153,17 +153,17 @@ char *getnum(const char *txt, uint32_t *N){
     return nxt;
 }
 
-static void displaydata(uint8_t *data, int N){
+static void displaydata(uint8_t *data, int start, int N){
     if(N == 0){
         USB_send("Done\n");
         return;
     }
-    USB_send("Got: ");
+    USB_send("Got:\naddr\tval(x)\tval(d)\n");
     for(int i = 0; i < N; ++i){
-        USB_send(u2str(data[i]));
-        USB_send(" ");
+        USB_send(u2hexstr(i+start)); USB_send("\t");
+        USB_send(u2hexstr(data[i])); USB_send("\t");
+        USB_send(u2str(data[i])); USB_send("\n");
     }
-    USB_send("\n");
 }
 
 const char* helpmsg =
@@ -208,7 +208,7 @@ const char *parse_cmd(const char *buf){
                 n = Num;
                 if(ptr != getnum(ptr, &Num)){
                     if(Num > 128) return "Not more than 128 bytes\n";
-                    if(read_reg(n, data, Num)) displaydata(data, Num);
+                    if(read_reg(n, data, Num)) displaydata(data, n, Num);
                     else return "Error\n";
                 }else return "Need data amount to read\n";
             }else return "Need register address\n";
@@ -257,4 +257,25 @@ char *i2str(int32_t i){
         val = -i;
     }else val = i;
     return _2str(val, minus);
+}
+
+char *u2hexstr(uint32_t val){
+    static char strbuf[11] = "0x";
+    char *sptr = strbuf + 2;
+    uint8_t *ptr = (uint8_t*)&val + 3;
+    int8_t i, j, z=1;
+    for(i = 0; i < 4; ++i, --ptr){
+        if(*ptr == 0){ // omit leading zeros
+            if(i == 3) z = 0;
+            if(z) continue;
+        }
+        else z = 0;
+        for(j = 1; j > -1; --j){
+            uint8_t half = (*ptr >> (4*j)) & 0x0f;
+            if(half < 10) *sptr++ = half + '0';
+            else *sptr++ = half - 10 + 'a';
+        }
+    }
+    *sptr = 0;
+    return strbuf;
 }

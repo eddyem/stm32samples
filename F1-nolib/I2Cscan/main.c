@@ -80,8 +80,9 @@ int main(void){
             int ok = scan_next_addr(&addr);
             if(addr == I2C_ADDREND) USB_send("Scan ends\n");
             else if(ok){
-                USB_send(u2str(addr));
-                USB_send(" - found device\n");
+                USB_send(u2hexstr(addr));
+                USB_send(" ("); USB_send(u2str(addr));
+                USB_send(") - found device\n");
             }
         }
         char *txt, *ans;
