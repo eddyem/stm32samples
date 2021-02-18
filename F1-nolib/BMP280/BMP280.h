@@ -52,12 +52,12 @@
 #define BMP280_CHIP_ID  0x58
 #define BME280_CHIP_ID  0x60
 
-typedef enum{ // Nsamples for filtering
-    BMP280_FILTER_OFF = 0,
-    BMP280_FILTER_2   = 1,
-    BMP280_FILTER_4   = 2,
-    BMP280_FILTER_8   = 3,
-    BMP280_FILTER_16  = 4,
+typedef enum{ // K for filtering: next = [prev*(k-1) + data_ADC]/k
+    BMP280_FILTER_OFF = 0, // k=1, no filtering
+    BMP280_FILTER_2   = 1, // k=2, 2 samples to reach >75% of data_ADC
+    BMP280_FILTER_4   = 2, // k=4, 5 samples
+    BMP280_FILTER_8   = 3, // k=8, 11 samples
+    BMP280_FILTER_16  = 4, // k=16, 22 samples
     BMP280_FILTERMAX
 } BMP280_Filter;
 

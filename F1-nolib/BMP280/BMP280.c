@@ -135,7 +135,7 @@ static struct{
     uint8_t ID;                 // identificator
     uint8_t regctl;             // control register base value [(params.t_os << 5) | (params.p_os << 2)]
 } params = {
-    .filter = BMP280_FILTER_16,
+    .filter = BMP280_FILTER_OFF,
     .p_os   = BMP280_OVERS16,
     .t_os   = BMP280_OVERS16,
     .h_os   = BMP280_OVERS16,

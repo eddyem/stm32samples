@@ -55,7 +55,7 @@ static char *get_USB(){
 
 static void showd(int32_t mT, int32_t mH){
     USB_send("Dewpoint=");
-    USB_send(u2str(dewpoint(mT, mH)));
+    USB_send(i2str(dewpoint(mT, mH)));
     USB_send("*10degrC\n");
 }
 

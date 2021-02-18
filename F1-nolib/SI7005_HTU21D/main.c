@@ -57,7 +57,12 @@ char *get_USB(){
 void showd(int32_t mT, int32_t mH){
     if(mT == -10000 || mH == -10000) return;
     USB_send("Dewpoint=");
-    USB_send(u2str(dewpoint(mT, mH)));
+    int32_t d = dewpoint(mT, mH);
+    if(d < 0){
+        USB_send("-");
+        d = -d;
+    }
+    USB_send(u2str(d));
     USB_send("*10degrC\n");
 }
 
