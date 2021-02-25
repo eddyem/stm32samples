@@ -47,8 +47,8 @@ int BMP180_init();
 void BMP180_read_ID(uint8_t *devid);
 void BMP180_setOS(BMP180_oversampling os);
 BMP180_status BMP180_get_status();
-int BMP180_start(uint32_t curr_milliseconds);
-void BMP180_process(uint32_t curr_milliseconds);
+int BMP180_start(/*uint32_t curr_milliseconds*/);
+void BMP180_process(/*uint32_t curr_milliseconds*/);
 void BMP180_getdata(int32_t *T, uint32_t *P);
 
 #endif // BMP180_H__

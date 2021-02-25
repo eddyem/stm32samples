@@ -1,0 +1,2 @@
+Timer1 + DMA to work with DHT22/DHT11 sensors
+#define DHT11 in dht.h to change data format to DHT11

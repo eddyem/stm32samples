@@ -180,7 +180,7 @@ const char *parse_cmd(const char *buf){
                 else return "ID unknown\n";
             break;
             case 'M':
-                if(!BMP180_start(Tms)) return "BMP180 not found or not inited\n";
+                if(!BMP180_start(/*Tms*/)) return "BMP180 not found or not inited\n";
                 else return "Start\n";
             break;
             case 'R':

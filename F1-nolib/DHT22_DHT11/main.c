@@ -1,6 +1,6 @@
 /*
- * This file is part of the BMP180 project.
- * Copyright 2020 Edward V. Emelianov <edward.emelianoff@gmail.com>.
+ * This file is part of the DHT22 project.
+ * Copyright 2021 Edward V. Emelianov <edward.emelianoff@gmail.com>.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,13 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "BMP180.h"
+#include "dht.h"
 #include "hardware.h"
 #include "proto.h"
 #include "usb.h"
 #include "usb_lib.h"
-
-#define USBBUFSZ    127
 
 volatile uint32_t Tms = 0;
 
@@ -32,22 +30,21 @@ void sys_tick_handler(void){
 }
 
 // usb getline
-static char *get_USB(){
-    static char tmpbuf[USBBUFSZ+1], *curptr = tmpbuf;
-    static int rest = USBBUFSZ;
-    int x = USB_receive(curptr);
+char *get_USB(){
+    static char tmpbuf[512], *curptr = tmpbuf;
+    static int rest = 511;
+    uint8_t x = USB_receive(curptr);
     curptr[x] = 0;
     if(!x) return NULL;
     if(curptr[x-1] == '\n'){
         curptr = tmpbuf;
-        rest = USBBUFSZ;
+        rest = 511;
         return tmpbuf;
     }
     curptr += x; rest -= x;
     if(rest <= 0){ // buffer overflow
         curptr = tmpbuf;
-        rest = USBBUFSZ;
-        USB_send("USB buffer overflow\n");
+        rest = 511;
     }
     return NULL;
 }
@@ -63,33 +60,35 @@ int main(void){
 
     USBPU_OFF();
     USB_setup();
-    BMP180_init();
+    DHT_pinsetup();
     iwdg_setup();
     USBPU_ON();
 
+    uint16_t H;
+    int16_t T;
     while (1){
         IWDG->KR = IWDG_REFRESH; // refresh watchdog
         if(lastT > Tms || Tms - lastT > 499){
             LED_blink(LED0);
             lastT = Tms;
         }
-        usb_proc();
-        BMP180_process(/*Tms*/);
-        BMP180_status s = BMP180_get_status();
-        if(s == BMP180_RDY){ // data ready - get it
-            int32_t T;
-            uint32_t P;
-            BMP180_getdata(&T, &P);
-            USB_send("T="); USB_send(i2str(T)); USB_send(" (/10degC)\nP=");
-            USB_send(u2str(P)); USB_send(" (Pa) or ");
-            float mm = P*0.0750062;
-            USB_send(u2str(mm)); USB_send(" (/10mmHg)\n");
-        }else if(s == BMP180_ERR){
-            USB_send("Error in measurement\n");
-            BMP180_reset();
-            BMP180_init();
+        DHT_process(Tms);
+        if(DHT_GOTRESULT == DHT_getstate()){
+            DHT_getdata(&H, &T);
+            USB_send("Temperature="); USB_send(i2str(T));
+#ifdef DHT11
+            USB_send(" (degC)\nHumidity=");
+#else
+            USB_send(" (/10degC)\nHumidity=");
+#endif
+            USB_send(u2str(H));
+#ifdef DHT11
+            USB_send(" (%)\n");
+#else
+            USB_send(" (/10%)\n");
+#endif
         }
-
+        usb_proc();
         char *txt, *ans;
         if((txt = get_USB())){
             IWDG->KR = IWDG_REFRESH;

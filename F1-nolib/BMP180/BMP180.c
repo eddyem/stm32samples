@@ -73,7 +73,7 @@ static struct {
 
 static BMP180_status bmpstatus = BMP180_NOTINIT;
 static uint8_t calidata_rdy = 0;
-static uint32_t milliseconds_start = 0; // time of measurement start
+//static uint32_t milliseconds_start = 0; // time of measurement start
 //static uint32_t p_delay = 8; // delay for P measurement
 static uint8_t uncomp_data[3]; // raw uncompensated data
 static int32_t Tval; // uncompensated T value
@@ -173,7 +173,7 @@ void BMP180_read_ID(uint8_t *devid){
 }
 
 // start measurement, @return 1 if all OK
-int BMP180_start(uint32_t curr_milliseconds){
+int BMP180_start(/*uint32_t curr_milliseconds*/){
     if(!calidata_rdy || bmpstatus == BMP180_BUSYT || bmpstatus == BMP180_BUSYP) return 0;
     uint8_t reg = BMP180_READ_T | BMP180_CTRLM_SCO;
     if(!write_reg8(BMP180_REG_CTRLMEAS, reg)){
@@ -181,7 +181,7 @@ int BMP180_start(uint32_t curr_milliseconds){
         return 0;
     }
     bmpstatus = BMP180_BUSYT;
-    milliseconds_start = curr_milliseconds;
+    //milliseconds_start = curr_milliseconds;
     return 1;
 }
 
@@ -226,7 +226,7 @@ static int still_measuring(){
     return 0;
 }
 
-void BMP180_process(uint32_t curr_milliseconds){
+void BMP180_process(/*uint32_t curr_milliseconds*/){
     uint8_t reg;
     if(bmpstatus != BMP180_BUSYT && bmpstatus != BMP180_BUSYP) return;
     if(bmpstatus == BMP180_BUSYT){ // wait for temperature
@@ -249,7 +249,7 @@ void BMP180_process(uint32_t curr_milliseconds){
             bmpstatus = BMP180_ERR;
             return;
         }
-        milliseconds_start = curr_milliseconds;
+        //milliseconds_start = curr_milliseconds;
         bmpstatus = BMP180_BUSYP;
     }else{ // wait for pressure
         //if(curr_milliseconds - milliseconds_start < p_delay) return;

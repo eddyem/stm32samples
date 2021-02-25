@@ -1,1 +1,2 @@
-BME/BMP280 humidity-pressure-temperature sensor
+Work with I2C temperature/pressure sensor BMP280 and temp/pres/humidity sensor BME280
+
