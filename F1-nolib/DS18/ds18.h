@@ -42,5 +42,8 @@ void DS18_process(uint32_t Tms);
 int DS18_readScratchpad();
 void DS18_poll();
 
+void DS18_clearID();
+void DS18_setID(const uint8_t ID[8]);
+
 #endif // DHT_H__
 

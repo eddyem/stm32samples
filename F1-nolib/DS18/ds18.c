@@ -18,12 +18,15 @@
 
 #include "ds18.h"
 #include "proto.h"
-
+#include "usb.h"
 
 //#define EBUG
+// ID1: 0x28 0xba 0xc7 0xea 0x05 0x00 0x00 0xc2
+// ID2: 0x28 0x68 0xc9 0xe9 0x05 0x00 0x00 0x42
+// ID3: 0x28 0x23 0xef 0xe9 0x05 0x00 0x00 0xab
+
 
 #ifdef EBUG
-#include "usb.h"
 #define DBG(x)  do{USB_send(x);}while(0)
 #else
 #define DBG(x)
@@ -99,14 +102,16 @@
  * 8 - CRC
  */
 
-// max amount of bits (1bytes x 8bits)
-#define NmeasurementMax     (88)
+// max amount of bits (20bytes x 8bits)
+#define NmeasurementMax     (160)
 // reset pulse length (ms+1..2)
 #define DS18_RESETPULSE_LEN (3)
 // max length of measurement (ms+1..2)
 #define DS18_MEASUR_LEN     (800)
 // maximal received data bytes
 #define IMAXCTR             (10)
+
+static uint8_t DS18ID[8] = {0}, matchID = 0;
 
 static void (*ow_process_resdata)() = NULL; // what to do with received data
 
@@ -121,6 +126,25 @@ static uint8_t CC2array[NmeasurementMax];
 static uint8_t receivectr = 0; // data bytes amount to receive
 // prepare buffers to sending
 #define OW_reset_buffer()   do{cc1buff_ctr = 0; receivectr = 0; totbytesctr = 0;}while(0)
+
+// several devices on line
+void DS18_setID(const uint8_t ID[8]){
+    uint32_t *O = (uint32_t*)DS18ID, *I = (uint32_t*)ID;
+    *O++ = *I++; *O = *I;
+    matchID = 1;
+#ifdef EBUG
+    USB_send("DS18_setID: ");
+    for(int i = 0; i < 8; ++i){
+        USB_send(" 0x");
+        printhex(DS18ID[i]);
+    }
+    USB_send("\n");
+#endif
+}
+// the only device on line
+void DS18_clearID(){
+    matchID = 0;
+}
 
 /**
  * add next data byte
@@ -224,6 +248,22 @@ static void DS18_getReg(int n){
     printsp(r, n);
 }
 
+static int chkCRC(const uint8_t data[9]){
+    uint8_t crc = 0;
+    for(int n = 0; n < 8; ++n){
+        crc = crc ^ data[n];
+           for(int i = 0; i < 8; i++){
+               if(crc & 1)
+                   crc = (crc >> 1) ^ 0x8C;
+               else
+                   crc >>= 1;
+           }
+    }
+    //USB_send("got crc: "); printhex(crc); USB_send("\n");
+    if(data[8] == crc) return 0;
+    return 1;
+}
+
 // data processing functions
 static void DS18_gettemp(){ // calculate T
     dsstate = DS18_SLEEP;
@@ -236,6 +276,18 @@ static void DS18_gettemp(){ // calculate T
     if(!r || receivectr != 9){
         DBG("Bad count");
         dsstate = DS18_ERROR;
+        return;
+    }
+    int ctr;
+    for(ctr = 0; ctr < 9; ++ctr){
+        if(r[ctr] != 0xff) break;
+    }
+    if(ctr == 9){
+        USB_send("Target ID not found");
+        return;
+    }
+    if(chkCRC(r)){
+        USB_send("CRC is wrong\n");
         return;
     }
     uint16_t l = r[0], m = r[1], v;
@@ -256,7 +308,13 @@ static void DS18_pollt(){ // poll T
     if((r = OW_readbuf()) && receivectr == 1){
         if(*r == CONVERSION_DONE){
             OW_reset_buffer();
-            OW_add_byte(OW_SKIP_ROM);
+            if(matchID){ // add MATCH command & target ID
+                OW_add_byte(OW_MATCH_ROM);
+                for(int i = 0; i < 8; ++i)
+                    OW_add_byte(DS18ID[i]);
+            }else{
+                OW_add_byte(OW_SKIP_ROM);
+            }
             OW_add_byte(OW_READ_SCRATCHPAD);
             OW_add_read_seq(9);
             ow_process_resdata = DS18_gettemp;
