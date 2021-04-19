@@ -46,12 +46,20 @@ void setFGcolor(uint8_t c){fgColor = c;}
 void ClearScreen(){
     for(int i = 0; i < SCREENBUF_SZ; ++i)
         screenbuf[i] = bgColor;
-    for(int i = 0; i < 32; ++i){
-        DrawPix(0,i,0b11111111); // white
-        DrawPix(27,i,0b11100000); // red
-        DrawPix(34,i,0b00011100); // green
-        DrawPix(63,i,0b00000011); // blue
-    }
+    /*for(int i = 0; i < 32; ++i){
+        DrawPix(0,i,0b11111111);
+        DrawPix(1,i,0b1001010);
+        DrawPix(2,i,0b00100101);
+        DrawPix(20,i,0b11100000);
+        DrawPix(21,i,0b10000000);
+        DrawPix(22,i,0b00100000);
+        DrawPix(30,i,0b00011100);
+        DrawPix(31,i,0b00010000);
+        DrawPix(32,i,0b00000100);
+        DrawPix(60,i,0b00000011);
+        DrawPix(61,i,0b00000010);
+        DrawPix(62,i,0b00000001);
+    }*/
         // memset -> halt
     //memset(screenbuf, pattern, SCREENBUF_SZ);
 }
@@ -90,7 +98,7 @@ uint8_t DrawCharAt(int16_t X, int16_t Y, uint8_t Char){
     // height and width of letter in pixels
     uint8_t h = curfont->height, w = *curchar++; // now curchar is pointer to bits array
     uint8_t lw = curfont->bytes / h; // width of letter in bytes
-    for(uint8_t row = 0; row <= h; ++row){
+    for(uint8_t row = 0; row < h; ++row){
         for(uint8_t col = 0; col < w; ++col){
             if(curchar[row*lw + (col/8)] & (1 << (7 - (col%8))))
                 DrawPix(X + col, Y + row, fgColor);
@@ -167,7 +175,7 @@ void ScreenON(){
 
 void ScreenOFF(){
     stopTIMDMA();
-    SET(nOE);
+    SCRN_DISBL();
     ScrnState = SCREEN_RELAX;
     currentB = 0;
     Ntick = 0;

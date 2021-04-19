@@ -27,34 +27,11 @@
 #include "usb_lib.h"
 
 volatile uint32_t Tms = 0;
-uint8_t countms = 0;
+uint8_t countms = 0, rainbow = 0;
 
 /* Called when systick fires */
 void sys_tick_handler(void){
     ++Tms;
-}
-
-void iwdg_setup(){
-    uint32_t tmout = 16000000;
-    /* Enable the peripheral clock RTC */
-    /* (1) Enable the LSI (40kHz) */
-    /* (2) Wait while it is not ready */
-    RCC->CSR |= RCC_CSR_LSION; /* (1) */
-    while((RCC->CSR & RCC_CSR_LSIRDY) != RCC_CSR_LSIRDY){if(--tmout == 0) break;} /* (2) */
-    /* Configure IWDG */
-    /* (1) Activate IWDG (not needed if done in option bytes) */
-    /* (2) Enable write access to IWDG registers */
-    /* (3) Set prescaler by 64 (1.6ms for each tick) */
-    /* (4) Set reload value to have a rollover each 2s */
-    /* (5) Check if flags are reset */
-    /* (6) Refresh counter */
-    IWDG->KR = IWDG_START; /* (1) */
-    IWDG->KR = IWDG_WRITE_ACCESS; /* (2) */
-    IWDG->PR = IWDG_PR_PR_1; /* (3) */
-    IWDG->RLR = 1250; /* (4) */
-    tmout = 16000000;
-    while(IWDG->SR){if(--tmout == 0) break;} /* (5) */
-    IWDG->KR = IWDG_REFRESH; /* (6) */
 }
 
 #define USBBUFSZ    (127)
@@ -79,8 +56,17 @@ static char *get_USB(){
     return NULL;
 }
 
+static void nxtrainbow(){
+    for(int i = 0; i < SCREEN_WIDTH; ++i){
+        for(int j = 0; j < SCREEN_HEIGHT; ++j){
+            DrawPix(i, j, rainbow + i);
+        }
+    }
+    if(++rainbow == 0) rainbow = 1;
+}
+
 int main(void){
-    uint32_t lastT = 0, mscnt = 0, Tmscnt = 0;
+    uint32_t lastT = 0, mscnt = 0, Tmscnt = 0, lastR = 0;
     sysreset();
     StartHSE();
     SysTick_Config(72000);
@@ -89,7 +75,7 @@ int main(void){
     hw_setup();
     USBPU_OFF();
     USB_setup();
-    PutStringAt(5, SCREEN_HEIGHT-1-curfont->baseline, "Test string");
+    PutStringAt(1, SCREEN_HEIGHT-1-curfont->baseline, "Test string");
     iwdg_setup();
     USBPU_ON();
 
@@ -107,13 +93,17 @@ int main(void){
                 if(Tms - Tmscnt > 99){
                     Tmscnt = Tms;
                     ClearScreen();
-                    PutStringAt(5, SCREEN_HEIGHT-1-curfont->baseline, u2str(++mscnt));
+                    PutStringAt(5, curfont->height + 1, u2str(++mscnt));
                     ScreenON();
                 }
             }
         }else{
             mscnt = 0;
             Tmscnt = 0;
+        }
+        if(rainbow && Tms - lastR > 99){
+            lastR = Tms;
+            nxtrainbow();
         }
         IWDG->KR = IWDG_REFRESH;
         process_screen();

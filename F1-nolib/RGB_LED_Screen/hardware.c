@@ -28,6 +28,29 @@ uint8_t transfer_done = 0; // ==1 when DMA transfer ready
 // buffer for DMA
 static uint32_t dmabuf[SCREEN_WIDTH];
 
+void iwdg_setup(){
+    uint32_t tmout = 16000000;
+    /* Enable the peripheral clock RTC */
+    /* (1) Enable the LSI (40kHz) */
+    /* (2) Wait while it is not ready */
+    RCC->CSR |= RCC_CSR_LSION; /* (1) */
+    while((RCC->CSR & RCC_CSR_LSIRDY) != RCC_CSR_LSIRDY){if(--tmout == 0) break;} /* (2) */
+    /* Configure IWDG */
+    /* (1) Activate IWDG (not needed if done in option bytes) */
+    /* (2) Enable write access to IWDG registers */
+    /* (3) Set prescaler by 64 (1.6ms for each tick) */
+    /* (4) Set reload value to have a rollover each 2s */
+    /* (5) Check if flags are reset */
+    /* (6) Refresh counter */
+    IWDG->KR = IWDG_START; /* (1) */
+    IWDG->KR = IWDG_WRITE_ACCESS; /* (2) */
+    IWDG->PR = IWDG_PR_PR_1; /* (3) */
+    IWDG->RLR = 1250; /* (4) */
+    tmout = 16000000;
+    while(IWDG->SR){if(--tmout == 0) break;} /* (5) */
+    IWDG->KR = IWDG_REFRESH; /* (6) */
+}
+
 static inline void gpio_setup(){
     // Enable clocks to the GPIO subsystems, turn on AFIO clocking to disable SWD/JTAG
     RCC->APB2ENR |= RCC_APB2ENR_IOPAEN | RCC_APB2ENR_IOPBEN | RCC_APB2ENR_IOPCEN | RCC_APB2ENR_AFIOEN;
@@ -49,13 +72,14 @@ static inline void gpio_setup(){
 
 // setup timer3 for DMA transfers & SCK @ TIM3_CH1 (PA6)
 static inline void tim_setup(){
-    SET(nOE); // turn off output
+    SCRN_DISBL(); // turn off output
     GPIOA->CRL |= CRL(6, CNF_AFPP|MODE_FAST);
     RCC->APB1ENR |= RCC_APB1ENR_TIM3EN;
-    // 72MHz & 7ARR = 9MHz
-    TIM3->PSC = 20000;
-    TIM3->ARR = 7;
+    // PCS=1 don't work;
+    TIM3->PSC = 9; // 7.2MHz
+    TIM3->ARR = 7; // 900kHz
     TIM3->CCMR1 = TIM_CCMR1_OC1M; // PWM mode 2 (inactive->active)
+    //TIM3->CCMR1 = TIM_CCMR1_OC1M_2 | TIM_CCMR1_OC1M_1; // PWM mode 1 (active->inactive)
     TIM3->CCER = TIM_CCER_CC1E; // output 1 enable
     TIM3->DIER = TIM_DIER_UDE; // enable DMA requests
     RCC->AHBENR |= RCC_AHBENR_DMA1EN;
@@ -114,12 +138,12 @@ static inline uint8_t getcolrvals(uint8_t colr, uint8_t Ntick){
  * @param Nrow - current row number
  * @param Ntick - tick number (0..7) for quasi-PWM colors
  */
-void ConvertScreenBuf(uint8_t *sbuf, uint8_t Nrow, __attribute__((unused)) uint8_t Ntick){
+void ConvertScreenBuf(uint8_t *sbuf, uint8_t Nrow,  uint8_t Ntick){ // __attribute__((unused))
     //USB_send("ConvertScreenBuf\n");
     uint8_t *_1st = &sbuf[SCREEN_WIDTH*Nrow], *_2nd = _1st + SCREEN_WIDTH*NBLOCKS; // first and second lines
     for(int i = 0; i < SCREEN_WIDTH; ++i){ // ~50us for 64 pixels
-        uint8_t pinsset = getcolrvals(_1st[i], 0);
-        pinsset |= getcolrvals(_2nd[i], 0) << 3;
+        uint8_t pinsset = getcolrvals(_1st[i], Ntick);
+        pinsset |= getcolrvals(_2nd[i], Ntick) << 3;
         //dmabuf[i] = (i%2) ? ((COLR_pin<<16) | i) : (0b100010);
         dmabuf[i] = (COLR_pin << 16) | pinsset; // All BR are 1, BS depending on color
     }
@@ -147,16 +171,18 @@ void TIM_DMA_transfer(uint8_t blknum){
 
 // DMA transfer complete - stop transfer
 void dma1_channel3_isr(){
+    TIM3->SR = 0;
     TIM3->CR1 |= TIM_CR1_OPM; // set one pulse mode to turn off timer after last CLK pulse
     DMA1_Channel3->CCR &= ~DMA_CCR_EN; // stop DMA
-    while(TIM3->CNT < 7);
-    SET(nOE); // clear main output
+    while(!(TIM3->SR & TIM_SR_UIF)); // wait for last pulse
+    //while(TIM3->CNT < 7);
+    SCRN_DISBL(); // clear main output
     ADDR_port->ODR = (ADDR_port->ODR & ~(ADDR_pin)) | (blknum_curr << ADDR_roll); // set address
     SET(LAT); // activate latch
     DMA1->IFCR = DMA_IFCR_CGIF3;
     transfer_done = 1;
     CLEAR(LAT);
-    CLEAR(nOE); // activate main output
+    SCRN_ENBL(); // activate main output
     //USB_send("transfer done\n");
 }
 

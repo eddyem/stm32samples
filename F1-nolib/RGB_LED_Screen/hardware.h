@@ -27,8 +27,10 @@
 #include "stm32f1.h"
 #include "screen.h"
 
-// define this if screen is negative
+// define this if screen colors are negative
 // #define SCREEN_IS_NEGATIVE
+// define if nOE is negative
+#define NOE_IS_NEGATIVE
 
 // LED0 - PC13 (bluepill), blinking each second
 #define LED0_port   GPIOC
@@ -62,6 +64,15 @@
 #define CLEAR(x)    pin_clear(x ## _port, x ## _pin)
 #define TOGGLE(x)   pin_toggle(x ## _port, x ## _pin)
 
+#ifdef NOE_IS_NEGATIVE
+#define SCRN_ENBL()     SET(nOE)
+#define SCRN_DISBL()    CLEAR(nOE)
+#else
+#define SCRN_ENBL()     CLEAR(nOE)
+#define SCRN_DISBL()    SET(nOE)
+#endif
+
+void iwdg_setup();
 void hw_setup();
 void TIM_DMA_transfer(uint8_t blknum);
 void stopTIMDMA();

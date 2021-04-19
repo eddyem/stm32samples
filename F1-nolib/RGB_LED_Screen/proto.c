@@ -21,7 +21,7 @@
 #include "screen.h"
 #include "usb.h"
 
-extern uint8_t countms;
+extern uint8_t countms, rainbow;
 
 char *omit_spaces(const char *buf){
     while(*buf){
@@ -156,6 +156,7 @@ char *getnum(const char *txt, uint32_t *N){
 const char* helpmsg =
     "'0/1' - screen off/on\n"
     "'2,3' - select font\n"
+    "'B' - start/stop rainBow\n"
     "'C' - clear screen with given color\n"
     "'F' - set foreground color\n"
     "'f' - get FPS\n"
@@ -178,12 +179,21 @@ const char *parse_cmd(const char *buf){
                 return "ON\n";
             break;
             case '2':
-                choose_font(FONT14);
-                return "Font14\n";
+                if(choose_font(FONT14)) return "Font14\n";
+                return "err\n";
             break;
             case '3':
-                choose_font(FONT16);
-                return "Font16\n";
+                if(choose_font(FONT16)) return "Font16\n";
+                return "err\n";
+            break;
+            case 'B':
+                if(rainbow){
+                    rainbow = 0;
+                    return "Stop rainbow\n";
+                }else{
+                    rainbow = 1;
+                    return "Start rainbow\n";
+                }
             break;
             case 'f':
                 if(SCREEN_RELAX == getScreenState()) return "Screen is inactive\n";
@@ -233,7 +243,7 @@ const char *parse_cmd(const char *buf){
             default:
                 ScreenOFF();
                 ClearScreen();
-                PutStringAt(5, SCREEN_HEIGHT-1-curfont->baseline, buf);
+                PutStringAt(1, curfont->height + 3, buf);
                 ScreenON();
         }
         return buf;

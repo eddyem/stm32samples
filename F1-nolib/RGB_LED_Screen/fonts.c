@@ -310,12 +310,12 @@ const afont *curfont = &FONTS[FONT14];
 /**
  * @brief choose_font - font selector
  * @param newfont - font to choose
- * @return 0 if all OK
+ * @return 1 if all OK
  */
 int choose_font(font_t newfont){
-    if(newfont >= FONT_T_MAX || newfont <= FONT_T_MIN) return 1;
+    if(newfont >= FONT_T_MAX || newfont <= FONT_T_MIN) return 0;
     curfont = &FONTS[newfont];
-    return 0;
+    return 1;
 }
 /*
 // getters for current font values
