@@ -19,6 +19,8 @@
  * MA 02110-1301, USA.
  */
 
+#include "adcrandom.h"
+#include "balls.h"
 #include "fonts.h"
 #include "hardware.h"
 #include "proto.h"
@@ -27,7 +29,7 @@
 #include "usb_lib.h"
 
 volatile uint32_t Tms = 0;
-uint8_t countms = 0, rainbow = 0;
+uint8_t countms = 0, rainbow = 0, balls = 0;
 
 /* Called when systick fires */
 void sys_tick_handler(void){
@@ -74,6 +76,7 @@ int main(void){
 
     hw_setup();
     USBPU_OFF();
+    adc_setup();
     USB_setup();
     PutStringAt(1, SCREEN_HEIGHT-1-curfont->baseline, "Test string");
     iwdg_setup();
@@ -105,8 +108,9 @@ int main(void){
             lastR = Tms;
             nxtrainbow();
         }
+        if(balls) process_balls();
         IWDG->KR = IWDG_REFRESH;
-        process_screen();
+        //process_screen();
         usb_proc();
         char *txt; const char *ans;
         if((txt = get_USB())){

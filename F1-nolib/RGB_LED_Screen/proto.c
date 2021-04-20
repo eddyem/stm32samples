@@ -16,12 +16,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "adcrandom.h"
+#include "balls.h"
 #include "fonts.h"
 #include "proto.h"
 #include "screen.h"
 #include "usb.h"
 
-extern uint8_t countms, rainbow;
+extern uint8_t countms, rainbow, balls;
+extern uint32_t Tms;
 
 char *omit_spaces(const char *buf){
     while(*buf){
@@ -156,9 +159,12 @@ char *getnum(const char *txt, uint32_t *N){
 const char* helpmsg =
     "'0/1' - screen off/on\n"
     "'2,3' - select font\n"
+    "'A' - get ADC values\n"
     "'B' - start/stop rainBow\n"
+    "'b' - start/stop Balls\n"
     "'C' - clear screen with given color\n"
     "'F' - set foreground color\n"
+    "'G' - get 100 random numbers\n"
     "'f' - get FPS\n"
     "'R' - software reset\n"
     "'W' - test watchdog\n"
@@ -186,6 +192,13 @@ const char *parse_cmd(const char *buf){
                 if(choose_font(FONT16)) return "Font16\n";
                 return "err\n";
             break;
+            case 'A':
+                USB_send("Tsens="); USB_send(u2str(getADCval(0)));
+                USB_send("\nVref="); USB_send(u2str(getADCval(1)));
+                USB_send("\nRand="); USB_send(u2str(getRand()));
+                USB_send("\n");
+                return NULL;
+            break;
             case 'B':
                 if(rainbow){
                     rainbow = 0;
@@ -195,12 +208,32 @@ const char *parse_cmd(const char *buf){
                     return "Start rainbow\n";
                 }
             break;
+            case 'b':
+                if(balls){
+                    balls = 0;
+                    return "Stop balls\n";
+                }else{
+                    balls_init();
+                    balls = 1;
+                    return "Start balls\n";
+                }
             case 'f':
                 if(SCREEN_RELAX == getScreenState()) return "Screen is inactive\n";
                 USB_send("FPS=");
                 USB_send(u2str(getFPS()));
                 USB_send("\n");
                 return NULL;
+            break;
+            case 'G':
+                /*USB_send(u2str(Tms)); USB_send("\n");
+                for(int i=0; i < 1000; ++i) getRand();
+                USB_send(u2str(Tms)); USB_send("\n");*/
+                for(int i = 0; i < 100; ++i){
+                    USB_send(u2str(getRand()));
+                    USB_send("\n");
+                }
+                return NULL;
+            break;
             case 'R':
                 USB_send("Soft reset\n");
                 NVIC_SystemReset();

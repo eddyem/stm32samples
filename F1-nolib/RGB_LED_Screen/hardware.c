@@ -77,7 +77,7 @@ static inline void tim_setup(){
     RCC->APB1ENR |= RCC_APB1ENR_TIM3EN;
     // PCS=1 don't work;
     TIM3->PSC = 9; // 7.2MHz
-    TIM3->ARR = 7; // 900kHz
+    TIM3->ARR = 7;
     TIM3->CCMR1 = TIM_CCMR1_OC1M; // PWM mode 2 (inactive->active)
     //TIM3->CCMR1 = TIM_CCMR1_OC1M_2 | TIM_CCMR1_OC1M_1; // PWM mode 1 (active->inactive)
     TIM3->CCER = TIM_CCER_CC1E; // output 1 enable
@@ -100,19 +100,6 @@ void stopTIMDMA(){
     TIM3->CR1 = 0; // turn off timer
 }
 
-/*
-static inline uint8_t getcolrvals(uint8_t colr, uint8_t Ntick){
-    uint8_t *rgb = pack2RGB(colr);
-    uint8_t result = 0; // bits: 0-R, 1-G, 2-B
-    for(int i = 0; i < 3; ++i){
-#ifdef SCREEN_IS_NEGATIVE
-        if(rgb[i] < Ntick) result |= 1 << i;
-#else
-        if(rgb[i] >= Ntick) result |= 1 << i;
-#endif
-    }
-    return result;
-}*/
 static inline uint8_t getcolrvals(uint8_t colr, uint8_t Ntick){
     uint8_t result = 0; // bits: 0-R, 1-G, 2-B
 #ifdef SCREEN_IS_NEGATIVE
@@ -161,7 +148,7 @@ void TIM_DMA_transfer(uint8_t blknum){
     TIM3->CR1 = 0; // turn off timer
     transfer_done = 0;
     // set first pixel color
-    COLR_port->BSRR = dmabuf[0];
+    //COLR_port->BSRR = dmabuf[0];
     DMA1_Channel3->CNDTR = SCREEN_WIDTH;
     DMA1_Channel3->CCR |= DMA_CCR_EN; // start DMA
     TIM3->CCR1 = 4; // 50% PWM
@@ -171,11 +158,11 @@ void TIM_DMA_transfer(uint8_t blknum){
 
 // DMA transfer complete - stop transfer
 void dma1_channel3_isr(){
-    TIM3->SR = 0;
-    TIM3->CR1 |= TIM_CR1_OPM; // set one pulse mode to turn off timer after last CLK pulse
+    //TIM3->CR1 |= TIM_CR1_OPM; // set one pulse mode to turn off timer after last CLK pulse
+    //TIM3->SR = 0;
+    TIM3->CR1 = 0;
     DMA1_Channel3->CCR &= ~DMA_CCR_EN; // stop DMA
-    while(!(TIM3->SR & TIM_SR_UIF)); // wait for last pulse
-    //while(TIM3->CNT < 7);
+    //while(!(TIM3->SR & TIM_SR_UIF)); // wait for last pulse
     SCRN_DISBL(); // clear main output
     ADDR_port->ODR = (ADDR_port->ODR & ~(ADDR_pin)) | (blknum_curr << ADDR_roll); // set address
     SET(LAT); // activate latch
@@ -183,6 +170,7 @@ void dma1_channel3_isr(){
     transfer_done = 1;
     CLEAR(LAT);
     SCRN_ENBL(); // activate main output
+    process_screen();
     //USB_send("transfer done\n");
 }
 

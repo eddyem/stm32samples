@@ -82,6 +82,10 @@ void XORPix(int16_t X, int16_t Y, uint8_t pix){
     if(X < 0 || X > SCREEN_WIDTH-1 || Y < 0 || Y > SCREEN_HEIGHT-1) return; // outside of screen
     screenbuf[Y*SCREEN_WIDTH + X] ^= pix;
 }
+uint8_t GetPix(int16_t X, int16_t Y){
+    if(X < 0 || X > SCREEN_WIDTH-1 || Y < 0 || Y > SCREEN_HEIGHT-1) return 0;
+    return screenbuf[Y*SCREEN_WIDTH + X];
+}
 
 /**
  * @brief DrawCharAt - draws character @ position X,Y (this point is left baseline corner of char!)
@@ -147,10 +151,10 @@ void process_screen(){
             ConvertScreenBuf(screenbuf, currentB, Ntick); // convert data
             TIM_DMA_transfer(currentB); // start transfer
             ScrnState = SCREEN_ACTIVE;
-            if(++currentB >= NBLOCKS){
-                currentB = 0; // start again
-                if(++Ntick >= 7){
-                    Ntick = 0;
+            if(++Ntick >= 7){
+                Ntick = 0;
+                if(++currentB >= NBLOCKS){
+                    currentB = 0; // start again
                     ++framecnt;
                     if(Tms - Tfps > 999){
                         FPS = framecnt;
@@ -171,6 +175,7 @@ void process_screen(){
 void ScreenON(){
     ScrnState = SCREEN_UPDATENXT;
     Tfps = Tms;
+    process_screen();
 }
 
 void ScreenOFF(){

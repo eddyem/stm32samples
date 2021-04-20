@@ -48,6 +48,7 @@ void setFGcolor(uint8_t c);
 void DrawPix(int16_t X, int16_t Y, uint8_t pix);
 void InvertPix(int16_t X, int16_t Y);
 void XORPix(int16_t X, int16_t Y, uint8_t pix);
+uint8_t GetPix(int16_t X, int16_t Y);
 uint8_t DrawCharAt(int16_t X, int16_t Y, uint8_t Char);
 uint8_t PutStringAt(int16_t X, int16_t Y, const char *str);
 uint8_t *getScreenBuf();
