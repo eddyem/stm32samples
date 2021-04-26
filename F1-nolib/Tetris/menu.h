@@ -19,6 +19,8 @@
 #ifndef MENU_H__
 #define MENU_H__
 
+#include <stm32f1.h>
+
 typedef enum{
     MENU_SLEEP,
     MENU_BALLS,
@@ -29,6 +31,7 @@ typedef enum{
 } menuitem;
 
 void show_menu();
+void show_gameover();
 menuitem menu_activated();
 
 

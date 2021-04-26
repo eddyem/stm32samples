@@ -23,15 +23,17 @@
 #include "screen.h"
 //#include "usb.h"
 
-
 // !!!FOR LITTLE-ENDIAN!!!
+
+uint32_t score = 0;  // current game's score
+uint32_t StepMS, Tlast, incSpd = 0; // common for all games timer values
 
 // X coordinate - from left to right!
 // Y coordinate - from top to bottom!
 // (0,0) is top left corner
 
 // all-screen buffer
-static uint8_t screenbuf[SCREENBUF_SZ];
+uint8_t screenbuf[SCREENBUF_SZ];
 extern volatile uint32_t Tms; // time for FPS count
 static uint32_t FPS = 0, Tfps = 0; // approx FPS
 uint32_t getFPS(){return FPS;}
@@ -112,6 +114,17 @@ uint8_t PutStringAt(int16_t X, int16_t Y, const char *str){
     return X - Xold;
 }
 
+/**
+ * @brief CenterStringAt - draw string @ center line
+ * @param Y   - y coordinate
+ * @param str - string
+ * @return - text width in pixels
+ */
+uint8_t CenterStringAt(int16_t Y, const char *str){
+    int l = strpixlen(str);
+    return PutStringAt((SCREEN_WIDTH - l)/2, Y, str);
+}
+
 // full string length in pixels
 int strpixlen(const char *str){
     int l = 0;
@@ -121,8 +134,6 @@ int strpixlen(const char *str){
     }
     return l;
 }
-
-uint8_t *getScreenBuf(){return screenbuf;}
 
 static screen_state ScrnState = SCREEN_RELAX;
 screen_state getScreenState(){return ScrnState;}

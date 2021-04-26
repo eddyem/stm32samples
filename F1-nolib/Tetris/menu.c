@@ -39,13 +39,12 @@ static const char* items[] = {
     [MENU_TETRIS] = " Tetris "
 };
 
-
 static menuitem curitem = MENU_SLEEP;
 
 // show menu
 static void _menu(){
     choose_font(FONT14);
-    setBGcolor(0);
+    setBGcolor(COLOR_BLACK);
     ClearScreen();
     int charH = curfont->height, charB = curfont->baseline;
     int curI = midNo;
@@ -60,8 +59,7 @@ static void _menu(){
             setBGcolor(MENUBGCOLOR);
             setFGcolor(MENUFGCOLOR);
         }
-        PutStringAt((SCREEN_WIDTH - strpixlen(items[i]))/2,
-                    midY + (i-curI)*charH - charB, items[i]);
+        CenterStringAt(midY + (i-curI)*charH - charB, items[i]);
     }
 }
 
@@ -88,4 +86,16 @@ menuitem menu_activated(){
     }
     clear_events(); // clear all other events
     return MENU_NONE;
+}
+
+// show "GAME OVER" screen
+void show_gameover(){
+    setBGcolor(COLOR_BLACK);
+    setFGcolor(COLOR_RED);
+    ClearScreen();
+    choose_font(FONT14);
+    CenterStringAt(SCREEN_HEIGHT/2 - curfont->baseline - 1, "Game Over!");
+    setFGcolor(COLOR_YELLOW);
+    uint8_t l = PutStringAt(0, SCREEN_HEIGHT - curfont->baseline, "Score: ");
+    PutStringAt(l, SCREEN_HEIGHT - curfont->baseline, u2str(score));
 }

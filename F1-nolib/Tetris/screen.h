@@ -43,6 +43,23 @@ typedef enum{ // screen states
     SCREEN_UPDATENXT    // update next quarter
 } screen_state;
 
+// colors
+#define COLOR_BLACK     (0b00000000)
+#define COLOR_WHITE     (0b11111111)
+#define COLOR_BLUE      (0b00000011)
+#define COLOR_LBLUE     (0b00000001)
+#define COLOR_GREEN     (0b00011100)
+#define COLOR_LGREEN    (0b00001100)
+#define COLOR_RED       (0b11100000)
+#define COLOR_LRED      (0b01100000)
+#define COLOR_CYAN      (0b00011111)
+#define COLOR_PURPLE    (0b11100011)
+#define COLOR_YELLOW    (0b11111100)
+
+extern uint32_t score; // current game score
+extern uint8_t screenbuf[SCREENBUF_SZ];
+extern uint32_t StepMS, Tlast, incSpd; // common for all games timer values
+
 screen_state getScreenState();
 void ClearScreen();
 void setBGcolor(uint8_t c);
@@ -53,6 +70,7 @@ void XORPix(int16_t X, int16_t Y, uint8_t pix);
 uint8_t GetPix(int16_t X, int16_t Y);
 uint8_t DrawCharAt(int16_t X, int16_t Y, uint8_t Char);
 uint8_t PutStringAt(int16_t X, int16_t Y, const char *str);
+uint8_t CenterStringAt(int16_t Y, const char *str);
 int strpixlen(const char *str);
 uint8_t *getScreenBuf();
 void process_screen();

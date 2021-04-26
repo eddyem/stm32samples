@@ -19,10 +19,7 @@
 #ifndef SNAKE_H__
 #define SNAKE_H__
 
-#include <stm32f1.h>
-
 void snake_init();
-int proces_snake();
-uint32_t snake_getscore();
+int snake_proces();
 
 #endif // SNAKE_H__

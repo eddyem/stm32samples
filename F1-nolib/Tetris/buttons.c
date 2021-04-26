@@ -22,6 +22,7 @@
 #include "hardware.h"
 
 extern volatile uint32_t Tms;
+uint32_t lastUnsleep = 0;
 
 // threshold in ms for press/hold
 #define PRESSTHRESHOLD  (9)
@@ -54,6 +55,7 @@ void process_keys(){
         keybase *k = &allkeys[i];
         keyevent e = k->event;
         if(PRESSED(k->port, k->pin)){ // key is in pressed state
+            lastUnsleep = Tms; // update activity time (any key is in pressed state)
             switch(e){
                 case EVT_NONE: // just pressed
                 case EVT_RELEASE:

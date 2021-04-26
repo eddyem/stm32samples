@@ -41,7 +41,7 @@ static int
     xspeed[NBALLSMAX], yspeed[NBALLSMAX];
 static uint8_t colr[NBALLSMAX];
 static int Nballs = 0;
-static uint32_t Tlast, Taddb;
+static uint32_t TlastB, Taddb;
 
 static void clear_balls(){
     for(int i = 0; i < Nballs; ++i)
@@ -70,21 +70,21 @@ static void add_ball(){
 
 void balls_init(){
     Nballs = 0;
-    setBGcolor(0);
+    setBGcolor(COLOR_BLACK);
     ClearScreen();
     ScreenON();
-    Tlast = Tms;
+    TlastB = Tms;
     add_ball();
 }
 
 //#define abs(x)  ((x<0) ? -x : x)
 
 void process_balls(){
-    if(Tms == Tlast) return;
+    if(Tms == TlastB) return;
     if(Nballs < NBALLSMAX && Taddb < Tms){
         add_ball();
     }
-    int diff = (int)(Tms - Tlast);
+    int diff = (int)(Tms - TlastB);
     for(int i = 0; i < Nballs; ++i){
         xnew[i] = x[i] + xspeed[i]*diff;
         ynew[i] = y[i] + yspeed[i]*diff;
@@ -104,5 +104,5 @@ void process_balls(){
     }
     clear_balls();
     draw_balls();
-    Tlast = Tms;
+    TlastB = Tms;
 }

@@ -29,7 +29,19 @@
 #define SNAKE_BGCOLOR       (0)
 #define SNAKE_HEADCOLOR     (0b00001101)
 #define SNAKE_COLOR         (0b00101100)
+// food: +1 to size
 #define FOOD_COLOR          (0b00011100)
+// cut - -1 to size
+#define CUT_COLOR           (0b11100000)
+// chance of CUT appears  when drawing food (/1000)
+#define CUT_PROMILLE        (33)
+// score - +10 to score
+#define SCORE_COLOR         (0b00000001)
+// add this to score after each SCORE_COLOR eating
+#define ADDSCORE            (25)
+// chance of SCORE appears when doing move (1/1000)
+#define SCORE_PROMILLE      (15)
+// border
 #define BORDER_COLOR        (0b00100000)
 // max and min pause between steps
 #define MAXSTEPMS           (199)
@@ -46,24 +58,28 @@ static point snake[SNAKE_MAXLEN];
 static int8_t dirX, dirY;
 static uint8_t snakelen;
 static point Food;
-static uint32_t StepMS, Tlast, incSpd = 0;
-static uint32_t score;
 
-static void ThrowFood(){
-    int notfound = 1;
-    do{
-        Food.x = 1 + getRand() % (SCREEN_WIDTH-2);
-        Food.y = 1 + getRand() % (SCREEN_HEIGHT-2);
-        for(int i = 0; i < snakelen; ++i){
-            if(Food.x != snake[i].x && Food.y != snake[i].y){
-                notfound = 0;
-                break;
-            }
-        }
-    }while(notfound);
-    USB_send("Food @ "); USB_send(u2str(Food.x));
-    USB_send(", "); USB_send(u2str(Food.y)); USB_send("\n");
+static point RandCoords(){
+    point pt = {0,0};
+    for(int i = 0; i < 10000; ++i){ // not more than 10000 tries
+        pt.x = 1 + getRand() % (SCREEN_WIDTH-2);
+        pt.y = 1 + getRand() % (SCREEN_HEIGHT-2);
+        if(GetPix(pt.x, pt.y) == SNAKE_BGCOLOR) break;
+    };
+    return pt;
+}
+
+// return 0 if failed
+static int ThrowFood(){
+    Food = RandCoords();
+    if(Food.x == 0 && Food.y == 0) return 0;
     DrawPix(Food.x, Food.y, FOOD_COLOR);
+    if(getRand() % 1000 < CUT_PROMILLE){
+        point p = RandCoords();
+        if(p.x == 0 && p.y == 0) return 1;
+        DrawPix(p.x, p.y, CUT_COLOR);
+    }
+    return 1;
 }
 /*
 static void draw_snake(){
@@ -101,7 +117,6 @@ void snake_init(){
             dirX = 1; dirY = 0;
         break;
         case 1:
-
             dirX = -1; dirY = 0;
         break;
         case 2:
@@ -115,12 +130,14 @@ void snake_init(){
     Tlast = Tms; incSpd = 0;
     score = 0;
     DrawPix(snake[0].x, snake[0].y, SNAKE_HEADCOLOR);
+    USB_send("Snake inited\n");
 }
 
 // return 0 if failed
 static int move_snake(){
     int last = snakelen - 1;
     point tail = {snake[last].x, snake[last].y};
+    DrawPix(Food.x, Food.y, FOOD_COLOR); // redraw food
     DrawPix(snake[0].x, snake[0].y, SNAKE_COLOR); // redraw head with body color
     DrawPix(tail.x, tail.y, SNAKE_BGCOLOR); // delete tail
     for(int i = snakelen-1; i > 0; --i){
@@ -135,6 +152,11 @@ static int move_snake(){
             if(nxtcolr == SNAKE_COLOR) USB_send("slum into yourself\n");
             else USB_send("crush into border\n");
             return 0;
+        }else if(nxtcolr == CUT_COLOR && snakelen > 1){ // make snake shorter
+            --snakelen;
+            DrawPix(snake[snakelen].x, snake[snakelen].y, SNAKE_BGCOLOR);
+        }else if(nxtcolr == SCORE_COLOR){ // add score
+            score += ADDSCORE;
         }
         // not border or snake -> FOOD?!
         if(snake[0].x == Food.x && snake[0].y == Food.y){ // increase snake len & speed & score
@@ -145,7 +167,7 @@ static int move_snake(){
                 ++snakelen;
                 DrawPix(tail.x, tail.y, SNAKE_COLOR);
             }
-            ThrowFood();
+            if(!ThrowFood()) return 0;
             USB_send("Got food, score="); USB_send(u2str(score));
             USB_send(", len="); USB_send(u2str(snakelen));
             USB_send(", speed="); USB_send(u2str(StepMS));
@@ -163,7 +185,7 @@ static int move_snake(){
 #define DECRSPD()           do{incSpd /= 2;}while(0)
 
 // return 0 if game over
-int proces_snake(){
+int snake_proces(){
     keyevent evt;
     static uint8_t paused = 0;
     // change moving direction
@@ -173,13 +195,13 @@ int proces_snake(){
     if(keystate(KEY_D, &evt)){ // Down
         if(evt == EVT_PRESS){ if(dirY != -1) SETDIR(0, 1);}
     }
-    if(keystate(KEY_L, &evt)){ // Down
+    if(keystate(KEY_L, &evt)){ // Left
         if(evt == EVT_PRESS){ if(dirX != 1) SETDIR(-1, 0);}
     }
-    if(keystate(KEY_R, &evt) && (evt == EVT_PRESS || evt == EVT_HOLD)){ // Down
+    if(keystate(KEY_R, &evt) && (evt == EVT_PRESS || evt == EVT_HOLD)){ // Right
         if(evt == EVT_PRESS){ if(dirX != -1) SETDIR(1, 0);}
     }
-    if(keystate(KEY_M, &evt) && (evt == EVT_PRESS || evt == EVT_HOLD)){ // Pause or out
+    if(keystate(KEY_M, &evt) && (evt == EVT_PRESS || evt == EVT_HOLD)){ // Menu - Pause or out
         if(3 == ++paused){
             USB_send("Exit snake\n");
             clear_events();
@@ -187,7 +209,7 @@ int proces_snake(){
             return 0;
         }
     }
-    if(keystate(KEY_S, &evt) && (evt == EVT_PRESS || evt == EVT_HOLD)){ // Pause
+    if(keystate(KEY_S, &evt) && (evt == EVT_PRESS || evt == EVT_HOLD)){ // Set - Pause
         if(paused){
             USB_send("Snake resume\n");
             paused = 0;
@@ -226,4 +248,3 @@ int proces_snake(){
     return 1;
 }
 
-uint32_t snake_getscore(){return score;}

@@ -25,8 +25,12 @@
 #include "proto.h"
 #include "screen.h"
 #include "snake.h"
+#include "tetris.h"
 #include "usb.h"
 #include "usb_lib.h"
+
+// timeout for autosleep (30s)
+#define AUTOSLEEP_TMOUT     (30000)
 
 volatile uint32_t Tms = 0;
 uint8_t balls = 0;
@@ -35,7 +39,8 @@ enum{
     STATE_MENU,
     STATE_SNAKE,
     STATE_TETRIS,
-    STATE_SLEEP
+    STATE_SLEEP,
+    STATE_GAMEOVER
 } curstate = STATE_SLEEP;
 
 /* Called when systick fires */
@@ -89,6 +94,8 @@ static void process_menu(){
         break;
         case MENU_TETRIS:
             USB_send("Select 'Tetris'\n");
+            tetris_init();
+            curstate = STATE_TETRIS;
         break;
         default:
         break;
@@ -112,7 +119,7 @@ int main(void){
     USBPU_OFF();
     adc_setup();
     USB_setup();
-    iwdg_setup();
+    //iwdg_setup();
     USBPU_ON();
 
     keyevent evt;
@@ -133,12 +140,32 @@ int main(void){
             break;
             case STATE_MENU:
                 process_menu();
+                if(Tms - lastUnsleep > AUTOSLEEP_TMOUT){
+                    USB_send("Autosleep\n");
+                    ScreenOFF();
+                    curstate = STATE_SLEEP;
+                }
             break;
             case STATE_SNAKE:
-                if(!proces_snake()) gotomenu();
+                if(!snake_proces()){
+                    show_gameover();
+                    curstate = STATE_GAMEOVER;
+                }
             break;
             case STATE_TETRIS:
-                ;
+                if(!tetris_process()){
+                    show_gameover();
+                    curstate = STATE_GAMEOVER;
+                }
+            break;
+            case STATE_GAMEOVER: // show gameover screen
+                if(keystate(KEY_M, &evt) && evt == EVT_RELEASE){
+                    gotomenu();
+                }else if(Tms - lastUnsleep > AUTOSLEEP_TMOUT){
+                    USB_send("Autosleep\n");
+                    ScreenOFF();
+                    curstate = STATE_SLEEP;
+                }
             break;
         }
 
