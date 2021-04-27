@@ -16,6 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include <stddef.h>
+#include "debug.h"
 #include "fonts.h"
 
 /* Bash-script to generate the symbols
@@ -304,8 +305,6 @@ done
 
 static const afont FONTS[] = {
     [FONT14]  = {font14_table, font14_encoding, FONT14HEIGHT, FONT14BYTES, FONT14BASELINE},
-//    [FONTN16] = {fontNumb16_table, fontNumb16_encoding, FONTNUMB16HEIGHT, FONTNUMB16BYTES, FONTNUMB16BASELINE},
-//    [FONTN10] = {fontNumb10_table, fontNumb10_encoding, FONTNUMB10HEIGHT, FONTNUMB10BYTES, FONTNUMB10BASELINE},
     [FONTN8]  = {fontNumb8_table, fontNumb8_encoding, FONTNUMB8HEIGHT, FONTNUMB8BYTES, FONTNUMB8BASELINE},
 };
 
@@ -324,6 +323,7 @@ int choose_font(font_t newfont){
 
 const uint8_t *font_char(uint8_t Char){
     uint8_t idx = curfont->enctable[Char];
+    //DBG("font_char("); DBGU(Char); DBG(")="); DBGU(idx); NL();
     if(!idx) return NULL; // no this character in font
     return &(curfont->font[idx*(curfont->bytes+1)]);
 }

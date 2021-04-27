@@ -34,7 +34,7 @@
 // cut - -1 to size
 #define CUT_COLOR           (0b11100000)
 // chance of CUT appears  when drawing food (/1000)
-#define CUT_PROMILLE        (33)
+#define CUT_PROMILLE        (80)
 // score - +10 to score
 #define SCORE_COLOR         (0b00000001)
 // add this to score after each SCORE_COLOR eating
@@ -176,6 +176,11 @@ static int move_snake(){
     }
     // check borders: they could be broken when `balls` activated
     if(snake[0].x >= SCREEN_WIDTH || snake[0].y >= SCREEN_HEIGHT) return 0;
+    if(getRand() % 1000 < SCORE_PROMILLE){ // add ++score
+        point pt = RandCoords();
+        if(pt.x && pt.y)
+            DrawPix(pt.x, pt.y, SCORE_COLOR);
+    }
     return 1;
 }
 

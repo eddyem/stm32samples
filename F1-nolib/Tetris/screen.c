@@ -18,10 +18,11 @@
 
 #include <string.h> // memset, memcpy
 #include <stdio.h>
+#include "debug.h"
 #include "fonts.h"
 #include "hardware.h"
 #include "screen.h"
-//#include "usb.h"
+
 
 // !!!FOR LITTLE-ENDIAN!!!
 
@@ -106,6 +107,7 @@ uint8_t DrawCharAt(int16_t X, int16_t Y, uint8_t Char){
  * @return - text width in pixels
  */
 uint8_t PutStringAt(int16_t X, int16_t Y, const char *str){
+    DBG("PutStringAt("); DBGU(X); DBG(", "); DBGU(Y); DBG(", \""); DBG(str); DBG("\"\n");
     if(!str) return 0;
     int16_t Xold = X;
     while(*str){
@@ -169,22 +171,6 @@ void process_screen(){
                 }
             }
         break;
-            /*for(int i = 0; i < 32; ++i){
-                DrawPix(0,i,0b11111111);
-                DrawPix(1,i,0b1001010);
-                DrawPix(2,i,0b00100101);
-                DrawPix(20,i,0b11100000);
-                DrawPix(21,i,0b10000000);
-                DrawPix(22,i,0b00100000);
-                DrawPix(30,i,0b00011100);
-                DrawPix(31,i,0b00010000);
-                DrawPix(32,i,0b00000100);
-                DrawPix(60,i,0b00000011);
-                DrawPix(61,i,0b00000010);
-                DrawPix(62,i,0b00000001);
-            }*/
-                // memset -> halt
-            //memset(screenbuf, pattern, SCREENBUF_SZ);
         default:
             return;
     }
