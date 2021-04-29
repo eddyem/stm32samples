@@ -33,17 +33,17 @@
 #define midY (SCREEN_HH - 1)
 
 static const char* items[] = {
-    [MENU_SLEEP]  = " Sleep ",
-    [MENU_BALLS]  = " Balls ",
-    [MENU_SNAKE]  = " Snake ",
-    [MENU_TETRIS] = " Tetris "
+    [MENU_SLEEP]  = " SLEEP ",
+    [MENU_BALLS]  = " BALLS ",
+    [MENU_SNAKE]  = " SNAKE ",
+    [MENU_TETRIS] = " TETRIS "
 };
 
 static menuitem curitem = MENU_SLEEP;
 
 // show menu
 static void _menu(){
-    choose_font(FONT14);
+    choose_font(FONTN8);
     setBGcolor(COLOR_BLACK);
     ClearScreen();
     int charH = curfont->height, charB = curfont->baseline;
@@ -93,9 +93,8 @@ void show_gameover(){
     setBGcolor(COLOR_BLACK);
     setFGcolor(COLOR_RED);
     ClearScreen();
-    choose_font(FONT14);
-    CenterStringAt(SCREEN_HEIGHT/2 - curfont->baseline - 1, "Game Over!");
-    setFGcolor(COLOR_YELLOW);
-    uint8_t l = PutStringAt(0, SCREEN_HEIGHT - curfont->baseline, "Score: ");
-    PutStringAt(l, SCREEN_HEIGHT - curfont->baseline, u2str(score));
+    choose_font(FONTN8);
+    CenterStringAt(SCREEN_HEIGHT/2 - curfont->baseline - 1, "GAME OVER!");
+    setFGcolor(COLOR_LYELLOW);
+    CenterStringAt(SCREEN_HEIGHT - curfont->baseline - 2, u2str(score));
 }

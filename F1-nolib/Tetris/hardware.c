@@ -75,7 +75,7 @@ static inline void tim_setup(){
     GPIOA->CRL |= CRL(6, CNF_AFPP|MODE_FAST);
     RCC->APB1ENR |= RCC_APB1ENR_TIM3EN;
     // PCS=1 don't work;
-    TIM3->PSC = 9; // 7.2MHz
+    TIM3->PSC = 4; // 7.2MHz
     TIM3->ARR = 7;
     TIM3->CCMR1 = TIM_CCMR1_OC1M; // PWM mode 2 (inactive->active)
     //TIM3->CCMR1 = TIM_CCMR1_OC1M_2 | TIM_CCMR1_OC1M_1; // PWM mode 1 (active->inactive)

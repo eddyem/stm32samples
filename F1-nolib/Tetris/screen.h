@@ -22,6 +22,9 @@
 
 #include <stdint.h>
 
+// additional black frames for display won't be so bright
+#define NBLACK_FRAMES       (7)
+
 // display size in px
 // PANEL_WIDTH is width of one panel
 //#define PANEL_WIDTH         (64)
@@ -53,8 +56,10 @@ typedef enum{ // screen states
 #define COLOR_RED       (0b11100000)
 #define COLOR_LRED      (0b01100000)
 #define COLOR_CYAN      (0b00011111)
+#define COLOR_LCYAN     (0b00000101)
 #define COLOR_PURPLE    (0b11100011)
 #define COLOR_YELLOW    (0b11111100)
+#define COLOR_LYELLOW   (0b00100100)
 
 extern uint32_t score; // current game score
 extern uint8_t screenbuf[SCREENBUF_SZ];

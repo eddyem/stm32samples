@@ -107,7 +107,6 @@ uint8_t DrawCharAt(int16_t X, int16_t Y, uint8_t Char){
  * @return - text width in pixels
  */
 uint8_t PutStringAt(int16_t X, int16_t Y, const char *str){
-    DBG("PutStringAt("); DBGU(X); DBG(", "); DBGU(Y); DBG(", \""); DBG(str); DBG("\"\n");
     if(!str) return 0;
     int16_t Xold = X;
     while(*str){
@@ -158,7 +157,7 @@ void process_screen(){
             ConvertScreenBuf(screenbuf, currentB, Ntick); // convert data
             TIM_DMA_transfer(currentB); // start transfer
             ScrnState = SCREEN_ACTIVE;
-            if(++Ntick >= 7){
+            if(++Ntick >= 7 + NBLACK_FRAMES){
                 Ntick = 0;
                 if(++currentB >= NBLOCKS){
                     currentB = 0; // start again

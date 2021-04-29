@@ -25,12 +25,12 @@
 
 // backround color
 #define BACKGROUND_COLOR    (COLOR_BLACK)
-#define FOREGROUND_COLOR    (COLOR_YELLOW)
-#define CUP_COLOR           (COLOR_CYAN)
+#define FOREGROUND_COLOR    (COLOR_LYELLOW)
+#define CUP_COLOR           (COLOR_LRED)
 
 // height of cup
-#define CUPHEIGHT       (30)
-#define CUPWIDTH        (20)
+#define CUPHEIGHT       (31)
+#define CUPWIDTH        (14)
 // screen coordinate of x=0 @ cup
 #define CUPX0           (7)
 // screen coordinate of y=0 @ cup (Y grows upside down)
@@ -67,7 +67,7 @@ static const figure L = {
 // J: 00, 01, 02, -10 + 2 = 0x22, 0x23, 0x24, 0x12
 static const figure J = {
     .f = {0x22, 0x23, 0x24, 0x12},
-    .color = 0b00000100
+    .color = 0b00000001
 };
 // O: 00, 01, 10, 11 + 2 = 0x22, 0x23, 0x32, 0x33
 static const figure O = {
@@ -84,13 +84,13 @@ static const figure I = {
 // S: -10, 00, 01, 11 + 2 = 0x12, 0x22, 0x23, 0x33
 static const figure S = {
     .f = {0x12, 0x22, 0x23, 0x33},
-    .color = 0b00100001
+    .color = 0b00000100
 };
 
 // Z: -11, 01, 00, 10 + 2 = 0x13, 0x23, 0x22, 0x32
 static const figure Z = {
     .f = {0x13, 0x23, 0x22, 0x32},
-    .color = 0b00100100
+    .color = 0b00000100
 };
 
 // T: -10, 01, 00, 10 + 2 = 0x12, 0x23, 0x22, 0x32
@@ -210,7 +210,7 @@ static int getrand(){
     return r;
 }
 
-// return 0 if cannot move
+// return 0 if cannot move by y
 static int mvfig(int *x, int *y, int dx){
     register int xx = *x, yy = *y;
     DBG("MVFIG: x="); DBGU(*x); DBG(", y="); DBGU(*y); DBG(", dx="); DBGU(dx); NL();
@@ -218,9 +218,14 @@ static int mvfig(int *x, int *y, int dx){
     clearfigure(xx, yy);
     // check dx:
     if(dx){
-        if(chkfigure(xx+dx, yy, &curfigure)){
-            xx = xx + dx; *x = xx;
-        }else ret = 0;
+        int step = 1;
+        if(dx < 0){step = -1; dx = -dx;}
+        while(dx){
+            if(chkfigure(xx + step, yy, &curfigure)){
+                xx = xx + step; *x = xx;
+            }else break;
+            --dx;
+        }
     }
     if(chkfigure(xx, yy+1, &curfigure)){
         ++yy; *y = yy;
@@ -260,7 +265,7 @@ static int drawnext(){
 void tetris_init(){
     setBGcolor(BACKGROUND_COLOR);
     setFGcolor(FOREGROUND_COLOR);
-    choose_font(FONT14);
+    choose_font(FONTN8);
     ClearScreen();
     ScreenON();
     score = 0;
@@ -274,7 +279,8 @@ void tetris_init(){
     for(int x = 0; x < CUPWIDTH + 2; ++x)
         DrawPix(CUPX0 - 1 + x, CUPY0 + CUPHEIGHT, CUP_COLOR);
     nextfigure = *figures[getrand()];
-    PutStringAt(CUPX0 + CUPWIDTH + 5, CUPY0 + 5 + curfont->height, "0       ");
+    PutStringAt(CUPX0 + CUPWIDTH + 3, CUPY0 + 3 + curfont->height, "SCORE:");
+    PutStringAt(CUPX0 + CUPWIDTH + 3, CUPY0 + 3 + 2*curfont->height, "0       ");
     drawnext();
 }
 
@@ -284,7 +290,8 @@ int tetris_process(){
     static uint8_t paused = 0;
     keyevent evt;
     if(Tms == Tlast) return 1;
-#define EVENT(x)    ((keystate(x, &evt) && evt == EVT_PRESS) || keyevt(x) == EVT_HOLD)
+#define PRESS(x)    (keystate(x, &evt) && evt == EVT_PRESS)
+#define HOLD(x)     (keyevt(x) == EVT_HOLD)
     // change moving direction
     if(keystate(KEY_U, &evt) && (evt == EVT_PRESS || evt == EVT_HOLD)){ // UP - pause
         if(paused){
@@ -299,20 +306,23 @@ int tetris_process(){
         if(keystate(KEY_D, &evt) && evt == EVT_PRESS){ // Down - drop
             incSpd = MINSTEPMS;
         }
-        if(EVENT(KEY_L)){ // L - left
+        if(PRESS(KEY_L)) // L - left
             moveX = -1;
-        }
-        if(EVENT(KEY_R)){ // Right
+        else if(HOLD(KEY_L))
+            moveX = -2;
+        if(PRESS(KEY_R)) // Right
             moveX = 1;
-        }
-        if(EVENT(KEY_M)){ // Menu - rotate CCW
+        else if(HOLD(KEY_R))
+            moveX = 2;
+        if(PRESS(KEY_M)){ // Menu - rotate CCW
             rot = 1;
         }
-        if(EVENT(KEY_S)){ // Set - rotate CW
+        if(PRESS(KEY_S)){ // Set - rotate CW
             rot = -1;
         }
     }
-#undef EVENT
+#undef PRESS
+#undef HOLD
     clear_events();
     if(Tms - Tlast > incSpd){
         Tlast = Tms;
@@ -323,7 +333,7 @@ int tetris_process(){
             rot = 0;
         }
         DBG("Move down 1px\n");
-        if(!mvfig(&xnew, &ynew, moveX) && ynew == yf){ // can't move: end of moving?
+        if(!mvfig(&xnew, &ynew, moveX)){ // can't move: end of moving?
             moveX = 0;
             int s = checkandroll();
             switch(s){ // add score
@@ -346,10 +356,18 @@ int tetris_process(){
                 default:
                 break;
             }
-            PutStringAt(CUPX0 + CUPWIDTH + 5, CUPY0 + 5 + curfont->height, u2str(score));
+            DBG("Score: "); DBG(u2str(score)); DBG("\n");
+            if(s){
+                setBGcolor(BACKGROUND_COLOR);
+                setFGcolor(FOREGROUND_COLOR);
+                choose_font(FONTN8);
+                uint8_t l = PutStringAt(CUPX0 + CUPWIDTH + 3, CUPY0 + 3 + 2*curfont->height, u2str(score));
+                PutStringAt(l+CUPX0 + CUPWIDTH + 3, CUPY0 + 3 + 2*curfont->height, "   ");
+            }
             if(StepMS > MINSTEPMS && score > nextSpeedScore){ // increase speed
                 --StepMS;
                 nextSpeedScore += NXTSPEEDSCORE;
+                DBG("Increase speed, StepMS="); DBG(u2str(StepMS)); DBG("\n");
             }
             if(!drawnext()) return 0;
         }else{

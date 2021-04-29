@@ -27,16 +27,16 @@
 #define SNAKE_MAXLEN        (128)
 // colors                      RRRGGGBB
 #define SNAKE_BGCOLOR       (0)
-#define SNAKE_HEADCOLOR     (0b00001101)
-#define SNAKE_COLOR         (0b00101100)
+#define SNAKE_HEADCOLOR     (0b00001100)
+#define SNAKE_COLOR         (0b00000100)
 // food: +1 to size
-#define FOOD_COLOR          (0b00011100)
+#define FOOD_COLOR          (0b00001101)
 // cut - -1 to size
-#define CUT_COLOR           (0b11100000)
+#define CUT_COLOR           (0b00011100)
 // chance of CUT appears  when drawing food (/1000)
 #define CUT_PROMILLE        (80)
 // score - +10 to score
-#define SCORE_COLOR         (0b00000001)
+#define SCORE_COLOR         (0b00100100)
 // add this to score after each SCORE_COLOR eating
 #define ADDSCORE            (25)
 // chance of SCORE appears when doing move (1/1000)
