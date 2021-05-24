@@ -1,2 +1,11 @@
-TETRIS @ HUB75E-based RGB LED panel
+Some games @ HUB75E-based RGB LED panel
 
+
+Snake:
+Classical snake with additional food:
+cyan   - increase snake size
+yellow - additional score
+green  - decrease snake size
+
+Tetris:
+Tetris with a little bigger cup than in classical game

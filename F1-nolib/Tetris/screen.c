@@ -85,7 +85,7 @@ uint8_t DrawCharAt(int16_t X, int16_t Y, uint8_t Char){
     const uint8_t *curchar = font_char(Char);
     if(!curchar) return 0;
     // now change Y coordinate to left upper corner of font
-    Y += 1 - curfont->height + curfont->baseline;
+    Y += curfont->baseline - curfont->height + 1;
     // height and width of letter in pixels
     uint8_t h = curfont->height, w = *curchar++; // now curchar is pointer to bits array
     uint8_t lw = curfont->bytes / h; // width of letter in bytes

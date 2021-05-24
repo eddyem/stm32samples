@@ -33,10 +33,11 @@
 #define midY (SCREEN_HH - 1)
 
 static const char* items[] = {
-    [MENU_SLEEP]  = " SLEEP ",
-    [MENU_BALLS]  = " BALLS ",
-    [MENU_SNAKE]  = " SNAKE ",
-    [MENU_TETRIS] = " TETRIS "
+    [MENU_SLEEP]    = " SLEEP ",
+    [MENU_BALLS]    = " BALLS ",
+    [MENU_SNAKE]    = " SNAKE ",
+    [MENU_TETRIS]   = " TETRIS ",
+    [MENU_ARKANOID] = " ARKANOID ",
 };
 
 static menuitem curitem = MENU_SLEEP;

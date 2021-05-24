@@ -49,6 +49,8 @@ typedef enum{ // screen states
 // colors
 #define COLOR_BLACK     (0b00000000)
 #define COLOR_WHITE     (0b11111111)
+#define COLOR_GRAY      (0b01101101)
+#define COLOR_LGRAY     (0b10110110)
 #define COLOR_BLUE      (0b00000011)
 #define COLOR_LBLUE     (0b00000001)
 #define COLOR_GREEN     (0b00011100)
@@ -58,6 +60,7 @@ typedef enum{ // screen states
 #define COLOR_CYAN      (0b00011111)
 #define COLOR_LCYAN     (0b00000101)
 #define COLOR_PURPLE    (0b11100011)
+#define COLOR_LPURPLE   (0b01100001)
 #define COLOR_YELLOW    (0b11111100)
 #define COLOR_LYELLOW   (0b00100100)
 

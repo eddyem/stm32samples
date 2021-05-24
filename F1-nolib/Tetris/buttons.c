@@ -26,7 +26,7 @@ uint32_t lastUnsleep = 0;
 
 // threshold in ms for press/hold
 #define PRESSTHRESHOLD  (9)
-#define HOLDTHRESHOLD   (249)
+#define HOLDTHRESHOLD   (199)
 
 typedef struct{
     keycode code;           // key code

@@ -17,6 +17,7 @@
  */
 
 #include "adcrandom.h"
+#include "arkanoid.h"
 #include "balls.h"
 #include "buttons.h"
 #include "fonts.h"
@@ -39,6 +40,7 @@ enum{
     STATE_MENU,
     STATE_SNAKE,
     STATE_TETRIS,
+    STATE_ARKANOID,
     STATE_SLEEP,
     STATE_GAMEOVER
 } curstate = STATE_SLEEP;
@@ -97,6 +99,10 @@ static void process_menu(){
             tetris_init();
             curstate = STATE_TETRIS;
         break;
+        case MENU_ARKANOID:
+            USB_send("Select 'Arkanoid'\n");
+            arkanoid_init();
+            curstate = STATE_ARKANOID;
         default:
         break;
     }
@@ -154,6 +160,12 @@ int main(void){
             break;
             case STATE_TETRIS:
                 if(!tetris_process()){
+                    show_gameover();
+                    curstate = STATE_GAMEOVER;
+                }
+            break;
+            case STATE_ARKANOID:
+                if(!arkanoid_process()){
                     show_gameover();
                     curstate = STATE_GAMEOVER;
                 }

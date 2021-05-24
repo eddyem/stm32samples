@@ -16,24 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
-#ifndef MENU_H__
-#define MENU_H__
+#ifndef ARKANOID_H__
+#define ARKANOID_H__
 
-#include <stm32f1.h>
+void arkanoid_init();
+int arkanoid_process();
 
-typedef enum{
-    MENU_SLEEP,
-    MENU_BALLS,
-    MENU_SNAKE,
-    MENU_TETRIS,
-    MENU_ARKANOID,
-    MENU_ITEMS,
-    MENU_NONE
-} menuitem;
-
-void show_menu();
-void show_gameover();
-menuitem menu_activated();
-
-
-#endif // MENU_H__
+#endif // ARKANOID_H__
