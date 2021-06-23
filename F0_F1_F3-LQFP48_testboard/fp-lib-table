@@ -1,0 +1,6 @@
+(fp_lib_table
+  (lib (name my_footprints)(type KiCad)(uri "$(KIPRJMOD)/my_footprints.pretty")(options "")(descr ""))
+  (lib (name LED_THT)(type KiCad)(uri ${KISYSMOD}/LED_THT.pretty)(options "")(descr ""))
+  (lib (name Crystal)(type KiCad)(uri ${KISYSMOD}/Crystal.pretty)(options "")(descr ""))
+  (lib (name Potentiometer_THT)(type KiCad)(uri ${KISYSMOD}/Potentiometer_THT.pretty)(options "")(descr ""))
+)
