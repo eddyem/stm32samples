@@ -22,7 +22,6 @@
  */
 
 #include <stdint.h>
-#include "usart.h"
 #include "usb_lib.h"
 
 

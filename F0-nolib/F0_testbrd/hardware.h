@@ -30,42 +30,17 @@
 #define STR_HELPER(s)   #s
 #define STR(s)          STR_HELPER(s)
 
-#define FORMUSART(X)    CONCAT(USART, X)
-#define USARTX          FORMUSART(USARTNUM)
-#if USARTNUM == 2
-    #define USARTDMA  DMA1_Channel4
-    #define DMAIRQn   DMA1_Channel4_5_IRQn
-    #define USARTIRQn USART2_IRQn
-#elif USARTNUM == 1
-    #define USARTDMA  DMA1_Channel2
-    #define DMAIRQn   DMA1_Channel2_3_IRQn
-    #define USARTIRQn USART1_IRQn
-#else
-#error "Wrong USARTNUM"
-#endif
+// PWM LEDS
+#define SET_LED_PWM3(ch, N) do{TIM3->CCR ## ch = (uint32_t)N;}while(0)
+#define GET_LED_PWM3(ch)    (uint8_t)(TIM3->CCR ## ch)
+#define SET_LED_PWM1(N)     do{TIM1->CCR1 = (uint32_t)N;}while(0)
+#define GET_LED_PWM1()      (uint8_t)(TIM1->CCR1)
 
-// LEDS: 0 - PA0, 1 - PA4
-// LED0 - blinking each second
-#define LED0_port   GPIOA
-#define LED0_pin    (1<<0)
-// LED1 - PWM
-#define LED1_port   GPIOA
-#define LED1_pin    (1<<4)
-#define SET_LED_PWM(N)   do{TIM14->CCR1 = (uint32_t)N;}while(0)
-#define GET_LED_PWM()    (uint8_t)(TIM14->CCR1)
-
-// Buttons' state: PA14 (1)/PA15 (0)
-#define GET_BTN0()  ((GPIOA->IDR & (1<<15)) ? 0 : 1)
-#define GET_BTN1()  ((GPIOA->IDR & (1<<14)) ? 0 : 1)
-
-// USB pullup (not used in STM32F0x2!) - PA13
+// USB pullup (not used in STM32F0x2!) - PA15
 #define USBPU_port  GPIOA
-#define USBPU_pin   (1<<13)
+#define USBPU_pin   (1<<15)
 
-#define LED_blink(x)    pin_toggle(x ## _port, x ## _pin)
-#define LED_on(x)       pin_clear(x ## _port, x ## _pin)
-#define LED_off(x)      pin_set(x ## _port, x ## _pin)
-
+void iwdg_setup();
 void hw_setup();
 
 #endif // __HARDWARE_H__

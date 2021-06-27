@@ -21,9 +21,12 @@
 /**
  * @brief ADC_array - array for ADC channels with median filtering:
  * 0 - Rvar
- * 1 - internal Tsens
- * 2 - Vref
+ * 1 - Rvar/2
+ * 2 - internal Tsens
+ * 3 - Vref
  */
+#define CHTSENS (2)
+#define CHVREF  (3)
 uint16_t ADC_array[NUMBER_OF_ADC_CHANNELS*9];
 
 /**
@@ -51,12 +54,20 @@ uint16_t getADCval(int nch){
 #undef PIX_SWAP
 }
 
+// get voltage @input nch (1/100V)
+uint32_t getADCvoltate(int nch){
+    uint32_t v = getADCval(nch);
+    v *= getVdd();
+    v /= 0xfff; // 12bit ADC
+    return v;
+}
+
 // return MCU temperature (degrees of celsius * 10)
 int32_t getMCUtemp(){
-    getVdd();
+//    getVdd();
     // make correction on Vdd value
 //    int32_t temperature = (int32_t)ADC_array[4] * VddValue / 330;
-    int32_t ADval = getADCval(1);
+    int32_t ADval = getADCval(CHTSENS);
     int32_t temperature = (int32_t) *TEMP30_CAL_ADDR - ADval;
     temperature *= (int32_t)(1100 - 300);
     temperature /= (int32_t)(*TEMP30_CAL_ADDR - *TEMP110_CAL_ADDR);
@@ -64,9 +75,9 @@ int32_t getMCUtemp(){
     return(temperature);
 }
 
-// return Vdd * 100 (V)
+// return Vdd (1/100V)
 uint32_t getVdd(){
     uint32_t vdd = ((uint32_t) *VREFINT_CAL_ADDR) * (uint32_t)330; // 3.3V
-    vdd /= getADCval(2);
+    vdd /= getADCval(CHVREF);
     return vdd;
 }

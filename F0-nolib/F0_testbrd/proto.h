@@ -1,6 +1,6 @@
 /*
- * This file is part of the Chiller project.
- * Copyright 2018 Edward V. Emelianov <edward.emelianoff@gmail.com>.
+ * This file is part of the F0testbrd project.
+ * Copyright 2021 Edward V. Emelianov <edward.emelianoff@gmail.com>.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,16 +15,20 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef ADC_H
-#define ADC_H
-#include "stm32f0.h"
+#pragma once
+#ifndef PROTO_H__
+#define PROTO_H__
 
-#define NUMBER_OF_ADC_CHANNELS (4)
+#define USND(str)  do{USB_send((uint8_t*)str, sizeof(str)-1);}while(0)
 
-extern uint16_t ADC_array[];
-int32_t getMCUtemp();
-uint32_t getVdd();
-uint16_t getADCval(int nch);
-uint32_t getADCvoltate(int nch);
+void USB_sendstr(const char *str);
+char *get_USB();
+const char *parse_cmd(char *buf);
 
-#endif // ADC_H
+char *u2str(uint32_t val);
+char *i2str(int32_t i);
+char *uhex2str(uint32_t val);
+char *getnum(const char *txt, uint32_t *N);
+char *omit_spaces(const char *buf);
+
+#endif // PROTO_H__

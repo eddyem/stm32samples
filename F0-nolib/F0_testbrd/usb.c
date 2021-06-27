@@ -23,7 +23,6 @@
 
 #include "usb.h"
 #include "usb_lib.h"
-#include "usart.h"
 
 static volatile uint8_t tx_succesfull = 1;
 static volatile uint8_t rxNE = 0;
@@ -162,7 +161,6 @@ void usb_proc(){
  */
 uint8_t USB_receive(uint8_t *buf){
     if(!usbON || !rxNE) return 0;
-    SEND((char*)buf); newline();
     uint8_t sz = EP_Read(2, buf);
     uint16_t epstatus = KEEP_DTOG(USB->EPnR[2]);
     // keep stat_tx & set ACK rx

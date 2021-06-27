@@ -20,240 +20,232 @@
  */
 #include "stm32f0.h"
 #include "hardware.h"
+#include "proto.h"
 #include "usart.h"
+#include "usb.h"
 #include <string.h>
 
 extern volatile uint32_t Tms;
-static volatile int idatalen[2] = {0,0}; // received data line length (including '\n')
-static volatile int odatalen[2] = {0,0};
+// USART tx DMA 1: DMA1_Channel2, 2: DMA1_Channel4, 3: DMA1_Channel7
+static DMA_Channel_TypeDef *USARTDMA[USARTNUM] = {
+    DMA1_Channel2, DMA1_Channel4
+#ifdef USART3
+    ,DMA1_Channel7
+#endif
+};
+static USART_TypeDef *USARTs[USARTNUM] = {
+    USART1, USART2
+#ifdef USART3
+    ,USART3
+#endif
+};
 
-volatile int linerdy = 0,        // received data ready
-    dlen = 0,           // length of data (including '\n') in current buffer
-    bufovr = 0,         // input buffer overfull
-    txrdy = 1           // transmission done
+static volatile int idatalen[USARTNUM][2] = {0}; // received data line length (including '\n')
+static volatile int odatalen[USARTNUM][2] = {0};
+
+volatile int linerdy[USARTNUM] = {0}, // received data ready
+    dlen[USARTNUM] = {0},             // length of data (including '\n') in current buffer
+    bufovr[USARTNUM] = {0},           // input buffer overfull
+    txrdy[USARTNUM] = {1,1             // transmission done
+#ifdef USART3
+        ,1
+#endif
+    }
 ;
 
 
-int rbufno = 0, tbufno = 0; // current rbuf/tbuf numbers
-static char rbuf[2][UARTBUFSZI], tbuf[2][UARTBUFSZO]; // receive & transmit buffers
-static char *recvdata = NULL;
+int rbufno[USARTNUM] = {0}, tbufno[USARTNUM] = {0}; // current rbuf/tbuf numbers
+static char rbuf[USARTNUM][2][UARTBUFSZI], tbuf[USARTNUM][2][UARTBUFSZO]; // receive & transmit buffers
+static char *recvdata[USARTNUM] = {0};
 
 /**
  * return length of received data (without trailing zero
+ * usartno: 1, 2 or 3
  */
-int usart_getline(char **line){
-    if(bufovr){
-        bufovr = 0;
-        linerdy = 0;
+int usart_getline(int usartno, char **line){
+    --usartno;
+    if(bufovr[usartno]){
+        bufovr[usartno] = 0;
+        linerdy[usartno] = 0;
         return 0;
     }
-    *line = recvdata;
-    linerdy = 0;
-    return dlen;
+    *line = recvdata[usartno];
+    linerdy[usartno] = 0;
+    return dlen[usartno];
 }
 
-// transmit current tbuf and swap buffers
+// transmit current tbuf for all USARTs and swap buffers
 void transmit_tbuf(){
-    uint32_t tmout = 16000000;
-    while(!txrdy){if(--tmout == 0) break;}; // wait for previos buffer transmission
-    register int l = odatalen[tbufno];
-    if(!l) return;
-    txrdy = 0;
-    odatalen[tbufno] = 0;
-    USARTDMA->CCR &= ~DMA_CCR_EN;
-    USARTDMA->CMAR = (uint32_t) tbuf[tbufno]; // mem
-    USARTDMA->CNDTR = l;
-    USARTDMA->CCR |= DMA_CCR_EN;
-    tbufno = !tbufno;
-}
-
-void usart_putchar(const char ch){
-    if(odatalen[tbufno] == UARTBUFSZO) transmit_tbuf();
-    tbuf[tbufno][odatalen[tbufno]++] = ch;
-}
-
-void usart_send(const char *str){
-    uint32_t x = 512;
-    while(*str && --x){
-        if(odatalen[tbufno] == UARTBUFSZO) transmit_tbuf();
-        tbuf[tbufno][odatalen[tbufno]++] = *str++;
+    for(int usartno = 0; usartno < USARTNUM; ++usartno){
+        uint32_t p = 1000000;
+        while(!txrdy[usartno] && --p);
+        if(!txrdy[usartno]) continue;
+        register int l = odatalen[usartno][tbufno[usartno]];
+        if(!l) continue;
+        txrdy[usartno] = 0;
+        odatalen[usartno][tbufno[usartno]] = 0;
+        USARTDMA[usartno]->CCR &= ~DMA_CCR_EN;
+        USARTDMA[usartno]->CMAR = (uint32_t) tbuf[usartno][tbufno[usartno]]; // mem
+        USARTDMA[usartno]->CNDTR = l;
+        USARTDMA[usartno]->CCR |= DMA_CCR_EN;
+        tbufno[usartno] = !tbufno[usartno];
     }
 }
 
-void usart_sendn(const char *str, uint8_t L){
-    for(uint8_t i = 0; i < L; ++i){
-        if(odatalen[tbufno] == UARTBUFSZO) transmit_tbuf();
-        tbuf[tbufno][odatalen[tbufno]++] = *str++;
+void usart_putchar(int usartno, const char ch){
+    --usartno;
+    if(odatalen[usartno][tbufno[usartno]] == UARTBUFSZO) transmit_tbuf();
+    tbuf[usartno][tbufno[usartno]][odatalen[usartno][tbufno[usartno]]++] = ch;
+}
+
+void usart_send(int usartno, const char *str){
+    --usartno;
+    while(*str){
+        if(odatalen[usartno][tbufno[usartno]] == UARTBUFSZO) transmit_tbuf();
+        tbuf[usartno][tbufno[usartno]][odatalen[usartno][tbufno[usartno]]++] = *str++;
     }
 }
 
-void newline(){
-    usart_putchar('\n');
+void usart_sendn(int usartno, const char *str, uint32_t L){
+    --usartno;
+    for(uint32_t i = 0; i < L; ++i){
+        if(odatalen[usartno][tbufno[usartno]] == UARTBUFSZO) transmit_tbuf();
+        tbuf[usartno][tbufno[usartno]][odatalen[usartno][tbufno[usartno]]++] = *str++;
+    }
+}
+
+void newline(int usartno){
+    usart_putchar(usartno, '\n');
     transmit_tbuf();
 }
 
 
 void usart_setup(){
-    uint32_t tmout = 16000000;
-// Nucleo's USART2 connected to VCP proxy of st-link
-#if USARTNUM == 2
-    // setup pins: PA2 (Tx - AF1), PA15 (Rx - AF1)
-    // AF mode (AF1)
-    GPIOA->MODER = (GPIOA->MODER & ~(GPIO_MODER_MODER2|GPIO_MODER_MODER15))\
-                | (GPIO_MODER_MODER2_AF | GPIO_MODER_MODER15_AF);
-    GPIOA->AFR[0] = (GPIOA->AFR[0] &~GPIO_AFRH_AFRH2) | 1 << (2 * 4); // PA2
-    GPIOA->AFR[1] = (GPIOA->AFR[1] &~GPIO_AFRH_AFRH7) | 1 << (7 * 4); // PA15
-    RCC->APB1ENR |= RCC_APB1ENR_USART2EN; // clock
-// USART1 of main board
-#elif USARTNUM == 1
-    // PA9 - Tx, PA10 - Rx (AF1)
-    GPIOA->MODER = (GPIOA->MODER & ~(GPIO_MODER_MODER9 | GPIO_MODER_MODER10))\
-                | (GPIO_MODER_MODER9_AF | GPIO_MODER_MODER10_AF);
+    // USART1: Rx - PA10, Tx - PA9  (AF1)
+    // USART2: Rx - PA3, Tx - PA2   (AF1)
+    // USART3: Rx - PB11, Tx - PB10 (AF4)
+    // setup pins:
+    GPIOA->MODER = (GPIOA->MODER & ~(GPIO_MODER_MODER2|GPIO_MODER_MODER3|GPIO_MODER_MODER9 | GPIO_MODER_MODER10)) |
+                   GPIO_MODER_MODER2_AF | GPIO_MODER_MODER3_AF | GPIO_MODER_MODER9_AF | GPIO_MODER_MODER10_AF;
+    GPIOA->AFR[0] = (GPIOA->AFR[0] & ~(GPIO_AFRL_AFRL2 | GPIO_AFRL_AFRL3)) |
+                1 << (2 * 4) | 1 << (3 * 4); // PA2,3
     GPIOA->AFR[1] = (GPIOA->AFR[1] & ~(GPIO_AFRH_AFRH1 | GPIO_AFRH_AFRH2)) |
                 1 << (1 * 4) | 1 << (2 * 4); // PA9, PA10
+    // clock
     RCC->APB2ENR |= RCC_APB2ENR_USART1EN;
-#else
-#error "Wrong USARTNUM"
+    RCC->APB1ENR |= RCC_APB1ENR_USART2EN;
+#ifdef USART3
+    GPIOB->MODER = (GPIOB->MODER & ~(GPIO_MODER_MODER10 | GPIO_MODER_MODER11)) |
+                   GPIO_MODER_MODER10_AF | GPIO_MODER_MODER11_AF;
+    GPIOB->AFR[1] = (GPIOB->AFR[1] & ~(GPIO_AFRH_AFRH2 | GPIO_AFRH_AFRH3)) |
+            4 << (2 * 4) | 4 << (3 * 4); // PB10, PB11
 #endif
-    // USARTX Tx DMA
-    USARTDMA->CPAR = (uint32_t) &USARTX->TDR; // periph
-    USARTDMA->CMAR = (uint32_t) tbuf; // mem
-    USARTDMA->CCR |= DMA_CCR_MINC | DMA_CCR_DIR | DMA_CCR_TCIE; // 8bit, mem++, mem->per, transcompl irq
-    // Tx CNDTR set @ each transmission due to data size
-    NVIC_SetPriority(DMAIRQn, 3);
-    NVIC_EnableIRQ(DMAIRQn);
-    NVIC_SetPriority(USARTIRQn, 0);
-    // setup usart1
-    USARTX->BRR = 480000 / 1152;
-    USARTX->CR3 = USART_CR3_DMAT; // enable DMA Tx
-    USARTX->CR1 = USART_CR1_TE | USART_CR1_RE | USART_CR1_UE; // 1start,8data,nstop; enable Rx,Tx,USART
-    while(!(USARTX->ISR & USART_ISR_TC)){if(--tmout == 0) break;} // polling idle frame Transmission
-    USARTX->ICR |= USART_ICR_TCCF; // clear TC flag
-    USARTX->CR1 |= USART_CR1_RXNEIE;
-    NVIC_EnableIRQ(USARTIRQn);
+    for(int i = 0; i < USARTNUM; ++i){
+        USARTs[i]->ICR = 0xffffffff; // clear all flags
+        // USARTX Tx DMA
+        USARTDMA[i]->CPAR = (uint32_t) &USARTs[i]->TDR; // periph
+        USARTDMA[i]->CCR |= DMA_CCR_MINC | DMA_CCR_DIR | DMA_CCR_TCIE; // 8bit, mem++, mem->per, transcompl irq
+        // setup usarts
+        USARTs[i]->BRR = 480000 / 1152;
+        USARTs[i]->CR3 = USART_CR3_DMAT; // enable DMA Tx
+        USARTs[i]->CR1 = USART_CR1_TE | USART_CR1_RE | USART_CR1_UE | USART_CR1_RXNEIE; // 1start,8data,nstop; enable Rx,Tx,USART
+        uint32_t tmout = 16000000;
+        while(!(USARTs[i]->ISR & USART_ISR_TC)){if(--tmout == 0) break;} // polling idle frame Transmission
+        USARTs[i]->ICR = 0xffffffff; // clear all flags again
+    }
+    NVIC_SetPriority(DMA1_Channel2_3_IRQn, 3);
+    NVIC_EnableIRQ(DMA1_Channel2_3_IRQn);
+    NVIC_SetPriority(USART1_IRQn, 0);
+    NVIC_EnableIRQ(USART1_IRQn);
+    NVIC_SetPriority(DMA1_Channel4_5_6_7_IRQn, 3);
+    NVIC_EnableIRQ(DMA1_Channel4_5_6_7_IRQn);
+    NVIC_SetPriority(USART2_IRQn, 0);
+    NVIC_EnableIRQ(USART2_IRQn);
+#ifdef USART3
+    NVIC_SetPriority(USART3_4_IRQn, 0);
+    NVIC_EnableIRQ(USART3_4_IRQn);
+#endif
 }
 
-#if USARTNUM == 2
-void usart2_isr(){
-// USART1
-#elif USARTNUM == 1
-void usart1_isr(){
-#else
-#error "Wrong USARTNUM"
-#endif
+
+static void usart_IRQ(int usartno){
+    USART_TypeDef *USARTX = USARTs[usartno];
+    //USND("USART"); USB_sendstr(u2str(usartno+1)); USND(" IRQ, ISR=");
+    //USB_sendstr(uhex2str(USARTX->ISR)); USND("\n");
     #ifdef CHECK_TMOUT
-    static uint32_t tmout = 0;
+    static uint32_t tmout[USARTNUM] = {0};
     #endif
     if(USARTX->ISR & USART_ISR_RXNE){ // RX not emty - receive next char
         #ifdef CHECK_TMOUT
-        if(tmout && Tms >= tmout){ // set overflow flag
-            bufovr = 1;
-            idatalen[rbufno] = 0;
+        if(tmout[usartno] && Tms >= tmout[usartno]){ // set overflow flag
+            bufovr[usartno] = 1;
+            idatalen[usartno][rbufno[usartno]] = 0;
         }
-        tmout = Tms + TIMEOUT_MS;
-        if(!tmout) tmout = 1; // prevent 0
+        tmout[usartno] = Tms + TIMEOUT_MS;
+        if(!tmout[usartno]) tmout[usartno] = 1; // prevent 0
         #endif
         // read RDR clears flag
         uint8_t rb = USARTX->RDR;
-        if(idatalen[rbufno] < UARTBUFSZI){ // put next char into buf
-            rbuf[rbufno][idatalen[rbufno]++] = rb;
+        //USND("RB="); USB_sendstr(uhex2str(rb)); USND("\n");
+        if(idatalen[usartno][rbufno[usartno]] < UARTBUFSZI){ // put next char into buf
+            rbuf[usartno][rbufno[usartno]][idatalen[usartno][rbufno[usartno]]++] = rb;
             if(rb == '\n'){ // got newline - line ready
-                linerdy = 1;
-                dlen = idatalen[rbufno];
-                recvdata = rbuf[rbufno];
+                //USND("Newline\n");
+                linerdy[usartno] = 1;
+                dlen[usartno] = idatalen[usartno][rbufno[usartno]];
+                recvdata[usartno] = rbuf[usartno][rbufno[usartno]];
                 // prepare other buffer
-                rbufno = !rbufno;
-                idatalen[rbufno] = 0;
+                rbufno[usartno] = !rbufno[usartno];
+                idatalen[usartno][rbufno[usartno]] = 0;
                 #ifdef CHECK_TMOUT
                 // clear timeout at line end
-                tmout = 0;
+                tmout[usartno] = 0;
                 #endif
             }
         }else{ // buffer overrun
-            bufovr = 1;
-            idatalen[rbufno] = 0;
+            bufovr[usartno] = 1;
+            idatalen[usartno][rbufno[usartno]] = 0;
             #ifdef CHECK_TMOUT
-            tmout = 0;
+            tmout[usartno] = 0;
             #endif
         }
     }
+    USARTX->ICR = 0xffffffff;
 }
 
-// return string buffer with val
-char *u2str(uint32_t val){
-    static char bufa[11];
-    char bufb[10];
-    int l = 0, bpos = 0;
-    if(!val){
-        bufa[0] = '0';
-        l = 1;
-    }else{
-        while(val){
-            bufb[l++] = val % 10 + '0';
-            val /= 10;
-        }
-        int i;
-        bpos += l;
-        for(i = 0; i < l; ++i){
-            bufa[--bpos] = bufb[i];
-        }
-    }
-    bufa[l + bpos] = 0;
-    return bufa;
-}
-// print 32bit unsigned int
-void printu(uint32_t val){
-    usart_send(u2str(val));
+void usart1_isr(){
+    usart_IRQ(0);
 }
 
-// print 32bit unsigned int as hex
-void printuhex(uint32_t val){
-    usart_send("0x");
-    uint8_t *ptr = (uint8_t*)&val + 3, start = 1;
-    int i, j;
-    for(i = 0; i < 4; ++i, --ptr){
-        if(!*ptr && start) continue;
-        for(j = 1; j > -1; --j){
-            start = 0;
-            register uint8_t half = (*ptr >> (4*j)) & 0x0f;
-            if(half < 10) usart_putchar(half + '0');
-            else usart_putchar(half - 10 + 'a');
-        }
-    }
-    if(start){
-        usart_putchar('0');
-        usart_putchar('0');
-    }
+void usart2_isr(){
+    usart_IRQ(1);
 }
 
-// dump memory buffer
-void hexdump(uint8_t *arr, uint16_t len){
-    for(uint16_t l = 0; l < len; ++l, ++arr){
-        for(int16_t j = 1; j > -1; --j){
-            register uint8_t half = (*arr >> (4*j)) & 0x0f;
-            if(half < 10) usart_putchar(half + '0');
-            else usart_putchar(half - 10 + 'a');
-        }
-        if(l % 16 == 15) usart_putchar('\n');
-        else if(l & 1) usart_putchar(' ');
-    }
-}
 
-#if USARTNUM == 2
-void dma1_channel4_5_isr(){
-    if(DMA1->ISR & DMA_ISR_TCIF4){ // Tx
-        DMA1->IFCR |= DMA_IFCR_CTCIF4; // clear TC flag
-        txrdy = 1;
-    }
+// work with USART3 only @ boards that have it
+#ifdef USART3
+void usart3_4_isr(){
+    usart_IRQ(2);
 }
+#endif
+
 // USART1
-#elif USARTNUM == 1
 void dma1_channel2_3_isr(){
     if(DMA1->ISR & DMA_ISR_TCIF2){ // Tx
         DMA1->IFCR |= DMA_IFCR_CTCIF2; // clear TC flag
-        txrdy = 1;
+        txrdy[0] = 1;
     }
 }
-#else
-#error "Wrong USARTNUM"
+// USART2 + USART3
+void dma1_channel4_5_isr(){
+    if(DMA1->ISR & DMA_ISR_TCIF4){ // Tx
+        DMA1->IFCR |= DMA_IFCR_CTCIF4; // clear TC flag
+        txrdy[1] = 1;
+    }
+#ifdef USART3
+    if(DMA1->ISR & DMA_ISR_TCIF7){ // Tx
+        DMA1->IFCR |= DMA_IFCR_CTCIF7; // clear TC flag
+        txrdy[2] = 1;
+    }
 #endif
+}

@@ -32,7 +32,7 @@ void spi_setup(){
     /* (2) AF0 for SPI1 signals */
     GPIOA->MODER = (GPIOA->MODER & ~(GPIO_MODER_MODER5 | GPIO_MODER_MODER6 | GPIO_MODER_MODER7)) |
                     (GPIO_MODER_MODER5_AF | GPIO_MODER_MODER6_AF | GPIO_MODER_MODER7_AF); /* (1) */
-    GPIOA->AFR[0] = (GPIOA->AFR[0] & (GPIO_AFRL_AFRL5 | GPIO_AFRL_AFRL6 | GPIO_AFRL_AFRL7)); /* (2) */
+    GPIOA->AFR[0] = (GPIOA->AFR[0] & ~(GPIO_AFRL_AFRL5 | GPIO_AFRL_AFRL6 | GPIO_AFRL_AFRL7)); /* (2) */
     // Configure DMA SPI
     /* Enable the peripheral clock DMA11 */
     RCC->AHBENR |= RCC_AHBENR_DMA1EN;

@@ -24,6 +24,13 @@
 
 #include "hardware.h"
 
+#ifdef USART3
+#define USARTNUM    (3)
+#else
+#define USARTNUM    (2)
+#endif
+
+
 // input and output buffers size
 #define UARTBUFSZI  (32)
 #define UARTBUFSZO  (512)
@@ -33,23 +40,19 @@
 #endif
 
 // macro for static strings
-#define SEND(str) usart_send(str)
+#define SEND(n, str) usart_send(n, str)
 
-#define usartrx()  (linerdy)
-#define usartovr() (bufovr)
+#define usartrx(n)  (linerdy[n-1])
+#define usartovr(n) (bufovr[n-1])
 
-extern volatile int linerdy, bufovr, txrdy;
+extern volatile int linerdy[], bufovr[], txrdy[];
 
 void transmit_tbuf();
 void usart_setup();
-int usart_getline(char **line);
-void usart_send(const char *str);
-void usart_sendn(const char *str, uint8_t L);
-void newline();
-void usart_putchar(const char ch);
-char *u2str(uint32_t val);
-void printu(uint32_t val);
-void printuhex(uint32_t val);
-void hexdump(uint8_t *arr, uint16_t len);
+int usart_getline(int usartno, char **line);
+void usart_send(int usartno, const char *str);
+void usart_sendn(int usartno, const char *str, uint32_t L);
+void newline(int usartno);
+void usart_putchar(int usartno, const char ch);
 
 #endif // __USART_H__

@@ -23,28 +23,49 @@
 
 #include "adc.h"
 #include "hardware.h"
-#include "usart.h"
+
+void iwdg_setup(){
+    uint32_t tmout = 16000000;
+    /* Enable the peripheral clock RTC */
+    /* (1) Enable the LSI (40kHz) */
+    /* (2) Wait while it is not ready */
+    RCC->CSR |= RCC_CSR_LSION; /* (1) */
+    while((RCC->CSR & RCC_CSR_LSIRDY) != RCC_CSR_LSIRDY){if(--tmout == 0) break;} /* (2) */
+    /* Configure IWDG */
+    /* (1) Activate IWDG (not needed if done in option bytes) */
+    /* (2) Enable write access to IWDG registers */
+    /* (3) Set prescaler by 64 (1.6ms for each tick) */
+    /* (4) Set reload value to have a rollover each 2s */
+    /* (5) Check if flags are reset */
+    /* (6) Refresh counter */
+    IWDG->KR = IWDG_START; /* (1) */
+    IWDG->KR = IWDG_WRITE_ACCESS; /* (2) */
+    IWDG->PR = IWDG_PR_PR_1; /* (3) */
+    IWDG->RLR = 1250; /* (4) */
+    tmout = 16000000;
+    while(IWDG->SR){if(--tmout == 0) break;} /* (5) */
+    IWDG->KR = IWDG_REFRESH; /* (6) */
+}
 
 static inline void gpio_setup(){
     // here we turn on clocking for all periph.
     RCC->AHBENR |= RCC_AHBENR_GPIOAEN | RCC_AHBENR_GPIOBEN | RCC_AHBENR_DMAEN;
-    // Set LEDS (PA0/4) as Oun & AF (PWM)
-    GPIOA->MODER = (GPIOA->MODER & ~(GPIO_MODER_MODER0 | GPIO_MODER_MODER4)
-                    ) |
-                    GPIO_MODER_MODER0_O | GPIO_MODER_MODER4_AF ;
-    pin_set(LED0_port, LED0_pin); // clear LEDs
-    pin_set(LED1_port, LED1_pin);
-    // Buttons - PA14/15
-    GPIOA->PUPDR = (GPIOA->PUPDR & ~(GPIO_PUPDR_PUPDR14 | GPIO_PUPDR_PUPDR15)
-                    ) |
-                    GPIO_PUPDR_PUPDR14_0 | GPIO_PUPDR_PUPDR15_0;
-    // alternate functions: PA4 - TIM14_CH1 (AF4)
-    GPIOA->AFR[0] = (GPIOA->AFR[0] &~ (GPIO_AFRL_AFRL4)) \
-                | (4 << (4 * 4)) ;
+    // Set LEDS (PA6-8, PB0/1) as Oun & AF (PWM)
+    GPIOA->MODER = (GPIOA->MODER & ~(GPIO_MODER_MODER6 | GPIO_MODER_MODER7 | GPIO_MODER_MODER8)) |
+                    GPIO_MODER_MODER6_AF | GPIO_MODER_MODER7_AF | GPIO_MODER_MODER8_AF;
+    GPIOB->MODER = (GPIOB->MODER & ~(GPIO_MODER_MODER0 | GPIO_MODER_MODER1)) |
+                    GPIO_MODER_MODER0_AF | GPIO_MODER_MODER1_AF;
+    // alternate functions: PA6-8: TIM3CH1,2 and TIM1_CH1 (AF1, AF1, AF2)
+    //                      PB0-1: TIM3CH3,4 (AF1, AF1)
+    GPIOA->AFR[0] = (GPIOA->AFR[0] & ~(GPIO_AFRL_AFRL6 | GPIO_AFRL_AFRL7)) |
+                    (1 << (6 * 4)) | (1 << (7 * 4));
+    GPIOA->AFR[1] = (GPIOA->AFR[1] & ~(GPIO_AFRH_AFRH0)) |
+                    (2 << (0 * 4));
+    GPIOB->AFR[0] = (GPIOB->AFR[0] & ~(GPIO_AFRL_AFRL0 | GPIO_AFRL_AFRL1)) |
+                    (1 << (0 * 4)) | (1 << (1 * 4));
 }
 
 static inline void adc_setup(){
-    GPIOB->MODER = GPIO_MODER_MODER0_AI; // PB0 - ADC channel 8
     uint16_t ctr = 0; // 0xfff0 - more than 1.3ms
     // Enable clocking
     /* (1) Enable the peripheral clock of the ADC */
@@ -72,12 +93,12 @@ static inline void adc_setup(){
     // configure ADC
     /* (1) Select HSI14 by writing 00 in CKMODE (reset value) */
     /* (2) Select the continuous mode */
-    /* (3) Select CHSEL0..3 - ADC inputs, 16,17 - t. sensor and vref */
+    /* (3) Select CHSEL0,1 - ADC inputs, 16,17 - t. sensor and vref */
     /* (4) Select a sampling mode of 111 i.e. 239.5 ADC clk to be greater than 17.1us */
     /* (5) Wake-up the VREFINT and Temperature sensor (only for VBAT, Temp sensor and VRefInt) */
     // ADC1->CFGR2 &= ~ADC_CFGR2_CKMODE; /* (1) */
     ADC1->CFGR1 |= ADC_CFGR1_CONT; /* (2)*/
-    ADC1->CHSELR = ADC_CHSELR_CHSEL8 | ADC_CHSELR_CHSEL16 | ADC_CHSELR_CHSEL17; /* (3)*/
+    ADC1->CHSELR = ADC_CHSELR_CHSEL0 | ADC_CHSELR_CHSEL1 | ADC_CHSELR_CHSEL16 | ADC_CHSELR_CHSEL17; /* (3)*/
     ADC1->SMPR |= ADC_SMPR_SMP_0 | ADC_SMPR_SMP_1 | ADC_SMPR_SMP_2; /* (4) */
     ADC->CCR |= ADC_CCR_TSEN | ADC_CCR_VREFEN; /* (5) */
     // configure DMA for ADC
@@ -100,16 +121,32 @@ static inline void adc_setup(){
 }
 
 static inline void pwm_setup(){
-    RCC->APB1ENR |= RCC_APB1ENR_TIM14EN; // enable clocking for tim14
+    // enable clocking for tim1 & tim3
+    RCC->APB1ENR |= RCC_APB1ENR_TIM3EN;
+    RCC->APB2ENR |= RCC_APB2ENR_TIM1EN;
     // PWM mode 2
-    TIM14->CCMR1 = TIM_CCMR1_OC1M_2 | TIM_CCMR1_OC1M_1 | TIM_CCMR1_OC1M_0;
-    TIM14->PSC = 5; // frequency - 8MHz for 31kHz PWM
+    TIM1->CCMR1 = TIM_CCMR1_OC1M_2 | TIM_CCMR1_OC1M_1 | TIM_CCMR1_OC1M_0;
+    TIM3->CCMR1 = TIM_CCMR1_OC1M_2 | TIM_CCMR1_OC1M_1 | TIM_CCMR1_OC1M_0 |
+                  TIM_CCMR1_OC2M_2 | TIM_CCMR1_OC2M_1 | TIM_CCMR1_OC2M_0;
+    TIM3->CCMR2 = TIM_CCMR2_OC3M_2 | TIM_CCMR2_OC3M_1 | TIM_CCMR2_OC3M_0 |
+                  TIM_CCMR2_OC4M_2 | TIM_CCMR2_OC4M_1 | TIM_CCMR2_OC4M_0;
+    // frequency - 8MHz for 31kHz PWM
+    TIM1->PSC = 5;
+    TIM3->PSC = 5;
     // ARR for 8-bit PWM
-    TIM14->ARR = 254;
-    TIM14->CCR1 = 127; // half light
-    TIM14->BDTR |= TIM_BDTR_MOE; // start in OFF state
-    TIM14->CCER = TIM_CCER_CC1E; // enable PWM output
-    TIM14->CR1 |= TIM_CR1_CEN; // enable timer
+    TIM1->ARR = 254;
+    TIM3->ARR = 254;
+    TIM1->CCR1 = 127;
+    TIM3->CCR1 = 63; TIM3->CCR2 = 127; TIM3->CCR3 = 191; TIM3->CCR4 = 250;
+    // enable main output
+    TIM1->BDTR |= TIM_BDTR_MOE;
+    TIM3->BDTR |= TIM_BDTR_MOE;
+    // enable PWM outputs
+    TIM1->CCER = TIM_CCER_CC1E;
+    TIM3->CCER = TIM_CCER_CC1E | TIM_CCER_CC2E | TIM_CCER_CC3E | TIM_CCER_CC4E;
+    // start timers
+    TIM1->CR1 |= TIM_CR1_CEN;
+    TIM3->CR1 |= TIM_CR1_CEN;
 }
 
 void hw_setup(){

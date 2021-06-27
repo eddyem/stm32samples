@@ -7,7 +7,6 @@ FAMILY		= F0
 #MCU			= F042x6
 MCU = F072xB
 # hardware definitions
-DEFS		+= -DUSARTNUM=1
 #DEFS		+= -DCHECK_TMOUT
 #DEFS		+= -DEBUG
 # change this linking script depending on particular MCU model
