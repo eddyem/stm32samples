@@ -139,6 +139,7 @@ void usart_setup(){
                    GPIO_MODER_MODER10_AF | GPIO_MODER_MODER11_AF;
     GPIOB->AFR[1] = (GPIOB->AFR[1] & ~(GPIO_AFRH_AFRH2 | GPIO_AFRH_AFRH3)) |
             4 << (2 * 4) | 4 << (3 * 4); // PB10, PB11
+    RCC->APB1ENR |= RCC_APB1ENR_USART3EN;
 #endif
     for(int i = 0; i < USARTNUM; ++i){
         USARTs[i]->ICR = 0xffffffff; // clear all flags
@@ -210,7 +211,6 @@ static void usart_IRQ(int usartno){
             #endif
         }
     }
-    USARTX->ICR = 0xffffffff;
 }
 
 void usart1_isr(){

@@ -19,11 +19,17 @@
 #ifndef PROTO_H__
 #define PROTO_H__
 
+#include "stm32f0.h"
+
 #define USND(str)  do{USB_send((uint8_t*)str, sizeof(str)-1);}while(0)
+
+extern volatile uint8_t ADCmon;
 
 void USB_sendstr(const char *str);
 char *get_USB();
 const char *parse_cmd(char *buf);
+
+void printADCvals();
 
 char *u2str(uint32_t val);
 char *i2str(int32_t i);

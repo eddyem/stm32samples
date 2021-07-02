@@ -17,6 +17,7 @@
  */
 
 #include "adc.h"
+#include "i2c.h"
 #include "proto.h"
 #include "usart.h"
 #include "usb.h"
@@ -29,7 +30,7 @@ void USB_sendstr(const char *str){
     USB_send((const uint8_t*)str, l);
 }
 
-static char *chPWM(volatile uint32_t *reg, char *buf){
+static inline char *chPWM(volatile uint32_t *reg, char *buf){
     char *lbuf = buf;
     lbuf = omit_spaces(lbuf);
     char cmd = *lbuf;
@@ -50,14 +51,14 @@ static char *chPWM(volatile uint32_t *reg, char *buf){
     return "OK";
 }
 
-static char *TIM3pwm(char *buf){
+static inline char *TIM3pwm(char *buf){
     uint8_t channel = *buf - '1';
     if(channel > 3) return "Wrong channel number";
     volatile uint32_t *reg = &TIM3->CCR1;
     return chPWM(&reg[channel], buf+1);
 }
 
-static char *getPWMvals(){
+static inline char *getPWMvals(){
     USND("TIM1CH1: "); USB_sendstr(u2str(TIM1->CCR1));
     USND("\nTIM3CH1: "); USB_sendstr(u2str(TIM3->CCR1));
     USND("\nTIM3CH2: "); USB_sendstr(u2str(TIM3->CCR2));
@@ -67,7 +68,7 @@ static char *getPWMvals(){
     return NULL;
 }
 
-static char *USARTsend(char *buf){
+static inline char *USARTsend(char *buf){
     uint32_t N;
     if(buf == getnum(buf, &N)) return "Point number of USART";
     if(N < 1 || N > USARTNUM) return "Wrong USART number";
@@ -77,19 +78,102 @@ static char *USARTsend(char *buf){
     return "OK";
 }
 
+static uint8_t i2cinited = 0;
+static inline char *setupI2C(char *buf){
+    buf = omit_spaces(buf);
+    if(*buf < '0' || *buf > '2') return "Wrong speed";
+    i2c_setup(*buf - '0');
+    i2cinited = 1;
+    return "OK";
+}
+
+static uint8_t I2Caddress = 0;
+static uint8_t I2Cdata[12];
+static inline char *saI2C(char *buf){
+    uint32_t addr;
+    if(!getnum(buf, &addr) || addr > 0x7f) return "Wrong address";
+    I2Caddress = (uint8_t) addr << 1;
+    USND("I2Caddr="); USB_sendstr(uhex2str(addr)); USND("\n");
+    return "OK";
+}
+static inline void rdI2C(char *buf){
+    uint32_t N;
+    char *nxt = getnum(buf, &N);
+    if(!nxt || buf == nxt || N > 0xff){
+        USND("Bad register number\n");
+        return;
+    }
+    buf = nxt;
+    uint8_t reg = N;
+    nxt = getnum(buf, &N);
+    if(!nxt || buf == nxt || N > 12){
+        USND("Bad length\n");
+        return;
+    }
+    if(!read_i2c_reg(I2Caddress, reg, I2Cdata, N)){
+        USND("Error reading I2C\n");
+        return;
+    }
+    if(N == 0){ USND("OK"); return; }
+    USND("Register "); USB_sendstr(uhex2str(reg)); USND(":\n");
+    for(uint32_t i = 0; i < N; ++i){
+        if(i < 10) USND(" ");
+        USB_sendstr(u2str(i)); USND(": "); USB_sendstr(uhex2str(I2Cdata[i]));
+        USND("\n");
+    }
+}
+static inline char *wrI2C(char *buf){
+    uint8_t N = 0;
+    uint32_t D;
+    char *nxt;
+    while((nxt = getnum(buf, &D)) && nxt != buf && N < 12){
+        buf = nxt;
+        I2Cdata[N++] = (uint8_t) D&0xff;
+        USND("add byte: "); USB_sendstr(uhex2str(D&0xff)); USND("\n");
+    }
+    USND("Send "); USB_sendstr(u2str(N)); USND(" bytes\n");
+    if(!write_i2c(I2Caddress, I2Cdata, N)) return "Error writing I2C";
+    return "OK";
+}
+
+static inline char *DAC_chval(char *buf){
+    uint32_t D;
+    char *nxt = getnum(buf, &D);
+    if(!nxt || nxt == buf || D > 4095) return "Wrong DAC amplitude\n";
+    DAC->DHR12R1 = D;
+    return "OK";
+}
+
 const char *helpstring =
-        "'+'/'-'[num] - increase/decrease TIM1ch1 PWM by 1 or `num`\n"
+        "+/-[num] - increase/decrease TIM1ch1 PWM by 1 or `num`\n"
         "1..4'+'/'-'[num] - increase/decrease TIM3chN PWM by 1 or `num`\n"
-        "'g' - get PWM values\n"
-        "'A' - get ADC values\n"
-        "'L' - send long string over USB\n"
-        "'R' - software reset\n"
-        "'S' - send short string over USB\n"
-        "'Ux' - send string to USARTx (1..3)\n"
-        "'T' - MCU temperature\n"
-        "'V' - Vdd\n"
-        "'W' - test watchdog\n"
+        "A - get ADC values\n"
+        "dx - change DAC lowcal to x\n"
+        "g - get PWM values\n"
+        "i0..3 - setup I2C with lowest..highest speed (5.8, 10 and 100kHz)\n"
+        "Ia addr - set I2C address\n"
+        "Iw bytes - send bytes (hex/dec/oct/bin) to I2C\n"
+        "Ir reg n - read n bytes from I2C reg\n"
+        "Is - scan I2C bus\n"
+        "L - send long string over USB\n"
+        "m - monitor ADC on/off\n"
+        "R - software reset\n"
+        "S - send short string over USB\n"
+        "Ux str - send string to USARTx (1..3)\n"
+        "T - MCU temperature\n"
+        "V - Vdd\n"
+        "W - test watchdog\n"
 ;
+
+void printADCvals(){
+    USND("AIN0: "); USB_sendstr(u2str(getADCval(0)));
+    USND(" ("); USB_sendstr(u2str(getADCvoltage(0)));
+    USND("/100 V)\nAIN1: "); USB_sendstr(u2str(getADCval(1)));
+    USND(" ("); USB_sendstr(u2str(getADCvoltage(1)));
+    USND("/100 V)\nAIN5: "); USB_sendstr(u2str(getADCval(2)));
+    USND(" ("); USB_sendstr(u2str(getADCvoltage(2)));
+    USND("/100 V)\n");
+}
 
 const char *parse_cmd(char *buf){
     // "long" commands
@@ -103,6 +187,21 @@ const char *parse_cmd(char *buf){
         case '3':
         case '4':
             return TIM3pwm(buf);
+        break;
+        case 'd':
+            return DAC_chval(buf + 1);
+        case 'i':
+            return setupI2C(buf + 1);
+        break;
+        case 'I':
+            if(!i2cinited) return "Init I2C first";
+            buf = omit_spaces(buf + 1);
+            if(*buf == 'a') return saI2C(buf + 1);
+            else if(*buf == 'r'){ rdI2C(buf + 1); return NULL; }
+            else if(*buf == 'w') return wrI2C(buf + 1);
+            else if(*buf == 's') i2c_init_scan_mode();
+            else return "Command should be 'Ia', 'Iw', 'Ir' or 'Is'\n";
+        break;
         case 'U':
             return USARTsend(buf + 1);
         break;
@@ -114,16 +213,18 @@ const char *parse_cmd(char *buf){
             return getPWMvals();
         break;
         case 'A':
-            USND("ADC0: "); USB_sendstr(u2str(getADCval(0)));
-            USND(" ("); USB_sendstr(u2str(getADCvoltate(0)));
-            USND("/100 V)\nADC1: "); USB_sendstr(u2str(getADCval(1)));
-            USND(" ("); USB_sendstr(u2str(getADCvoltate(1)));
-            USND("/100 V)\n");
+            printADCvals();
         break;
         case 'L':
             USND("Very long test string for USB (it's length is more than 64 bytes).\n"
                      "This is another part of the string! Can you see all of this?\n");
             return "Long test sent";
+        break;
+        case 'm':
+            ADCmon = !ADCmon;
+            USND("Monitoring is ");
+            if(ADCmon) USND("on\n");
+            else USND("off\n");
         break;
         case 'R':
             USND("Soft reset\n");

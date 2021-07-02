@@ -27,7 +27,7 @@ uint8_t getI2Caddr(){
     return i2caddr;
 }
 
-void init_scan_mode(){
+void i2c_init_scan_mode(){
     i2caddr = 0;
     scanmode = 1;
 }
@@ -35,7 +35,7 @@ void init_scan_mode(){
 // return 1 if next addr is active & return in as `addr`
 // if addresses are over, return 1 and set addr to I2C_NOADDR
 // if scan mode inactive, return 0 and set addr to I2C_NOADDR
-int scan_next_addr(uint8_t *addr){
+int i2c_scan_next_addr(uint8_t *addr){
     *addr = i2caddr;
     if(!scanmode || i2caddr == I2C_ADDREND){
         *addr = I2C_ADDREND;

@@ -19,12 +19,13 @@
 #define ADC_H
 #include "stm32f0.h"
 
-#define NUMBER_OF_ADC_CHANNELS (4)
+#define NUMBER_OF_ADC_CHANNELS (5)
 
 extern uint16_t ADC_array[];
+
 int32_t getMCUtemp();
 uint32_t getVdd();
 uint16_t getADCval(int nch);
-uint32_t getADCvoltate(int nch);
+uint32_t getADCvoltage(int nch);
 
 #endif // ADC_H

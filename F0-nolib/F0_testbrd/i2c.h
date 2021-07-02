@@ -1,5 +1,5 @@
 /*
- * This file is part of the I2Cscan project.
+ * This file is part of the F0testbrd project.
  * Copyright 2021 Edward V. Emelianov <edward.emelianoff@gmail.com>.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -16,22 +16,32 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
-#ifndef I2CSCAN_H__
-#define I2CSCAN_H__
+#ifndef I2C_H__
+#define I2C_H__
 
-#include <stm32f1.h>
+#include "stm32f0.h"
 
 #define I2C_ADDREND  (0x80)
 
-extern uint8_t scanmode;
+typedef enum{
+    VERYLOW_SPEED,
+    LOW_SPEED,
+    HIGH_SPEED,
+    CURRENT_SPEED
+} I2C_SPEED;
 
-uint8_t getI2Caddr();
+extern I2C_SPEED curI2Cspeed;
+extern volatile uint8_t I2C_scan_mode;
+
+// timeout of I2C bus in ms
+#define I2C_TIMEOUT             (100)
+
+void i2c_setup(I2C_SPEED speed);
+uint8_t read_i2c(uint8_t addr, uint8_t *data, uint8_t nbytes);
+uint8_t read_i2c_reg(uint8_t addr, uint8_t reg, uint8_t *data, uint8_t nbytes);
+uint8_t write_i2c(uint8_t addr, uint8_t *data, uint8_t nbytes);
 
 void i2c_init_scan_mode();
 int i2c_scan_next_addr(uint8_t *addr);
 
-int read_reg(uint8_t reg, uint8_t *val, uint8_t N);
-int write_reg(uint8_t reg, uint8_t val);
-
-
-#endif // I2CSCAN_H__
+#endif // I2C_H__

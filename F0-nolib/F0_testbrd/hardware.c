@@ -23,6 +23,7 @@
 
 #include "adc.h"
 #include "hardware.h"
+#include "proto.h"
 
 void iwdg_setup(){
     uint32_t tmout = 16000000;
@@ -50,21 +51,18 @@ void iwdg_setup(){
 static inline void gpio_setup(){
     // here we turn on clocking for all periph.
     RCC->AHBENR |= RCC_AHBENR_GPIOAEN | RCC_AHBENR_GPIOBEN | RCC_AHBENR_DMAEN;
-    // Set LEDS (PA6-8, PB0/1) as Oun & AF (PWM)
-    GPIOA->MODER = (GPIOA->MODER & ~(GPIO_MODER_MODER6 | GPIO_MODER_MODER7 | GPIO_MODER_MODER8)) |
-                    GPIO_MODER_MODER6_AF | GPIO_MODER_MODER7_AF | GPIO_MODER_MODER8_AF;
-    GPIOB->MODER = (GPIOB->MODER & ~(GPIO_MODER_MODER0 | GPIO_MODER_MODER1)) |
-                    GPIO_MODER_MODER0_AF | GPIO_MODER_MODER1_AF;
+    // Set LEDS (PA6-8, PB0/1) as Out & AF (PWM); PA0,1,5 - AIN, PA4 - DAC
+    GPIOA->MODER = GPIO_MODER_MODER0_AI | GPIO_MODER_MODER1_AI | GPIO_MODER_MODER4_AI |
+            GPIO_MODER_MODER5_AI | GPIO_MODER_MODER6_AF | GPIO_MODER_MODER7_AF | GPIO_MODER_MODER8_AF;
+    GPIOB->MODER = GPIO_MODER_MODER0_AF | GPIO_MODER_MODER1_AF;
     // alternate functions: PA6-8: TIM3CH1,2 and TIM1_CH1 (AF1, AF1, AF2)
-    //                      PB0-1: TIM3CH3,4 (AF1, AF1)
-    GPIOA->AFR[0] = (GPIOA->AFR[0] & ~(GPIO_AFRL_AFRL6 | GPIO_AFRL_AFRL7)) |
-                    (1 << (6 * 4)) | (1 << (7 * 4));
-    GPIOA->AFR[1] = (GPIOA->AFR[1] & ~(GPIO_AFRH_AFRH0)) |
-                    (2 << (0 * 4));
-    GPIOB->AFR[0] = (GPIOB->AFR[0] & ~(GPIO_AFRL_AFRL0 | GPIO_AFRL_AFRL1)) |
-                    (1 << (0 * 4)) | (1 << (1 * 4));
+    //                      PB0-1: TIM3CH3,4 (AF1, AF1),
+    GPIOA->AFR[0] = (1 << (6 * 4)) | (1 << (7 * 4));
+    GPIOA->AFR[1] = (2 << (0 * 4));
+    GPIOB->AFR[0] = (1 << (0 * 4)) | (1 << (1 * 4));
 }
 
+// Setup ADC and DAC
 static inline void adc_setup(){
     uint16_t ctr = 0; // 0xfff0 - more than 1.3ms
     // Enable clocking
@@ -90,15 +88,15 @@ static inline void adc_setup(){
     do{
           ADC1->CR |= ADC_CR_ADEN;
     }while ((ADC1->ISR & ADC_ISR_ADRDY) == 0 && ++ctr < 0xfff0);
-    // configure ADC
+    // configure ADC to generate a triangle wave on DAC1_OUT synchronized by TIM6 HW trigger
     /* (1) Select HSI14 by writing 00 in CKMODE (reset value) */
     /* (2) Select the continuous mode */
-    /* (3) Select CHSEL0,1 - ADC inputs, 16,17 - t. sensor and vref */
+    /* (3) Select CHSEL0,1,5 - ADC inputs, 16,17 - t. sensor and vref */
     /* (4) Select a sampling mode of 111 i.e. 239.5 ADC clk to be greater than 17.1us */
     /* (5) Wake-up the VREFINT and Temperature sensor (only for VBAT, Temp sensor and VRefInt) */
     // ADC1->CFGR2 &= ~ADC_CFGR2_CKMODE; /* (1) */
     ADC1->CFGR1 |= ADC_CFGR1_CONT; /* (2)*/
-    ADC1->CHSELR = ADC_CHSELR_CHSEL0 | ADC_CHSELR_CHSEL1 | ADC_CHSELR_CHSEL16 | ADC_CHSELR_CHSEL17; /* (3)*/
+    ADC1->CHSELR = ADC_CHSELR_CHSEL0 | ADC_CHSELR_CHSEL1 | ADC_CHSELR_CHSEL5 | ADC_CHSELR_CHSEL16 | ADC_CHSELR_CHSEL17; /* (3)*/
     ADC1->SMPR |= ADC_SMPR_SMP_0 | ADC_SMPR_SMP_1 | ADC_SMPR_SMP_2; /* (4) */
     ADC->CCR |= ADC_CCR_TSEN | ADC_CCR_VREFEN; /* (5) */
     // configure DMA for ADC
@@ -118,6 +116,27 @@ static inline void adc_setup(){
     DMA1_Channel1->CCR |= DMA_CCR_MINC | DMA_CCR_MSIZE_0 | DMA_CCR_PSIZE_0 | DMA_CCR_CIRC; /* (6) */
     DMA1_Channel1->CCR |= DMA_CCR_EN; /* (7) */
     ADC1->CR |= ADC_CR_ADSTART; /* start the ADC conversions */
+    // DAC
+    /* (1) Enable the peripheral clock of the DAC */
+    /* (2) Configure WAVEx at 10,
+           Configure mask amplitude for ch1 (MAMP1) at 1011 for a 4095-bits amplitude
+           enable the DAC ch1, disable buffer on ch1,
+           and select TIM6 as trigger by keeping 000 in TSEL1 */
+    RCC->APB1ENR |= RCC_APB1ENR_DACEN; /* (1) */
+    DAC->CR |= DAC_CR_WAVE1_1
+             | DAC_CR_MAMP1_3 | DAC_CR_MAMP1_1 | DAC_CR_MAMP1_0
+             | DAC_CR_BOFF1 | DAC_CR_TEN1 | DAC_CR_EN1; /* (2) */
+    // configure the Timer 6 to generate an external trigger on TRGO each microsecond
+    /* (1) Enable the peripheral clock of the TIM6 */
+    /* (2) Configure MMS=010 to output a rising edge at each update event */
+    /* (3) Select PCLK/2 i.e. 48MHz/2=24MHz */
+    /* (4) Set one update event each 1 microsecond */
+    /* (5) Enable TIM6 */
+    RCC->APB1ENR |= RCC_APB1ENR_TIM6EN; /* (1) */
+    TIM6->CR2 |= TIM_CR2_MMS_1; /* (2) */
+    TIM6->PSC = 1; /* (3) */
+    TIM6->ARR = (uint16_t)24; /* (4) */
+    TIM6->CR1 |= TIM_CR1_CEN; /* (5) */
 }
 
 static inline void pwm_setup(){

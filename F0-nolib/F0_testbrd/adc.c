@@ -22,11 +22,12 @@
  * @brief ADC_array - array for ADC channels with median filtering:
  * 0 - Rvar
  * 1 - Rvar/2
- * 2 - internal Tsens
- * 3 - Vref
+ * 2 - AIN5/DAC_OUT1
+ * 3 - internal Tsens
+ * 4 - Vref
  */
-#define CHTSENS (2)
-#define CHVREF  (3)
+#define CHTSENS (3)
+#define CHVREF  (4)
 uint16_t ADC_array[NUMBER_OF_ADC_CHANNELS*9];
 
 /**
@@ -55,7 +56,7 @@ uint16_t getADCval(int nch){
 }
 
 // get voltage @input nch (1/100V)
-uint32_t getADCvoltate(int nch){
+uint32_t getADCvoltage(int nch){
     uint32_t v = getADCval(nch);
     v *= getVdd();
     v /= 0xfff; // 12bit ADC
