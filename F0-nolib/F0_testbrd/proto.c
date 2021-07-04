@@ -19,9 +19,14 @@
 #include "adc.h"
 #include "i2c.h"
 #include "proto.h"
+#include "spi.h"
 #include "usart.h"
 #include "usb.h"
 #include "usb_lib.h"
+
+#define LOCBUFFSZ       (32)
+// local buffer for I2C and SPI data to send
+static uint8_t locBuffer[LOCBUFFSZ];
 
 void USB_sendstr(const char *str){
     uint16_t l = 0;
@@ -78,6 +83,43 @@ static inline char *USARTsend(char *buf){
     return "OK";
 }
 
+// read N numbers from buf, @return 0 if wrong or none
+static uint16_t readNnumbers(char *buf){
+    uint32_t D;
+    char *nxt;
+    uint16_t N = 0;
+    while((nxt = getnum(buf, &D)) && nxt != buf && N < LOCBUFFSZ){
+        buf = nxt;
+        locBuffer[N++] = (uint8_t) D&0xff;
+        USND("add byte: "); USB_sendstr(uhex2str(D&0xff)); USND("\n");
+    }
+    USND("Send "); USB_sendstr(u2str(N)); USND(" bytes\n");
+    return N;
+}
+
+// dump memory buffer
+static void hexdump(uint8_t *arr, uint16_t len){
+    char buf[52], *bptr = buf;
+    for(uint16_t l = 0; l < len; ++l, ++arr){
+        for(int16_t j = 1; j > -1; --j){
+            register uint8_t half = (*arr >> (4*j)) & 0x0f;
+            if(half < 10) *bptr++ = half + '0';
+            else *bptr++ = half - 10 + 'a';
+        }
+        if(l % 16 == 15){
+            *bptr++ = '\n';
+            *bptr = 0;
+            USB_sendstr(buf);
+            bptr = buf;
+        }else *bptr++ = ' ';
+    }
+    if(bptr != buf){
+        *bptr++ = '\n';
+        *bptr = 0;
+        USB_sendstr(buf);
+    }
+}
+
 static uint8_t i2cinited = 0;
 static inline char *setupI2C(char *buf){
     buf = omit_spaces(buf);
@@ -88,7 +130,6 @@ static inline char *setupI2C(char *buf){
 }
 
 static uint8_t I2Caddress = 0;
-static uint8_t I2Cdata[12];
 static inline char *saI2C(char *buf){
     uint32_t addr;
     if(!getnum(buf, &addr) || addr > 0x7f) return "Wrong address";
@@ -106,33 +147,26 @@ static inline void rdI2C(char *buf){
     buf = nxt;
     uint8_t reg = N;
     nxt = getnum(buf, &N);
-    if(!nxt || buf == nxt || N > 12){
+    if(!nxt || buf == nxt || N > LOCBUFFSZ){
         USND("Bad length\n");
         return;
     }
-    if(!read_i2c_reg(I2Caddress, reg, I2Cdata, N)){
+    if(!read_i2c_reg(I2Caddress, reg, locBuffer, N)){
         USND("Error reading I2C\n");
         return;
     }
     if(N == 0){ USND("OK"); return; }
     USND("Register "); USB_sendstr(uhex2str(reg)); USND(":\n");
-    for(uint32_t i = 0; i < N; ++i){
+    hexdump(locBuffer, N);
+    /*for(uint32_t i = 0; i < N; ++i){
         if(i < 10) USND(" ");
-        USB_sendstr(u2str(i)); USND(": "); USB_sendstr(uhex2str(I2Cdata[i]));
+        USB_sendstr(u2str(i)); USND(": "); USB_sendstr(uhex2str(locBuffer[i]));
         USND("\n");
-    }
+    }*/
 }
 static inline char *wrI2C(char *buf){
-    uint8_t N = 0;
-    uint32_t D;
-    char *nxt;
-    while((nxt = getnum(buf, &D)) && nxt != buf && N < 12){
-        buf = nxt;
-        I2Cdata[N++] = (uint8_t) D&0xff;
-        USND("add byte: "); USB_sendstr(uhex2str(D&0xff)); USND("\n");
-    }
-    USND("Send "); USB_sendstr(u2str(N)); USND(" bytes\n");
-    if(!write_i2c(I2Caddress, I2Cdata, N)) return "Error writing I2C";
+    uint16_t N = readNnumbers(buf);
+    if(!write_i2c(I2Caddress, locBuffer, N)) return "Error writing I2C";
     return "OK";
 }
 
@@ -142,6 +176,43 @@ static inline char *DAC_chval(char *buf){
     if(!nxt || nxt == buf || D > 4095) return "Wrong DAC amplitude\n";
     DAC->DHR12R1 = D;
     return "OK";
+}
+
+// write locBuffer to SPI
+static inline void wrSPI(int SPIidx, char *buf){
+    uint16_t N = readNnumbers(buf);
+    if(N < 1){
+        USND("Enter at least 1 number (max: ");
+        USB_sendstr(u2str(LOCBUFFSZ)); USND(")\n");
+        return;
+    }
+    if(SPI_transmit(SPIidx, locBuffer, N)) USND("Error: busy?\n");
+    else USND("done");
+}
+static inline void rdSPI(int SPIidx){
+    if(SPI_isoverflow(SPIidx)) USND("SPI buffer overflow\n");
+    uint8_t len = LOCBUFFSZ;
+    if(SPI_getdata(SPIidx, locBuffer, &len)){
+        USND("Error getting data: busy?\n");
+        return;
+    }
+    if(len == 0){
+        USND("Nothing to read\n");
+        return;
+    }
+    if(len > LOCBUFFSZ) USND("Can't get full message: buffer too small\n");
+    USND("SPI data:\n");
+    hexdump(locBuffer, len);
+}
+
+static inline char *procSPI(char *buf){
+    int idx = 0;
+    if(*buf == 'p') idx = 1;
+    buf = omit_spaces(buf + 1);
+    if(*buf == 'w')  wrSPI(idx, buf + 1);
+    else if(*buf == 'r') rdSPI(idx);
+    else return "Enter `w` and data to write, `r` - to read";
+    return NULL;
 }
 
 const char *helpstring =
@@ -157,6 +228,10 @@ const char *helpstring =
         "Is - scan I2C bus\n"
         "L - send long string over USB\n"
         "m - monitor ADC on/off\n"
+        "Pw bytes - send bytes over SPI1\n"
+        "pw bytes - send bytes over SPI2\n"
+        "Pr - get data from SPI1\n"
+        "pr - get data from SPI2\n"
         "R - software reset\n"
         "S - send short string over USB\n"
         "Ux str - send string to USARTx (1..3)\n"
@@ -201,6 +276,10 @@ const char *parse_cmd(char *buf){
             else if(*buf == 'w') return wrI2C(buf + 1);
             else if(*buf == 's') i2c_init_scan_mode();
             else return "Command should be 'Ia', 'Iw', 'Ir' or 'Is'\n";
+        break;
+        case 'p':
+        case 'P':
+            return procSPI(buf);
         break;
         case 'U':
             return USARTsend(buf + 1);

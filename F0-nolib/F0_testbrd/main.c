@@ -23,6 +23,7 @@
 #include "hardware.h"
 #include "i2c.h"
 #include "proto.h"
+#include "spi.h"
 #include "usart.h"
 #include "usb.h"
 #include "usb_lib.h"
@@ -50,6 +51,7 @@ int main(void){
     RCC->CSR |= RCC_CSR_RMVF; // remove reset flags
 
     USB_setup();
+    spi_setup();
     iwdg_setup();
 
     while (1){
