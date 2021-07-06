@@ -24,6 +24,9 @@
 #include "adc.h"
 #include "hardware.h"
 #include "proto.h"
+#include "spi.h"
+#include "usart.h"
+#include "usb.h"
 
 void iwdg_setup(){
     uint32_t tmout = 16000000;
@@ -172,4 +175,45 @@ void hw_setup(){
     gpio_setup();
     adc_setup();
     pwm_setup();
+}
+
+// USART & SPI both use common DMA interrupts, so put them together here
+// SPI Rx use the same DMA channels as USART Tx, so they can't work together!
+// USART1 Tx (channel 2) & SPI1 Tx (channel 3)
+void dma1_channel2_3_isr(){
+    if(DMA1->ISR & DMA_ISR_TCIF2){ // Tx
+        DMA1->IFCR |= DMA_IFCR_CTCIF2; // clear TC flag
+        txrdy[0] = 1;
+    }
+    if(DMA1->ISR & DMA_ISR_TCIF3){ // transfer done
+        DMA1->IFCR |= DMA_IFCR_CTCIF3;
+        SPI_status[0] = SPI_READY;
+        USND("SPI1 tx done\n");
+    }
+    if(DMA1->ISR & DMA_ISR_TEIF2){ // receiver overflow
+        DMA1->IFCR |= DMA_IFCR_CTEIF2;
+        SPIoverfl[0] = 1;
+    }
+}
+// USART2 + USART3 Tx (channels 4 and 7) & SPI2 Tx (channel 5)
+void dma1_channel4_5_isr(){
+    if(DMA1->ISR & DMA_ISR_TCIF4){ // Tx
+        DMA1->IFCR |= DMA_IFCR_CTCIF4; // clear TC flag
+        txrdy[1] = 1;
+    }
+    if(DMA1->ISR & DMA_ISR_TEIF4){
+        DMA1->IFCR |= DMA_IFCR_CTEIF4;
+        SPIoverfl[1] = 1;
+    }
+    if(DMA1->ISR & DMA_ISR_TCIF5){
+        DMA1->IFCR |= DMA_IFCR_CTCIF5;
+        SPI_status[1] = SPI_READY;
+        USND("SPI2 tx done\n");
+    }
+#ifdef USART3
+    if(DMA1->ISR & DMA_ISR_TCIF7){ // Tx
+        DMA1->IFCR |= DMA_IFCR_CTCIF7; // clear TC flag
+        txrdy[2] = 1;
+    }
+#endif
 }

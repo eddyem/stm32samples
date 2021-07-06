@@ -182,6 +182,7 @@ static inline char *DAC_chval(char *buf){
 static inline void wrSPI(int SPIidx, char *buf){
     uint16_t N = readNnumbers(buf);
     if(N < 1){
+        *(uint8_t *)&(SPI1->DR) = 0xea;
         USND("Enter at least 1 number (max: ");
         USB_sendstr(u2str(LOCBUFFSZ)); USND(")\n");
         return;
@@ -234,7 +235,9 @@ const char *helpstring =
         "pr - get data from SPI2\n"
         "R - software reset\n"
         "S - send short string over USB\n"
+        "s - setup SPI (and turn off USARTs)\n"
         "Ux str - send string to USARTx (1..3)\n"
+        "u - setup USARTs (and turn off SPI)\n"
         "T - MCU temperature\n"
         "V - Vdd\n"
         "W - test watchdog\n"
@@ -314,8 +317,18 @@ const char *parse_cmd(char *buf){
             USND("Test string for USB\n");
             return "Short test sent";
         break;
+        case 's':
+            USND("SPI are ON, USART are OFF\n");
+            usart_stop();
+            spi_setup();
+        break;
         case 'T':
             return u2str(getMCUtemp());
+        break;
+        case 'u':
+            USND("USART are ON, SPI are OFF\n");
+            spi_stop();
+            usart_setup();
         break;
         case 'V':
             return u2str(getVdd());

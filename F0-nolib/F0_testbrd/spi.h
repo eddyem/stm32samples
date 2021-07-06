@@ -24,7 +24,7 @@
 
 #define SPInumber   (2)
 
-#define SPIBUFSZ    4
+#define SPIBUFSZ    (32)
 
 typedef enum{
     SPI_NOTREADY,
@@ -33,8 +33,10 @@ typedef enum{
 } spiStatus;
 
 extern spiStatus SPI_status[];
+extern volatile uint8_t SPIoverfl[];
 
 void spi_setup();
+void spi_stop();
 uint8_t SPI_transmit(uint8_t N, const uint8_t *buf, uint8_t len);
 uint8_t SPI_prep_receive(uint8_t N);
 uint8_t SPI_getdata(uint8_t N, uint8_t *buf, uint8_t *maxlen);

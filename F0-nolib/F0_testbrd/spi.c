@@ -25,7 +25,7 @@
 
 // buffers for DMA rx/tx
 static uint8_t inbuff[SPInumber][SPIBUFSZ], outbuf[SPInumber][SPIBUFSZ];
-static uint8_t overfl[SPInumber] = {0, 0};
+volatile uint8_t SPIoverfl[SPInumber] = {0, 0};
 spiStatus SPI_status[SPInumber] = {SPI_NOTREADY, SPI_NOTREADY};
 static DMA_Channel_TypeDef * const rxDMA[SPInumber] = {DMA1_Channel2, DMA1_Channel4};
 static DMA_Channel_TypeDef * const txDMA[SPInumber] = {DMA1_Channel3, DMA1_Channel5};
@@ -46,6 +46,7 @@ static void spicommonsetup(uint8_t SPIidx, uint8_t master){
     /*     Peripheral to memory */
     /*     8-bit transfer */
     /*     Overflow IR */
+    rxDMA[SPIidx]->CCR &= ~DMA_CCR_EN;
     rxDMA[SPIidx]->CPAR = (uint32_t)&(SPI[SPIidx]->DR); /* (1) */
     rxDMA[SPIidx]->CMAR = (uint32_t)inbuff[SPIidx]; /* (2) */
     rxDMA[SPIidx]->CNDTR = SPIBUFSZ; /* (3) */
@@ -57,6 +58,7 @@ static void spicommonsetup(uint8_t SPIidx, uint8_t master){
     /*     Memory to peripheral*/
     /*     8-bit transfer */
     /*     Transfer complete IT */
+    txDMA[SPIidx]->CCR &= ~DMA_CCR_EN;
     txDMA[SPIidx]->CPAR = (uint32_t)&(SPI[SPIidx]->DR); /* (5) */
     txDMA[SPIidx]->CMAR = (uint32_t)outbuf[SPIidx]; /* (6) */
     txDMA[SPIidx]->CCR |= DMA_CCR_MINC | DMA_CCR_TCIE | DMA_CCR_DIR; /* (7) */
@@ -67,10 +69,12 @@ static void spicommonsetup(uint8_t SPIidx, uint8_t master){
     NVIC_EnableIRQ(txDMAirqn[SPIidx]);
     /* Configure SPI */
     /* (1) Master selection, BR: Fpclk/256 CPOL and CPHA at zero (rising first edge) */
+    /* (1a) software slave management (SSI inactive) */
     /* (2) TX and RX with DMA, 8-bit Rx fifo */
-    /* (3) Enable SPI1 */
-    SPI[SPIidx]->CR1 = master ? (SPI_CR1_MSTR | SPI_CR1_BR) : (SPI_CR1_BR); /* (1) */
-    SPI[SPIidx]->CR2 = SPI_CR2_TXDMAEN | SPI_CR2_RXDMAEN | SPI_CR2_DS_2 | SPI_CR2_DS_1 | SPI_CR2_DS_0; /* (2) */
+    /* (3) Enable SPI */
+    if(master) SPI[SPIidx]->CR1 = SPI_CR1_MSTR | SPI_CR1_BR | SPI_CR1_SSM | SPI_CR1_SSI; /* (1) */
+    else  SPI[SPIidx]->CR1 = SPI_CR1_SSM; // (1a)
+    SPI[SPIidx]->CR2 = SPI_CR2_TXDMAEN | SPI_CR2_RXDMAEN | SPI_CR2_FRXTH | SPI_CR2_DS_2 | SPI_CR2_DS_1 | SPI_CR2_DS_0; /* (2) */
     SPI[SPIidx]->CR1 |= SPI_CR1_SPE; /* (3) */
     SPI_status[SPIidx] = SPI_READY;
     SPI_prep_receive(SPIidx);
@@ -90,36 +94,16 @@ void spi_setup(){
     GPIOB->AFR[1] = (GPIOB->AFR[1] & ~(GPIO_AFRH_AFRH5 | GPIO_AFRH_AFRH6 | GPIO_AFRH_AFRH7)); /* (2) */
     // enable clocking
     RCC->AHBENR |= RCC_AHBENR_DMA1EN;
+    RCC->APB1ENR |= RCC_APB1ENR_SPI2EN;
     RCC->APB2ENR |= RCC_APB2ENR_SPI1EN;
     // SPI1 - master, SPI2 - slave
     spicommonsetup(0, 1);
     spicommonsetup(1, 0);
 }
 
-// SPI1 Tx (channel 3)
-void dma1_channel2_3_isr(){
-    if(DMA1->ISR & DMA_ISR_TCIF3){ // transfer done
-        DMA1->IFCR |= DMA_IFCR_CTCIF3;
-        SPI_status[0] = SPI_READY;
-        USND("SPI1 tx done\n");
-    }
-    if(DMA1->ISR & DMA_ISR_TEIF2){ // receiver overflow
-        DMA1->IFCR |= DMA_IFCR_CTEIF2;
-        overfl[0] = 1;
-    }
-}
-
-// SPI2 Tx (channel 5)
-void dma1_channel4_5_isr(){
-    if(DMA1->ISR & DMA_ISR_TCIF5){
-        DMA1->IFCR |= DMA_IFCR_CTCIF5;
-        SPI_status[1] = SPI_READY;
-        USND("SPI2 tx done\n");
-    }
-    if(DMA1->ISR & DMA_ISR_TEIF4){
-        DMA1->IFCR |= DMA_IFCR_CTEIF4;
-        overfl[1] = 1;
-    }
+void spi_stop(){
+    RCC->APB1ENR &= ~RCC_APB1ENR_SPI2EN;
+    RCC->APB2ENR &= ~RCC_APB2ENR_SPI1EN;
 }
 
 /**
@@ -132,11 +116,17 @@ void dma1_channel4_5_isr(){
 uint8_t SPI_transmit(uint8_t N, const uint8_t *buf, uint8_t len){
     if(!buf || !len || len > SPIBUFSZ || N >= SPInumber) return 1; // bad data format
     if(SPI_status[N] != SPI_READY) return 2; // spi not ready to transmit data
+    int ctr = 0;
+    while(SPI[N]->SR & SPI_SR_FTLVL && ++ctr < 99999); // wait for transmission buffer empty
+    ctr = 0;
+    while(SPI[N]->SR & SPI_SR_BSY && ++ctr < 99999); // wait while busy
+    USND("SPI->SR="); USB_sendstr(uhex2str(SPI[N]->SR)); USND("\n");
     txDMA[N]->CCR &=~ DMA_CCR_EN;
     memcpy(outbuf[N], buf, len);
     txDMA[N]->CNDTR = len;
-    SPI_status[N] = SPI_BUSY;
+    txDMA[N]->CMAR = (uint32_t)outbuf[N];
     SPI_prep_receive(N);
+    SPI_status[N] = SPI_BUSY;
     txDMA[N]->CCR |= DMA_CCR_EN;
     return 0;
 }
@@ -145,9 +135,12 @@ uint8_t SPI_transmit(uint8_t N, const uint8_t *buf, uint8_t len){
 uint8_t SPI_prep_receive(uint8_t N){
     if(N >= SPInumber) return 1;
     if(SPI_status[N] != SPI_READY) return 2; // still transmitting data
-    overfl[N] = 0;
+    SPIoverfl[N] = 0;
     rxDMA[N]->CCR &= ~DMA_CCR_EN;
+    (void)SPI[N]->DR; // read DR and SR to clear OVR flag
+    (void)SPI[N]->SR;
     rxDMA[N]->CNDTR = SPIBUFSZ;
+    rxDMA[N]->CMAR = (uint32_t)inbuff[N];
     rxDMA[N]->CCR |= DMA_CCR_EN;
     return 0;
 }
@@ -164,7 +157,7 @@ uint8_t SPI_getdata(uint8_t N, uint8_t *buf, uint8_t *maxlen){
     if(N >= SPInumber) return 1;
     if(SPI_status[N] != SPI_READY) return 2; // still transmitting data
     rxDMA[N]->CCR &= ~DMA_CCR_EN;
-    overfl[N] = 0;
+    SPIoverfl[N] = 0;
     uint8_t remain = rxDMA[N]->CNDTR;
     if(maxlen){
         if(buf && *maxlen) memcpy(buf, inbuff[N], *maxlen);
@@ -179,7 +172,7 @@ uint8_t SPI_getdata(uint8_t N, uint8_t *buf, uint8_t *maxlen){
 // should be called BEFORE SPI_prep_receive() or SPI_getdata()
 uint8_t SPI_isoverflow(uint8_t N){
     if(N >= SPInumber) return 1;
-    register uint8_t o = overfl[N];
-    overfl[N] = 0;
+    register uint8_t o = SPIoverfl[N];
+    SPIoverfl[N] = 0;
     return o;
 }

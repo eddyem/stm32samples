@@ -134,6 +134,7 @@ void usart_setup(){
     // clock
     RCC->APB2ENR |= RCC_APB2ENR_USART1EN;
     RCC->APB1ENR |= RCC_APB1ENR_USART2EN;
+    RCC->AHBENR |= RCC_AHBENR_DMA1EN;
 #ifdef USART3
     GPIOB->MODER = (GPIOB->MODER & ~(GPIO_MODER_MODER10 | GPIO_MODER_MODER11)) |
                    GPIO_MODER_MODER10_AF | GPIO_MODER_MODER11_AF;
@@ -144,6 +145,7 @@ void usart_setup(){
     for(int i = 0; i < USARTNUM; ++i){
         USARTs[i]->ICR = 0xffffffff; // clear all flags
         // USARTX Tx DMA
+        USARTDMA[i]->CCR &= ~DMA_CCR_EN;
         USARTDMA[i]->CPAR = (uint32_t) &USARTs[i]->TDR; // periph
         USARTDMA[i]->CCR |= DMA_CCR_MINC | DMA_CCR_DIR | DMA_CCR_TCIE; // 8bit, mem++, mem->per, transcompl irq
         // setup usarts
@@ -168,6 +170,13 @@ void usart_setup(){
 #endif
 }
 
+void usart_stop(){
+    RCC->APB2ENR &= ~RCC_APB2ENR_USART1EN;
+    RCC->APB1ENR &= ~RCC_APB1ENR_USART2EN;
+#ifdef USART3
+    RCC->APB1ENR &= ~RCC_APB1ENR_USART3EN;
+#endif
+}
 
 static void usart_IRQ(int usartno){
     USART_TypeDef *USARTX = USARTs[usartno];
@@ -221,7 +230,6 @@ void usart2_isr(){
     usart_IRQ(1);
 }
 
-
 // work with USART3 only @ boards that have it
 #ifdef USART3
 void usart3_4_isr(){
@@ -229,23 +237,3 @@ void usart3_4_isr(){
 }
 #endif
 
-// USART1
-void dma1_channel2_3_isr(){
-    if(DMA1->ISR & DMA_ISR_TCIF2){ // Tx
-        DMA1->IFCR |= DMA_IFCR_CTCIF2; // clear TC flag
-        txrdy[0] = 1;
-    }
-}
-// USART2 + USART3
-void dma1_channel4_5_isr(){
-    if(DMA1->ISR & DMA_ISR_TCIF4){ // Tx
-        DMA1->IFCR |= DMA_IFCR_CTCIF4; // clear TC flag
-        txrdy[1] = 1;
-    }
-#ifdef USART3
-    if(DMA1->ISR & DMA_ISR_TCIF7){ // Tx
-        DMA1->IFCR |= DMA_IFCR_CTCIF7; // clear TC flag
-        txrdy[2] = 1;
-    }
-#endif
-}

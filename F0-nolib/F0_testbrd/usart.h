@@ -54,5 +54,6 @@ void usart_send(int usartno, const char *str);
 void usart_sendn(int usartno, const char *str, uint32_t L);
 void newline(int usartno);
 void usart_putchar(int usartno, const char ch);
+void usart_stop();
 
 #endif // __USART_H__

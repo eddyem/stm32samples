@@ -46,12 +46,10 @@ int main(void){
     sysreset();
     SysTick_Config(6000, 1);
     hw_setup();
-    usart_setup();
 
     RCC->CSR |= RCC_CSR_RMVF; // remove reset flags
 
     USB_setup();
-    spi_setup();
     iwdg_setup();
 
     while (1){
