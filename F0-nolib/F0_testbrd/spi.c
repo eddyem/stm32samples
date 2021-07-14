@@ -124,7 +124,7 @@ uint8_t SPI_transmit(uint8_t N, const uint8_t *buf, uint8_t len){
     txDMA[N]->CCR &=~ DMA_CCR_EN;
     memcpy(outbuf[N], buf, len);
     txDMA[N]->CNDTR = len;
-    txDMA[N]->CMAR = (uint32_t)outbuf[N];
+    //txDMA[N]->CMAR = (uint32_t)outbuf[N];
     SPI_prep_receive(N);
     SPI_status[N] = SPI_BUSY;
     txDMA[N]->CCR |= DMA_CCR_EN;
@@ -140,7 +140,7 @@ uint8_t SPI_prep_receive(uint8_t N){
     (void)SPI[N]->DR; // read DR and SR to clear OVR flag
     (void)SPI[N]->SR;
     rxDMA[N]->CNDTR = SPIBUFSZ;
-    rxDMA[N]->CMAR = (uint32_t)inbuff[N];
+    //rxDMA[N]->CMAR = (uint32_t)inbuff[N];
     rxDMA[N]->CCR |= DMA_CCR_EN;
     return 0;
 }

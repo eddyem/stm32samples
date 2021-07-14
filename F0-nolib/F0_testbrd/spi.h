@@ -24,7 +24,7 @@
 
 #define SPInumber   (2)
 
-#define SPIBUFSZ    (32)
+#define SPIBUFSZ    (8)
 
 typedef enum{
     SPI_NOTREADY,
