@@ -49,6 +49,10 @@ SECTIONS {
     _stext = .;
     *(.text*)
     *(.rodata*)
+    *(.glue_7)         /* glue arm to thumb code */
+    *(.glue_7t)        /* glue thumb to arm code */
+    KEEP (*(.init))
+    KEEP (*(.fini))
     . = ALIGN(4);
     _etext = .;
   } >rom
@@ -61,7 +65,7 @@ SECTIONS {
   .ARM : {
     *(.ARM.exidx*)
   } >rom
-  
+
   .data :
   {
     . = ALIGN(4);
@@ -74,10 +78,21 @@ SECTIONS {
   .myvars :
   {
     . = ALIGN(2048);
+    __varsstart = ABSOLUTE(.);
     KEEP(*(.myvars))
   } > rom
 
   _ldata = LOADADDR(.data);
+
+  .ccmram :
+  {
+    . = ALIGN(4);
+    _sccmram = .;
+    *(.ccmram)
+    *(.ccmram*)
+    . = ALIGN(4);
+    _eccmram = .;
+  } >ccmram AT> rom
 
   .bss :
   {

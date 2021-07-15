@@ -109,7 +109,7 @@ TRUE_INLINE int StartHSE(){ // system bus 72MHz from PLL
 #define WAITWHILE(x)  do{StartUpCounter = 0; while((x) && (++StartUpCounter < 0xffffff)){nop();}; if(x) return 0;}while(0)
     RCC->CR = (RCC->CR & ~RCC_CR_PLLON) | RCC_CR_HSEON; // disable PLL to reconfigure, enable HSE
     WAITWHILE(!(RCC->CR & RCC_CR_HSERDY));
-    // Enable Prefetch Buffer. Flash 2 wait states for 48..72MHz
+    // Enable Prefetch Buffer. Flash 4 wait states for 48..72MHz
     FLASH->ACR = (FLASH->ACR & ~(FLASH_ACR_LATENCY)) |
             FLASH_ACR_LATENCY_2 | FLASH_ACR_PRFTBE;
     // HCLK = SYSCLK (AHB prescaler = 1), PCLK1 = HCLK (APB1 prescaler = 1), PCLK2 = HCLK (APB2 prescaler = 1)
