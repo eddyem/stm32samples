@@ -17,21 +17,26 @@
  */
 
 #pragma once
-#ifndef __USB_H__
-#define __USB_H__
+#ifndef BUTTONS_H__
 
-#include "hardware.h"
+#include <stm32f0.h>
 
-#define BUFFSIZE   (64)
+// threshold in ms for press/hold
+#define PRESSTHRESHOLD  (9)
+#define HOLDTHRESHOLD   (199)
 
-// send string with constant length
-#define USND(str)  do{USB_send((uint8_t*)str, sizeof(str)-1);}while(0)
+// events
+typedef enum{
+    EVT_NONE,   // no events with given key
+    EVT_PRESS,  // pressed (hold more than PRESSTHRESHOLD ms)
+    EVT_HOLD,   // hold more than HOLDTHRESHOLD ms
+    EVT_RELEASE // released after press or hold state
+} keyevent;
 
-void USB_setup();
-void usb_proc();
-void USB_send(const uint8_t *buf, uint16_t len);
-void USB_sendstr(const char *str);
-void USB_send_blk(const uint8_t *buf, uint16_t len);
-uint8_t USB_receive(uint8_t *buf);
+extern uint32_t lastUnsleep; // last keys activity time
 
-#endif // __USB_H__
+void process_keys();
+keyevent keystate(uint8_t k, uint32_t *T);
+
+#define BUTTONS_H__
+#endif // BUTTONS_H__

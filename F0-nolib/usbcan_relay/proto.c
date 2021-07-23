@@ -1,12 +1,10 @@
 /*
- *                                                                                                  geany_encoding=koi8-r
- * proto.c
+ * This file is part of the canrelay project.
+ * Copyright 2021 Edward V. Emelianov <edward.emelianoff@gmail.com>.
  *
- * Copyright 2018 Edward V. Emelianov <eddy@sao.ru, edward.emelianoff@gmail.com>
- *
- * This program is free software; you can redistribute it and/or modify
+ * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -15,11 +13,10 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- * MA 02110-1301, USA.
- *
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+#include "buttons.h"
 #include "can.h"
 #include "hardware.h"
 #include "proto.h"
@@ -29,7 +26,7 @@
 
 extern volatile uint8_t canerror;
 
-uint8_t ShowMsgs = 07;
+uint8_t ShowMsgs = 0;
 uint16_t Ignore_IDs[IGN_SIZE];
 uint8_t IgnSz = 0;
 static char buff[BUFSZ+1], *bptr = buff;
@@ -57,17 +54,17 @@ void addtobuf(const char *txt){
     while(*txt) bufputchar(*txt++);
 }
 
-char *omit_spaces(char *buf){
+char *omit_spaces(const char *buf){
     while(*buf){
         if(*buf > ' ') break;
         ++buf;
     }
-    return buf;
+    return (char*) buf;
 }
 
 // THERE'S NO OVERFLOW PROTECTION IN NUMBER READ PROCEDURES!
 // read decimal number
-static char *getdec(char *buf, uint32_t *N){
+static char *getdec(const char *buf, uint32_t *N){
     uint32_t num = 0;
     while(*buf){
         char c = *buf;
@@ -79,10 +76,10 @@ static char *getdec(char *buf, uint32_t *N){
         ++buf;
     }
     *N = num;
-    return buf;
+    return (char *)buf;
 }
 // read hexadecimal number (without 0x prefix!)
-static char *gethex(char *buf, uint32_t *N){
+static char *gethex(const char *buf, uint32_t *N){
     uint32_t num = 0;
     while(*buf){
         char c = *buf;
@@ -103,10 +100,10 @@ static char *gethex(char *buf, uint32_t *N){
         ++buf;
     }
     *N = num;
-    return buf;
+    return (char *)buf;
 }
 // read binary number (without 0b prefix!)
-static char *getbin(char *buf, uint32_t *N){
+static char *getbin(const char *buf, uint32_t *N){
     uint32_t num = 0;
     while(*buf){
         char c = *buf;
@@ -118,7 +115,7 @@ static char *getbin(char *buf, uint32_t *N){
         ++buf;
     }
     *N = num;
-    return buf;
+    return (char *)buf;
 }
 
 /**
@@ -127,7 +124,7 @@ static char *getbin(char *buf, uint32_t *N){
  * @param N   - the number read
  * @return pointer to first non-number symbol in buf (if it is == buf, there's no number)
  */
-char *getnum(char *txt, uint32_t *N){
+char *getnum(const char *txt, uint32_t *N){
     if(*txt == '0'){
         if(txt[1] == 'x' || txt[1] == 'X') return gethex(txt+2, N);
         if(txt[1] == 'b' || txt[1] == 'B') return getbin(txt+2, N);
@@ -167,13 +164,7 @@ static CAN_message *parseCANmsg(char *txt){
             return NULL;
         }
         canmsg.data[ctr++] = (uint8_t)(N&0xff);
-        //printu(N); SEND(", hex: ");
-        //printuhex(N); newline();
     }while(1);
-    /*if(*n){
-        SEND("\nUnusefull data: ");
-        SEND(n);
-    }*/
     if(canmsg.ID == 0xffff){
         SEND("NO ID given, send nothing!\n");
         return NULL;
@@ -224,6 +215,10 @@ TRUE_INLINE void addIGN(char *txt){
     char *n = getnum(txt, &N);
     if(txt == n){
         SEND("No ID given");
+        return;
+    }
+    if(N == CANID){
+        SEND("You can't ignore self ID!");
         return;
     }
     if(N > 0x7ff){
@@ -322,8 +317,8 @@ static void add_filter(char *str){
         SEND("No bank# given");
         return;
     }
-    if(N > STM32F0FBANKNO-1){
-        SEND("bank# > 27");
+    if(N == 0 || N > STM32F0FBANKNO-1){
+        SEND("0 (reserved for self) < bank# < 28 (max bank# is 27)!!!");
         return;
     }
     uint8_t bankno = (uint8_t)N;
@@ -398,6 +393,69 @@ static void add_filter(char *str){
 }
 
 /**
+ * @brief ledsOp - turn on/off LEDs
+ * @param str - LED number (0..3)
+ * @param state = 1 to turn on, 0 to turn off (toggling only available for CAN bus commands)
+ */
+static void ledsOp(const char *str, uint8_t state){
+    uint32_t N;
+    char *x = getnum(str, &N);
+    if(!x || x == str || N > LEDSNO - 1){
+        SEND("Wrong LED number\n");
+        return;
+    }
+    if(state) LED_on(N);
+    else LED_off(N);
+    SEND("LED"); printu(N); SEND(" is ");
+    if(state) SEND("on"); else SEND("off");
+}
+
+// print current buttons state
+TRUE_INLINE void getBtnState(){
+    const char *states[] = {[EVT_NONE] = NULL, [EVT_PRESS] = "pressed", [EVT_HOLD] = "holded", [EVT_RELEASE] = "released"};
+    for(int i = 0; i < BTNSNO; ++i){
+        uint32_t T;
+        keyevent e = keystate(i, &T);
+        if(e != EVT_NONE){
+            SEND("The key "); printu(i);
+            SEND(" is "); addtobuf(states[e]); SEND(" at ");
+            printu(T); NL();
+        }
+    }
+}
+
+TRUE_INLINE void getPWM(){
+    volatile uint32_t *reg = &TIM1->CCR1;
+    for(int n = 0; n < 3; ++n){
+        SEND("PWM");
+        bufputchar(n);
+        bufputchar('=');
+        printu(*reg++);
+        bufputchar('\n');
+    }
+    sendbuf();
+}
+
+TRUE_INLINE void changePWM(char *str){
+    str = omit_spaces(str);
+    uint32_t N, pwm;
+    char *nxt = getnum(str, &N);
+    if(nxt == str || N > 2){
+        SEND("Nch = 0..2");
+        return;
+    }
+    str = omit_spaces(nxt);
+    nxt = getnum(str, &pwm);
+    if(nxt == str || pwm > 255){
+        SEND("PWM should be from 0 to 255");
+        return;
+    }
+    volatile uint32_t *reg = &TIM1->CCR1;
+    reg[N] = pwm;
+    SEND("OK, changed");
+}
+
+/**
  * @brief cmd_parser - command parsing
  * @param txt   - buffer with commands & data
  * @param isUSB - == 1 if data got from USB
@@ -412,7 +470,7 @@ void cmd_parser(char *txt){
             addIGN(txt + 1);
             goto eof;
         break;
-        case 'b':
+        case 'C':
             CANini(txt + 1);
             goto eof;
         break;
@@ -424,14 +482,29 @@ void cmd_parser(char *txt){
             set_flood(parseCANmsg(txt + 1));
             goto eof;
         break;
+        case 'o':
+            ledsOp(txt + 1, 0);
+            goto eof;
+        break;
+        case 'O':
+            ledsOp(txt + 1, 1);
+            goto eof;
+        break;
         case 's':
         case 'S':
             sendCANcommand(txt + 1);
             goto eof;
         break;
+        case 'W':
+            changePWM(txt + 1);
+            goto eof;
+        break;
     }
     if(txt[1] != '\n') *txt = '?'; // help for wrong message length
     switch(_1st){
+        case 'b':
+            getBtnState();
+        break;
         case 'd':
             IgnSz = 0;
         break;
@@ -441,18 +514,10 @@ void cmd_parser(char *txt){
             Jump2Boot();
         break;
         case 'I':
-            CAN_reinit(0);
+            SEND("CAN ID: "); printuhex(CANID);
         break;
         case 'l':
             list_filters();
-        break;
-        case 'o':
-            ledsON = 0;
-            LED_off(LED0);
-            LED_off(LED1);
-        break;
-        case 'O':
-            ledsON = 1;
         break;
         case 'p':
             print_ign_buf();
@@ -471,25 +536,31 @@ void cmd_parser(char *txt){
         case 'T':
             SEND("Time (ms): ");
             printu(Tms);
-            newline();
+        break;
+        case 'w':
+            getPWM();
+            return;
         break;
         default: // help
             SEND(
             "'a' - add ID to ignore list (max 10 IDs)\n"
-            "'b' - reinit CAN with given baudrate\n"
+            "'b' - get buttons' state\n"
+            "'C' - reinit CAN with given baudrate\n"
             "'d' - delete ignore list\n"
             "'D' - activate DFU mode\n"
             "'f' - add/delete filter, format: bank# FIFO# mode(M/I) num0 [num1 [num2 [num3]]]\n"
             "'F' - send/clear flood message: F ID byte0 ... byteN\n"
-            "'I' - reinit CAN\n"
+            "'I' - read CAN ID\n"
             "'l' - list all active filters\n"
-            "'o' - turn LEDs OFF\n"
-            "'O' - turn LEDs ON\n"
+            "'o' - turn nth LED OFF\n"
+            "'O' - turn nth LED ON\n"
             "'p' - print ignore buffer\n"
             "'P' - pause/resume in packets displaying\n"
             "'R' - software reset\n"
             "'s/S' - send data over CAN: s ID byte0 .. byteN\n"
             "'T' - get time from start (ms)\n"
+            "'w' - get PWM settings\n"
+            "'W' - set PWM @nth channel (ch: 0..2, PWM: 0..255)\n"
             );
         break;
     }

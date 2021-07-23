@@ -9,7 +9,7 @@ MCU			= F042x6
 #DEFS		+= -DEBUG
 # change this linking script depending on particular MCU model,
 # for example, if you have STM32F103VBT6, you should write:
-LDSCRIPT	= stm32f042k.ld
+LDSCRIPT	= stm32f042x6.ld
 
 INDEPENDENT_HEADERS=
 
@@ -131,7 +131,7 @@ clean:
 
 dfuboot: $(BIN)
 	@echo "  LOAD  $(BIN) THROUGH DFU"
-	$(DFUUTIL) -a0 -D $(BIN) -s 0x08000000
+	$(DFUUTIL) -a0 -R -D $(BIN) -s 0x08000000
 
 flash: $(BIN)
 	@echo "  FLASH  $(BIN)"

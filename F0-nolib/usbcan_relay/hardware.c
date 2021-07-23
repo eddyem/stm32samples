@@ -1,12 +1,10 @@
 /*
- *                                                                                                  geany_encoding=koi8-r
- * hardware.c - hardware-dependent macros & functions
+ * This file is part of the canrelay project.
+ * Copyright 2021 Edward V. Emelianov <edward.emelianoff@gmail.com>.
  *
- * Copyright 2018 Edward V. Emelianov <eddy@sao.ru, edward.emelianoff@gmail.com>
- *
- * This program is free software; you can redistribute it and/or modify
+ * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -15,24 +13,37 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- * MA 02110-1301, USA.
- *
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #include "hardware.h"
+#include "can.h"
 
-uint8_t ledsON = 0;
+uint16_t CANID = 0xFFFF; // self CAN ID (read @ init)
+
+// LEDS: 0 - PB12, 1 - PB13, 2 - PB14, 3 - PB15
+GPIO_TypeDef *LEDports[LEDSNO] = {GPIOB, GPIOB, GPIOB, GPIOB};
+const uint32_t LEDpins[LEDSNO] = {1<<12, 1<<13, 1<<14, 1<<15};
+// Buttons: PA2..PA5, pullup
+GPIO_TypeDef *BTNports[BTNSNO] = {GPIOA, GPIOA, GPIOA, GPIOA};
+const uint32_t BTNpins[BTNSNO] = {1<<2, 1<<3, 1<<4, 1<<5};
 
 void gpio_setup(void){
-    RCC->AHBENR |= RCC_AHBENR_GPIOBEN;
-    // Set LEDS (PB0/1) as output
-    pin_set(LED0_port, LED0_pin); // clear LEDs
-    pin_set(LED1_port, LED1_pin);
-    GPIOB->MODER = (GPIOB->MODER & ~(GPIO_MODER_MODER0  | GPIO_MODER_MODER1)
-                    ) |
-                    GPIO_MODER_MODER0_O | GPIO_MODER_MODER1_O;
+    RCC->AHBENR |= RCC_AHBENR_GPIOAEN | RCC_AHBENR_GPIOBEN;
+    // Set LEDS (PB12..15) as output, ADDR (PB0..7) - pullup inputs
+    // WARNING! All code here is hardcore!
+    pin_set(GPIOB, 0xf<<12); // clear LEDs
+    GPIOB->MODER = GPIO_MODER_MODER12_O | GPIO_MODER_MODER13_O | GPIO_MODER_MODER14_O | GPIO_MODER_MODER15_O;
+    GPIOB->PUPDR = GPIO_PUPDR0_PU | GPIO_PUPDR1_PU | GPIO_PUPDR2_PU | GPIO_PUPDR3_PU | GPIO_PUPDR4_PU |
+                   GPIO_PUPDR5_PU | GPIO_PUPDR6_PU | GPIO_PUPDR7_PU;
+    // relays (PA0..1) as outputs, buttons (PA2..5) as pullup inputs
+    // PA8..10 - PWM @ TIM1
+    GPIOA->MODER = GPIO_MODER_MODER0_O | GPIO_MODER_MODER1_O |
+                   GPIO_MODER_MODER8_AF | GPIO_MODER_MODER9_AF | GPIO_MODER_MODER10_AF;
+    GPIOA->PUPDR = GPIO_PUPDR2_PU | GPIO_PUPDR3_PU | GPIO_PUPDR4_PU | GPIO_PUPDR5_PU;
+    CANID = (~READ_INV_CAN_ADDR()) & CAN_INV_ID_MASK;
+    // alternate functions @TIM1 PWM (AF2), PA8..10
+    GPIOA->AFR[1] = (2 << (0*4)) | (2 << (1*4)) | (2 << (2*4));
 }
 
 void iwdg_setup(){
@@ -58,6 +69,21 @@ void iwdg_setup(){
     IWDG->KR = IWDG_REFRESH; /* (6) */
 }
 
+void tim1_setup(){
+    // TIM1 channels 1..3 - PWM output
+    RCC->APB2ENR |= RCC_APB2ENR_TIM1EN; // enable clocking
+    TIM1->PSC = 9; // F=48/10 = 4.8MHz
+    TIM1->ARR = 255; // PWM frequency = 4800/256 = 18.75kHz
+    // PWM mode 1 (OCxM = 110), preload enable
+    TIM1->CCMR1 =   TIM_CCMR1_OC1M_2 | TIM_CCMR1_OC1M_1 | TIM_CCMR1_OC1PE |
+                    TIM_CCMR1_OC2M_2 | TIM_CCMR1_OC2M_1 | TIM_CCMR1_OC2PE;
+    TIM1->CCMR2 =   TIM_CCMR2_OC3M_2 | TIM_CCMR2_OC3M_1 | TIM_CCMR2_OC3PE;
+    TIM1->CCER = TIM_CCER_CC1E | TIM_CCER_CC2E | TIM_CCER_CC3E; // active high (CC1P=0), enable outputs
+    TIM1->BDTR |= TIM_BDTR_MOE; // enable main output
+    TIM1->CR1 |= TIM_CR1_CEN; // enable timer
+    TIM1->EGR |= TIM_EGR_UG; // force update generation
+}
+
 // pause in milliseconds for some purposes
 void pause_ms(uint32_t pause){
     uint32_t Tnxt = Tms + pause;
@@ -65,12 +91,13 @@ void pause_ms(uint32_t pause){
 }
 
 void Jump2Boot(){
+    __disable_irq();
+    IWDG->KR = IWDG_REFRESH;
     void (*SysMemBootJump)(void);
-    volatile uint32_t addr = 0x1FFFC800;
+    volatile uint32_t addr = SystemMem;
     // reset systick
     SysTick->CTRL = 0;
     // reset clocks
-
     RCC->APB1RSTR = RCC_APB1RSTR_CECRST    | RCC_APB1RSTR_DACRST    | RCC_APB1RSTR_PWRRST    | RCC_APB1RSTR_CRSRST  |
                     RCC_APB1RSTR_CANRST    | RCC_APB1RSTR_USBRST    | RCC_APB1RSTR_I2C2RST   | RCC_APB1RSTR_I2C1RST |
                     RCC_APB1RSTR_USART4RST | RCC_APB1RSTR_USART3RST | RCC_APB1RSTR_USART2RST | RCC_APB1RSTR_SPI2RST |
@@ -87,11 +114,15 @@ void Jump2Boot(){
     RCC->AHBRSTR = 0;
     RCC->APB1RSTR = 0;
     RCC->APB2RSTR = 0;
-    // remap memory to 0 (only for STM32F0)
+    // enable SYSCFG clocking
+    RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN;
+    __DSB();
+    // remap system flash memory to 0 (only for STM32F0)
     SYSCFG->CFGR1 = 0x01; __DSB(); __ISB();
     SysMemBootJump = (void (*)(void)) (*((uint32_t *)(addr + 4)));
     // set main stack pointer
     __set_MSP(*((uint32_t *)addr));
+    IWDG->KR = IWDG_REFRESH;
     // jump to bootloader
     SysMemBootJump();
 }

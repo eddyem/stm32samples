@@ -1,11 +1,10 @@
 /*
- * main.c
+ * This file is part of the canrelay project.
+ * Copyright 2021 Edward V. Emelianov <edward.emelianoff@gmail.com>.
  *
- * Copyright 2017 Edward V. Emelianoff <eddy@sao.ru, edward.emelianoff@gmail.com>
- *
- * This program is free software; you can redistribute it and/or modify
+ * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -14,11 +13,10 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- * MA 02110-1301, USA.
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "buttons.h"
 #include "can.h"
 #include "hardware.h"
 #include "proto.h"
@@ -66,13 +64,13 @@ static char *get_USB(){
 }
 
 int main(void){
-    uint32_t lastT = 0;
     uint8_t ctr, len;
     CAN_message *can_mesg;
     char *txt;
     sysreset();
     SysTick_Config(6000, 1);
     gpio_setup();
+    tim1_setup();
     USB_setup();
     CAN_setup(100);
     RCC->CSR |= RCC_CSR_RMVF; // remove reset flags
@@ -80,10 +78,7 @@ int main(void){
 
     while (1){
         IWDG->KR = IWDG_REFRESH; // refresh watchdog
-        if(lastT && (Tms - lastT > 199)){
-            LED_off(LED0);
-            lastT = 0;
-        }
+        process_keys();
         can_proc();
         usb_proc();
         if(CAN_get_status() == CAN_FIFO_OVERRUN){
@@ -92,9 +87,6 @@ int main(void){
         }
         can_mesg = CAN_messagebuf_pop();
         if(can_mesg && isgood(can_mesg->ID)){
-            LED_on(LED0);
-            lastT = Tms;
-            if(!lastT) lastT = 1;
             if(ShowMsgs){ // new data in buff
                 IWDG->KR = IWDG_REFRESH;
                 len = can_mesg->length;

@@ -1,12 +1,10 @@
 /*
- *                                                                                                  geany_encoding=koi8-r
- * can.c
+ * This file is part of the canrelay project.
+ * Copyright 2021 Edward V. Emelianov <edward.emelianoff@gmail.com>.
  *
- * Copyright 2018 Edward V. Emelianov <eddy@sao.ru, edward.emelianoff@gmail.com>
- *
- * This program is free software; you can redistribute it and/or modify
+ * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -15,11 +13,9 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- * MA 02110-1301, USA.
- *
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 #include "can.h"
 #include "hardware.h"
 #include "proto.h"
@@ -41,6 +37,7 @@ static void can_process_fifo(uint8_t fifo_num);
 
 static CAN_message loc_flood_msg;
 static CAN_message *flood_msg = NULL; // == loc_flood_msg - to flood
+
 
 CAN_status CAN_get_status(){
     CAN_status st = can_status;
@@ -108,7 +105,6 @@ so if TBS1=4 and TBS2=3, sum=8, bit sampling freq is 48/8 = 6MHz
 
 // speed - in kbps
 void CAN_setup(uint16_t speed){
-    LED_off(LED1);
     if(speed == 0) speed = oldspeed;
     else if(speed < 50) speed = 50;
     else if(speed > 3000) speed = 3000;
@@ -123,46 +119,32 @@ void CAN_setup(uint16_t speed){
                   | (4 << (0 * 4)) | (4 << (1 * 4)); /* (2) */
     /* Enable the peripheral clock CAN */
     RCC->APB1ENR |= RCC_APB1ENR_CANEN;
-      /* Configure CAN */
-    /* (1) Enter CAN init mode to write the configuration */
-    /* (2) Wait the init mode entering */
-    /* (3) Exit sleep mode */
-    /* (4) Normal mode, set timing to 100kb/s: TBS1 = 4, TBS2 = 3, prescaler = 60 */
-    /* (5) Leave init mode */
-    /* (6) Wait the init mode leaving */
-    /* (7) Enter filter init mode, (16-bit + mask, bank 0 for FIFO 0) */
-    /* (8) Acivate filter 0 for two IDs */
-    /* (9) Identifier list mode */
-    /* (10) Set the Id list */
-    /* (12) Leave filter init */
-    /* (13) Set error interrupts enable */
-    CAN->MCR |= CAN_MCR_INRQ; /* (1) */
-    while((CAN->MSR & CAN_MSR_INAK)!=CAN_MSR_INAK) /* (2) */
+    // Configure CAN
+    while((CAN->MSR & CAN_MSR_INAK)!=CAN_MSR_INAK)
     {
         if(--tmout == 0) break;
     }
-    CAN->MCR &=~ CAN_MCR_SLEEP; /* (3) */
-    CAN->MCR |= CAN_MCR_ABOM; /* allow automatically bus-off */
-
-    CAN->BTR =  2 << 20 | 3 << 16 | (6000/speed - 1); /* (4) */
-    CAN->MCR &=~ CAN_MCR_INRQ; /* (5) */
+    CAN->MCR &=~ CAN_MCR_SLEEP;
+    CAN->MCR |= CAN_MCR_ABOM; // allow automatically bus-off
+    CAN->BTR =  2 << 20 | 3 << 16 | (6000/speed - 1); // speed
+    CAN->MCR &=~ CAN_MCR_INRQ;
     tmout = 16000000;
-    while((CAN->MSR & CAN_MSR_INAK)==CAN_MSR_INAK) if(--tmout == 0) break; /* (6) */
-    // accept ALL
-    CAN->FMR = CAN_FMR_FINIT; /* (7) */
-    CAN->FA1R = CAN_FA1R_FACT0 | CAN_FA1R_FACT1; /* (8) */
+    while((CAN->MSR & CAN_MSR_INAK)==CAN_MSR_INAK) if(--tmout == 0) break;
+    // accept self ID at filter 0, ALL other at filters 1 and 2
+    CAN->FMR = CAN_FMR_FINIT;
+    CAN->FA1R = CAN_FA1R_FACT0 | CAN_FA1R_FACT1 | CAN_FA1R_FACT2;
+    CAN->FM1R = CAN_FM1R_FBM0; // identifier mode for bank#0, mask mode for #1 and #2
     // set to 1 all needed bits of CAN->FFA1R to switch given filters to FIFO1
-    CAN->sFilterRegister[0].FR1 = (1<<21)|(1<<5); // all odd IDs
-    CAN->FFA1R = 2; // filter 1 for FIFO1, filter 0 - for FIFO0
-    CAN->sFilterRegister[1].FR1 = (1<<21); // all even IDs
-    CAN->FMR &=~ CAN_FMR_FINIT; /* (12) */
-    CAN->IER |= CAN_IER_ERRIE | CAN_IER_FOVIE0 | CAN_IER_FOVIE1; /* (13) */
+    CAN->sFilterRegister[0].FR1 = CANID << 5; // self ID
+    CAN->sFilterRegister[1].FR1 = (1<<21)|(1<<5); // all odd IDs
+    CAN->sFilterRegister[2].FR1 = (1<<21); // all even IDs
+    CAN->FFA1R = 2; // filter 1 for FIFO1, filters 0&2 - for FIFO0
+    CAN->FMR &=~ CAN_FMR_FINIT; // end of filters init
+    CAN->IER |= CAN_IER_ERRIE | CAN_IER_FOVIE0 | CAN_IER_FOVIE1;
 
     /* Configure IT */
-    /* (14) Set priority for CAN_IRQn */
-    /* (15) Enable CAN_IRQn */
-    NVIC_SetPriority(CEC_CAN_IRQn, 0); /* (14) */
-    NVIC_EnableIRQ(CEC_CAN_IRQn); /* (15) */
+    NVIC_SetPriority(CEC_CAN_IRQn, 0);
+    NVIC_EnableIRQ(CEC_CAN_IRQn);
     can_status = CAN_READY;
 }
 
@@ -284,7 +266,6 @@ void set_flood(CAN_message *msg){
 
 static void can_process_fifo(uint8_t fifo_num){
     if(fifo_num > 1) return;
-    LED_on(LED1); // Turn on LED1 - message received
     CAN_FIFOMailBox_TypeDef *box = &CAN->sFIFOMailBox[fifo_num];
     volatile uint32_t *RFxR = (fifo_num) ? &CAN->RF1R : &CAN->RF0R;
     // read all

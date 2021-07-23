@@ -1,12 +1,10 @@
 /*
- *                                                                                                  geany_encoding=koi8-r
- * can.h
+ * This file is part of the canrelay project.
+ * Copyright 2021 Edward V. Emelianov <edward.emelianoff@gmail.com>.
  *
- * Copyright 2018 Edward V. Emelianov <eddy@sao.ru, edward.emelianoff@gmail.com>
- *
- * This program is free software; you can redistribute it and/or modify
+ * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -15,21 +13,22 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- * MA 02110-1301, USA.
- *
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 #pragma once
 #ifndef __CAN_H__
 #define __CAN_H__
 
 #include "hardware.h"
 
+// CAN ID mask (11 bits)
+#define CANIDMASK           (0x7ff)
+
 // amount of filter banks in STM32F0
-#define STM32F0FBANKNO      28
+#define STM32F0FBANKNO      (28)
 // flood period in milliseconds
-#define FLOOD_PERIOD_MS     5
+#define FLOOD_PERIOD_MS     (5)
 
 // incoming message buffer size
 #define CAN_INMESSAGE_SIZE  (8)
