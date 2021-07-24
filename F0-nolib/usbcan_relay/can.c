@@ -17,6 +17,7 @@
  */
 
 #include "can.h"
+#include "canproto.h"
 #include "hardware.h"
 #include "proto.h"
 
@@ -120,8 +121,9 @@ void CAN_setup(uint16_t speed){
     /* Enable the peripheral clock CAN */
     RCC->APB1ENR |= RCC_APB1ENR_CANEN;
     // Configure CAN
-    while((CAN->MSR & CAN_MSR_INAK)!=CAN_MSR_INAK)
-    {
+    CAN->MCR |= CAN_MCR_INRQ; // Enter CAN init mode to write the configuration
+    while((CAN->MSR & CAN_MSR_INAK) != CAN_MSR_INAK){
+        IWDG->KR = IWDG_REFRESH;
         if(--tmout == 0) break;
     }
     CAN->MCR &=~ CAN_MCR_SLEEP;
@@ -129,7 +131,10 @@ void CAN_setup(uint16_t speed){
     CAN->BTR =  2 << 20 | 3 << 16 | (6000/speed - 1); // speed
     CAN->MCR &=~ CAN_MCR_INRQ;
     tmout = 16000000;
-    while((CAN->MSR & CAN_MSR_INAK)==CAN_MSR_INAK) if(--tmout == 0) break;
+    while((CAN->MSR & CAN_MSR_INAK) == CAN_MSR_INAK){ // Wait the init mode leaving
+        IWDG->KR = IWDG_REFRESH;
+        if(--tmout == 0) break;
+    }
     // accept self ID at filter 0, ALL other at filters 1 and 2
     CAN->FMR = CAN_FMR_FINIT;
     CAN->FA1R = CAN_FA1R_FACT0 | CAN_FA1R_FACT1 | CAN_FA1R_FACT2;
@@ -188,6 +193,7 @@ void can_proc(){
         if(CAN->ESR & CAN_ESR_EPVF) SEND("Passive error limit");
         if(CAN->ESR & CAN_ESR_EWGF) SEND("Error counter limit");
         NL();
+        IWDG->KR = IWDG_REFRESH;
         // request abort for all mailboxes
         CAN->TSR |= CAN_TSR_ABRQ0 | CAN_TSR_ABRQ1 | CAN_TSR_ABRQ2;
         // reset CAN bus
@@ -271,7 +277,6 @@ static void can_process_fifo(uint8_t fifo_num){
     // read all
     while(*RFxR & CAN_RF0R_FMP0){ // amount of messages pending
         // CAN_RDTxR: (16-31) - timestamp, (8-15) - filter match index, (0-3) - data length
-        /* TODO: check filter match index if more than one ID can receive */
         CAN_message msg;
         uint8_t *dat = msg.data;
         uint8_t len = box->RDTR & 0x0f;
@@ -307,7 +312,8 @@ static void can_process_fifo(uint8_t fifo_num){
                     dat[0] = lb & 0xff;
             }
         }
-        if(CAN_messagebuf_push(&msg)) return; // error: buffer is full, try later
+        if(msg.ID == CANID) parseCANcommand(&msg);
+        else if(CAN_messagebuf_push(&msg)) return; // error: buffer is full, try later
         *RFxR |= CAN_RF0R_RFOM0; // release fifo for access to next message
     }
     //if(*RFxR & CAN_RF0R_FULL0) *RFxR &= ~CAN_RF0R_FULL0;

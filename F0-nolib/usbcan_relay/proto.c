@@ -16,6 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "adc.h"
 #include "buttons.h"
 #include "can.h"
 #include "hardware.h"
@@ -179,7 +180,7 @@ static CAN_message *parseCANmsg(char *txt){
 TRUE_INLINE void sendCANcommand(char *txt){
     CAN_message *msg = parseCANmsg(txt);
     if(!msg) return;
-    uint32_t N = 1000000;
+    uint32_t N = 1000;
     while(CAN_BUSY == can_send(msg->data, msg->length, msg->ID)){
         if(--N == 0) break;
     }
@@ -428,7 +429,7 @@ TRUE_INLINE void getPWM(){
     volatile uint32_t *reg = &TIM1->CCR1;
     for(int n = 0; n < 3; ++n){
         SEND("PWM");
-        bufputchar(n);
+        bufputchar('0' + n);
         bufputchar('=');
         printu(*reg++);
         bufputchar('\n');
@@ -455,6 +456,35 @@ TRUE_INLINE void changePWM(char *str){
     SEND("OK, changed");
 }
 
+TRUE_INLINE void printADC(){ // show all 4 channels ADC
+    for(int i = 0; i < NUMBER_OF_ADC_CHANNELS; ++i){
+        SEND("ADC"); bufputchar('0' + i); bufputchar('=');
+        printu(getADCval(i)); bufputchar('\n');
+    }
+    sendbuf();
+}
+
+TRUE_INLINE void printVT(){ // show T and Vdd
+    int32_t t = getMCUtemp();
+    SEND("T=");
+    if(t < 0){ bufputchar('-'); t = -t; }
+    printu(t); SEND("/10degC\nVDD=");
+    printu(getVdd()); SEND("/100V");
+}
+
+// set or check relay(N) state
+TRUE_INLINE void relayX(uint8_t N, const char *txt){
+    if(N >= RelaysNO) return;
+    txt = omit_spaces(txt);
+    uint32_t sr;
+    char *b = getnum(txt, &sr);
+    if(b && b != txt && sr < 2){
+        if(sr) Relay_ON(N); else Relay_OFF(N);
+    }
+    SEND("Relay"); bufputchar('0'+N); bufputchar('=');
+    bufputchar('0' + Relay_chk(N));
+}
+
 /**
  * @brief cmd_parser - command parsing
  * @param txt   - buffer with commands & data
@@ -466,6 +496,14 @@ void cmd_parser(char *txt){
      * parse long commands here
      */
     switch(_1st){
+        case '0':
+            relayX(0, txt + 1);
+            goto eof;
+        break;
+        case '1':
+            relayX(1, txt + 1);
+            goto eof;
+        break;
         case 'a':
             addIGN(txt + 1);
             goto eof;
@@ -502,22 +540,31 @@ void cmd_parser(char *txt){
     }
     if(txt[1] != '\n') *txt = '?'; // help for wrong message length
     switch(_1st){
+        case 'A':
+            printADC();
+            return;
+        break;
         case 'b':
             getBtnState();
         break;
         case 'd':
             IgnSz = 0;
         break;
+#ifdef EBUG
         case 'D':
             SEND("Go into DFU mode\n");
             sendbuf();
             Jump2Boot();
         break;
+#endif
         case 'I':
             SEND("CAN ID: "); printuhex(CANID);
         break;
         case 'l':
             list_filters();
+        break;
+        case 'm':
+            printVT();
         break;
         case 'p':
             print_ign_buf();
@@ -543,15 +590,21 @@ void cmd_parser(char *txt){
         break;
         default: // help
             SEND(
+            "'0' - turn relay0 on(1) or off(0)\n"
+            "'1' - turn relay1 on(1) or off(0)\n"
             "'a' - add ID to ignore list (max 10 IDs)\n"
+            "'A' - get ADC values @ all 4 channels\n"
             "'b' - get buttons' state\n"
             "'C' - reinit CAN with given baudrate\n"
             "'d' - delete ignore list\n"
+            #ifdef EBUG
             "'D' - activate DFU mode\n"
+            #endif
             "'f' - add/delete filter, format: bank# FIFO# mode(M/I) num0 [num1 [num2 [num3]]]\n"
             "'F' - send/clear flood message: F ID byte0 ... byteN\n"
             "'I' - read CAN ID\n"
             "'l' - list all active filters\n"
+            "'m' - get MCU temp & Vdd\n"
             "'o' - turn nth LED OFF\n"
             "'O' - turn nth LED ON\n"
             "'p' - print ignore buffer\n"

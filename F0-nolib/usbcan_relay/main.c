@@ -16,6 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "adc.h"
 #include "buttons.h"
 #include "can.h"
 #include "hardware.h"
@@ -70,6 +71,7 @@ int main(void){
     sysreset();
     SysTick_Config(6000, 1);
     gpio_setup();
+    adc_setup();
     tim1_setup();
     USB_setup();
     CAN_setup(100);

@@ -52,10 +52,10 @@ void process_keys(){
                 break;
             }
         }else{ // released
-            if(e == EVT_PRESS || e == EVT_RELEASE){ // released
+            if(e == EVT_PRESS || e == EVT_HOLD){ // released
                 if(k->counter > PRESSTHRESHOLD) k->counter = PRESSTHRESHOLD;
                 else if((k->counter -= d) < 0){
-                    k->event = EVT_NONE; // button released
+                    k->event = EVT_RELEASE; // button released
                 }
             }
         }

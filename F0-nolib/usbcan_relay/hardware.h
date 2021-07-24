@@ -48,6 +48,14 @@ extern const uint32_t LEDpins[LEDSNO];
 #define LED_toggle(x)   do{pin_toggle(LEDports[x], LEDpins[x]);}while(0)
 #define LED_on(x)       do{pin_clear(LEDports[x], LEDpins[x]);}while(0)
 #define LED_off(x)      do{pin_set(LEDports[x], LEDpins[x]);}while(0)
+#define LED_chk(x)      ((LEDports[x]->IDR & LEDpins[x]) ? 0 : 1)
+
+#define RelaysNO    (2)
+extern GPIO_TypeDef *R_ports[RelaysNO];
+extern const uint32_t R_pins[RelaysNO];
+#define Relay_ON(x)     do{pin_set(R_ports[x], R_pins[x]);}while(0)
+#define Relay_OFF(x)    do{pin_clear(R_ports[x], R_pins[x]);}while(0)
+#define Relay_chk(x)    (pin_read(R_ports[x], R_pins[x]))
 
 // Buttons amount
 #define BTNSNO      (4)
@@ -66,10 +74,12 @@ extern uint16_t CANID; // self CAN ID (read @ init)
 
 extern volatile uint32_t Tms;
 
-void gpio_setup(void);
+void gpio_setup();
 void iwdg_setup();
 void tim1_setup();
 void pause_ms(uint32_t pause);
+#ifdef EBUG
 void Jump2Boot();
+#endif
 
 #endif // __HARDWARE_H__

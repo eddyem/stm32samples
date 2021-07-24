@@ -27,6 +27,10 @@ const uint32_t LEDpins[LEDSNO] = {1<<12, 1<<13, 1<<14, 1<<15};
 // Buttons: PA2..PA5, pullup
 GPIO_TypeDef *BTNports[BTNSNO] = {GPIOA, GPIOA, GPIOA, GPIOA};
 const uint32_t BTNpins[BTNSNO] = {1<<2, 1<<3, 1<<4, 1<<5};
+// relays: PA0/1
+GPIO_TypeDef *R_ports[RelaysNO] = {GPIOA, GPIOA};
+const uint32_t R_pins[RelaysNO] = {1<<0, 1<<1};
+
 
 void gpio_setup(void){
     RCC->AHBENR |= RCC_AHBENR_GPIOAEN | RCC_AHBENR_GPIOBEN;
@@ -37,8 +41,8 @@ void gpio_setup(void){
     GPIOB->PUPDR = GPIO_PUPDR0_PU | GPIO_PUPDR1_PU | GPIO_PUPDR2_PU | GPIO_PUPDR3_PU | GPIO_PUPDR4_PU |
                    GPIO_PUPDR5_PU | GPIO_PUPDR6_PU | GPIO_PUPDR7_PU;
     // relays (PA0..1) as outputs, buttons (PA2..5) as pullup inputs
-    // PA8..10 - PWM @ TIM1
-    GPIOA->MODER = GPIO_MODER_MODER0_O | GPIO_MODER_MODER1_O |
+    // PA6,7 - ADC IN, PA8..10 - PWM @ TIM1
+    GPIOA->MODER = GPIO_MODER_MODER0_O | GPIO_MODER_MODER1_O | GPIO_MODER_MODER6_AI | GPIO_MODER_MODER7_AI |
                    GPIO_MODER_MODER8_AF | GPIO_MODER_MODER9_AF | GPIO_MODER_MODER10_AF;
     GPIOA->PUPDR = GPIO_PUPDR2_PU | GPIO_PUPDR3_PU | GPIO_PUPDR4_PU | GPIO_PUPDR5_PU;
     CANID = (~READ_INV_CAN_ADDR()) & CAN_INV_ID_MASK;
@@ -90,6 +94,8 @@ void pause_ms(uint32_t pause){
     while(Tms < Tnxt) nop();
 }
 
+
+#ifdef EBUG
 void Jump2Boot(){
     __disable_irq();
     IWDG->KR = IWDG_REFRESH;
@@ -123,6 +129,20 @@ void Jump2Boot(){
     // set main stack pointer
     __set_MSP(*((uint32_t *)addr));
     IWDG->KR = IWDG_REFRESH;
-    // jump to bootloader
+    // due to "empty check" mechanism, STM32F042 can jump to bootloader only with empty first 4 bytes of user code
+    while ((FLASH->SR & FLASH_SR_BSY) != 0){}
+    FLASH->SR = FLASH_SR_EOP | FLASH_SR_PGERR | FLASH_SR_WRPRTERR;
+    if ((FLASH->CR & FLASH_CR_LOCK) != 0){
+        FLASH->KEYR = FLASH_KEY1;
+        FLASH->KEYR = FLASH_KEY2;
+    }
+    FLASH->CR |= FLASH_CR_PER;
+    FLASH->AR = 0x08000000; // erase zero's page
+    FLASH->CR |= FLASH_CR_STRT;
+    while(!(FLASH->SR & FLASH_SR_EOP));
+    FLASH->SR |= FLASH_SR_EOP;
+    FLASH->CR &= ~FLASH_CR_PER;
+    // jump to bootloader (don't work :( )
     SysMemBootJump();
 }
+#endif
