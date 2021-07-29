@@ -1,0 +1,6 @@
+(sym_lib_table
+  (lib (name stm32-rescue)(type Legacy)(uri ${KIPRJMOD}/stm32-rescue.lib)(options "")(descr ""))
+  (lib (name stm32)(type Legacy)(uri /home/eddy/kicad/Kicad-Libraries/library/stm32.lib)(options "")(descr ""))
+  (lib (name vreg)(type Legacy)(uri /home/eddy/kicad/Kicad-Libraries/library/vreg.lib)(options "")(descr ""))
+  (lib (name elements)(type Legacy)(uri ${KIPRJMOD}/elements.lib)(options "")(descr ""))
+)
