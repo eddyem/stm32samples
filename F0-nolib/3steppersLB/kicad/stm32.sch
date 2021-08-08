@@ -160,32 +160,8 @@ F 3 "" H 12950 7370 50  0000 C CNN
 	1    12950 7370
 	1    0    0    -1  
 $EndComp
-$Comp
-L stm32-rescue:CONN_01X01 P3
-U 1 1 591446F3
-P 12950 7620
-F 0 "P3" H 12950 7720 50  0000 C CNN
-F 1 "Hole" V 13050 7620 50  0000 C CNN
-F 2 "my_footprints:Hole_3mm" H 12950 7620 50  0001 C CNN
-F 3 "" H 12950 7620 50  0000 C CNN
-	1    12950 7620
-	1    0    0    -1  
-$EndComp
-$Comp
-L stm32-rescue:CONN_01X01 P4
-U 1 1 591446F9
-P 12950 7870
-F 0 "P4" H 12950 7970 50  0000 C CNN
-F 1 "Hole" V 13050 7870 50  0000 C CNN
-F 2 "my_footprints:Hole_3mm" H 12950 7870 50  0001 C CNN
-F 3 "" H 12950 7870 50  0000 C CNN
-	1    12950 7870
-	1    0    0    -1  
-$EndComp
 NoConn ~ 12750 7120
 NoConn ~ 12750 7370
-NoConn ~ 12750 7620
-NoConn ~ 12750 7870
 $Comp
 L stm32-rescue:R R30
 U 1 1 5968E385
@@ -360,7 +336,7 @@ U 1 1 60DC190F
 P 10370 1460
 F 0 "L1" V 10260 1460 50  0000 C CNN
 F 1 "100u" V 10330 1460 50  0000 C CNN
-F 2 "Inductor_SMD:L_12x12mm_H4.5mm" H 10370 1460 50  0001 C CNN
+F 2 "Inductor_THT:L_Toroid_Horizontal_D6.5mm_P10.00mm_Diameter7-5mm_Amidon-T25" H 10370 1460 50  0001 C CNN
 F 3 "~" H 10370 1460 50  0001 C CNN
 	1    10370 1460
 	0    1    1    0   
@@ -1027,9 +1003,9 @@ Wire Wire Line
 	3615 1550 3995 1550
 Wire Wire Line
 	4225 980  3995 980 
-Text Label 4225 1080 2    50   ~ 0
-CANL
 Text Label 4225 880  2    50   ~ 0
+CANL
+Text Label 4225 1080 2    50   ~ 0
 CANH
 $Comp
 L Switch:SW_DIP_x01 SW1
@@ -1198,41 +1174,29 @@ F 3 "~" H 10990 2670 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L stm32-rescue:CONN_01X01 P5
-U 1 1 61C0D9D2
-P 12950 8080
-F 0 "P5" H 12950 8180 50  0000 C CNN
-F 1 "Hole" V 13050 8080 50  0000 C CNN
-F 2 "my_footprints:Hole_3mm" H 12950 8080 50  0001 C CNN
-F 3 "" H 12950 8080 50  0000 C CNN
-	1    12950 8080
-	1    0    0    -1  
-$EndComp
-$Comp
 L stm32-rescue:CONN_01X01 P6
 U 1 1 61C0DC3C
-P 12950 8330
-F 0 "P6" H 12950 8430 50  0000 C CNN
-F 1 "Hole" V 13050 8330 50  0000 C CNN
-F 2 "my_footprints:Hole_3mm" H 12950 8330 50  0001 C CNN
-F 3 "" H 12950 8330 50  0000 C CNN
-	1    12950 8330
+P 12960 7585
+F 0 "P6" H 12960 7685 50  0000 C CNN
+F 1 "Hole" V 13060 7585 50  0000 C CNN
+F 2 "my_footprints:Hole_3mm" H 12960 7585 50  0001 C CNN
+F 3 "" H 12960 7585 50  0000 C CNN
+	1    12960 7585
 	1    0    0    -1  
 $EndComp
 $Comp
 L stm32-rescue:CONN_01X01 P7
 U 1 1 61C0DC46
-P 12950 8580
-F 0 "P7" H 12950 8680 50  0000 C CNN
-F 1 "Hole" V 13050 8580 50  0000 C CNN
-F 2 "my_footprints:Hole_3mm" H 12950 8580 50  0001 C CNN
-F 3 "" H 12950 8580 50  0000 C CNN
-	1    12950 8580
+P 12960 7835
+F 0 "P7" H 12960 7935 50  0000 C CNN
+F 1 "Hole" V 13060 7835 50  0000 C CNN
+F 2 "my_footprints:Hole_3mm" H 12960 7835 50  0001 C CNN
+F 3 "" H 12960 7835 50  0000 C CNN
+	1    12960 7835
 	1    0    0    -1  
 $EndComp
-NoConn ~ 12750 8080
-NoConn ~ 12750 8330
-NoConn ~ 12750 8580
+NoConn ~ 12760 7585
+NoConn ~ 12760 7835
 $Comp
 L Device:R R17
 U 1 1 60E7FAB6
@@ -1265,11 +1229,11 @@ Wire Notes Line
 	2325 3095 2325 2065
 Text Label 9580 5300 2    50   ~ 0
 Ext0
-Text Label 3130 5020 2    50   ~ 0
+Text Label 3130 6720 2    50   ~ 0
 Ext0
-Text Label 3130 5120 2    50   ~ 0
+Text Label 3130 6820 2    50   ~ 0
 Ext1
-Text Label 3130 5220 2    50   ~ 0
+Text Label 3130 6920 2    50   ~ 0
 Ext2
 Wire Wire Line
 	2830 4520 2720 4520
@@ -1295,17 +1259,17 @@ Text Label 1550 5350 0    67   ~ 0
 Enc2a
 Text Label 1550 5450 0    67   ~ 0
 Enc2b
-Text Label 9580 3815 2    67   ~ 0
+Text Label 9580 4015 2    67   ~ 0
 CLK1
 Text Label 9580 4115 2    67   ~ 0
 CLK2
-Text Label 9580 5000 2    67   ~ 0
+Text Label 9580 5200 2    67   ~ 0
 CLK3
-Text Label 3130 5420 2    67   ~ 0
+Text Label 3130 5020 2    67   ~ 0
 ESW1
-Text Label 3130 5520 2    67   ~ 0
+Text Label 3130 5120 2    67   ~ 0
 ESW2
-Text Label 3130 5620 2    67   ~ 0
+Text Label 3130 5220 2    67   ~ 0
 ESW3
 Text Label 3130 5720 2    67   ~ 0
 Buzzer
@@ -1321,17 +1285,17 @@ Text Label 1040 2620 2    67   ~ 0
 I2C1_SCL
 Text Label 1040 2720 2    67   ~ 0
 I2C1_SDA
-Text Label 3130 6420 2    67   ~ 0
+Text Label 3130 5520 2    67   ~ 0
 DIR1
-Text Label 3130 6520 2    67   ~ 0
+Text Label 3130 6420 2    67   ~ 0
 DIR2
 Text Label 3130 6620 2    67   ~ 0
 DIR3
-Text Label 3130 6720 2    67   ~ 0
+Text Label 3130 5420 2    67   ~ 0
 ~EN1
-Text Label 3130 6820 2    67   ~ 0
+Text Label 3130 5620 2    67   ~ 0
 ~EN2
-Text Label 3130 6920 2    67   ~ 0
+Text Label 3130 6520 2    67   ~ 0
 ~EN3
 Text Label 9580 3915 2    67   ~ 0
 DIR1
@@ -1339,11 +1303,11 @@ Text Label 9580 4215 2    67   ~ 0
 DIR2
 Text Label 9580 5100 2    67   ~ 0
 DIR3
-Text Label 9580 4015 2    67   ~ 0
+Text Label 9580 3815 2    67   ~ 0
 ~EN1
 Text Label 9580 4315 2    67   ~ 0
 ~EN2
-Text Label 9580 5200 2    67   ~ 0
+Text Label 9580 5000 2    67   ~ 0
 ~EN3
 $Comp
 L Device:D D3
@@ -1546,17 +1510,6 @@ F 3 "" H 9580 4415 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L elements:CD4050 U5
-U 1 1 610ACE75
-P 9980 5300
-F 0 "U5" H 9980 4900 50  0000 C CNN
-F 1 "CD4050" H 9975 5705 50  0000 C CNN
-F 2 "Package_SO:SOIC-16_3.9x9.9mm_P1.27mm" H 9980 5250 50  0001 C CNN
-F 3 "" H 9980 5250 50  0001 C CNN
-	1    9980 5300
-	1    0    0    -1  
-$EndComp
-$Comp
 L stm32-rescue:+5V #PWR042
 U 1 1 610ACE7B
 P 10380 5600
@@ -1625,21 +1578,11 @@ F 3 "" H 10630 5745 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	10615 4910 10380 4910
-Wire Wire Line
-	10380 4910 10380 5000
-Wire Wire Line
 	10380 5100 10460 5100
 Wire Wire Line
 	10460 5100 10460 5010
 Wire Wire Line
 	10460 5010 10615 5010
-Wire Wire Line
-	10380 5200 10525 5200
-Wire Wire Line
-	10525 5200 10525 5110
-Wire Wire Line
-	10525 5110 10615 5110
 Wire Wire Line
 	10630 5445 10555 5445
 Wire Wire Line
@@ -1659,21 +1602,11 @@ Wire Wire Line
 Wire Wire Line
 	10460 5645 10630 5645
 Wire Wire Line
-	10595 3700 10380 3700
-Wire Wire Line
-	10380 3700 10380 3815
-Wire Wire Line
 	10380 3915 10455 3915
 Wire Wire Line
 	10455 3915 10455 3800
 Wire Wire Line
 	10455 3800 10595 3800
-Wire Wire Line
-	10380 4015 10505 4015
-Wire Wire Line
-	10505 4015 10505 3900
-Wire Wire Line
-	10505 3900 10595 3900
 Wire Wire Line
 	10380 4115 10565 4115
 Wire Wire Line
@@ -1777,12 +1710,6 @@ Wire Wire Line
 Connection ~ 1390 3855
 Wire Notes Line
 	570  3405 1965 3405
-Wire Notes Line
-	1965 3405 1965 4215
-Wire Notes Line
-	1965 4215 565  4215
-Wire Notes Line
-	565  4215 565  3405
 Text Notes 10585 3615 0    79   ~ 0
 M1
 Text Notes 10425 4705 0    79   ~ 0
@@ -1960,17 +1887,6 @@ Wire Notes Line
 Wire Notes Line
 	4435 2885 4435 2070
 $Comp
-L Device:Buzzer BZ1
-U 1 1 610F97F4
-P 6485 2390
-F 0 "BZ1" H 6535 2225 50  0000 L CNN
-F 1 "Buzzer 3v3" H 6030 2400 50  0000 L CNN
-F 2 "Buzzer_Beeper:Buzzer_12x9.5RM7.6" V 6460 2490 50  0001 C CNN
-F 3 "~" V 6460 2490 50  0001 C CNN
-	1    6485 2390
-	1    0    0    -1  
-$EndComp
-$Comp
 L Device:Q_NMOS_GSD Q4
 U 1 1 610F9BE1
 P 6285 2690
@@ -2002,17 +1918,6 @@ F 2 "Resistor_SMD:R_0603_1608Metric_Pad1.05x0.95mm_HandSolder" V 6165 2890 50  0
 F 3 "~" H 6235 2890 50  0001 C CNN
 	1    6235 2890
 	0    -1   -1   0   
-$EndComp
-$Comp
-L stm32-rescue:+3.3V #PWR030
-U 1 1 610FBA08
-P 6385 2290
-F 0 "#PWR030" H 6385 2140 50  0001 C CNN
-F 1 "+3.3V" H 6385 2430 50  0000 C CNN
-F 2 "" H 6385 2290 50  0000 C CNN
-F 3 "" H 6385 2290 50  0000 C CNN
-	1    6385 2290
-	1    0    0    -1  
 $EndComp
 Wire Wire Line
 	6085 2890 5785 2890
@@ -2242,7 +2147,7 @@ $Comp
 L Device:R R11
 U 1 1 611DE588
 P 1100 6100
-F 0 "R11" V 1050 6225 50  0000 L CNN
+F 0 "R11" V 1055 6205 50  0000 L CNN
 F 1 "100" V 1100 6040 50  0000 L CNN
 F 2 "Resistor_SMD:R_0603_1608Metric_Pad1.05x0.95mm_HandSolder" V 1030 6100 50  0001 C CNN
 F 3 "~" H 1100 6100 50  0001 C CNN
@@ -2416,7 +2321,7 @@ L Connector:TestPoint TP4
 U 1 1 612946FF
 P 9620 1910
 F 0 "TP4" H 9678 1982 50  0000 L CNN
-F 1 "5V" H 9678 1937 50  0001 L CNN
+F 1 "Gnd" H 9678 1937 50  0001 L CNN
 F 2 "Connector_PinSocket_2.54mm:PinSocket_1x01_P2.54mm_Vertical" H 9820 1910 50  0001 C CNN
 F 3 "~" H 9820 1910 50  0001 C CNN
 	1    9620 1910
@@ -2428,7 +2333,7 @@ L Connector:TestPoint TP3
 U 1 1 61295749
 P 3130 4320
 F 0 "TP3" H 2955 4435 50  0000 L CNN
-F 1 "5V" H 3188 4347 50  0001 L CNN
+F 1 "NRST" H 3188 4347 50  0001 L CNN
 F 2 "Connector_PinSocket_2.54mm:PinSocket_1x01_P2.54mm_Vertical" H 3330 4320 50  0001 C CNN
 F 3 "~" H 3330 4320 50  0001 C CNN
 	1    3130 4320
@@ -2488,4 +2393,104 @@ Wire Wire Line
 Wire Wire Line
 	9005 660  9005 775 
 Connection ~ 8820 660 
+$Comp
+L stm32-rescue:GND #PWR0103
+U 1 1 61100333
+P 1390 4155
+F 0 "#PWR0103" H 1390 3905 50  0001 C CNN
+F 1 "GND" H 1390 4005 50  0000 C CNN
+F 2 "" H 1390 4155 50  0000 C CNN
+F 3 "" H 1390 4155 50  0000 C CNN
+	1    1390 4155
+	1    0    0    -1  
+$EndComp
+Wire Notes Line
+	570  3405 570  4360
+Wire Notes Line
+	570  4360 1970 4360
+Wire Notes Line
+	1970 4360 1970 3405
+$Comp
+L Connector:Conn_01x02_Female J18
+U 1 1 6128173E
+P 6585 2390
+F 0 "J18" H 6540 2450 50  0000 L CNN
+F 1 "buzzer" H 6450 2225 50  0000 L CNN
+F 2 "Connector_JST:JST_PH_B2B-PH-K_1x02_P2.00mm_Vertical" H 6585 2390 50  0001 C CNN
+F 3 "~" H 6585 2390 50  0001 C CNN
+	1    6585 2390
+	1    0    0    -1  
+$EndComp
+$Comp
+L stm32-rescue:+5V #PWR0104
+U 1 1 612908F6
+P 6185 2240
+F 0 "#PWR0104" H 6185 2090 50  0001 C CNN
+F 1 "+5V" H 6185 2380 50  0000 C CNN
+F 2 "" H 6185 2240 50  0000 C CNN
+F 3 "" H 6185 2240 50  0000 C CNN
+	1    6185 2240
+	1    0    0    -1  
+$EndComp
+$Comp
+L stm32-rescue:+3.3V #PWR0105
+U 1 1 61291425
+P 6585 2240
+F 0 "#PWR0105" H 6585 2090 50  0001 C CNN
+F 1 "+3.3V" H 6585 2380 50  0000 C CNN
+F 2 "" H 6585 2240 50  0000 C CNN
+F 3 "" H 6585 2240 50  0000 C CNN
+	1    6585 2240
+	1    0    0    -1  
+$EndComp
+$Comp
+L Jumper:SolderJumper_3_Open JP1
+U 1 1 612954EF
+P 6385 2240
+F 0 "JP1" H 6380 2330 50  0000 C CNN
+F 1 "SolderJumper_3_Open" H 6415 2395 50  0001 C CNN
+F 2 "Jumper:SolderJumper-3_P1.3mm_Open_Pad1.0x1.5mm" H 6385 2240 50  0001 C CNN
+F 3 "~" H 6385 2240 50  0001 C CNN
+	1    6385 2240
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	10380 4015 10500 4015
+Wire Wire Line
+	10500 4015 10500 3700
+Wire Wire Line
+	10500 3700 10595 3700
+Wire Wire Line
+	10595 3900 10380 3900
+Wire Wire Line
+	10380 3900 10380 3815
+$Comp
+L elements:CD4050 U5
+U 1 1 610ACE75
+P 9980 5300
+F 0 "U5" H 9980 4900 50  0000 C CNN
+F 1 "CD4050" H 9975 5705 50  0000 C CNN
+F 2 "Package_SO:SOIC-16_3.9x9.9mm_P1.27mm" H 9980 5250 50  0001 C CNN
+F 3 "" H 9980 5250 50  0001 C CNN
+	1    9980 5300
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	10540 5110 10540 5070
+Wire Wire Line
+	10540 5070 10375 5070
+Wire Wire Line
+	10375 5070 10375 5000
+Wire Wire Line
+	10375 5000 10380 5000
+Wire Wire Line
+	10380 5200 10495 5200
+Wire Wire Line
+	10495 5200 10495 4910
+Wire Wire Line
+	10495 4910 10615 4910
+Wire Wire Line
+	10540 5110 10615 5110
+Text Notes 11015 3940 0    50   ~ 0
+CLK\nDIR\n~EN
 $EndSCHEMATC
