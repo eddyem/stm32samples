@@ -19,3 +19,13 @@ Pinout:
 - PB12..15 - LED0..3 outputs (direct outputs without any protection!!!)
  
 The pins LEDr0 and LEDr1 are indicated relay works (12V through 2.2kOhm resistor)
+
+
+### Buttons standalone
+
+BTN1 - switch relay1
+
+BTN2 - switch relay 2
+
+BTN3 - change PWM0: hold to turn ON or turn OFF; press shortly BTN1/BTN2 to increase/decrease PWM0 to 1, 
+hold BTN1/BTN2 to inc/dec PWM0 to 25 (do as many presses as need).

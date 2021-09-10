@@ -22,6 +22,9 @@
 
 #include <stm32f0.h>
 
+// default CAN bus speed in kbaud
+#define DEFAULT_CAN_SPEED       (250)
+
 #define SYSMEM03x 0x1FFFEC00
 #define SYSMEM04x 0x1FFFC400
 #define SYSMEM05x 0x1FFFEC00
@@ -55,6 +58,7 @@ extern GPIO_TypeDef *R_ports[RelaysNO];
 extern const uint32_t R_pins[RelaysNO];
 #define Relay_ON(x)     do{pin_set(R_ports[x], R_pins[x]);}while(0)
 #define Relay_OFF(x)    do{pin_clear(R_ports[x], R_pins[x]);}while(0)
+#define Relay_TGL(x)    do{pin_toggle(R_ports[x], R_pins[x]);}while(0)
 #define Relay_chk(x)    (pin_read(R_ports[x], R_pins[x]))
 
 // Buttons amount

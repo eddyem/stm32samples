@@ -27,7 +27,7 @@
 static CAN_message messages[CAN_INMESSAGE_SIZE];
 static uint8_t first_free_idx = 0;    // index of first empty cell
 static int8_t first_nonfree_idx = -1; // index of first data cell
-static uint16_t oldspeed = 100; // speed of last init
+static uint16_t oldspeed = DEFAULT_CAN_SPEED; // speed of last init
 
 #ifdef EBUG
 static uint32_t last_err_code = 0;
@@ -42,10 +42,6 @@ static CAN_message *flood_msg = NULL; // == loc_flood_msg - to flood
 
 CAN_status CAN_get_status(){
     CAN_status st = can_status;
-    // give overrun message only once
-#ifdef EBUG
-    if(st == CAN_FIFO_OVERRUN) MSG("fifo 0 overrun\n");
-#endif
     if(st == CAN_FIFO_OVERRUN) can_status = CAN_READY;
     return st;
 }
@@ -214,9 +210,7 @@ CAN_status can_send(uint8_t *msg, uint8_t len, uint16_t target_id){
     if(CAN->TSR & (CAN_TSR_TME)){
         mailbox = (CAN->TSR & CAN_TSR_CODE) >> 24;
     }else{ // no free mailboxes
-#ifdef EBUG
-        MSG("No free mailboxes"); NL();
-#endif
+        //SEND("No free mailboxes"); NL();
         return CAN_BUSY;
     }
 #ifdef EBUG
@@ -313,7 +307,7 @@ static void can_process_fifo(uint8_t fifo_num){
             }
         }
         if(msg.ID == CANID) parseCANcommand(&msg);
-        else if(CAN_messagebuf_push(&msg)) return; // error: buffer is full, try later
+        if(CAN_messagebuf_push(&msg)) return; // error: buffer is full, try later
         *RFxR |= CAN_RF0R_RFOM0; // release fifo for access to next message
     }
     //if(*RFxR & CAN_RF0R_FULL0) *RFxR &= ~CAN_RF0R_FULL0;

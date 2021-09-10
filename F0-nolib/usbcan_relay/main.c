@@ -19,6 +19,7 @@
 #include "adc.h"
 #include "buttons.h"
 #include "can.h"
+#include "custom_buttons.h"
 #include "hardware.h"
 #include "proto.h"
 #include "usb.h"
@@ -74,32 +75,34 @@ int main(void){
     adc_setup();
     tim1_setup();
     USB_setup();
-    CAN_setup(100);
+    CAN_setup(DEFAULT_CAN_SPEED);
     RCC->CSR |= RCC_CSR_RMVF; // remove reset flags
     iwdg_setup();
 
     while (1){
         IWDG->KR = IWDG_REFRESH; // refresh watchdog
         process_keys();
+        custom_buttons_process();
         can_proc();
         usb_proc();
         if(CAN_get_status() == CAN_FIFO_OVERRUN){
             SEND("CAN bus fifo overrun occured!\n");
             sendbuf();
         }
-        can_mesg = CAN_messagebuf_pop();
-        if(can_mesg && isgood(can_mesg->ID)){
-            if(ShowMsgs){ // new data in buff
-                IWDG->KR = IWDG_REFRESH;
-                len = can_mesg->length;
-                printu(Tms);
-                SEND(" #");
-                printuhex(can_mesg->ID);
-                for(ctr = 0; ctr < len; ++ctr){
-                    SEND(" ");
-                    printuhex(can_mesg->data[ctr]);
+        while((can_mesg = CAN_messagebuf_pop())){
+            if(can_mesg && isgood(can_mesg->ID)){
+                if(ShowMsgs){ // new data in buff
+                    IWDG->KR = IWDG_REFRESH;
+                    len = can_mesg->length;
+                    printu(Tms);
+                    SEND(" #");
+                    printuhex(can_mesg->ID);
+                    for(ctr = 0; ctr < len; ++ctr){
+                        SEND(" ");
+                        printuhex(can_mesg->data[ctr]);
+                    }
+                    newline(); sendbuf();
                 }
-                newline(); sendbuf();
             }
         }
         if((txt = get_USB())){

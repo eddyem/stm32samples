@@ -36,7 +36,7 @@
  * CAN_CMD_LED: data[1] = LEDs state (bits 0..3 for LEDs number 0..3)
  * CAN_CMD_MCU: data[2,3] = int16_t MCUT*10, data[4,5] = uint16_t Vdd*100 (LITTLE endian!)
  * CAN_CMD_PWM: data[1..3] = pwm value for each channel (0..2)
- * CAN_CMD_RELAY: data[0] = (bits 0 & 1) - state of relay N]
+ * CAN_CMD_RELAY: data[1] = (bits 0 & 1) - state of relay N]
  * CAN_CMD_TMS: data[4..7] = Tms (LITTLE endian!)
  */
 
@@ -56,13 +56,19 @@ TRUE_INLINE uint8_t ADCget(uint8_t values[8]){
 
 TRUE_INLINE void BTNSget(uint8_t values[8]){
     uint32_t T;
-    for(uint8_t i = 0; i < BTNSNO; ++i){
+    uint8_t start = 0, stop = BTNSNO;
+    if(values[1] < BTNSNO){ // check only one button
+        start = values[1]; stop = start + 1;
+    }
+    for(uint8_t i = start; i < stop; ++i){
         values[1] = i;
         values[2] = keystate(i, &T);
         values[3] = 0;
         *((uint32_t*)&values[4]) = T;
-        int N = 1000;
-        while(CAN_BUSY == can_send(values, 8, OUTPID)) if(--N == 0) break;
+        T = Tms;
+        while(CAN_BUSY == can_send(values, 8, OUTPID)){
+            if(Tms - T > 5) break;
+        }
     }
 }
 
@@ -141,22 +147,24 @@ void parseCANcommand(CAN_message *msg){
             len = ADCget(outpdata);
         break;
         case CAN_CMD_BTNS:
+            if(msg->length == 2) outpdata[1] = msg->data[1]; // check only one button
+            else outpdata[1] = BTNSNO;
             BTNSget(outpdata);
             return;
         break;
         case CAN_CMD_LED:
-            if(setter) LEDSset(msg->data);
+            if(setter && msg->length > 1) LEDSset(msg->data);
             len = LEDSget(outpdata);
         break;
         case CAN_CMD_MCU:
             len = MCUget(outpdata);
         break;
         case CAN_CMD_PWM:
-            if(setter) PWMset(msg->data);
+            if(setter && msg->length > 3) PWMset(msg->data);
             len = PWMget(outpdata);
         break;
         case CAN_CMD_RELAY:
-            if(setter) Rset(msg->data);
+            if(setter && msg->length > 1) Rset(msg->data);
             len = Rget(outpdata);
         break;
         case CAN_CMD_TMS:

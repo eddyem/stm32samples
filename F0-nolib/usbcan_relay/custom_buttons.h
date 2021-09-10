@@ -17,31 +17,9 @@
  */
 
 #pragma once
-#ifndef CANPROTO_H__
-#define CANPROTO_H__
+#ifndef CUSTOM_BUTTONS_H__
+#define CUSTOM_BUTTONS_H__
 
-#include "stm32f0.h"
-#include "can.h"
+void custom_buttons_process();
 
-// command without setter flag
-#define CANCMDMASK  (0x7f)
-
-typedef enum{
-    CAN_CMD_PING,   // ping (without setter)
-    CAN_CMD_RELAY,  // relay get/set
-    CAN_CMD_PWM,    // PWM get/set
-    CAN_CMD_ADC,    // get ADC (without setter)
-    CAN_CMD_MCU,    // MCU T and Vdd
-    CAN_CMD_LED,    // LEDs get/set
-    CAN_CMD_BTNS,   // get Buttons state (without setter)
-    CAN_CMD_TMS,    // get time from start (in ms)
-    CAN_CMD_ERRCMD, // wrong command
-    CAN_CMD_SETFLAG = 0x80 // command is setter
-} CAN_commands;
-
-// output messages identifier
-#define OUTPID  (CANID)
-
-void parseCANcommand(CAN_message *msg);
-
-#endif // CANPROTO_H__
+#endif // CUSTOM_BUTTONS_H__

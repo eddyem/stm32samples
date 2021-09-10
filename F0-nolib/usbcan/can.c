@@ -48,14 +48,25 @@ CAN_status CAN_get_status(){
 #ifdef EBUG
     if(st == CAN_FIFO_OVERRUN) MSG("fifo 0 overrun\n");
 #endif
-    if(st == CAN_FIFO_OVERRUN) can_status = CAN_READY;
+    if(st == CAN_FIFO_OVERRUN){
+        SEND("FIFO overrun\n");
+        can_status = CAN_READY;
+    }
     return st;
 }
 
 // push next message into buffer; return 1 if buffer overfull
 static int CAN_messagebuf_push(CAN_message *msg){
     //MSG("Try to push\n");
-    if(first_free_idx == first_nonfree_idx) return 1; // no free space
+#ifdef EBUG
+        SEND("push\n");
+#endif
+    if(first_free_idx == first_nonfree_idx){
+#ifdef EBUG
+        SEND("INBUF OVERFULL\n");
+#endif
+        return 1; // no free space
+    }
     if(first_nonfree_idx < 0) first_nonfree_idx = 0;  // first message in empty buffer
     memcpy(&messages[first_free_idx++], msg, sizeof(CAN_message));
     // need to roll?
@@ -155,7 +166,7 @@ void CAN_setup(uint16_t speed){
     CAN->sFilterRegister[0].FR1 = (1<<21)|(1<<5); // all odd IDs
     CAN->FFA1R = 2; // filter 1 for FIFO1, filter 0 - for FIFO0
     CAN->sFilterRegister[1].FR1 = (1<<21); // all even IDs
-    CAN->FMR &=~ CAN_FMR_FINIT; /* (12) */
+    CAN->FMR &= ~CAN_FMR_FINIT; /* (12) */
     CAN->IER |= CAN_IER_ERRIE | CAN_IER_FOVIE0 | CAN_IER_FOVIE1; /* (13) */
 
     /* Configure IT */
@@ -202,8 +213,8 @@ void can_proc(){
             case 7: errmsg = "(set by software)"; break;
         }
         SEND(errmsg); SEND(" error\n");
-        if(CAN->ESR & CAN_ESR_BOFF) SEND("Bus off");
-        if(CAN->ESR & CAN_ESR_EPVF) SEND("Passive error limit");
+        if(CAN->ESR & CAN_ESR_BOFF) SEND("Bus off ");
+        if(CAN->ESR & CAN_ESR_EPVF) SEND("Passive error limit ");
         if(CAN->ESR & CAN_ESR_EWGF) SEND("Error counter limit");
         NL();
         // request abort for all mailboxes
@@ -287,6 +298,9 @@ static void can_process_fifo(uint8_t fifo_num){
     LED_on(LED1); // Turn on LED1 - message received
     CAN_FIFOMailBox_TypeDef *box = &CAN->sFIFOMailBox[fifo_num];
     volatile uint32_t *RFxR = (fifo_num) ? &CAN->RF1R : &CAN->RF0R;
+#ifdef EBUG
+        printu(*RFxR & CAN_RF0R_FMP0); SEND(" messages in FIFO\n");
+#endif
     // read all
     while(*RFxR & CAN_RF0R_FMP0){ // amount of messages pending
         // CAN_RDTxR: (16-31) - timestamp, (8-15) - filter match index, (0-3) - data length
@@ -334,6 +348,13 @@ static void can_process_fifo(uint8_t fifo_num){
 }
 
 void cec_can_isr(){
+    /*
+    if(CAN->RF0R & CAN_RF0R_FOVR0){
+       can_process_fifo(0);
+    }
+    if(CAN->RF1R & CAN_RF1R_FOVR1){
+       can_process_fifo(1);
+    }*/
     if(CAN->RF0R & CAN_RF0R_FOVR0){ // FIFO overrun
         CAN->RF0R &= ~CAN_RF0R_FOVR0;
         can_status = CAN_FIFO_OVERRUN;

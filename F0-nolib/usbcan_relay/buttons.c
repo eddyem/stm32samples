@@ -27,6 +27,8 @@ typedef struct{
 
 static keybase allkeys[BTNSNO] = {0}; // array for buttons' states
 
+uint32_t lastUnsleep = 0; // last keys activity time
+
 void process_keys(){
     static uint32_t lastT = 0;
     if(Tms == lastT) return;
@@ -61,6 +63,7 @@ void process_keys(){
         }
         if(e != k->event){
             k->lastTms = Tms;
+            lastUnsleep = Tms;
         }
     }
 }
@@ -78,4 +81,10 @@ keyevent keystate(uint8_t k, uint32_t *T){
     if(evt == EVT_RELEASE) allkeys[k].event = EVT_NONE;
     if(T) *T = allkeys[k].lastTms;
     return evt;
+}
+
+// getter of keyevent for allkeys[]
+keyevent keyevt(uint8_t k){
+    if(k >= BTNSNO) return EVT_NONE;
+    return allkeys[k].event;
 }

@@ -76,7 +76,9 @@ int main(void){
     USB_setup();
     CAN_setup(100);
     RCC->CSR |= RCC_CSR_RMVF; // remove reset flags
+#ifndef EBUG
     iwdg_setup();
+#endif
 
     while (1){
         IWDG->KR = IWDG_REFRESH; // refresh watchdog
@@ -90,22 +92,23 @@ int main(void){
             SEND("CAN bus fifo overrun occured!\n");
             sendbuf();
         }
-        can_mesg = CAN_messagebuf_pop();
-        if(can_mesg && isgood(can_mesg->ID)){
-            LED_on(LED0);
-            lastT = Tms;
-            if(!lastT) lastT = 1;
-            if(ShowMsgs){ // new data in buff
-                IWDG->KR = IWDG_REFRESH;
-                len = can_mesg->length;
-                printu(Tms);
-                SEND(" #");
-                printuhex(can_mesg->ID);
-                for(ctr = 0; ctr < len; ++ctr){
-                    SEND(" ");
-                    printuhex(can_mesg->data[ctr]);
+        while((can_mesg = CAN_messagebuf_pop())){
+            if(can_mesg && isgood(can_mesg->ID)){
+                LED_on(LED0);
+                lastT = Tms;
+                if(!lastT) lastT = 1;
+                if(ShowMsgs){ // new data in buff
+                    IWDG->KR = IWDG_REFRESH;
+                    len = can_mesg->length;
+                    printu(Tms);
+                    SEND(" #");
+                    printuhex(can_mesg->ID);
+                    for(ctr = 0; ctr < len; ++ctr){
+                        SEND(" ");
+                        printuhex(can_mesg->data[ctr]);
+                    }
+                    newline(); sendbuf();
                 }
-                newline(); sendbuf();
             }
         }
         if((txt = get_USB())){

@@ -37,6 +37,7 @@ extern uint32_t lastUnsleep; // last keys activity time
 
 void process_keys();
 keyevent keystate(uint8_t k, uint32_t *T);
+keyevent keyevt(uint8_t k);
 
 #define BUTTONS_H__
 #endif // BUTTONS_H__
