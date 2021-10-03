@@ -2040,28 +2040,6 @@ F 3 "~" H 1100 5450 50  0001 C CNN
 	0    1    1    0   
 $EndComp
 $Comp
-L Device:D D2
-U 1 1 61174DAA
-P 1275 5625
-F 0 "D2" V 1260 5525 50  0000 C CNN
-F 1 "D" V 1260 5700 50  0000 C CNN
-F 2 "Diode_SMD:D_0805_2012Metric_Pad1.15x1.40mm_HandSolder" H 1275 5625 50  0001 C CNN
-F 3 "~" H 1275 5625 50  0001 C CNN
-	1    1275 5625
-	0    -1   -1   0   
-$EndComp
-$Comp
-L Device:D D5
-U 1 1 6117539D
-P 1525 5625
-F 0 "D5" V 1520 5530 50  0000 C CNN
-F 1 "D" V 1520 5705 50  0000 C CNN
-F 2 "Diode_SMD:D_0805_2012Metric_Pad1.15x1.40mm_HandSolder" H 1525 5625 50  0001 C CNN
-F 3 "~" H 1525 5625 50  0001 C CNN
-	1    1525 5625
-	0    -1   -1   0   
-$EndComp
-$Comp
 L Device:R R8
 U 1 1 6117899E
 P 1100 5350
@@ -2209,7 +2187,6 @@ F 3 "" H 1525 5775 50  0000 C CNN
 	1    1525 5775
 	1    0    0    -1  
 $EndComp
-Connection ~ 1525 5775
 Wire Wire Line
 	1325 6100 1250 6100
 Wire Wire Line
@@ -2493,4 +2470,39 @@ Wire Wire Line
 	10540 5110 10615 5110
 Text Notes 11015 3940 0    50   ~ 0
 CLK\nDIR\n~EN
+$Comp
+L stm32-rescue:GND #PWR?
+U 1 1 615A8F6D
+P 6385 2890
+F 0 "#PWR?" H 6385 2640 50  0001 C CNN
+F 1 "GND" H 6385 2740 50  0000 C CNN
+F 2 "" H 6385 2890 50  0000 C CNN
+F 3 "" H 6385 2890 50  0000 C CNN
+	1    6385 2890
+	1    0    0    -1  
+$EndComp
+Connection ~ 6385 2890
+$Comp
+L Device:D D5
+U 1 1 615A9D8A
+P 1525 5625
+F 0 "D5" V 1430 5630 50  0000 L CNN
+F 1 "CESD3V3" H 1505 5705 20  0000 L CNN
+F 2 "Diode_SMD:D_0805_2012Metric_Pad1.15x1.40mm_HandSolder" H 1525 5625 50  0001 C CNN
+F 3 "~" H 1525 5625 50  0001 C CNN
+	1    1525 5625
+	0    1    1    0   
+$EndComp
+$Comp
+L Device:D D2
+U 1 1 615AA4F1
+P 1275 5625
+F 0 "D2" V 1180 5630 50  0000 L CNN
+F 1 "CESD3V3" H 1255 5705 20  0000 L CNN
+F 2 "Diode_SMD:D_0805_2012Metric_Pad1.15x1.40mm_HandSolder" H 1275 5625 50  0001 C CNN
+F 3 "~" H 1275 5625 50  0001 C CNN
+	1    1275 5625
+	0    1    1    0   
+$EndComp
+Connection ~ 1525 5775
 $EndSCHEMATC
