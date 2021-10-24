@@ -190,6 +190,9 @@ IDR - input, ODR - output (or pullups management),
 #define IWDG_WRITE_ACCESS (uint32_t)(0x00005555)
 #define IWDG_START        (uint32_t)(0x0000CCCC)
 
+// flash size
+#define FLASH_SIZE_REG      ((uint32_t)0x1FFFF7E0)
+
 
 #if 0
 /************************* ADC *************************/

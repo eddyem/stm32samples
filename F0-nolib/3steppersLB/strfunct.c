@@ -145,11 +145,9 @@ static void sendCANcommand(char *txt){
 static void CANini(char *txt){
     txt = omit_spaces(txt);
     int32_t N;
+    if(!txt) goto eofunc;
     char *n = getnum(txt, &N);
-    if(txt == n){
-        SEND("No speed given");
-        return;
-    }
+    if(txt == n)  goto eofunc;
     if(N < 50){
         SEND("Lowest speed is 50kbps");
         return;
@@ -157,9 +155,10 @@ static void CANini(char *txt){
         SEND("Highest speed is 3000kbps");
         return;
     }
+    the_conf.CANspeed = (uint16_t)N;
     CAN_reinit((uint16_t)N);
-    SEND("Reinit CAN bus with speed ");
-    printu(N); SEND("kbps");
+eofunc:
+    SEND("canspeed="); printu(the_conf.CANspeed); NL();
 }
 
 static void addIGN(char *txt){
@@ -348,7 +347,22 @@ static void add_filter(char *str){
     printu(nfilt); SEND(" parameters");
 }
 
-void getcanid(_U_ char *txt){
+void canid(char *txt){
+    if(txt && *txt){
+        int good = FALSE;
+        char *eq = getchr(txt, '=');
+        if(eq){
+            eq = omit_spaces(eq+1);
+            if(eq){
+                int32_t N;
+                if(eq != getnum(eq, &N) && N > -1 && N < 0xfff){
+                    the_conf.CANID = (uint16_t)N;
+                    good = TRUE;
+                }
+            }
+        }
+        if(!good) SEND("CANID setter format: `canid=ID`, ID is 11bit\n");
+    }
     SEND("canid="); printuhex(the_conf.CANID);
 }
 
@@ -384,12 +398,13 @@ const speccommands scmdlist[] = {
     {"dfu", bootldr, "activate DFU mode"},
     {"filter", add_filter, "add/modify filter, format: bank# FIFO# mode(M/I) num0 [num1 [num2 [num3]]]"},
     {"canspeed", CANini, "CAN bus speed"},
-    {"canid", getcanid, "read CAN ID"},
+    {"canid", canid, "get/set CAN ID"},
     {"listfilters", list_filters, "list all active filters"},
     {"ignbuf", print_ign_buf, "print ignore buffer"},
     {"pause", inpause, "pause IN packets displaying"},
     {"resume", inresume, "resume IN packets displaying"},
     {"send", sendCANcommand, "send data over CAN: send ID byte0 .. byteN"},
+    {"dumpconf", dump_userconf, "dump current configuration"},
     {NULL, NULL, NULL}
 };
 
@@ -470,10 +485,12 @@ void cmd_parser(char *txt){
             }
         }
         // here we got command & ppar/pval -> call CMD
-        errcodes retcode = cmdlist[idx].function(&par, &val);
+        errcodes retcode = cmdlist[idx].function(par, &val);
         SEND(cmd);
-        if(par != CANMESG_NOPAR) printu(par & 0x7f);
+        par &= 0x7f;
+        if(par != CANMESG_NOPAR) printu(par);
         bufputchar('='); printi(val);
+        SEND(" ("); printuhex((uint32_t)val); bufputchar(')');
         if(ERR_OK != retcode){
             SEND("\nERRCODE=");
             printu(retcode);

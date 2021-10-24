@@ -257,9 +257,10 @@ TRUE_INLINE void StartHSI48(){
 
 
 /******************  FLASH Keys  **********************************************/
-#define RDP_Key                  ((uint16_t)0x00A5)
-#define FLASH_KEY1               ((uint32_t)0x45670123)
-#define FLASH_KEY2               ((uint32_t)0xCDEF89AB)
+#define RDP_Key                 ((uint16_t)0x00A5)
+#define FLASH_KEY1              ((uint32_t)0x45670123)
+#define FLASH_KEY2              ((uint32_t)0xCDEF89AB)
+#define FLASH_SIZE_REG          ((uint32_t)0x1FFFF7CC)
 
 /************************* ADC *************************/
 /* inner termometer calibration values

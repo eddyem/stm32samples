@@ -26,34 +26,42 @@
 
 #include "hardware.h"
 
-#define FLASH_BLOCK_SIZE    (1024)
-#define FLASH_SIZE_REG      ((uint32_t)0x1FFFF7CC)
+#ifndef _U_
+#define _U_         __attribute__((unused))
+#endif
+
+
+// register with flash size (in blocks)
+#ifndef FLASH_SIZE_REG
+blocksizeASH_SIZE_REG      ((uint32_t)0x1FFFF7CC)
+#endif
+
 #define FLASH_SIZE          *((uint16_t*)FLASH_SIZE_REG)
 
+// motor flags
 typedef struct{
     uint8_t reverse : 1;
-} defflags_t;
+} motflags_t;
 
 /*
  * struct to save user configurations
  */
 typedef struct __attribute__((packed, aligned(4))){
-    uint16_t userconf_sz;       // "magick number"
-    uint32_t maxsteps;          // maximal amount of steps from ESW0 to EWS3
-    uint16_t CANspeed;          // default CAN speed
-    uint16_t CANID;             // identifier
-    uint16_t microsteps;        // microsteps amount per step
-    uint16_t accdecsteps;       // amount of steps need for full acceleration/deceleration cycle
-    uint16_t motspd;            // max motor speed (steps per second)
-    defflags_t  defflags;       // default flags
+    uint16_t userconf_sz;           // "magick number"
+    uint16_t CANspeed;              // default CAN speed
+    uint16_t CANID;                 // identifier
+    uint16_t microsteps[MOTORSNO];  // microsteps amount per step
+    uint16_t accdecsteps[MOTORSNO]; // amount of steps need for full acceleration/deceleration cycle
+    uint16_t maxspd[MOTORSNO];      // max motor speed (steps per second)
+    uint32_t maxsteps[MOTORSNO];    // maximal amount of steps from ESW0 to EWS3
+    motflags_t motflags[MOTORSNO];  // motor's flags
 } user_conf;
 
 extern user_conf the_conf; // global user config (read from FLASH to RAM)
 // data from ld-file: start address of storage
-extern const uint32_t __varsstart;
 
 void flashstorage_init();
 int store_userconf();
-void dump_userconf();
+void dump_userconf(_U_ char *txt);
 
 #endif // __FLASH_H__

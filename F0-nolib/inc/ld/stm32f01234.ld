@@ -73,7 +73,7 @@ SECTIONS {
 
   .myvars :
   {
-    . = ALIGN(1024);
+    . = ALIGN(_BLOCKSIZE);
     __varsstart = ABSOLUTE(.);
     KEEP(*(.myvars));
   } > rom

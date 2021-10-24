@@ -26,22 +26,26 @@
 
 #include "hardware.h"
 
-#define FLASH_BLOCK_SIZE    (1024)
-#define FLASH_SIZE_REG      ((uint32_t)0x1FFFF7CC)
+#ifndef FLASH_SIZE_REG
+blocksizeASH_SIZE_REG      ((uint32_t)0x1FFFF7CC)
+#endif
 #define FLASH_SIZE          *((uint16_t*)FLASH_SIZE_REG)
+
+typedef struct{
+    uint8_t flag1 : 1;
+    uint8_t flag2 : 1; //...
+} defflags_t;
 
 /*
  * struct to save user configurations
  */
 typedef struct __attribute__((packed, aligned(4))){
     uint16_t userconf_sz;       // "magick number"
-    uint8_t  defflags;          // default flags
     uint16_t CANspeed;          // default CAN speed
+    defflags_t defflags;        // default flags
 } user_conf;
 
 extern user_conf the_conf; // global user config (read from FLASH to RAM)
-// data from ld-file: start address of storage
-extern const uint32_t __varsstart;
 
 void flashstorage_init();
 int store_userconf();

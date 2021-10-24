@@ -24,7 +24,9 @@
 
 #include "can.h"
 
+#ifndef _U_
 #define _U_         __attribute__((unused))
+#endif
 
 // message have no parameter
 #define CANMESG_NOPAR       (127)
@@ -47,7 +49,7 @@ typedef enum{
 // if(par &0x80) it is setter, if not - getter
 // if par == 0x127 it means absense of parameter!!!
 // @return CANERR_OK (0) if OK or error code
-typedef errcodes (*fpointer)(uint8_t *par, int32_t *val);
+typedef errcodes (*fpointer)(uint8_t par, int32_t *val);
 
 typedef struct{
     const char *command;    // text command (up to 65536 commands)
@@ -68,7 +70,9 @@ enum{
     ,CMD_TIMEFROMSTART      // get time from start
     ,CMD_PWM                // PWM value
     ,CMD_EXT                // value on EXTx outputs
-    ,CMD_AMOUNT             // amount of CANBUS commands, pure USB commands coming after it
+    ,CMD_SAVECONF           // save configuration
+    // should be the last:
+    ,CMD_AMOUNT             // amount of common commands
 };
 
 extern const commands cmdlist[CMD_AMOUNT];

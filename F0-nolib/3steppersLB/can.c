@@ -308,7 +308,7 @@ static void formerr(CAN_message *msg, errcodes err){
  * @brief parseCANcommand - parser
  * @param msg - incoming message @ my CANID
  * FORMAT:
- *  0 1   2      3   4 5 6 7
+ *  0 1   2      3    4 5 6 7
  * [CMD][PAR][errcode][VALUE]
  * CMD - uint16_t, PAR - uint8_t, errcode - one of CAN_errcodes, VALUE - int32_t
  * `errcode` of  incoming message doesn't matter
@@ -330,14 +330,14 @@ TRUE_INLINE void parseCANcommand(CAN_message *msg){
         goto sendmessage;
     }
     msg->data[3] = ERR_OK;
-    uint8_t *par = (uint8_t *)(&msg->data[2]);
-    if(*par & 0x80){
+    uint8_t par = msg->data[2];
+    if(par & 0x80){
         formerr(msg, ERR_BADPAR);
         goto sendmessage;
     }
     int32_t *val = (int32_t *)(&msg->data[4]);
-    if(msg->length == 8) *par |= 0x80;
-    else if(msg->length == 2) *par = CANMESG_NOPAR; // no parameter
+    if(msg->length == 8) par |= 0x80;
+    else if(msg->length == 2) par = CANMESG_NOPAR; // no parameter
     else if(msg->length != 3){ // wrong length
         formerr(msg, ERR_WRONGLEN);
         goto sendmessage;

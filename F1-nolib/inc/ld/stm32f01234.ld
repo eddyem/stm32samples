@@ -73,8 +73,9 @@ SECTIONS {
 
   .myvars :
   {
-    . = ALIGN(1024);
-    KEEP(*(.myvars))
+    . = ALIGN(_BLOCKSIZE);
+    __varsstart = ABSOLUTE(.);
+    KEEP(*(.myvars));
   } > rom
 
   _ldata = LOADADDR(.data);

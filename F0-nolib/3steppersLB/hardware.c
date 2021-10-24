@@ -18,6 +18,7 @@
 
 #include "hardware.h"
 #include "can.h"
+#include "steppers.h"
 
 // Buttons: PA10, PA13, PA14, PA15, pullup (0 active)
 volatile GPIO_TypeDef *BTNports[BTNSNO] = {GPIOA, GPIOA, GPIOA, GPIOA};
@@ -75,21 +76,50 @@ void iwdg_setup(){
     IWDG->KR = IWDG_REFRESH; /* (6) */
 }
 
-void timers_setup(){
-#if 0
-    // TIM1 channels 1..3 - PWM output
-    RCC->APB2ENR |= RCC_APB2ENR_TIM1EN; // enable clocking
-    TIM1->PSC = 9; // F=48/10 = 4.8MHz
-    TIM1->ARR = 255; // PWM frequency = 4800/256 = 18.75kHz
+// motor's PWM
+static void setup_mpwm(TIM_TypeDef *TIM){
+    TIM->PSC = 999; // 48kHz
+    TIM->ARR = 1000; // starting ARR value
     // PWM mode 1 (OCxM = 110), preload enable
-    TIM1->CCMR1 =   TIM_CCMR1_OC1M_2 | TIM_CCMR1_OC1M_1 | TIM_CCMR1_OC1PE |
+    TIM->CCMR1 =   TIM_CCMR1_OC1M_2; // Force inactive
+    TIM->CCER = TIM_CCER_CC1E; // turn it on, active high
+    TIM->CCR1 = 1; // 20.8us for pulse duration, according to datasheet 1.9us is enough
+    TIM->BDTR |= TIM_BDTR_MOE; // enable main output
+    TIM->CR1 |= TIM_CR1_CEN; // enable timer
+    TIM->EGR |= TIM_EGR_UG; // force update generation
+    TIM->DIER = TIM_DIER_CC1IE; // allow CC interrupt (we should count steps)
+}
+/*
+static void setup_enc(TIM_TypeDef *TIM, uint16_t arrval){
+    TIM->PSC = 9; // F=48/10 = 4.8MHz
+    TIM->ARR = arrval; // PWM frequency = 4800/256 = 18.75kHz
+    // PWM mode 1 (OCxM = 110), preload enable
+    TIM->CCMR1 =   TIM_CCMR1_OC1M_2 | TIM_CCMR1_OC1M_1 | TIM_CCMR1_OC1PE |
                     TIM_CCMR1_OC2M_2 | TIM_CCMR1_OC2M_1 | TIM_CCMR1_OC2PE;
-    TIM1->CCMR2 =   TIM_CCMR2_OC3M_2 | TIM_CCMR2_OC3M_1 | TIM_CCMR2_OC3PE;
-    TIM1->CCER = TIM_CCER_CC1E | TIM_CCER_CC2E | TIM_CCER_CC3E; // active high (CC1P=0), enable outputs
-    TIM1->BDTR |= TIM_BDTR_MOE; // enable main output
-    TIM1->CR1 |= TIM_CR1_CEN; // enable timer
-    TIM1->EGR |= TIM_EGR_UG; // force update generation
-#endif
+    TIM->CCMR2 =   TIM_CCMR2_OC3M_2 | TIM_CCMR2_OC3M_1 | TIM_CCMR2_OC3PE;
+    TIM->CCER = TIM_CCER_CC1E | TIM_CCER_CC2E | TIM_CCER_CC3E; // active high (CC1P=0), enable outputs
+    TIM->BDTR |= TIM_BDTR_MOE; // enable main output
+    TIM->CR1 |= TIM_CR1_CEN; // enable timer
+    TIM->EGR |= TIM_EGR_UG; // force update generation
+}*/
+
+// timers 14,15,16,17 - PWM@ch1, 1,2,3 - encoders @ ch1/2
+void timers_setup(){
+    RCC->APB1ENR |= RCC_APB1ENR_TIM2EN | RCC_APB1ENR_TIM3EN | RCC_APB1ENR_TIM14EN;
+    RCC->APB2ENR |= RCC_APB2ENR_TIM1EN | RCC_APB2ENR_TIM15EN | RCC_APB2ENR_TIM16EN | RCC_APB2ENR_TIM17EN; // enable clocking
+    setup_mpwm(TIM14);
+    setup_mpwm(TIM15);
+    setup_mpwm(TIM16);
+    // setup PWM @ TIM17
+    TIM17->PSC = 5; // 8MHz for 31kHz PWM
+    TIM17->ARR = 254; // ARR for 8-bit PWM
+    TIM17->BDTR |= TIM_BDTR_MOE; // enable main output
+    TIM17->CCER = TIM_CCER_CC1E; // enable PWM output
+    TIM17->CR1 |= TIM_CR1_CEN; // enable timer
+    ;
+    NVIC_EnableIRQ(TIM14_IRQn);
+    NVIC_EnableIRQ(TIM15_IRQn);
+    NVIC_EnableIRQ(TIM16_IRQn);
 }
 
 // pause in milliseconds for some purposes
@@ -97,6 +127,10 @@ void pause_ms(uint32_t pause){
     uint32_t Tnxt = Tms + pause;
     while(Tms < Tnxt) nop();
 }
+
+#ifndef STM32F072xB
+#warning "Only F072 can jump to bootloader"
+#endif
 
 void Jump2Boot(){ // for STM32F072
     void (*SysMemBootJump)(void);
@@ -125,3 +159,18 @@ void Jump2Boot(){ // for STM32F072
     SysMemBootJump();
 }
 
+
+// count steps @tim 14/15/16
+static void stp_isr(TIM_TypeDef *TIM, int i){
+    ++steps[i]; // count steps
+    TIM->SR = 0;
+}
+void tim14_isr(){
+    stp_isr(TIM14, 0);
+}
+void tim15_isr(){
+    stp_isr(TIM15, 1);
+}
+void tim16_isr(){
+    stp_isr(TIM16, 2);
+}

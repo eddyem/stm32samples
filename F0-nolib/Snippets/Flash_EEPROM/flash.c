@@ -40,8 +40,12 @@
 #include "proto.h"  // printout
 #include <string.h> // memcpy
 
+extern const uint32_t __varsstart, _BLOCKSIZE;
+// ld-script shoul include _BLOCKSIZE = 1024; (or 2048)
+static const uint32_t blocksize = (uint32_t)&_BLOCKSIZE;
+
 // max amount of Config records stored (will be recalculate in flashstorage_init()
-static uint32_t maxCnum = FLASH_BLOCK_SIZE / sizeof(user_conf);
+static uint32_t maxCnum = 1024 / sizeof(user_conf); // can't use blocksize here
 
 #define USERCONF_INITIALIZER  {             \
      .userconf_sz = sizeof(user_conf)       \
@@ -92,7 +96,7 @@ static int binarySearch(int r, const uint8_t *start, int stor_size){
  */
 void flashstorage_init(){
     if(FLASH_SIZE > 0 && FLASH_SIZE < 20000){
-        uint32_t flsz = FLASH_SIZE * 1024; // size in bytes
+        uint32_t flsz = FLASH_SIZE * blocksize; // size in bytes
         flsz -= (uint32_t)(&__varsstart) - FLASH_BASE;
         maxCnum = flsz / sizeof(user_conf);
 //SEND("flsz="); printu(flsz);
@@ -161,13 +165,13 @@ static int erase_flash(const void *start, const void *end){
     uint32_t nblocks = 1, flsz = 0;
     if(!end){ // erase all remaining
         if(FLASH_SIZE > 0 && FLASH_SIZE < 20000){
-            flsz = FLASH_SIZE * 1024; // size in bytes
+            flsz = FLASH_SIZE * blocksize; // size in bytes
             flsz -= (uint32_t)start - FLASH_BASE;
         }
     }else{ // erase a part
         flsz = (uint32_t)end - (uint32_t)start;
     }
-    nblocks = flsz / FLASH_BLOCK_SIZE;
+    nblocks = flsz / blocksize;
     if(nblocks == 0 || nblocks >= FLASH_SIZE) return 1;
     for(uint32_t i = 0; i < nblocks; ++i){
 #ifdef EBUG
@@ -194,7 +198,7 @@ static int erase_flash(const void *start, const void *end){
         /* (5) Clear EOP flag by software by writing EOP at 1 */
         /* (6) Reset the PER Bit to disable the page erase */
         FLASH->CR |= FLASH_CR_PER; /* (1) */
-        FLASH->AR = (uint32_t)Flash_Data + i*FLASH_BLOCK_SIZE; /* (2) */
+        FLASH->AR = (uint32_t)Flash_Data + i*blocksize; /* (2) */
         FLASH->CR |= FLASH_CR_STRT; /* (3) */
         while(!(FLASH->SR & FLASH_SR_EOP));
         FLASH->SR |= FLASH_SR_EOP; /* (5)*/
@@ -210,6 +214,11 @@ static int erase_flash(const void *start, const void *end){
 }
 
 void dump_userconf(){
+#ifdef EBUG
+    SEND("flashsize="); printu(FLASH_SIZE); bufputchar('*');
+    printu(blocksize); bufputchar('='); printu(FLASH_SIZE*blocksize);
+    newline();
+#endif
     SEND("userconf_addr="); printuhex((uint32_t)Flash_Data);
     SEND("\nuserconf_sz="); printu(the_conf.userconf_sz);
     SEND("\nflags="); printuhex(the_conf.defflags);
