@@ -21,7 +21,17 @@
 #define STEPPERS_H__
 
 #include <stm32f0.h>
+#include "commonproto.h"
 
-extern int32_t steps[];
+// direction
+extern int8_t motdir[];
+
+void addmicrostep(int i);
+void encoders_UPD(int i);
+
+void init_steppers();
+errcodes getpos(int i, int32_t *position);
+errcodes setpos(int i, int32_t newpos);
+void stopmotor(int i);
 
 #endif // STEPPERS_H__

@@ -33,15 +33,18 @@ static const uint32_t blocksize = (uint32_t)&_BLOCKSIZE;
 // max amount of Config records stored (will be recalculate in flashstorage_init()
 static uint32_t maxCnum = 1024 / sizeof(user_conf); // can't use blocksize here
 
+#define DEFMF   {.haveencoder = 1}
+
 #define USERCONF_INITIALIZER  {             \
      .userconf_sz = sizeof(user_conf)       \
     ,.CANspeed = 100                        \
     ,.CANID = 0xaa                          \
     ,.microsteps = {32, 32, 32}             \
-    ,.accdecsteps = {25, 25, 25}            \
+    ,.accel = {160, 160, 160}               \
     ,.maxspd = {1000, 1000, 1000}           \
     ,.maxsteps = {50000, 50000, 50000}      \
-    ,.motflags = {{0},{0},{0}}              \
+    ,.encrev = {800,800,800}                \
+    ,.motflags = {DEFMF,DEFMF,DEFMF}        \
     }
 static int erase_flash(const void*, const void*);
 static int write2flash(const void*, const void*, uint32_t);
@@ -214,7 +217,7 @@ void dump_userconf(_U_ char *txt){
         PROPNAME("microsteps");
         printu(the_conf.microsteps[i]);
         PROPNAME("accdecsteps");
-        printu(the_conf.accdecsteps[i]);
+        printu(the_conf.accel[i]);
         PROPNAME("maxspeed");
         printu(the_conf.maxspd[i]);
         PROPNAME("maxsteps");

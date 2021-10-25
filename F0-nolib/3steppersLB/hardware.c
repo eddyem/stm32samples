@@ -35,6 +35,11 @@ const uint32_t ENpins[MOTORSNO] = {1<<0, 1<<2, 1<<11};
 volatile GPIO_TypeDef *DIRports[MOTORSNO] = {GPIOB, GPIOB, GPIOB};
 const uint32_t DIRpins[MOTORSNO] = {1<<1, 1<<10, 1<<12};
 
+// timers for motors
+TIM_TypeDef *mottimers[MOTORSNO] = {TIM15, TIM14, TIM16};
+// timers for encoders
+TIM_TypeDef *enctimers[MOTORSNO] = {TIM1, TIM2, TIM3};
+
 void gpio_setup(void){
     RCC->AHBENR |= RCC_AHBENR_GPIOAEN | RCC_AHBENR_GPIOBEN | RCC_AHBENR_GPIOCEN | RCC_AHBENR_GPIOFEN;
     GPIOA->MODER = GPIO_MODER_MODER0_AF | GPIO_MODER_MODER1_AF | GPIO_MODER_MODER2_AF | GPIO_MODER_MODER3_AI |
@@ -76,8 +81,10 @@ void iwdg_setup(){
     IWDG->KR = IWDG_REFRESH; /* (6) */
 }
 
+static IRQn_Type motirqs[MOTORSNO] = {TIM15_IRQn, TIM14_IRQn, TIM16_IRQn};
 // motor's PWM
-static void setup_mpwm(TIM_TypeDef *TIM){
+static void setup_mpwm(int i){
+    TIM_TypeDef *TIM = mottimers[i];
     TIM->PSC = 999; // 48kHz
     TIM->ARR = 1000; // starting ARR value
     // PWM mode 1 (OCxM = 110), preload enable
@@ -85,41 +92,53 @@ static void setup_mpwm(TIM_TypeDef *TIM){
     TIM->CCER = TIM_CCER_CC1E; // turn it on, active high
     TIM->CCR1 = 1; // 20.8us for pulse duration, according to datasheet 1.9us is enough
     TIM->BDTR |= TIM_BDTR_MOE; // enable main output
-    TIM->CR1 |= TIM_CR1_CEN; // enable timer
+//    TIM->CR1 |= TIM_CR1_CEN; // enable timer
     TIM->EGR |= TIM_EGR_UG; // force update generation
     TIM->DIER = TIM_DIER_CC1IE; // allow CC interrupt (we should count steps)
+    NVIC_EnableIRQ(motirqs[i]);
 }
-/*
-static void setup_enc(TIM_TypeDef *TIM, uint16_t arrval){
-    TIM->PSC = 9; // F=48/10 = 4.8MHz
-    TIM->ARR = arrval; // PWM frequency = 4800/256 = 18.75kHz
-    // PWM mode 1 (OCxM = 110), preload enable
-    TIM->CCMR1 =   TIM_CCMR1_OC1M_2 | TIM_CCMR1_OC1M_1 | TIM_CCMR1_OC1PE |
-                    TIM_CCMR1_OC2M_2 | TIM_CCMR1_OC2M_1 | TIM_CCMR1_OC2PE;
-    TIM->CCMR2 =   TIM_CCMR2_OC3M_2 | TIM_CCMR2_OC3M_1 | TIM_CCMR2_OC3PE;
-    TIM->CCER = TIM_CCER_CC1E | TIM_CCER_CC2E | TIM_CCER_CC3E; // active high (CC1P=0), enable outputs
-    TIM->BDTR |= TIM_BDTR_MOE; // enable main output
-    TIM->CR1 |= TIM_CR1_CEN; // enable timer
-    TIM->EGR |= TIM_EGR_UG; // force update generation
-}*/
+
+static IRQn_Type encirqs[MOTORSNO] = {TIM1_BRK_UP_TRG_COM_IRQn, TIM2_IRQn, TIM3_IRQn};
+static void setup_enc(int i){
+    TIM_TypeDef *TIM = enctimers[i];
+    RCC->APB1ENR |= RCC_APB1ENR_TIM3EN;
+    /* (1) Configure TI1FP1 on TI1 (CC1S = 01)
+           configure TI1FP2 on TI2 (CC2S = 01)
+           filters sampling = fDTS/8, N=6 */
+    /* (2) Configure TI1FP1 and TI1FP2 non inverted (CC1P = CC2P = 0, reset value) */
+    /* (3) Configure both inputs are active on both rising and falling edges
+          (SMS = 011), set external trigger filter to f_DTS/8, N=6 (ETF=1000) */
+    /* (4) Enable the counter by writing CEN=1 in the TIMx_CR1 register,
+           set tDTS=4*tCK_INT. */
+    TIM->CCMR1 = TIM_CCMR1_CC1S_0 | TIM_CCMR1_CC2S_0 | TIM_CCMR1_IC1F_3 | TIM_CCMR1_IC2F_3; /* (1)*/
+    //TIMx->CCER &= (uint16_t)(~(TIM_CCER_CC21 | TIM_CCER_CC2P); /* (2) */
+    TIM->SMCR =  TIM_SMCR_ETF_3 | TIM_SMCR_SMS_0 | TIM_SMCR_SMS_1; /* (3) */
+    // enable update interrupt
+    TIM->DIER = TIM_DIER_UIE;
+    // generate interrupt each revolution
+    TIM->ARR = the_conf.encrev[i];
+    // enable timer
+    TIM->CR1 = TIM_CR1_CKD_1 | TIM_CR1_CEN; /* (4) */
+    NVIC_EnableIRQ(encirqs[i]);
+}
 
 // timers 14,15,16,17 - PWM@ch1, 1,2,3 - encoders @ ch1/2
 void timers_setup(){
     RCC->APB1ENR |= RCC_APB1ENR_TIM2EN | RCC_APB1ENR_TIM3EN | RCC_APB1ENR_TIM14EN;
     RCC->APB2ENR |= RCC_APB2ENR_TIM1EN | RCC_APB2ENR_TIM15EN | RCC_APB2ENR_TIM16EN | RCC_APB2ENR_TIM17EN; // enable clocking
-    setup_mpwm(TIM14);
-    setup_mpwm(TIM15);
-    setup_mpwm(TIM16);
-    // setup PWM @ TIM17
+    // setup PWM @ TIM17 - single PWM channel
     TIM17->PSC = 5; // 8MHz for 31kHz PWM
     TIM17->ARR = 254; // ARR for 8-bit PWM
     TIM17->BDTR |= TIM_BDTR_MOE; // enable main output
     TIM17->CCER = TIM_CCER_CC1E; // enable PWM output
     TIM17->CR1 |= TIM_CR1_CEN; // enable timer
-    ;
-    NVIC_EnableIRQ(TIM14_IRQn);
-    NVIC_EnableIRQ(TIM15_IRQn);
-    NVIC_EnableIRQ(TIM16_IRQn);
+    for(int i = 0; i < MOTORSNO; ++i)
+        setup_mpwm(i);
+    for(int i = 0; i < MOTORSNO; ++i){
+        if(the_conf.motflags[i].haveencoder){ // motor have the encoder
+            setup_enc(i);
+        }
+    }
 }
 
 // pause in milliseconds for some purposes
@@ -160,17 +179,23 @@ void Jump2Boot(){ // for STM32F072
 }
 
 
-// count steps @tim 14/15/16
-static void stp_isr(TIM_TypeDef *TIM, int i){
-    ++steps[i]; // count steps
-    TIM->SR = 0;
-}
 void tim14_isr(){
-    stp_isr(TIM14, 0);
+    addmicrostep(0);
 }
 void tim15_isr(){
-    stp_isr(TIM15, 1);
+    addmicrostep(1);
 }
 void tim16_isr(){
-    stp_isr(TIM16, 2);
+    addmicrostep(2);
+}
+
+
+void tim1_isr(){
+    encoders_UPD(0);
+}
+void tim2_isr(){
+    encoders_UPD(1);
+}
+void tim3_isr(){
+    encoders_UPD(2);
 }

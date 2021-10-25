@@ -22,6 +22,7 @@
 #include "custom_buttons.h"
 #include "flash.h"
 #include "hardware.h"
+#include "steppers.h"
 #include "strfunct.h"
 #include "usb.h"
 #include "usb_lib.h"
@@ -72,12 +73,12 @@ int main(void){
     char *txt;
     sysreset();
     SysTick_Config(6000, 1);
-    flashstorage_init();
+    flashstorage_init(); // should be called before any other functions
     gpio_setup();
     USB_setup();
     CAN_setup(DEFAULT_CAN_SPEED);
     adc_setup();
-    timers_setup();
+    init_steppers();
     RCC->CSR |= RCC_CSR_RMVF; // remove reset flags
     iwdg_setup();
 

@@ -30,6 +30,14 @@
 #define _U_         __attribute__((unused))
 #endif
 
+// limiting values
+#define MICROSTEPSMAX       (512)
+// (STEPS per second per 10ms)
+#define ACCELMAXSTEPS       (100)
+// max speed IN STEPS!
+#define MAXMAXSPD           (10000)
+// max encoder steps per rev
+#define MAXENCREV           (100000)
 
 // register with flash size (in blocks)
 #ifndef FLASH_SIZE_REG
@@ -40,7 +48,9 @@ blocksizeASH_SIZE_REG      ((uint32_t)0x1FFFF7CC)
 
 // motor flags
 typedef struct{
-    uint8_t reverse : 1;
+    uint8_t reverse : 1;        // reversing motor rotation
+    uint8_t encreverse : 1;     // reversing encoder rotation
+    uint8_t haveencoder : 1;    // have encoder
 } motflags_t;
 
 /*
@@ -51,9 +61,10 @@ typedef struct __attribute__((packed, aligned(4))){
     uint16_t CANspeed;              // default CAN speed
     uint16_t CANID;                 // identifier
     uint16_t microsteps[MOTORSNO];  // microsteps amount per step
-    uint16_t accdecsteps[MOTORSNO]; // amount of steps need for full acceleration/deceleration cycle
-    uint16_t maxspd[MOTORSNO];      // max motor speed (steps per second)
-    uint32_t maxsteps[MOTORSNO];    // maximal amount of steps from ESW0 to EWS3
+    uint16_t accel[MOTORSNO];       // acceleration/deceleration (dv microsteps/s per 10ms)
+    uint16_t maxspd[MOTORSNO];      // max motor speed (microsteps per second)
+    uint32_t maxsteps[MOTORSNO];    // maximal amount of steps
+    uint16_t encrev[MOTORSNO];      // encoders' counts per revolution
     motflags_t motflags[MOTORSNO];  // motor's flags
 } user_conf;
 

@@ -71,6 +71,13 @@ enum{
     ,CMD_PWM                // PWM value
     ,CMD_EXT                // value on EXTx outputs
     ,CMD_SAVECONF           // save configuration
+    ,CMD_MICROSTEPS         // get/set microsteps
+    ,CMD_CURPOS             // current position (set/get)
+    ,CMD_STOPMOTOR          // stop moving NOW
+    ,CMD_ACCEL              // set/get acceleration/deceleration
+    ,CMD_MAXSPEED           // set/get maximal speed
+    ,CMD_MAXSTEPS           // max steps (-max..+max)
+    ,CMD_ENCREV             // encoder's pulses per revolution
     // should be the last:
     ,CMD_AMOUNT             // amount of common commands
 };
