@@ -160,26 +160,42 @@ static errcodes extparser(uint8_t par, int32_t *val){
 }
 
 /******************* START of config parsers *******************/
-static const uint8_t bval[] = {0,1,2,2,3,3,3,3,4,4,4,4,4,4,4,4};
 static errcodes ustepsparser(uint8_t par, int32_t *val){
     uint8_t n = PARBASE(par);
     if(n > MOTORSNO-1) return ERR_BADPAR;
     if(ISSETTER(par)){
-#if MICROSTEPSMAX > 32768
-#error "Change the code here!"
+#if MICROSTEPSMAX > 512
+#error "Change the code anywhere!"
 #endif
         uint16_t m = (uint16_t)*val;
         if(m < 1 || m > MICROSTEPSMAX) return ERR_BADVAL;
         // find most significant bit
-        uint8_t r = 0;
-        uint16_t x = m;
-        if(x & 0xff00){r += 8; x >>= 8;}
-        if(x & 0x00f0){r += 4; x >>= 4;}
-        uint8_t mostbit = (uint8_t)r + bval[x];
-        if(m != 1<<mostbit) return ERR_BADVAL;
+        if(m != 1<<MSB(m)) return ERR_BADVAL;
         the_conf.microsteps[n] = m;
     }
     *val = the_conf.microsteps[n];
+    return ERR_OK;
+}
+
+static errcodes encstepsminparser(uint8_t par, int32_t *val){
+    uint8_t n = PARBASE(par);
+    if(n > MOTORSNO-1) return ERR_BADPAR;
+    if(ISSETTER(par)){
+        if(*val < 1 || *val > MAXENCTICKSPERSTEP - 1) return ERR_BADVAL;
+        the_conf.encperstepmin[n] = *val;
+    }
+    *val = the_conf.encperstepmin[n];
+    return ERR_OK;
+}
+
+static errcodes encstepsmaxparser(uint8_t par, int32_t *val){
+    uint8_t n = PARBASE(par);
+    if(n > MOTORSNO-1) return ERR_BADPAR;
+    if(ISSETTER(par)){
+        if(*val < 1 || *val > MAXENCTICKSPERSTEP) return ERR_BADVAL;
+        the_conf.encperstepmax[n] = *val;
+    }
+    *val = the_conf.encperstepmax[n];
     return ERR_OK;
 }
 
@@ -202,6 +218,13 @@ static errcodes maxspdparser(uint8_t par, int32_t *val){
         the_conf.maxspd[n] = *val;
     }
     *val = the_conf.maxspd[n];
+    return ERR_OK;
+}
+
+static errcodes spdlimparser(uint8_t par, int32_t *val){
+    uint8_t n = PARBASE(par);
+    if(n > MOTORSNO-1) return ERR_BADPAR;
+    *val = MOTORFREQ / the_conf.microsteps[n];
     return ERR_OK;
 }
 
@@ -236,6 +259,11 @@ static errcodes saveconfparser(uint8_t _U_ par, int32_t _U_ *val){
 
 
 /******************* START of motors' parsers *******************/
+static errcodes reinitmparser(uint8_t _U_ par, int32_t _U_ *val){
+    init_steppers();
+    return ERR_OK;
+}
+
 static errcodes mstopparser(uint8_t par, int32_t _U_ *val){
     uint8_t n = PARBASE(par);
     if(n > MOTORSNO-1) return ERR_BADPAR;
@@ -246,8 +274,15 @@ static errcodes mstopparser(uint8_t par, int32_t _U_ *val){
 static errcodes curposparser(uint8_t par, int32_t *val){
     uint8_t n = PARBASE(par);
     if(n > MOTORSNO-1) return ERR_BADPAR;
-    if(ISSETTER(par)) return setpos(n, *val);
+    if(ISSETTER(par)) return motor_absmove(n, *val);
     return getpos(n, val);
+}
+
+static errcodes relstepsparser(uint8_t par, int32_t *val){
+    uint8_t n = PARBASE(par);
+    if(n > MOTORSNO-1) return ERR_BADPAR;
+    if(ISSETTER(par)) return motor_relmove(n, *val);
+    return getremainsteps(n, val);
 }
 /******************* END of motors' parsers *******************/
 
@@ -259,6 +294,7 @@ static errcodes parser(uint8_t _U_ par, int32_t _U_ *val){
 
 // the main commands list, index is CAN command code
 const commands cmdlist[CMD_AMOUNT] = {
+    // different commands
     [CMD_PING] = {"ping", pingparser, "echo given command back"},
     [CMD_RELAY] = {"relay", relayparser, "change relay state (1/0)"},
     [CMD_BUZZER] = {"buzzer", buzzerparser, "change buzzer state (1/0)"},
@@ -271,13 +307,20 @@ const commands cmdlist[CMD_AMOUNT] = {
     [CMD_TIMEFROMSTART] = {"time", timeparser, "get time from start"},
     [CMD_PWM] = {"pwm", pwmparser, "pwm value"},
     [CMD_EXT] = {"ext", extparser, "external outputs"},
+    // configuration
     [CMD_SAVECONF] = {"saveconf", saveconfparser, "save current configuration"},
-    [CMD_CURPOS] = {"position", curposparser, "set/get position (in steps)"},
+    [CMD_ENCSTEPMIN] = {"encstepmin", encstepsminparser, "minimal encoder ticks per step"},
+    [CMD_ENCSTEPMAX] = {"encstepmax", encstepsmaxparser, "maximal encoder ticks per step"},
     [CMD_MICROSTEPS] = {"microsteps", ustepsparser, "set/get microsteps settings"},
-    [CMD_STOPMOTOR] = {"stop", mstopparser, "stop motor now"},
-    [CMD_ACCEL] = {"accel", accparser, "set/get accel/decel (usteps/s per 10ms)"},
-    [CMD_MAXSPEED] = {"maxspeed", maxspdparser, "set/get max speed (usteps per sec)"},
+    [CMD_ACCEL] = {"accel", accparser, "set/get accel/decel (steps/s^2)"},
+    [CMD_MAXSPEED] = {"maxspeed", maxspdparser, "set/get max speed (steps per sec)"},
+    [CMD_SPEEDLIMIT] = {"speedlimit", spdlimparser, "get limiting speed for current microsteps"},
     [CMD_MAXSTEPS] = {"maxsteps", maxstepsparser, "set/get max steps (from zero)"},
     [CMD_ENCREV] = {"encrev", encrevparser, "set/get max encoder's pulses per revolution"},
+    // motor's commands
+    [CMD_ABSPOS] = {"abspos", curposparser, "set/get position (in steps)"},
+    [CMD_RELPOS] = {"relpos", relstepsparser, "set relative steps, get remaining"},
+    [CMD_STOPMOTOR] = {"stop", mstopparser, "stop motor now"},
+    [CMD_REINITMOTORS] = {"motreinit", reinitmparser, "re-init motors after configuration changed"},
 };
 

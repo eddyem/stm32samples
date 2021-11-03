@@ -24,6 +24,7 @@
 #include <stm32f0.h>
 #include <string.h> // memcpy
 #include "flash.h"
+#include "steppers.h"
 #include "strfunct.h"
 
 extern const uint32_t __varsstart, _BLOCKSIZE;
@@ -44,7 +45,10 @@ static uint32_t maxCnum = 1024 / sizeof(user_conf); // can't use blocksize here
     ,.maxspd = {1000, 1000, 1000}           \
     ,.maxsteps = {50000, 50000, 50000}      \
     ,.encrev = {800,800,800}                \
+    ,.encperstepmin = {3,3,3}               \
+    ,.encperstepmax = {5,5,5}               \
     ,.motflags = {DEFMF,DEFMF,DEFMF}        \
+    ,.ESW_reaction = {ESW_ANYSTOP, ESW_ANYSTOP, ESW_ANYSTOP} \
     }
 static int erase_flash(const void*, const void*);
 static int write2flash(const void*, const void*, uint32_t);

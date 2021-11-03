@@ -87,11 +87,14 @@ int main(void){
         process_keys();
         custom_buttons_process();
         can_proc();
-        usb_proc();
         if(CAN_get_status() == CAN_FIFO_OVERRUN){
             SEND("CAN bus fifo overrun occured!\n");
             sendbuf();
         }
+        IWDG->KR = IWDG_REFRESH;
+        usb_proc();
+        process_steppers();
+        IWDG->KR = IWDG_REFRESH;
         while((can_mesg = CAN_messagebuf_pop())){
             if(can_mesg && isgood(can_mesg->ID)){
                 if(ShowMsgs){ // new data in buff
@@ -108,6 +111,7 @@ int main(void){
                 }
             }
         }
+        IWDG->KR = IWDG_REFRESH;
         if((txt = get_USB())){
             IWDG->KR = IWDG_REFRESH;
             cmd_parser(txt);

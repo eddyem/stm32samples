@@ -85,8 +85,8 @@ static IRQn_Type motirqs[MOTORSNO] = {TIM15_IRQn, TIM14_IRQn, TIM16_IRQn};
 // motor's PWM
 static void setup_mpwm(int i){
     TIM_TypeDef *TIM = mottimers[i];
-    TIM->PSC = 999; // 48kHz
-    TIM->ARR = 1000; // starting ARR value
+    TIM->CR1 = 0;
+    TIM->PSC = MOTORTIM_PSC - 1; // 64kHz
     // PWM mode 1 (OCxM = 110), preload enable
     TIM->CCMR1 =   TIM_CCMR1_OC1M_2; // Force inactive
     TIM->CCER = TIM_CCER_CC1E; // turn it on, active high
@@ -178,6 +178,15 @@ void Jump2Boot(){ // for STM32F072
     SysMemBootJump();
 }
 
+// calculate MSB position of value `val`
+//                             0 1 2 3 4 5 6 7 8 9 a b c d e f
+static const uint8_t bval[] = {0,0,1,1,2,2,2,2,3,3,3,3,3,3,3,3};
+uint8_t MSB(uint16_t val){
+    register uint8_t r = 0;
+    if(val & 0xff00){r += 8; val >>= 8;}
+    if(val & 0x00f0){r += 4; val >>= 4;}
+    return ((uint8_t)r + bval[val]);
+}
 
 void tim14_isr(){
     addmicrostep(0);

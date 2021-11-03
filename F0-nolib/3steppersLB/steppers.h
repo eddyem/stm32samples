@@ -23,15 +23,40 @@
 #include <stm32f0.h>
 #include "commonproto.h"
 
-// direction
-extern int8_t motdir[];
+// amount of tries to detect motor stall
+#define NSTALLEDMAX     (5)
 
-void addmicrostep(int i);
-void encoders_UPD(int i);
+// stepper states
+typedef enum{
+    STP_RELAX,      // no moving
+    STP_ACCEL,      // start moving with acceleration
+    STP_MOVE,       // moving with constant speed
+    STP_MVSLOW,     // moving with slowest constant speed (end of moving)
+    STP_DECEL,      // moving with deceleration
+    STP_STALL,      // stalled
+    STP_ERR         // wrong/error state
+} stp_state;
+
+// end-switches reaction
+typedef enum{
+    ESW_IGNORE,     // don't stop @ end-switch
+    ESW_ANYSTOP,    // stop @ esw in any moving direction
+    ESW_STOPMINUS   // stop only in negative moving
+} esw_react;
+
+// find zero stages: fast -> 0, slow -> +, slow -> 0
+
+void addmicrostep(uint8_t i);
+void encoders_UPD(uint8_t i);
 
 void init_steppers();
-errcodes getpos(int i, int32_t *position);
-errcodes setpos(int i, int32_t newpos);
-void stopmotor(int i);
+errcodes getpos(uint8_t i, int32_t *position);
+errcodes getremainsteps(uint8_t i, int32_t *position);
+errcodes motor_absmove(uint8_t i, int32_t abssteps);
+errcodes motor_relmove(uint8_t i, int32_t relsteps);
+
+void stopmotor(uint8_t i);
+stp_state getmotstate(uint8_t i);
+void process_steppers();
 
 #endif // STEPPERS_H__

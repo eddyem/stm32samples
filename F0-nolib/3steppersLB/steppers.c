@@ -20,73 +20,184 @@
 #include "hardware.h"
 #include "steppers.h"
 
-int8_t motdir[MOTORSNO]; // motors' direction: 1 for positive, -1 for negative (we need it as could be reverse)
+// goto zero stages
+typedef enum{
+    M0RELAX,      // normal moving
+    M0FAST,  // fast move to zero
+    M0PLUS,   // move 200 steps +
+    M0SLOW   // slowest move to zero
+} mvto0state;
 
-static volatile int32_t stppos[MOTORSNO]; // current position (in steps) by STP counter
-static int32_t encpos[MOTORSNO]; // current encoder position (4 per ticks) minus TIM->CNT
-static int32_t stepsleft[MOTORSNO]; // steps left to stop (full steps or encoder's counters)
+typedef enum{
+    STALL_NO,       // moving OK
+    STALL_ONCE,     // Nstalled < limit
+    STALL_STOP      // Nstalled >= limit
+} t_stalled;
 
-static uint16_t microsteps[MOTORSNO] = {0}; // current microsteps position
-static uint8_t stopflag[MOTORSNO]; // ==1 to stop @ nearest step
+// motors' direction: 1 for positive, -1 for negative (we need it as could be reverse)
+static int8_t motdir[MOTORSNO];
+// current position (in steps) by STP counter
+static volatile int32_t stppos[MOTORSNO] = {0};
+// previous position when check (set to current in start of moving)
+static int32_t prevstppos[MOTORSNO];
+// target stepper position
+static int32_t targstppos[MOTORSNO];
+// position to start deceleration
+static int32_t decelstartpos[MOTORSNO];
+// current encoder position (4 per ticks) (without TIM->CNT)
+static volatile int32_t encpos[MOTORSNO] = {0};
+// previous encoder position
+static int32_t prevencpos[MOTORSNO];
+// encoders' ticks per step (calculates @ init)
+static int32_t encperstep[MOTORSNO];
 
-void init_steppers(){
-    // init variables
-    for(int i = 0; i < MOTORSNO; ++i){
-        mottimers[i]->CR1 &= ~TIM_CR1_CEN;
-        stepsleft[i] = 0;
-        microsteps[i] = 0;
-        stopflag[i] = 0;
-        motdir[i] = 1;
-        stppos[i] = 0;
-    }
-    timers_setup();
+// current speed
+static uint16_t curspeed[MOTORSNO];
+// delta V according to current acceleration & INTERVAL
+static uint16_t dV[MOTORSNO];
+// ==1 to stop @ nearest step
+static uint8_t stopflag[MOTORSNO];
+// motor state
+static stp_state state[MOTORSNO];
+// move to zero state
+static mvto0state mvzerostate[MOTORSNO];
+
+// lowest ARR value (highest speed), highest (lowest speed)
+//static uint16_t stphighARR[MOTORSNO];
+// microsteps=1<<ustepsshift
+static uint16_t ustepsshift[MOTORSNO];
+// amount of steps for full eceleration/deceleration
+static uint32_t accdecsteps[MOTORSNO];
+
+// recalculate ARR according to new speed
+TRUE_INLINE void recalcARR(int i){
+    mottimers[i]->ARR = (MOTORFREQ / curspeed[i]) >> ustepsshift[i];
 }
 
-// get position
-errcodes getpos(int i, int32_t *position){
+// run this function after each steppers parameters changing
+void init_steppers(){
+    timers_setup(); // reinit timers & stop them
+    // init variables
+    for(int i = 0; i < MOTORSNO; ++i){
+        stopflag[i] = 0;
+        motdir[i] = 1;
+        curspeed[i] = 0;
+        dV[i] = the_conf.accel[i] * MOTCHKINTERVAL;
+        dV[i] /= 1000; // interval in ms, but accel in steps/s^2
+        if(dV[i] == 0) dV[i] = 1;
+        state[i] = STP_RELAX;
+        ustepsshift[i] = MSB(the_conf.microsteps[i]);
+        encperstep[i] = the_conf.encrev[i] / 200;
+        if(!the_conf.motflags[i].donthold) MOTOR_EN(i);
+        else MOTOR_DIS(i);
+    }
+}
+
+// get absolute position by encoder
+static int32_t encoder_position(uint8_t i){
+    int32_t pos = encpos[i]*the_conf.encrev[i];
+    if(the_conf.motflags[i].encreverse) pos -= mottimers[i]->CNT;
+    else pos += mottimers[i]->CNT;
+    return pos;
+}
+
+// get current position
+errcodes getpos(uint8_t i, int32_t *position){
     if(the_conf.motflags[i].haveencoder){
-        *position = encpos[i] + enctimers[i]->CNT;
+        *position = encoder_position(i) / encperstep[i];
     }else *position = stppos[i];
     return ERR_OK;
 }
-// set position
-errcodes setpos(int i, int32_t newpos){
-    if(newpos < -(int32_t)the_conf.maxsteps[i] || newpos > (int32_t)the_conf.maxsteps[i])
-        return ERR_BADPAR;
-    int32_t diff = newpos - stppos[i];
-    if(diff == 0) return ERR_OK;
-    if(diff > 0) motdir[i] = 1;
-    else{
-        diff = -diff;
-        motdir[i] = -1;
-    }
-    // TODO: set direction pin, run timer, set target position
-    // depends on the_conf.motflags[i].reverse
+
+errcodes getremainsteps(uint8_t i, int32_t *position){
+    *position = targstppos[i] - stppos[i];
     return ERR_OK;
 }
 
-void stopmotor(int i){
+// move to absolute position
+errcodes motor_absmove(uint8_t i, int32_t newpos){
+    //if(i >= MOTORSNO) return ERR_BADPAR; // bad motor number
+    if(state[i] != STP_RELAX) return ERR_CANTRUN; // can't move: motor isn't stopping
+    if(newpos > (int32_t)the_conf.maxsteps[i] || newpos < -(int32_t)the_conf.maxsteps[i] || newpos == stppos[i])
+        return ERR_BADVAL; // too big position or zero
+    targstppos[i] = newpos;
+    prevencpos[i] = encpos[i];
+    prevstppos[i] = stppos[i];
+    uint8_t inv = the_conf.motflags[i].reverse;
+    int32_t delta = newpos - stppos[i];
+    if(delta > 0){ // positive direction
+        if(delta > 2*(int32_t)accdecsteps[i]){ // can move by trapezoid
+            decelstartpos[i] = targstppos[i] - accdecsteps[i];
+        }else{ // triangle speed profile
+            decelstartpos[i] = stppos[i] + delta/2;
+        }
+        motdir[i] = 1;
+        if(inv) MOTOR_CCW(i);
+        else MOTOR_CW(i);
+    }else{ // negative direction
+        delta = -delta;
+        if(delta > 2*(int32_t)accdecsteps[i]){ // can move by trapezoid
+            decelstartpos[i] = targstppos[i] + accdecsteps[i];
+        }else{ // triangle speed profile
+            decelstartpos[i] = stppos[i] - delta/2;
+        }
+        motdir[i] = -1;
+        if(inv) MOTOR_CW(i);
+        else MOTOR_CCW(i);
+    }
+    curspeed[i] = MOTORMINSPEED;
+    recalcARR(i);
+    MOTOR_EN(i);
+    mottimers[i]->CR1 |= TIM_CR1_CEN; // start timer
+    state[i] = STP_ACCEL;
+    return ERR_OK;
+}
+
+// move i'th motor for relsteps
+errcodes motor_relmove(uint8_t i, int32_t relsteps){
+    return motor_absmove(i, stppos[i] + relsteps);
+}
+
+void stopmotor(uint8_t i){
     stopflag[i] = 1;
-    stepsleft[i] = 0;
-    microsteps[i] = 0;
+}
+
+stp_state getmotstate(uint8_t i){
+    return state[i];
 }
 
 // count steps @tim 14/15/16
-void addmicrostep(int i){
+void addmicrostep(uint8_t i){
+    static volatile uint16_t microsteps[MOTORSNO] = {0}; // current microsteps position
     if(mottimers[i]->SR & TIM_SR_UIF){
+        if(ESW_state(i)){ // ESW active
+            switch(the_conf.ESW_reaction[i]){
+                case ESW_ANYSTOP: // stop motor in any direction
+                    stopflag[i] = 1;
+                break;
+                case ESW_STOPMINUS: // stop only @ minus
+                    if(motdir[i] == -1) stopflag[i] = 1;
+                break;
+                default: // ESW_IGNORE
+                break;
+            }
+        }
         if(++microsteps[i] == the_conf.microsteps[i]){
             microsteps[i] = 0;
-            if(stopflag[i]){ // stop NOW
+            stppos[i] += motdir[i];
+            if(stopflag[i] || stppos[i] == targstppos[i]){ // stop NOW
                 stopflag[i] = 0;
                 mottimers[i]->CR1 &= ~TIM_CR1_CEN; // stop timer
+                if(the_conf.motflags[i].donthold)
+                    MOTOR_DIS(i); // turn off power
+                state[i] = STP_RELAX;
             }
-            stppos[i] += motdir[i];
         }
     }
     mottimers[i]->SR = 0;
 }
 
-void encoders_UPD(int i){
+void encoders_UPD(uint8_t i){
     if(enctimers[i]->SR & TIM_SR_UIF){
         int8_t d = 1; // positive (-1 - negative)
         if(enctimers[i]->CR1 & TIM_CR1_DIR) d = -d; // negative
@@ -95,4 +206,139 @@ void encoders_UPD(int i){
         else encpos[i] -= the_conf.encrev[i];
     }
     enctimers[i]->SR = 0;
+}
+
+// check if motor is stalled
+// @return 0 if moving OK,
+static t_stalled chkSTALL(uint8_t i){
+    if(!the_conf.motflags[i].haveencoder) return STALL_NO;
+    static uint8_t Nstalled = 0; // counter of STALL
+    int32_t curencpos = encoder_position(i), Denc = curencpos - prevencpos[i];
+    int32_t curstppos = stppos[i], Dstp = curstppos - prevstppos[i];
+    prevencpos[i] = curencpos;
+    if(Dstp == 0){ // veird things
+        stopmotor(i);
+        return STALL_STOP;
+    }
+    if(Denc < the_conf.encperstepmin[i]*Dstp || the_conf.encperstepmax[i]*Dstp < Denc){ // stall?
+        if(++Nstalled >= NSTALLEDMAX){
+            stopflag[i] = 1;
+            Nstalled = 0;
+            return STALL_STOP;
+        }else{
+            uint16_t spd = curspeed[i] >> 1; // speed / 2
+            curspeed[i] = (spd > MOTORMINSPEED) ? spd : MOTORMINSPEED;
+            recalcARR(i);
+            if(state[i] == STP_MOVE)
+                state[i] = STP_ACCEL;
+            return STALL_ONCE;
+        }
+    }else Nstalled = 0;
+    curstppos = curencpos / encperstep[i]; // recalculate current position
+    stppos[i] = curstppos;
+    prevstppos[i] = curstppos;
+    return STALL_NO;
+}
+
+// check state of i`th stepper
+static void chkstepper(int i){
+    int32_t newspeed;
+    switch(state[i]){
+        case STP_ACCEL: // acceleration to max speed
+            if(STALL_NO == chkSTALL(i)){
+                newspeed = curspeed[i] + dV[i];
+                if(newspeed >= the_conf.maxspd[i]){ // max speed reached -> move with it
+                    curspeed[i] = the_conf.maxspd[i];
+                    state[i] = STP_MOVE;
+                }else{ // increase speed
+                    curspeed[i] = newspeed;
+                }
+                recalcARR(i);
+            }
+            // check position for triangle profile
+            if(motdir[i] > 0){
+                if(stppos[i] >= decelstartpos[i]) // reached end of acceleration
+                    state[i] = STP_DECEL;
+            }else{
+                if(stppos[i] <= decelstartpos[i])
+                    state[i] = STP_DECEL;
+            }
+        break;
+        case STP_MOVE: // move @ constant speed until need to decelerate
+            if(STALL_NO == chkSTALL(i)){
+                // check position
+                if(motdir[i] > 0){
+                    if(stppos[i] >= decelstartpos[i]) // reached start of deceleration
+                        state[i] = STP_DECEL;
+                }else{
+                    if(stppos[i] <= decelstartpos[i])
+                        state[i] = STP_DECEL;
+                }
+            }
+        break;
+        case STP_DECEL:
+            if(STALL_NO == chkSTALL(i)){
+                newspeed = curspeed[i] - dV[i];
+                if(newspeed > MOTORMINSPEED){
+                    curspeed[i] = newspeed;
+                }else{
+                    curspeed[i] = MOTORMINSPEED;
+                    state[i] = STP_MVSLOW;
+                }
+                recalcARR(i);
+            }
+            // fallthrough
+        case STP_MVSLOW:
+            if(motdir[i] > 0){
+                if(stppos[i] >= targstppos[i]) // reached start of deceleration
+                    stopflag[i] = 0;
+            }else{
+                if(stppos[i] <= targstppos[i])
+                    stopflag[i] = 0;
+            }
+        break;
+        default: // RELAX, STALL, ERR -> do nothing
+            return;
+    }
+    switch(mvzerostate[i]){
+        case M0FAST:
+            if(state[i] == STP_RELAX){ // stopped -> move to +
+                if(ERR_OK != motor_relmove(i, 50)){
+                    state[i] = STP_ERR;
+                    mvzerostate[i] = M0RELAX;
+                }else
+                    mvzerostate[i] = M0PLUS;
+            }
+        break;
+        case M0PLUS:
+            if(state[i] == STP_RELAX){ // stopped -> move
+                if(ERR_OK != motor_relmove(i, -100)){
+                    state[i] = STP_ERR;
+                    mvzerostate[i] = M0RELAX;
+                }else{
+                    state[i] = STP_MVSLOW;
+                    mvzerostate[i] = M0SLOW;
+                }
+            }
+        break;
+        case M0SLOW:
+            if(state[i] == STP_RELAX){
+                encpos[i] = 0;
+                stppos[i] = 0;
+                mottimers[i]->CNT = 0; // set encoder counter to zero
+                mvzerostate[i] = M0RELAX;
+            }
+        break;
+        default: // RELAX: do nothing
+        break;
+    }
+}
+
+void process_steppers(){
+    static uint32_t Tlast = 0;
+    if(Tms - Tlast < MOTCHKINTERVAL) return; // hit every 10ms
+    Tlast = Tms;
+    for(int i = 0; i < MOTORSNO; ++i){
+        chkstepper(i);
+    }
 }

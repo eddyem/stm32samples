@@ -22,6 +22,17 @@
 
 #include <stm32f0.h>
 
+// PCLK frequency
+#ifndef PCLK
+#define PCLK    (48000000)
+#endif
+// motor frequency in mictosteps - 96kHz
+#ifndef MOTORFREQ
+#define MOTORFREQ       (96000)
+#endif
+// motors' timer PSC
+#define MOTORTIM_PSC    (PCLK/MOTORFREQ)
+
 // default CAN bus speed in kbaud
 #define DEFAULT_CAN_SPEED       (250)
 
@@ -170,6 +181,12 @@ extern volatile GPIO_TypeDef *DIRports[MOTORSNO];
 extern const uint32_t DIRpins[MOTORSNO];
 #define MOTOR_CW(x)  do{ pin_set(DIRports[x], DIRpins[x]); }while(0)
 #define MOTOR_CCW(x) do{ pin_clear(DIRports[x], DIRpins[x]); }while(0)
+// minimal motor speed - steps per second
+#define MOTORMINSPEED   (10)
+// interval of velocity checking (10ms)
+#define MOTCHKINTERVAL  (10)
+// maximal ticks of encoder per step
+#define MAXENCTICKSPERSTEP   (100)
 
 extern volatile uint32_t Tms;
 
@@ -183,5 +200,7 @@ void iwdg_setup();
 void timers_setup();
 void pause_ms(uint32_t pause);
 void Jump2Boot();
+
+uint8_t MSB(uint16_t val);
 
 #endif // __HARDWARE_H__
