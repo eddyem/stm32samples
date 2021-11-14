@@ -24,6 +24,7 @@
 #include "hardware.h"
 #include "strfunct.h"
 #include "usb.h"
+#include "version.inc"
 
 #include <string.h> // strlen
 
@@ -36,7 +37,6 @@ static char buff[BUFSZ+1], *bptr = buff;
 static uint8_t blen = 0;
 
 void sendbuf(){
-    IWDG->KR = IWDG_REFRESH;
     if(blen == 0) return;
     *bptr = 0;
     USB_sendstr(buff);
@@ -53,7 +53,6 @@ void bufputchar(char ch){
 }
 
 void addtobuf(const char *txt){
-    IWDG->KR = IWDG_REFRESH;
     while(*txt) bufputchar(*txt++);
 }
 
@@ -384,6 +383,20 @@ void bootldr(_U_ char *txt){
     Jump2Boot();
 }
 
+void getcounter(_U_ char *txt){
+    SEND("CR1="); printu(TIM1->CR1);
+    SEND("\nCR2="); printu(TIM2->CR1);
+    SEND("\nCR3="); printu(TIM3->CR1);
+    SEND("\nCNT1="); printu(TIM1->CNT);
+    SEND("\nCNT2="); printu(TIM2->CNT);
+    SEND("\nCNT3="); printu(TIM3->CNT);
+    NL();
+}
+
+void wdcheck(_U_ char *txt){
+    while(1){nop();}
+}
+
 typedef void(*specfpointer)(char *arg);
 
 typedef struct{
@@ -405,11 +418,14 @@ const speccommands scmdlist[] = {
     {"resume", inresume, "resume IN packets displaying"},
     {"send", sendCANcommand, "send data over CAN: send ID byte0 .. byteN"},
     {"dumpconf", dump_userconf, "dump current configuration"},
+    {"getctr", getcounter, "get TIM1/2/3 counters"},
+    {"wd", wdcheck, "check watchdog"},
     {NULL, NULL, NULL}
 };
 
 static void showHelp(){
-    SEND("USAGE. Common commands format is cmd[ N[ = val]]\n\twhere N is command argument (0..127), val is its value\n");
+    SEND("https://github.com/eddyem/stm32samples/tree/master/F0-nolib/3steppersLB build#" BUILD_NUMBER " @ " BUILD_DATE "\n");
+    SEND("Common commands format is cmd[ N[ = val]]\n\twhere N is command argument (0..127), val is its value\n");
     SEND("Common commands:\n");
     for(int i = 0; i < CMD_AMOUNT; ++i){
         bufputchar('\t'); SEND(cmdlist[i].command); SEND(" - ");

@@ -10,6 +10,11 @@ DEFS		+= -DEBUG
 # for example, if you have STM32F103VBT6, you should write:
 LDSCRIPT	?= stm32f072B.ld
 
+# autoincremental version & build date
+VERSION_FILE = version.inc
+NEXTVER := $(shell expr $$(awk '/#define BUILD_NUMBER/' $(VERSION_FILE) | tr -cd "[0-9]") + 1)
+BUILDDATE := $(shell date +%Y-%m-%d)
+
 INDEPENDENT_HEADERS=
 
 FP_FLAGS	?= -msoft-float
@@ -100,7 +105,15 @@ $(OBJDIR):
 $(STARTUP): $(INC_DIR)/startup/vector.c
 	$(CC) $(CFLAGS) $(DEFS) $(INCLUDE) $(ARCH_FLAGS) -o $@ -c $<
 
-$(OBJDIR)/%.o: %.c
+$(VERSION_FILE): *.[ch]
+	@echo "Generate version: $(NEXTVER) for date $(BUILDDATE)"
+	@sed -i "s/#define BUILD_NUMBER.*/#define BUILD_NUMBER \"$(NEXTVER)\"/" $(VERSION_FILE)
+	@sed -i "s/#define BUILD_DATE.*/#define BUILD_DATE \"$(BUILDDATE)\"/" $(VERSION_FILE)
+
+$(OBJDIR)/strfunct.o: strfunct.c $(VERSION_FILE)
+
+$(OBJDIR)/%.o: %.c 
+	@make $(VERSION_FILE)
 	@echo "  CC      $<"
 	$(CC) $(CFLAGS) $(DEFS) $(INCLUDE) $(ARCH_FLAGS) -o $@ -c $<
 
@@ -108,10 +121,7 @@ $(OBJDIR)/%.o: %.c
 	@echo "  ASM      $<"
 	$(CC) $(CFLAGS) $(DEFS) $(INCLUDE) $(ARCH_FLAGS) -S -o $(OBJDIR)/$@ -c $<
 
-#$(OBJDIR)/%.d: %.c $(OBJDIR)
-#	$(CC) -MM -MG $< | sed -e 's,^\([^:]*\)\.o[ ]*:,$(@D)/\1.o $(@D)/\1.d:,' >$@
-
-$(BIN): $(ELF)
+$(BIN): $(ELF) 
 	@echo "  OBJCOPY $(BIN)"
 	$(OBJCOPY) -Obinary $(ELF) $(BIN)
 

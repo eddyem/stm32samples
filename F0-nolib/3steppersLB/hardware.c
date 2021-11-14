@@ -19,6 +19,7 @@
 #include "hardware.h"
 #include "can.h"
 #include "steppers.h"
+#include "strfunct.h"
 
 // Buttons: PA10, PA13, PA14, PA15, pullup (0 active)
 volatile GPIO_TypeDef *BTNports[BTNSNO] = {GPIOA, GPIOA, GPIOA, GPIOA};
@@ -36,9 +37,9 @@ volatile GPIO_TypeDef *DIRports[MOTORSNO] = {GPIOB, GPIOB, GPIOB};
 const uint32_t DIRpins[MOTORSNO] = {1<<1, 1<<10, 1<<12};
 
 // timers for motors
-TIM_TypeDef *mottimers[MOTORSNO] = {TIM15, TIM14, TIM16};
+volatile TIM_TypeDef *mottimers[MOTORSNO] = {TIM15, TIM14, TIM16};
 // timers for encoders
-TIM_TypeDef *enctimers[MOTORSNO] = {TIM1, TIM2, TIM3};
+volatile TIM_TypeDef *enctimers[MOTORSNO] = {TIM1, TIM2, TIM3};
 
 void gpio_setup(void){
     RCC->AHBENR |= RCC_AHBENR_GPIOAEN | RCC_AHBENR_GPIOBEN | RCC_AHBENR_GPIOCEN | RCC_AHBENR_GPIOFEN;
@@ -84,7 +85,7 @@ void iwdg_setup(){
 static IRQn_Type motirqs[MOTORSNO] = {TIM15_IRQn, TIM14_IRQn, TIM16_IRQn};
 // motor's PWM
 static void setup_mpwm(int i){
-    TIM_TypeDef *TIM = mottimers[i];
+    volatile TIM_TypeDef *TIM = mottimers[i];
     TIM->CR1 = 0;
     TIM->PSC = MOTORTIM_PSC - 1; // 64kHz
     // PWM mode 1 (OCxM = 110), preload enable
@@ -92,16 +93,15 @@ static void setup_mpwm(int i){
     TIM->CCER = TIM_CCER_CC1E; // turn it on, active high
     TIM->CCR1 = 1; // 20.8us for pulse duration, according to datasheet 1.9us is enough
     TIM->BDTR |= TIM_BDTR_MOE; // enable main output
-//    TIM->CR1 |= TIM_CR1_CEN; // enable timer
     TIM->EGR |= TIM_EGR_UG; // force update generation
     TIM->DIER = TIM_DIER_CC1IE; // allow CC interrupt (we should count steps)
+    TIM->CNT = 0;
     NVIC_EnableIRQ(motirqs[i]);
 }
 
 static IRQn_Type encirqs[MOTORSNO] = {TIM1_BRK_UP_TRG_COM_IRQn, TIM2_IRQn, TIM3_IRQn};
 static void setup_enc(int i){
-    TIM_TypeDef *TIM = enctimers[i];
-    RCC->APB1ENR |= RCC_APB1ENR_TIM3EN;
+    volatile TIM_TypeDef *TIM = enctimers[i];
     /* (1) Configure TI1FP1 on TI1 (CC1S = 01)
            configure TI1FP2 on TI2 (CC2S = 01)
            filters sampling = fDTS/8, N=6 */
@@ -119,6 +119,7 @@ static void setup_enc(int i){
     TIM->ARR = the_conf.encrev[i];
     // enable timer
     TIM->CR1 = TIM_CR1_CKD_1 | TIM_CR1_CEN; /* (4) */
+    TIM->CNT = 0;
     NVIC_EnableIRQ(encirqs[i]);
 }
 
@@ -189,17 +190,26 @@ uint8_t MSB(uint16_t val){
 }
 
 void tim14_isr(){
-    addmicrostep(0);
+    TIM14->SR = 0;
+    TIM14->CR1 &= TIM_CR1_CEN;
+    DBG("UP1");
+    //addmicrostep(1);
 }
 void tim15_isr(){
-    addmicrostep(1);
+    TIM15->SR = 0;
+    TIM15->CR1 &= TIM_CR1_CEN;
+    DBG("UP0");
+    //addmicrostep(0);
 }
 void tim16_isr(){
-    addmicrostep(2);
+    TIM16->SR = 0;
+    TIM16->CR1 &= TIM_CR1_CEN;
+    DBG("UP2");
+    //addmicrostep(2);
 }
 
 
-void tim1_isr(){
+void tim1_brk_up_trg_com_isr(){
     encoders_UPD(0);
 }
 void tim2_isr(){

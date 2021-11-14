@@ -29,7 +29,7 @@
 #define SEND(str) do{addtobuf(str);}while(0)
 
 #ifdef EBUG
-#define DBG(str)  do{addtobuf(__FILE__ " (L" STR(__LINE__) "): " str);}while(0)
+#define DBG(str)  do{addtobuf(__FILE__ " (L" STR(__LINE__) "): " str); NL();}while(0)
 #else
 #define DBG(str)
 #endif

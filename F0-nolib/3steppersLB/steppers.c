@@ -19,6 +19,7 @@
 #include "flash.h"
 #include "hardware.h"
 #include "steppers.h"
+#include "strfunct.h"
 
 // goto zero stages
 typedef enum{
@@ -95,9 +96,9 @@ void init_steppers(){
 
 // get absolute position by encoder
 static int32_t encoder_position(uint8_t i){
-    int32_t pos = encpos[i]*the_conf.encrev[i];
-    if(the_conf.motflags[i].encreverse) pos -= mottimers[i]->CNT;
-    else pos += mottimers[i]->CNT;
+    int32_t pos = encpos[i];
+    if(the_conf.motflags[i].encreverse) pos -= enctimers[i]->CNT;
+    else pos += enctimers[i]->CNT;
     return pos;
 }
 
@@ -121,7 +122,7 @@ errcodes motor_absmove(uint8_t i, int32_t newpos){
     if(newpos > (int32_t)the_conf.maxsteps[i] || newpos < -(int32_t)the_conf.maxsteps[i] || newpos == stppos[i])
         return ERR_BADVAL; // too big position or zero
     targstppos[i] = newpos;
-    prevencpos[i] = encpos[i];
+    prevencpos[i] = encoder_position(i);
     prevstppos[i] = stppos[i];
     uint8_t inv = the_conf.motflags[i].reverse;
     int32_t delta = newpos - stppos[i];
@@ -170,6 +171,7 @@ stp_state getmotstate(uint8_t i){
 void addmicrostep(uint8_t i){
     static volatile uint16_t microsteps[MOTORSNO] = {0}; // current microsteps position
     if(mottimers[i]->SR & TIM_SR_UIF){
+        DBG("MOTUP");
         if(ESW_state(i)){ // ESW active
             switch(the_conf.ESW_reaction[i]){
                 case ESW_ANYSTOP: // stop motor in any direction

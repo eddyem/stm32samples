@@ -188,7 +188,7 @@ static void wr0(const uint8_t *buf, uint16_t size){
             USB->EPnR[0] = (status & ~(USB_EPnR_CTR_RX|USB_EPnR_CTR_TX|USB_EPnR_STAT_RX))
                             ^ USB_EPnR_STAT_TX;
             uint32_t ctr = 1000000;
-            while(--ctr && (USB->ISTR & USB_ISTR_CTR) == 0){IWDG->KR = IWDG_REFRESH;};
+            while(--ctr && (USB->ISTR & USB_ISTR_CTR) == 0){nop();}
             if((USB->ISTR & USB_ISTR_CTR) == 0){
                 return;
             }

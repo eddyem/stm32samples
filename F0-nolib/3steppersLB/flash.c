@@ -44,9 +44,9 @@ static uint32_t maxCnum = 1024 / sizeof(user_conf); // can't use blocksize here
     ,.accel = {160, 160, 160}               \
     ,.maxspd = {1000, 1000, 1000}           \
     ,.maxsteps = {50000, 50000, 50000}      \
-    ,.encrev = {800,800,800}                \
-    ,.encperstepmin = {3,3,3}               \
-    ,.encperstepmax = {5,5,5}               \
+    ,.encrev = {4000,4000,4000}             \
+    ,.encperstepmin = {16,16,16}            \
+    ,.encperstepmax = {24,24,24}            \
     ,.motflags = {DEFMF,DEFMF,DEFMF}        \
     ,.ESW_reaction = {ESW_ANYSTOP, ESW_ANYSTOP, ESW_ANYSTOP} \
     }
@@ -220,12 +220,22 @@ void dump_userconf(_U_ char *txt){
         bufputchar('0' + the_conf.motflags[i].reverse);
         PROPNAME("microsteps");
         printu(the_conf.microsteps[i]);
-        PROPNAME("accdecsteps");
+        PROPNAME("accel");
         printu(the_conf.accel[i]);
         PROPNAME("maxspeed");
         printu(the_conf.maxspd[i]);
         PROPNAME("maxsteps");
         printu(the_conf.maxsteps[i]);
+        PROPNAME("encperrev");
+        printu(the_conf.encrev[i]);
+        PROPNAME("encperstepmin");
+        printu(the_conf.encperstepmin[i]);
+        PROPNAME("encperstepmax");
+        printu(the_conf.encperstepmax[i]);
+        PROPNAME("motflags");
+        printuhex(*((uint8_t*)&the_conf.motflags[i]));
+        PROPNAME("eswreaction");
+        printu(the_conf.ESW_reaction[i]);
 #undef PROPNAME
     }
     NL();

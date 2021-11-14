@@ -191,9 +191,9 @@ extern const uint32_t DIRpins[MOTORSNO];
 extern volatile uint32_t Tms;
 
 // timers of motors
-extern TIM_TypeDef *mottimers[];
+extern volatile TIM_TypeDef *mottimers[];
 // timers for encoders
-extern TIM_TypeDef *enctimers[];
+extern volatile TIM_TypeDef *enctimers[];
 
 void gpio_setup();
 void iwdg_setup();

@@ -117,7 +117,6 @@ void CAN_setup(uint16_t speed){
     // Configure CAN
     CAN->MCR |= CAN_MCR_INRQ; // Enter CAN init mode to write the configuration
     while((CAN->MSR & CAN_MSR_INAK) != CAN_MSR_INAK){
-        IWDG->KR = IWDG_REFRESH;
         if(--tmout == 0) break;
     }
     CAN->MCR &=~ CAN_MCR_SLEEP;
@@ -126,7 +125,6 @@ void CAN_setup(uint16_t speed){
     CAN->MCR &=~ CAN_MCR_INRQ;
     tmout = 16000000;
     while((CAN->MSR & CAN_MSR_INAK) == CAN_MSR_INAK){ // Wait the init mode leaving
-        IWDG->KR = IWDG_REFRESH;
         if(--tmout == 0) break;
     }
     // accept self ID at filter 0, ALL other at filters 1 and 2
@@ -163,7 +161,6 @@ void can_proc(){
     if(CAN->RF1R & CAN_RF1R_FMP1){
         can_process_fifo(1);
     }
-    IWDG->KR = IWDG_REFRESH;
     if(CAN->ESR & (CAN_ESR_BOFF | CAN_ESR_EPVF | CAN_ESR_EWGF)){ // much errors - restart CAN BUS
         SEND("\nToo much errors, restarting CAN!\n");
         SEND("Receive error counter: ");
@@ -187,7 +184,6 @@ void can_proc(){
         if(CAN->ESR & CAN_ESR_EPVF) SEND("Passive error limit");
         if(CAN->ESR & CAN_ESR_EWGF) SEND("Error counter limit");
         NL();
-        IWDG->KR = IWDG_REFRESH;
         // request abort for all mailboxes
         CAN->TSR |= CAN_TSR_ABRQ0 | CAN_TSR_ABRQ1 | CAN_TSR_ABRQ2;
         // reset CAN bus
