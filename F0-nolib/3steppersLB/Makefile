@@ -106,7 +106,7 @@ $(STARTUP): $(INC_DIR)/startup/vector.c
 	$(CC) $(CFLAGS) $(DEFS) $(INCLUDE) $(ARCH_FLAGS) -o $@ -c $<
 
 $(VERSION_FILE): *.[ch]
-	@echo "Generate version: $(NEXTVER) for date $(BUILDDATE)"
+	@echo "  Generate version: $(NEXTVER) for date $(BUILDDATE)"
 	@sed -i "s/#define BUILD_NUMBER.*/#define BUILD_NUMBER \"$(NEXTVER)\"/" $(VERSION_FILE)
 	@sed -i "s/#define BUILD_DATE.*/#define BUILD_DATE \"$(BUILDDATE)\"/" $(VERSION_FILE)
 

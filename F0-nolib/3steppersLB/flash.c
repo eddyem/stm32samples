@@ -34,19 +34,20 @@ static const uint32_t blocksize = (uint32_t)&_BLOCKSIZE;
 // max amount of Config records stored (will be recalculate in flashstorage_init()
 static uint32_t maxCnum = 1024 / sizeof(user_conf); // can't use blocksize here
 
-#define DEFMF   {.haveencoder = 1}
+#define DEFMF   {.haveencoder = 1, .donthold = 1, .eswinv = 1}
 
 #define USERCONF_INITIALIZER  {             \
      .userconf_sz = sizeof(user_conf)       \
     ,.CANspeed = 100                        \
     ,.CANID = 0xaa                          \
     ,.microsteps = {32, 32, 32}             \
-    ,.accel = {160, 160, 160}               \
-    ,.maxspd = {1000, 1000, 1000}           \
-    ,.maxsteps = {50000, 50000, 50000}      \
+    ,.accel = {500, 500, 500}               \
+    ,.maxspd = {3000, 3000, 3000}           \
+    ,.minspd = {20, 20, 20}                 \
+    ,.maxsteps = {500000, 500000, 500000}   \
     ,.encrev = {4000,4000,4000}             \
-    ,.encperstepmin = {16,16,16}            \
-    ,.encperstepmax = {24,24,24}            \
+    ,.encperstepmin = {5,5,5}               \
+    ,.encperstepmax = {50,50,50}            \
     ,.motflags = {DEFMF,DEFMF,DEFMF}        \
     ,.ESW_reaction = {ESW_ANYSTOP, ESW_ANYSTOP, ESW_ANYSTOP} \
     }
@@ -224,6 +225,8 @@ void dump_userconf(_U_ char *txt){
         printu(the_conf.accel[i]);
         PROPNAME("maxspeed");
         printu(the_conf.maxspd[i]);
+        PROPNAME("minspeed");
+        printu(the_conf.minspd[i]);
         PROPNAME("maxsteps");
         printu(the_conf.maxsteps[i]);
         PROPNAME("encperrev");

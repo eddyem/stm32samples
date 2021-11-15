@@ -76,13 +76,17 @@ enum{
     ,CMD_MICROSTEPS         // get/set microsteps
     ,CMD_ACCEL              // set/get acceleration/deceleration
     ,CMD_MAXSPEED           // set/get maximal speed
+    ,CMD_MINSPEED           // set/get minimal speed
     ,CMD_SPEEDLIMIT         // get limit of speed for current microsteps settings
     ,CMD_MAXSTEPS           // max steps (-max..+max)
     ,CMD_ENCREV             // encoder's pulses per revolution
+    ,CMD_MOTFLAGS           // motor flags
     ,CMD_REINITMOTORS       // re-init motors after configuration changing
     ,CMD_ABSPOS             // current position (set/get)
     ,CMD_RELPOS             // set relative steps or get steps left
     ,CMD_STOPMOTOR          // stop moving NOW
+    ,CMD_MOTORSTATE         // motor state
+    ,CMD_ENCPOS             // position of encoder (independing on settings)
     //,CMD_STOPDECEL
     //,CMD_RELMOVE
     //,CMD_ABSMOVE

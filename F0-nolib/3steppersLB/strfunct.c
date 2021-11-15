@@ -397,6 +397,22 @@ void wdcheck(_U_ char *txt){
     while(1){nop();}
 }
 
+void stp_check(char *txt){
+    uint8_t N = *txt - '0';
+    if(N < 3){
+        MOTOR_EN(N);
+        MOTOR_CW(N);
+        mottimers[N]->ARR = 300;
+        mottimers[N]->CR1 |= TIM_CR1_CEN;
+    }else{
+        for(N = 0; N < 3; ++N){
+            MOTOR_DIS(N);
+            MOTOR_CCW(N);
+            mottimers[N]->CR1 &= ~TIM_CR1_CEN;
+        }
+    }
+}
+
 typedef void(*specfpointer)(char *arg);
 
 typedef struct{
@@ -420,6 +436,7 @@ const speccommands scmdlist[] = {
     {"dumpconf", dump_userconf, "dump current configuration"},
     {"getctr", getcounter, "get TIM1/2/3 counters"},
     {"wd", wdcheck, "check watchdog"},
+    {"st", stp_check, "check steppers"},
     {NULL, NULL, NULL}
 };
 

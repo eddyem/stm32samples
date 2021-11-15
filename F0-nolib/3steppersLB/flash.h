@@ -34,8 +34,6 @@
 #define MICROSTEPSMAX       (512)
 // (STEPS per second^2)
 #define ACCELMAXSTEPS       (1000)
-// max speed IN STEPS!
-#define MAXMAXSPD           (10000)
 // max encoder steps per rev
 #define MAXENCREV           (100000)
 
@@ -48,10 +46,11 @@ blocksizeASH_SIZE_REG      ((uint32_t)0x1FFFF7CC)
 
 // motor flags
 typedef struct{
-    uint8_t reverse : 1;        // reversing motor rotation
-    uint8_t encreverse : 1;     // reversing encoder rotation TODO: configure encoder's timer to downcounting
-    uint8_t haveencoder : 1;    // have encoder
-    uint8_t donthold : 1;       // clear power @ stop (don't hold motor when stopped)
+    uint8_t reverse : 1;        // bit0 - reversing motor rotation
+    uint8_t encreverse : 1;     // bit1 - reversing encoder rotation TODO: configure encoder's timer to downcounting
+    uint8_t haveencoder : 1;    // bit2 - have encoder
+    uint8_t donthold : 1;       // bit3 - clear power @ stop (don't hold motor when stopped)
+    uint8_t eswinv : 1;         // bit4 - invers end-switches
 } motflags_t;
 
 /*
@@ -64,6 +63,7 @@ typedef struct __attribute__((packed, aligned(4))){
     uint16_t microsteps[MOTORSNO];  // microsteps amount per step
     uint16_t accel[MOTORSNO];       // acceleration/deceleration (steps/s^2)
     uint16_t maxspd[MOTORSNO];      // max motor speed (steps per second)
+    uint16_t minspd[MOTORSNO];      // min motor speed (steps per second)
     uint32_t maxsteps[MOTORSNO];    // maximal amount of steps
     uint16_t encrev[MOTORSNO];      // encoders' counts per revolution
     uint16_t encperstepmin[MOTORSNO]; // min amount of encoder ticks per one step

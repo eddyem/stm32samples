@@ -171,6 +171,7 @@ static errcodes ustepsparser(uint8_t par, int32_t *val){
         if(m < 1 || m > MICROSTEPSMAX) return ERR_BADVAL;
         // find most significant bit
         if(m != 1<<MSB(m)) return ERR_BADVAL;
+        if(the_conf.maxspd[n] * m > PCLK/(MOTORTIM_PSC+1)/(MOTORTIM_ARRMIN+1)) return ERR_BADVAL;
         the_conf.microsteps[n] = m;
     }
     *val = the_conf.microsteps[n];
@@ -210,21 +211,42 @@ static errcodes accparser(uint8_t par, int32_t *val){
     return ERR_OK;
 }
 
+// calculate ARR value for given speed, return nearest possible speed
+static uint16_t getSPD(uint8_t n, int32_t speed){
+    uint32_t ARR = PCLK/(MOTORTIM_PSC+1) / the_conf.microsteps[n] / speed - 1;
+    if(ARR < MOTORTIM_ARRMIN) ARR = MOTORTIM_ARRMIN;
+    else if(ARR > 0xffff) ARR = 0xffff;
+    speed = PCLK/(MOTORTIM_PSC+1) / the_conf.microsteps[n] / (ARR + 1);
+    if(speed > 0xffff) speed = 0xffff;
+    return (uint16_t)speed;
+}
+
 static errcodes maxspdparser(uint8_t par, int32_t *val){
     uint8_t n = PARBASE(par);
     if(n > MOTORSNO-1) return ERR_BADPAR;
     if(ISSETTER(par)){
-        if(*val/the_conf.microsteps[n] > MAXMAXSPD || *val < 1) return ERR_BADVAL;
-        the_conf.maxspd[n] = *val;
+        if(*val <= the_conf.minspd[n]) return ERR_BADVAL;
+        the_conf.maxspd[n] = getSPD(n, *val);
     }
     *val = the_conf.maxspd[n];
+    return ERR_OK;
+}
+
+static errcodes minspdparser(uint8_t par, int32_t *val){
+    uint8_t n = PARBASE(par);
+    if(n > MOTORSNO-1) return ERR_BADPAR;
+    if(ISSETTER(par)){
+        if(*val >= the_conf.maxspd[n]) return ERR_BADVAL;
+        the_conf.minspd[n] = getSPD(n, *val);
+    }
+    *val = the_conf.minspd[n];
     return ERR_OK;
 }
 
 static errcodes spdlimparser(uint8_t par, int32_t *val){
     uint8_t n = PARBASE(par);
     if(n > MOTORSNO-1) return ERR_BADPAR;
-    *val = MOTORFREQ / the_conf.microsteps[n];
+    *val = getSPD(n, 0xffff);
     return ERR_OK;
 }
 
@@ -248,6 +270,16 @@ static errcodes encrevparser(uint8_t par, int32_t *val){
         enctimers[n]->ARR = *val;
     }
     *val = the_conf.encrev[n];
+    return ERR_OK;
+}
+
+static errcodes motflagsparser(uint8_t par, int32_t *val){
+    uint8_t n = PARBASE(par);
+    if(n > MOTORSNO-1) return ERR_BADPAR;
+    if(ISSETTER(par)){
+        the_conf.motflags[n] = *((motflags_t*)val);
+    }
+    *(motflags_t*)val = the_conf.motflags[n];
     return ERR_OK;
 }
 
@@ -284,6 +316,24 @@ static errcodes relstepsparser(uint8_t par, int32_t *val){
     if(ISSETTER(par)) return motor_relmove(n, *val);
     return getremainsteps(n, val);
 }
+
+static errcodes motstateparser(uint8_t par, int32_t *val){
+    uint8_t n = PARBASE(par);
+    if(n > MOTORSNO-1) return ERR_BADPAR;
+    *val = getmotstate(n);
+    return ERR_OK;
+}
+
+static errcodes encposparser(uint8_t par, int32_t *val){
+    uint8_t n = PARBASE(par);
+    if(n > MOTORSNO-1) return ERR_BADPAR;
+    errcodes ret = ERR_OK;
+    if(ISSETTER(par)){
+        if(!setencpos(n, *val)) ret = ERR_CANTRUN;
+    }
+    *val = encoder_position(n);
+    return ret;
+}
 /******************* END of motors' parsers *******************/
 
 /*
@@ -314,13 +364,17 @@ const commands cmdlist[CMD_AMOUNT] = {
     [CMD_MICROSTEPS] = {"microsteps", ustepsparser, "set/get microsteps settings"},
     [CMD_ACCEL] = {"accel", accparser, "set/get accel/decel (steps/s^2)"},
     [CMD_MAXSPEED] = {"maxspeed", maxspdparser, "set/get max speed (steps per sec)"},
+    [CMD_MINSPEED] = {"minspeed", minspdparser, "set/get min speed (steps per sec)"},
     [CMD_SPEEDLIMIT] = {"speedlimit", spdlimparser, "get limiting speed for current microsteps"},
     [CMD_MAXSTEPS] = {"maxsteps", maxstepsparser, "set/get max steps (from zero)"},
     [CMD_ENCREV] = {"encrev", encrevparser, "set/get max encoder's pulses per revolution"},
+    [CMD_MOTFLAGS] = {"motflags", motflagsparser, "set/get motorN flags"},
     // motor's commands
     [CMD_ABSPOS] = {"abspos", curposparser, "set/get position (in steps)"},
     [CMD_RELPOS] = {"relpos", relstepsparser, "set relative steps, get remaining"},
     [CMD_STOPMOTOR] = {"stop", mstopparser, "stop motor now"},
     [CMD_REINITMOTORS] = {"motreinit", reinitmparser, "re-init motors after configuration changed"},
+    [CMD_MOTORSTATE] = {"state", motstateparser, "get motor state"},
+    [CMD_ENCPOS] = {"encpos", encposparser, "set/get encoder's position"},
 };
 

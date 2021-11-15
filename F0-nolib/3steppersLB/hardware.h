@@ -26,12 +26,10 @@
 #ifndef PCLK
 #define PCLK    (48000000)
 #endif
-// motor frequency in mictosteps - 96kHz
-#ifndef MOTORFREQ
-#define MOTORFREQ       (96000)
-#endif
-// motors' timer PSC
-#define MOTORTIM_PSC    (PCLK/MOTORFREQ)
+// motors' timer PSC = PCLK/Tfreq - 1, Tfreq=16MHz
+#define MOTORTIM_PSC    (2)
+// minimal ARR value - 99 for 5000 steps per second @ 32 microsteps/step
+#define MOTORTIM_ARRMIN (99)
 
 // default CAN bus speed in kbaud
 #define DEFAULT_CAN_SPEED       (250)
@@ -168,8 +166,6 @@ extern const uint32_t BTNpins[BTNSNO];
 // ESW ports & pins
 extern volatile GPIO_TypeDef *ESWports[ESWNO];
 extern const uint32_t ESWpins[ESWNO];
-// state 1 - pressed, 0 - released (pin active is zero)
-#define ESW_state(x)    ((ESWports[x]->IDR & ESWpins[x]) ? 0 : 1)
 
 // motors
 #define MOTORSNO    (3)
@@ -181,12 +177,12 @@ extern volatile GPIO_TypeDef *DIRports[MOTORSNO];
 extern const uint32_t DIRpins[MOTORSNO];
 #define MOTOR_CW(x)  do{ pin_set(DIRports[x], DIRpins[x]); }while(0)
 #define MOTOR_CCW(x) do{ pin_clear(DIRports[x], DIRpins[x]); }while(0)
-// minimal motor speed - steps per second
-#define MOTORMINSPEED   (10)
 // interval of velocity checking (10ms)
 #define MOTCHKINTERVAL  (10)
 // maximal ticks of encoder per step
-#define MAXENCTICKSPERSTEP   (100)
+#define MAXENCTICKSPERSTEP  (100)
+// amount of full steps per revolution
+#define STEPSPERREV         (200)
 
 extern volatile uint32_t Tms;
 
@@ -195,6 +191,7 @@ extern volatile TIM_TypeDef *mottimers[];
 // timers for encoders
 extern volatile TIM_TypeDef *enctimers[];
 
+uint8_t ESW_state(uint8_t x);
 void gpio_setup();
 void iwdg_setup();
 void timers_setup();
