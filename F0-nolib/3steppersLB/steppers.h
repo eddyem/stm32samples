@@ -24,7 +24,7 @@
 #include "commonproto.h"
 
 // amount of tries to detect motor stall
-#define NSTALLEDMAX     (55)
+#define NSTALLEDMAX     (5)
 
 // stepper states
 typedef enum{

@@ -94,13 +94,11 @@ static void setup_mpwm(int i){
 #error "change the code!"
 #endif
     TIM->CCR1 = MOTORTIM_ARRMIN - 3; // ~10us for pulse duration
-    TIM->CNT = 0;
     TIM->ARR = 0xffff;
 //    TIM->EGR = TIM_EGR_UG; // generate update to refresh ARR
     TIM->BDTR |= TIM_BDTR_MOE; // enable main output
     TIM->CCER = TIM_CCER_CC1E; // turn it on, active high
     TIM->DIER = TIM_DIER_CC1IE; // allow CC interrupt (we should count steps)
-      //TIM->CR1 = TIM_CR1_CEN;
     NVIC_EnableIRQ(motirqs[i]);
 }
 
@@ -124,7 +122,6 @@ static void setup_enc(int i){
     TIM->ARR = the_conf.encrev[i];
     // enable timer
     TIM->CR1 = TIM_CR1_CKD_1 | TIM_CR1_CEN; /* (4) */
-    TIM->CNT = 0;
     NVIC_EnableIRQ(encirqs[i]);
 }
 
@@ -144,9 +141,9 @@ void timers_setup(){
     for(int i = 0; i < MOTORSNO; ++i)
         setup_mpwm(i);
     for(int i = 0; i < MOTORSNO; ++i){
-        //if(the_conf.motflags[i].haveencoder){ // motor have the encoder
+        if(the_conf.motflags[i].haveencoder){ // motor have the encoder
             setup_enc(i);
-        //}
+        }
     }
 }
 

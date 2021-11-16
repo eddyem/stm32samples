@@ -34,7 +34,7 @@ static const uint32_t blocksize = (uint32_t)&_BLOCKSIZE;
 // max amount of Config records stored (will be recalculate in flashstorage_init()
 static uint32_t maxCnum = 1024 / sizeof(user_conf); // can't use blocksize here
 
-#define DEFMF   {.haveencoder = 1, .donthold = 1, .eswinv = 1}
+#define DEFMF   {.haveencoder = 1, .donthold = 1, .eswinv = 1, .keeppos = 1}
 
 #define USERCONF_INITIALIZER  {             \
      .userconf_sz = sizeof(user_conf)       \
@@ -42,12 +42,12 @@ static uint32_t maxCnum = 1024 / sizeof(user_conf); // can't use blocksize here
     ,.CANID = 0xaa                          \
     ,.microsteps = {32, 32, 32}             \
     ,.accel = {500, 500, 500}               \
-    ,.maxspd = {3000, 3000, 3000}           \
+    ,.maxspd = {2000, 2000, 2000}           \
     ,.minspd = {20, 20, 20}                 \
     ,.maxsteps = {500000, 500000, 500000}   \
     ,.encrev = {4000,4000,4000}             \
-    ,.encperstepmin = {5,5,5}               \
-    ,.encperstepmax = {50,50,50}            \
+    ,.encperstepmin = {17,17,17}            \
+    ,.encperstepmax = {23,23,23}            \
     ,.motflags = {DEFMF,DEFMF,DEFMF}        \
     ,.ESW_reaction = {ESW_ANYSTOP, ESW_ANYSTOP, ESW_ANYSTOP} \
     }

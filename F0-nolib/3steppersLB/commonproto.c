@@ -53,7 +53,7 @@ static errcodes buzzerparser(uint8_t par, int32_t *val){
 
 static errcodes adcparser(uint8_t par, int32_t *val){
     uint8_t n = PARBASE(par);
-    if(n > NUMBER_OF_ADC_CHANNELS) return ERR_BADPAR;
+    if(n > NUMBER_OF_ADC_CHANNELS-1) return ERR_BADPAR;
     *val = (int32_t) getADCval(n);
     return ERR_OK;
 }
