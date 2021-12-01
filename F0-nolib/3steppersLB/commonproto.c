@@ -76,6 +76,7 @@ static errcodes eswparser(uint8_t par, int32_t *val){
 #endif
     uint8_t n = PARBASE(par);
     if(n > ESWNO-1){ // all
+        *val = 0;
         uint8_t *arr = (uint8_t*)val;
         for(int i = 0; i < ESWNO; ++i)
             *arr++ = ESW_state(i);
@@ -283,6 +284,19 @@ static errcodes motflagsparser(uint8_t par, int32_t *val){
     return ERR_OK;
 }
 
+// setter of GLOBAL reaction, getter of LOCAL!
+static errcodes eswreactparser(uint8_t par, int32_t *val){
+    uint8_t n = PARBASE(par);
+    if(n > MOTORSNO-1) return ERR_BADPAR;
+    if(ISSETTER(par)){
+        if(*val < 0 || *val > ESW_AMOUNT-1) return ERR_BADVAL;
+        the_conf.ESW_reaction[n] = *val;
+    }
+    // *val = the_conf.ESW_reaction[n];
+    *val = geteswreact(n);
+    return ERR_OK;
+}
+
 static errcodes saveconfparser(uint8_t _U_ par, int32_t _U_ *val){
     if(store_userconf()) return ERR_CANTRUN;
     return ERR_OK;
@@ -296,7 +310,20 @@ static errcodes reinitmparser(uint8_t _U_ par, int32_t _U_ *val){
     return ERR_OK;
 }
 
-static errcodes mstopparser(uint8_t par, int32_t _U_ *val){
+static errcodes emstopparser(uint8_t par, int32_t _U_ *val){
+    uint8_t n = PARBASE(par);
+    if(n > MOTORSNO-1) return ERR_BADPAR;
+    emstopmotor(n);
+    return ERR_OK;
+}
+
+static errcodes emstopallparser(uint8_t _U_ par, int32_t _U_ *val){
+    for(int i = 0; i < MOTORSNO; ++i)
+        emstopmotor(i);
+    return ERR_OK;
+}
+
+static errcodes stopparser(uint8_t par, int32_t _U_ *val){
     uint8_t n = PARBASE(par);
     if(n > MOTORSNO-1) return ERR_BADPAR;
     stopmotor(n);
@@ -317,6 +344,13 @@ static errcodes relstepsparser(uint8_t par, int32_t *val){
     return getremainsteps(n, val);
 }
 
+static errcodes relslowparser(uint8_t par, int32_t *val){
+    uint8_t n = PARBASE(par);
+    if(n > MOTORSNO-1) return ERR_BADPAR;
+    if(ISSETTER(par)) return motor_relslow(n, *val);
+    return getremainsteps(n, val);
+}
+
 static errcodes motstateparser(uint8_t par, int32_t *val){
     uint8_t n = PARBASE(par);
     if(n > MOTORSNO-1) return ERR_BADPAR;
@@ -334,6 +368,12 @@ static errcodes encposparser(uint8_t par, int32_t *val){
     *val = encoder_position(n);
     return ret;
 }
+
+static errcodes gotozeroparser(uint8_t par, _U_ int32_t *val){
+    uint8_t n = PARBASE(par);
+    if(n > MOTORSNO-1) return ERR_BADPAR;
+    return motor_goto0(n);
+}
 /******************* END of motors' parsers *******************/
 
 /*
@@ -342,39 +382,44 @@ static errcodes parser(uint8_t _U_ par, int32_t _U_ *val){
 }
 */
 
-// the main commands list, index is CAN command code
-const commands cmdlist[CMD_AMOUNT] = {
+const fpointer cmdlist[CMD_AMOUNT] = {
     // different commands
-    [CMD_PING] = {"ping", pingparser, "echo given command back"},
-    [CMD_RELAY] = {"relay", relayparser, "change relay state (1/0)"},
-    [CMD_BUZZER] = {"buzzer", buzzerparser, "change buzzer state (1/0)"},
-    [CMD_ADC] = {"adc", adcparser, "get ADC values"},
-    [CMD_BUTTONS] = {"button", buttonsparser, "get buttons state"},
-    [CMD_ESWSTATE] = {"esw", eswparser, "get end switches state"},
-    [CMD_MCUT] = {"mcut", mcutparser, "get MCU T"},
-    [CMD_MCUVDD] = {"mcuvdd", mcuvddparser, "get MCU Vdd"},
-    [CMD_RESET] = {"reset", resetparser, "reset MCU"},
-    [CMD_TIMEFROMSTART] = {"time", timeparser, "get time from start"},
-    [CMD_PWM] = {"pwm", pwmparser, "pwm value"},
-    [CMD_EXT] = {"ext", extparser, "external outputs"},
+    [CMD_PING] = pingparser,
+    [CMD_RELAY] = relayparser,
+    [CMD_BUZZER] = buzzerparser,
+    [CMD_ADC] = adcparser,
+    [CMD_BUTTONS] = buttonsparser,
+    [CMD_ESWSTATE] = eswparser,
+    [CMD_MCUT] = mcutparser,
+    [CMD_MCUVDD] = mcuvddparser,
+    [CMD_RESET] = resetparser,
+    [CMD_TIMEFROMSTART] = timeparser,
+    [CMD_PWM] = pwmparser,
+    [CMD_EXT] = extparser,
     // configuration
-    [CMD_SAVECONF] = {"saveconf", saveconfparser, "save current configuration"},
-    [CMD_ENCSTEPMIN] = {"encstepmin", encstepsminparser, "minimal encoder ticks per step"},
-    [CMD_ENCSTEPMAX] = {"encstepmax", encstepsmaxparser, "maximal encoder ticks per step"},
-    [CMD_MICROSTEPS] = {"microsteps", ustepsparser, "set/get microsteps settings"},
-    [CMD_ACCEL] = {"accel", accparser, "set/get accel/decel (steps/s^2)"},
-    [CMD_MAXSPEED] = {"maxspeed", maxspdparser, "set/get max speed (steps per sec)"},
-    [CMD_MINSPEED] = {"minspeed", minspdparser, "set/get min speed (steps per sec)"},
-    [CMD_SPEEDLIMIT] = {"speedlimit", spdlimparser, "get limiting speed for current microsteps"},
-    [CMD_MAXSTEPS] = {"maxsteps", maxstepsparser, "set/get max steps (from zero)"},
-    [CMD_ENCREV] = {"encrev", encrevparser, "set/get max encoder's pulses per revolution"},
-    [CMD_MOTFLAGS] = {"motflags", motflagsparser, "set/get motorN flags"},
+    [CMD_SAVECONF] = saveconfparser,
+    [CMD_ENCSTEPMIN] = encstepsminparser,
+    [CMD_ENCSTEPMAX] = encstepsmaxparser,
+    [CMD_MICROSTEPS] = ustepsparser,
+    [CMD_ACCEL] = accparser,
+    [CMD_MAXSPEED] = maxspdparser,
+    [CMD_MINSPEED] = minspdparser,
+    [CMD_SPEEDLIMIT] = spdlimparser,
+    [CMD_MAXSTEPS] = maxstepsparser,
+    [CMD_ENCREV] = encrevparser,
+    [CMD_MOTFLAGS] = motflagsparser,
+    [CMD_ESWREACT] = eswreactparser,
     // motor's commands
-    [CMD_ABSPOS] = {"abspos", curposparser, "set/get position (in steps)"},
-    [CMD_RELPOS] = {"relpos", relstepsparser, "set relative steps, get remaining"},
-    [CMD_STOPMOTOR] = {"stop", mstopparser, "stop motor now"},
-    [CMD_REINITMOTORS] = {"motreinit", reinitmparser, "re-init motors after configuration changed"},
-    [CMD_MOTORSTATE] = {"state", motstateparser, "get motor state"},
-    [CMD_ENCPOS] = {"encpos", encposparser, "set/get encoder's position"},
+    [CMD_ABSPOS] = curposparser,
+    [CMD_RELPOS] = relstepsparser,
+    [CMD_RELSLOW] = relslowparser,
+    [CMD_EMERGSTOP] = emstopparser,
+    [CMD_EMERGSTOPALL] = emstopallparser,
+    [CMD_STOP] = stopparser,
+    [CMD_REINITMOTORS] = reinitmparser,
+    [CMD_MOTORSTATE] = motstateparser,
+    [CMD_ENCPOS] = encposparser,
+    [CMD_GOTOZERO] = gotozeroparser,
 };
+
 

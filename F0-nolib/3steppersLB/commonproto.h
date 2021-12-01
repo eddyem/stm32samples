@@ -51,12 +51,6 @@ typedef enum{
 // @return CANERR_OK (0) if OK or error code
 typedef errcodes (*fpointer)(uint8_t par, int32_t *val);
 
-typedef struct{
-    const char *command;    // text command (up to 65536 commands)
-    fpointer function;      // function to execute: function(&par, &val)
-    const char *help;       // help message for text protocol
-} commands;
-
 enum{
      CMD_PING               // ping device
     ,CMD_RELAY              // relay on/off
@@ -81,21 +75,23 @@ enum{
     ,CMD_MAXSTEPS           // max steps (-max..+max)
     ,CMD_ENCREV             // encoder's pulses per revolution
     ,CMD_MOTFLAGS           // motor flags
+    ,CMD_ESWREACT           // ESW reaction flags
     ,CMD_REINITMOTORS       // re-init motors after configuration changing
     ,CMD_ABSPOS             // current position (set/get)
     ,CMD_RELPOS             // set relative steps or get steps left
-    ,CMD_STOPMOTOR          // stop moving NOW
+    ,CMD_RELSLOW            // change relative position at lowest speed
+    ,CMD_EMERGSTOP          // stop moving NOW
+    ,CMD_STOP               // smooth motor stop
+    ,CMD_EMERGSTOPALL       // emergency stop for all motors
+    ,CMD_GOTOZERO           // go to zero's ESW
     ,CMD_MOTORSTATE         // motor state
     ,CMD_ENCPOS             // position of encoder (independing on settings)
     //,CMD_STOPDECEL
-    //,CMD_RELMOVE
-    //,CMD_ABSMOVE
-    //,CMD_MOVE  // @max speed infty
     //,CMD_FINDZERO
     // should be the last:
     ,CMD_AMOUNT             // amount of common commands
 };
 
-extern const commands cmdlist[CMD_AMOUNT];
+extern const fpointer cmdlist[CMD_AMOUNT];
 
 #endif // COMMONPROTO_H__

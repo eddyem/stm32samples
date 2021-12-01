@@ -396,7 +396,7 @@ void getcounter(_U_ char *txt){
 void wdcheck(_U_ char *txt){
     while(1){nop();}
 }
-
+/*
 void stp_check(char *txt){
     uint8_t N = *txt - '0';
     if(N < 3){
@@ -411,51 +411,135 @@ void stp_check(char *txt){
             mottimers[N]->CR1 &= ~TIM_CR1_CEN;
         }
     }
-}
+}*/
+
 
 typedef void(*specfpointer)(char *arg);
 
-typedef struct{
-    const char *command;
-    specfpointer function;
-    const char *help;
-} speccommands;
+enum{
+    SCMD_IGNORE,
+    SCMD_DELIGNLIST,
+    SCMD_DFU,
+    SCMD_FILTER,
+    SCMD_CANSPEED,
+    SCMD_CANID,
+    SCMD_LISTFILTERS,
+    SCMD_IGNBUF,
+    SCMD_PAUSE,
+    SCMD_RESUME,
+    SCMD_SEND,
+    SCMD_DUMPCONF,
+    SCMD_GETCTR,
+    SCMD_WD,
+    //SCMD_ST,
+    SCMD_AMOUNT
+};
 
-const speccommands scmdlist[] = {
-    {"ignore", addIGN, "add ID to ignore list (max 10 IDs)"},
-    {"delignlist", delignlist, "delete ignore list"},
-    {"dfu", bootldr, "activate DFU mode"},
-    {"filter", add_filter, "add/modify filter, format: bank# FIFO# mode(M/I) num0 [num1 [num2 [num3]]]"},
-    {"canspeed", CANini, "CAN bus speed"},
-    {"canid", canid, "get/set CAN ID"},
-    {"listfilters", list_filters, "list all active filters"},
-    {"ignbuf", print_ign_buf, "print ignore buffer"},
-    {"pause", inpause, "pause IN packets displaying"},
-    {"resume", inresume, "resume IN packets displaying"},
-    {"send", sendCANcommand, "send data over CAN: send ID byte0 .. byteN"},
-    {"dumpconf", dump_userconf, "dump current configuration"},
-    {"getctr", getcounter, "get TIM1/2/3 counters"},
-    {"wd", wdcheck, "check watchdog"},
-    {"st", stp_check, "check steppers"},
-    {NULL, NULL, NULL}
+typedef struct{
+    int cmd_code;           // CMD_... or <0 for usb-only commands
+    const char *command;    // text command (up to 65536 commands)
+    const char *help;       // help message for text protocol
+} commands;
+
+// the main commands list, index is CAN command code
+static const commands textcommands[] = {
+    // different commands
+    {0, "", "Different commands:"}, // DELIMETERS
+    {CMD_ADC, "adc", "get ADC values"},
+    {CMD_BUTTONS, "button", "get buttons state"},
+    {CMD_BUZZER, "buzzer", "change buzzer state (1/0)"},
+    {CMD_ESWSTATE, "esw", "get end switches state"},
+    {CMD_EXT, "ext", "external outputs"},
+    {CMD_MCUT, "mcut", "get MCU T"},
+    {CMD_MCUVDD, "mcuvdd", "get MCU Vdd"},
+    {CMD_PING, "ping", "echo given command back"},
+    {CMD_PWM, "pwm", "pwm value"},
+    {CMD_RELAY, "relay", "change relay state (1/0)"},
+    {CMD_RESET, "reset", "reset MCU"},
+    {CMD_TIMEFROMSTART, "time", "get time from start"},
+    // configuration
+    {0, "", "Confuguration:"},
+    {CMD_ACCEL, "accel", "set/get accel/decel (steps/s^2)"},
+    {CMD_ENCREV, "encrev", "set/get max encoder's pulses per revolution"},
+    {CMD_ENCSTEPMAX, "encstepmax", "maximal encoder ticks per step"},
+    {CMD_ENCSTEPMIN, "encstepmin", "minimal encoder ticks per step"},
+    {CMD_ESWREACT, "eswreact", "end-switches reaction"},
+    {CMD_MAXSPEED, "maxspeed", "set/get max speed (steps per sec)"},
+    {CMD_MAXSTEPS, "maxsteps", "set/get max steps (from zero)"},
+    {CMD_MICROSTEPS, "microsteps", "set/get microsteps settings"},
+    {CMD_MINSPEED, "minspeed", "set/get min speed (steps per sec)"},
+    {CMD_MOTFLAGS, "motflags", "set/get motorN flags"},
+    {CMD_SAVECONF, "saveconf", "save current configuration"},
+    {CMD_SPEEDLIMIT, "speedlimit", "get limiting speed for current microsteps"},
+    // motors' commands
+    {0, "", "Motors' commands:"},
+    {CMD_ABSPOS, "abspos", "set/get position (in steps)"},
+    {CMD_EMERGSTOPALL, "emerg", "emergency stop all motors"},
+    {CMD_EMERGSTOP, "emstop", "emergency stop motor (right now)"},
+    {CMD_ENCPOS, "encpos", "set/get encoder's position"},
+    {CMD_GOTOZERO, "gotoz", "find zero position & refresh counters"},
+    {CMD_REINITMOTORS, "motreinit", "re-init motors after configuration changed"},
+    {CMD_RELPOS, "relpos", "set relative steps, get remaining"},
+    {CMD_RELSLOW, "relslow", "set relative steps @ lowest speed"},
+    {CMD_MOTORSTATE, "state", "get motor state"},
+    {CMD_STOP, "stop", "smooth motor stopping"},
+    // USB-only commands
+    {0, "", "USB-only commands:"},
+    {-SCMD_CANID, "canid", "get/set CAN ID"},
+    {-SCMD_CANSPEED, "canspeed", "CAN bus speed"},
+    {-SCMD_DELIGNLIST, "delignlist", "delete ignore list"},
+    {-SCMD_DFU, "dfu", "activate DFU mode"},
+    {-SCMD_DUMPCONF, "dumpconf", "dump current configuration"},
+    {-SCMD_FILTER, "filter", "add/modify filter, format: bank# FIFO# mode(M/I) num0 [num1 [num2 [num3]]]"},
+    {-SCMD_GETCTR, "getctr", "get TIM1/2/3 counters"},
+    {-SCMD_IGNBUF, "ignbuf", "print ignore buffer"},
+    {-SCMD_IGNORE, "ignore", "add ID to ignore list (max 10 IDs)"},
+    {-SCMD_LISTFILTERS, "listfilters", "list all active filters"},
+    {-SCMD_PAUSE, "pause", "pause IN packets displaying"},
+    {-SCMD_RESUME, "resume", "resume IN packets displaying"},
+    {-SCMD_SEND, "send", "send data over CAN: send ID byte0 .. byteN"},
+    //{-SCMD_ST, "st", "check steppers"},
+    {-SCMD_WD, "wd", "check watchdog"},
+    {0, NULL, NULL}
+};
+
+
+static specfpointer speccmdlist[SCMD_AMOUNT] = {
+    [SCMD_IGNORE] = addIGN,
+    [SCMD_DELIGNLIST] =  delignlist,
+    [SCMD_DFU] =  bootldr,
+    [SCMD_FILTER] =  add_filter,
+    [SCMD_CANSPEED] =  CANini,
+    [SCMD_CANID] =  canid,
+    [SCMD_LISTFILTERS] =  list_filters,
+    [SCMD_IGNBUF] =  print_ign_buf,
+    [SCMD_PAUSE] =  inpause,
+    [SCMD_RESUME] =  inresume,
+    [SCMD_SEND] =  sendCANcommand,
+    [SCMD_DUMPCONF] =  dump_userconf,
+    [SCMD_GETCTR] =  getcounter,
+    [SCMD_WD] = wdcheck,
+    //[SCMD_ST] = stp_check,
 };
 
 static void showHelp(){
     SEND("https://github.com/eddyem/stm32samples/tree/master/F0-nolib/3steppersLB build#" BUILD_NUMBER " @ " BUILD_DATE "\n");
     SEND("Common commands format is cmd[ N[ = val]]\n\twhere N is command argument (0..127), val is its value\n");
-    SEND("Common commands:\n");
-    for(int i = 0; i < CMD_AMOUNT; ++i){
-        bufputchar('\t'); SEND(cmdlist[i].command); SEND(" - ");
-        SEND(cmdlist[i].help); newline();
-    }
-    SEND("USB-only commands:\n");
-    const speccommands *cmd = scmdlist;
+    //SEND("Commands list:\n");
+    const commands *cmd = textcommands;
     while(cmd->command){
-        bufputchar('\t'); SEND(cmd->command); SEND(" - ");
+        if(*cmd->command){
+            bufputchar('\t');
+            SEND(cmd->command); /*SEND(" (");
+            if(cmd->cmd_code < 0) bufputchar('u');
+            else bufputchar('c');
+            SEND(") - ");*/
+            SEND(" - ");
+        }
         SEND(cmd->help); newline();
         ++cmd;
     }
-    NL();
+    sendbuf();
 }
 
 /**
@@ -474,7 +558,6 @@ static void showHelp(){
 void cmd_parser(char *txt){
     char cmd[32], *pcmd = cmd;
     int i = 0;
-    // first try to find command in `cmdlist`
     char *eptr = omit_spaces(txt);
     if(!*eptr) return;
     while(*eptr && i < 30){
@@ -483,59 +566,57 @@ void cmd_parser(char *txt){
         ++i;
     }
     *pcmd = 0;
+    if(cmd[0] == 0){ // empty command
+        showHelp();
+        return;
+    }
     if(eptr && *eptr){
         eptr = omit_spaces(eptr);
     }
     // find command
-    int idx = 0;
-    do{
-        if(0 == cmpstr(cmdlist[idx].command, cmd)) break;
-    }while(++idx < CMD_AMOUNT);
-    if(idx < CMD_AMOUNT){
+    const commands *c = textcommands;
+    while(c->command){
+        if(0 == cmpstr(c->command, cmd)){
 #ifdef EBUG
         SEND("Find known command: "); SEND(cmd);
         if(eptr && *eptr) SEND(", args: "); SEND(eptr);
         NL();
 #endif
-        uint8_t par = CANMESG_NOPAR;
-        int32_t val = 0;
-        if(eptr && *eptr){
-            char *nxt = getnum(eptr, &val);
-            if(nxt && nxt != eptr){ // command has parameter?
-                if(val < 0 || val >= CANMESG_NOPAR){
-                    SEND("Command parameter should be 0..126!"); NL();
-                    return;
+            if(c->cmd_code < 0){ // USB-only command
+                speccmdlist[-(c->cmd_code)](eptr);
+            }else{ // common command
+                uint8_t par = CANMESG_NOPAR;
+                int32_t val = 0;
+                if(eptr && *eptr){
+                    char *nxt = getnum(eptr, &val);
+                    if(nxt && nxt != eptr){ // command has parameter?
+                        if(val < 0 || val >= CANMESG_NOPAR){
+                            SEND("Command parameter should be 0..126!"); NL();
+                            return;
+                        }
+                        par = (uint8_t)val;
+                    }else nxt = eptr;
+                    eptr = getchr(nxt, '=');
+                    if(eptr){ // command has value?
+                        eptr = omit_spaces(eptr + 1);
+                        nxt = getnum(eptr, &val);
+                        if(nxt != eptr){
+                            par |= 0x80; // setter
+                        }
+                    }
                 }
-                par = (uint8_t)val;
-            }else nxt = eptr;
-            eptr = getchr(nxt, '=');
-            if(eptr){ // command has value?
-                eptr = omit_spaces(eptr + 1);
-                nxt = getnum(eptr, &val);
-                if(nxt != eptr){
-                    par |= 0x80; // setter
+                // here we got command & ppar/pval -> call CMD
+                errcodes retcode = cmdlist[c->cmd_code](par, &val);
+                SEND(cmd);
+                par &= 0x7f;
+                if(par != CANMESG_NOPAR) printu(par);
+                bufputchar('='); printi(val);
+                SEND(" ("); printuhex((uint32_t)val); bufputchar(')');
+                if(ERR_OK != retcode){
+                    SEND("\nERRCODE=");
+                    printu(retcode);
                 }
             }
-        }
-        // here we got command & ppar/pval -> call CMD
-        errcodes retcode = cmdlist[idx].function(par, &val);
-        SEND(cmd);
-        par &= 0x7f;
-        if(par != CANMESG_NOPAR) printu(par);
-        bufputchar('='); printi(val);
-        SEND(" ("); printuhex((uint32_t)val); bufputchar(')');
-        if(ERR_OK != retcode){
-            SEND("\nERRCODE=");
-            printu(retcode);
-        }
-        NL();
-        return;
-    }
-    /*-> find USB-only commands here and show help if not found <-*/
-    const speccommands *c = scmdlist;
-    while(c->command){
-        if(0 == cmpstr(c->command, cmd)){
-            c->function(eptr);
             NL();
             return;
         }

@@ -38,11 +38,12 @@ typedef enum{
 } stp_state;
 
 // end-switches reaction
-typedef enum{
+enum{
     ESW_IGNORE,     // don't stop @ end-switch
     ESW_ANYSTOP,    // stop @ esw in any moving direction
-    ESW_STOPMINUS   // stop only in negative moving
-} esw_react;
+    ESW_STOPMINUS,  // stop only in negative moving
+    ESW_AMOUNT      // number of records
+};
 
 // find zero stages: fast -> 0, slow -> +, slow -> 0
 
@@ -57,7 +58,12 @@ errcodes getpos(uint8_t i, int32_t *position);
 errcodes getremainsteps(uint8_t i, int32_t *position);
 errcodes motor_absmove(uint8_t i, int32_t abssteps);
 errcodes motor_relmove(uint8_t i, int32_t relsteps);
+errcodes motor_relslow(uint8_t i, int32_t relsteps);
+errcodes motor_goto0(uint8_t i);
 
+uint8_t geteswreact(uint8_t i);
+
+void emstopmotor(uint8_t i);
 void stopmotor(uint8_t i);
 stp_state getmotstate(uint8_t i);
 void process_steppers();

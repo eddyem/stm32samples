@@ -338,7 +338,7 @@ TRUE_INLINE void parseCANcommand(CAN_message *msg){
         formerr(msg, ERR_WRONGLEN);
         goto sendmessage;
     }
-    errcodes ec = cmdlist[Index].function(par, val);
+    errcodes ec = cmdlist[Index](par, val);
     if(ec != ERR_OK){
         formerr(msg, ec);
     }

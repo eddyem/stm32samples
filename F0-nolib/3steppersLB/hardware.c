@@ -87,7 +87,7 @@ static IRQn_Type motirqs[MOTORSNO] = {TIM15_IRQn, TIM14_IRQn, TIM16_IRQn};
 static void setup_mpwm(int i){
     volatile TIM_TypeDef *TIM = mottimers[i];
     TIM->CR1 = TIM_CR1_ARPE; // buffered ARR
-    TIM->PSC = MOTORTIM_PSC; // 64kHz
+    TIM->PSC = MOTORTIM_PSC; // 16MHz
     // PWM mode 1 (active -> inactive)
     TIM->CCMR1 = TIM_CCMR1_OC1M_2 | TIM_CCMR1_OC1M_1;
 #if MOTORTIM_ARRMIN < 5

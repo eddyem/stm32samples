@@ -39,7 +39,7 @@
 
 // register with flash size (in blocks)
 #ifndef FLASH_SIZE_REG
-blocksizeASH_SIZE_REG      ((uint32_t)0x1FFFF7CC)
+#define FLASH_SIZE_REG      ((uint32_t)0x1FFFF7CC)
 #endif
 
 #define FLASH_SIZE          *((uint16_t*)FLASH_SIZE_REG)

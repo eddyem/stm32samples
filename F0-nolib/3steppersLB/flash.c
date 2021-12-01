@@ -49,7 +49,7 @@ static uint32_t maxCnum = 1024 / sizeof(user_conf); // can't use blocksize here
     ,.encperstepmin = {17,17,17}            \
     ,.encperstepmax = {23,23,23}            \
     ,.motflags = {DEFMF,DEFMF,DEFMF}        \
-    ,.ESW_reaction = {ESW_ANYSTOP, ESW_ANYSTOP, ESW_ANYSTOP} \
+    ,.ESW_reaction = {ESW_IGNORE, ESW_IGNORE, ESW_IGNORE} \
     }
 static int erase_flash(const void*, const void*);
 static int write2flash(const void*, const void*, uint32_t);
@@ -217,8 +217,6 @@ void dump_userconf(_U_ char *txt){
     for(int i = 0; i < MOTORSNO; ++i){
         char cur = '0' + i;
 #define PROPNAME(nm)    do{newline(); SEND(nm); bufputchar(cur); bufputchar('=');}while(0)
-        PROPNAME("reverse");
-        bufputchar('0' + the_conf.motflags[i].reverse);
         PROPNAME("microsteps");
         printu(the_conf.microsteps[i]);
         PROPNAME("accel");
