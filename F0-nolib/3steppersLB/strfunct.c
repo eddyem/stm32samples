@@ -356,6 +356,7 @@ void canid(char *txt){
                 int32_t N;
                 if(eq != getnum(eq, &N) && N > -1 && N < 0xfff){
                     the_conf.CANID = (uint16_t)N;
+                    CAN_reinit(the_conf.CANspeed);
                     good = TRUE;
                 }
             }
@@ -396,27 +397,38 @@ void getcounter(_U_ char *txt){
 void wdcheck(_U_ char *txt){
     while(1){nop();}
 }
-/*
-void stp_check(char *txt){
-    uint8_t N = *txt - '0';
-    if(N < 3){
-        MOTOR_EN(N);
-        MOTOR_CW(N);
-        mottimers[N]->ARR = 300;
-        mottimers[N]->CR1 |= TIM_CR1_CEN;
-    }else{
-        for(N = 0; N < 3; ++N){
-            MOTOR_DIS(N);
-            MOTOR_CCW(N);
-            mottimers[N]->CR1 &= ~TIM_CR1_CEN;
-        }
-    }
-}*/
 
+typedef struct{
+    errcodes code;
+    const char *descr;
+} codetext;
+static const codetext errtxt[] = {
+    {ERR_OK,  "all OK"},
+    {ERR_BADPAR, "wrong parameter's value"},
+    {ERR_BADVAL, "wrong setter of parameter"},
+    {ERR_WRONGLEN, "bad message length"},
+    {ERR_BADCMD, "unknown command"},
+    {ERR_CANTRUN, "temporary can't run given command"},
+    {-1, NULL}
+};
+
+void dumperrcodes(_U_ char *txt){
+    const codetext *c = errtxt;
+    SEND("Error codes:\n");
+    while(c->descr){
+        printu(c->code);
+        SEND(" - ");
+        SEND(c->descr);
+        newline();
+        ++c;
+    }
+    sendbuf();
+}
 
 typedef void(*specfpointer)(char *arg);
 
 enum{
+    SCMD_NONE,  // omit zero
     SCMD_IGNORE,
     SCMD_DELIGNLIST,
     SCMD_DFU,
@@ -431,8 +443,32 @@ enum{
     SCMD_DUMPCONF,
     SCMD_GETCTR,
     SCMD_WD,
+    SCMD_DUMPERR,
+    SCMD_DUMPCMD,
     //SCMD_ST,
     SCMD_AMOUNT
+};
+
+void dumpcmdcodes(_U_ char *txt);
+
+static specfpointer speccmdlist[SCMD_AMOUNT] = {
+    [SCMD_IGNORE] = addIGN,
+    [SCMD_DELIGNLIST] =  delignlist,
+    [SCMD_DFU] =  bootldr,
+    [SCMD_FILTER] =  add_filter,
+    [SCMD_CANSPEED] =  CANini,
+    [SCMD_CANID] =  canid,
+    [SCMD_LISTFILTERS] =  list_filters,
+    [SCMD_IGNBUF] =  print_ign_buf,
+    [SCMD_PAUSE] =  inpause,
+    [SCMD_RESUME] =  inresume,
+    [SCMD_SEND] =  sendCANcommand,
+    [SCMD_DUMPCONF] =  dump_userconf,
+    [SCMD_GETCTR] =  getcounter,
+    [SCMD_WD] = wdcheck,
+    [SCMD_DUMPCMD] = dumpcmdcodes,
+    [SCMD_DUMPERR] = dumperrcodes,
+    //[SCMD_ST] = stp_check,
 };
 
 typedef struct{
@@ -440,7 +476,6 @@ typedef struct{
     const char *command;    // text command (up to 65536 commands)
     const char *help;       // help message for text protocol
 } commands;
-
 // the main commands list, index is CAN command code
 static const commands textcommands[] = {
     // different commands
@@ -489,6 +524,8 @@ static const commands textcommands[] = {
     {-SCMD_CANSPEED, "canspeed", "CAN bus speed"},
     {-SCMD_DELIGNLIST, "delignlist", "delete ignore list"},
     {-SCMD_DFU, "dfu", "activate DFU mode"},
+    {-SCMD_DUMPERR, "dumperr", "dump error codes"},
+    {-SCMD_DUMPCMD, "dumpcmd", "dump command codes"},
     {-SCMD_DUMPCONF, "dumpconf", "dump current configuration"},
     {-SCMD_FILTER, "filter", "add/modify filter, format: bank# FIFO# mode(M/I) num0 [num1 [num2 [num3]]]"},
     {-SCMD_GETCTR, "getctr", "get TIM1/2/3 counters"},
@@ -503,24 +540,39 @@ static const commands textcommands[] = {
     {0, NULL, NULL}
 };
 
+void dumpcmdcodes(_U_ char *txt){
+    SEND("Commands list:\n");
+    for(uint16_t i = 0; i < CMD_AMOUNT; ++i){
+        printu(i);
+        SEND(" - ");
+        const commands *c = textcommands;
+        while(c->command){
+            if(c->cmd_code == i && *c->command){
+                SEND(c->help); break;
+            }
+            ++c;
+        }
+        newline();
+    }
+    sendbuf();
+}
 
-static specfpointer speccmdlist[SCMD_AMOUNT] = {
-    [SCMD_IGNORE] = addIGN,
-    [SCMD_DELIGNLIST] =  delignlist,
-    [SCMD_DFU] =  bootldr,
-    [SCMD_FILTER] =  add_filter,
-    [SCMD_CANSPEED] =  CANini,
-    [SCMD_CANID] =  canid,
-    [SCMD_LISTFILTERS] =  list_filters,
-    [SCMD_IGNBUF] =  print_ign_buf,
-    [SCMD_PAUSE] =  inpause,
-    [SCMD_RESUME] =  inresume,
-    [SCMD_SEND] =  sendCANcommand,
-    [SCMD_DUMPCONF] =  dump_userconf,
-    [SCMD_GETCTR] =  getcounter,
-    [SCMD_WD] = wdcheck,
-    //[SCMD_ST] = stp_check,
-};
+/*
+void stp_check(char *txt){
+    uint8_t N = *txt - '0';
+    if(N < 3){
+        MOTOR_EN(N);
+        MOTOR_CW(N);
+        mottimers[N]->ARR = 300;
+        mottimers[N]->CR1 |= TIM_CR1_CEN;
+    }else{
+        for(N = 0; N < 3; ++N){
+            MOTOR_DIS(N);
+            MOTOR_CCW(N);
+            mottimers[N]->CR1 &= ~TIM_CR1_CEN;
+        }
+    }
+}*/
 
 static void showHelp(){
     SEND("https://github.com/eddyem/stm32samples/tree/master/F0-nolib/3steppersLB build#" BUILD_NUMBER " @ " BUILD_DATE "\n");

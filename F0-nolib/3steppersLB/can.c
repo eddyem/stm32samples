@@ -203,7 +203,7 @@ CAN_status can_send(uint8_t *msg, uint8_t len, uint16_t target_id){
         return CAN_BUSY;
     }
 #ifdef EBUG
-    DBG("Send data. Len="); printu(len);
+    DBG("Send data"); SEND("Len="); printu(len);
     SEND(", tagid="); printuhex(target_id);
     SEND(", data=");
     for(int i = 0; i < len; ++i){
@@ -254,6 +254,10 @@ static void can_process_fifo(uint8_t fifo_num){
         // CAN_RDTxR: (16-31) - timestamp, (8-15) - filter match index, (0-3) - data length
         CAN_message msg;
         uint8_t *dat = msg.data;
+        { // set all data to 0
+            uint32_t *dptr = (uint32_t*)msg.data;
+            dptr[0] = dptr[1] = 0;
+        }
         uint8_t len = box->RDTR & 0x0f;
         msg.length = len;
         msg.ID = box->RIR >> 21;
@@ -287,7 +291,7 @@ static void can_process_fifo(uint8_t fifo_num){
                     dat[0] = lb & 0xff;
             }
         }
-        if(msg.ID == OUTPID) parseCANcommand(&msg);
+        if(msg.ID == the_conf.CANID) parseCANcommand(&msg);
         if(CAN_messagebuf_push(&msg)) return; // error: buffer is full, try later
         *RFxR |= CAN_RF0R_RFOM0; // release fifo for access to next message
     }
@@ -313,14 +317,17 @@ TRUE_INLINE void parseCANcommand(CAN_message *msg){
     int N = 1000;
     // we don't check msg here as it cannot be NULL
 #ifdef EBUG
-    SEND("Get data: ");
+    DBG("Get data");
     for(int i = 0; i < msg->length; ++i){
         printuhex(msg->data[i]); bufputchar(' ');
     }
-    NL();
+    newline();
 #endif
     if(msg->length == 0) goto sendmessage; // PING
     uint16_t Index = *(uint16_t*)msg->data;
+#ifdef EBUG
+    SEND("Index = "); printu(Index); newline();
+#endif
     if(Index >= CMD_AMOUNT){
         formerr(msg, ERR_BADCMD);
         goto sendmessage;
@@ -338,12 +345,17 @@ TRUE_INLINE void parseCANcommand(CAN_message *msg){
         formerr(msg, ERR_WRONGLEN);
         goto sendmessage;
     }
+#ifdef EBUG
+    SEND("Run command\n");
+#endif
     errcodes ec = cmdlist[Index](par, val);
     if(ec != ERR_OK){
         formerr(msg, ec);
+    }else{
+        msg->length = 8;
     }
 sendmessage:
-    while(CAN_BUSY == can_send(msg->data, msg->length, OUTPID))
+    while(CAN_BUSY == can_send(msg->data, msg->length, the_conf.CANID))
         if(--N == 0) break;
 }
 

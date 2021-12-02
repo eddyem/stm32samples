@@ -77,7 +77,7 @@ int main(void){
     flashstorage_init(); // should be called before any other functions
     gpio_setup();
     USB_setup();
-    CAN_setup(DEFAULT_CAN_SPEED);
+    CAN_setup(the_conf.CANspeed);
     adc_setup();
     init_steppers();
     RCC->CSR |= RCC_CSR_RMVF; // remove reset flags
@@ -102,19 +102,17 @@ int main(void){
         process_steppers();
         IWDG->KR = IWDG_REFRESH;
         while((can_mesg = CAN_messagebuf_pop())){
-            if(can_mesg && isgood(can_mesg->ID)){
-                if(ShowMsgs){ // new data in buff
-                    IWDG->KR = IWDG_REFRESH;
-                    len = can_mesg->length;
-                    printu(Tms);
-                    SEND(" #");
-                    printuhex(can_mesg->ID);
-                    for(ctr = 0; ctr < len; ++ctr){
-                        SEND(" ");
-                        printuhex(can_mesg->data[ctr]);
-                    }
-                    newline(); sendbuf();
+            if(can_mesg && ShowMsgs && isgood(can_mesg->ID)){
+                IWDG->KR = IWDG_REFRESH;
+                len = can_mesg->length;
+                printu(Tms);
+                SEND(" #");
+                printuhex(can_mesg->ID);
+                for(ctr = 0; ctr < len; ++ctr){
+                    SEND(" ");
+                    printuhex(can_mesg->data[ctr]);
                 }
+                newline(); sendbuf();
             }
         }
         IWDG->KR = IWDG_REFRESH;

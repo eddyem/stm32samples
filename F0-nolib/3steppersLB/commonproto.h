@@ -37,12 +37,12 @@
 
 // error codes for answer message
 typedef enum{
-    ERR_OK,         // all OK
-    ERR_BADPAR,     // parameter's value is wrong
-    ERR_BADVAL,     // wrong parameter's value
-    ERR_WRONGLEN,   // wrong message length
-    ERR_BADCMD,     // unknown command
-    ERR_CANTRUN,    // can't run given command due to bad parameters or other
+    ERR_OK,         // 0 - all OK
+    ERR_BADPAR,     // 1 - parameter's value is wrong
+    ERR_BADVAL,     // 2 - wrong parameter's value
+    ERR_WRONGLEN,   // 3 - wrong message length
+    ERR_BADCMD,     // 4 - unknown command
+    ERR_CANTRUN,    // 5 - can't run given command due to bad parameters or other
 } errcodes;
 
 // pointer to function for command execution, both should be non-NULL for common cases

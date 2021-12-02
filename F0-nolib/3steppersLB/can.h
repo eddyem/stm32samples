@@ -23,9 +23,6 @@
 #include "flash.h"
 #include "hardware.h"
 
-// output messages identifier
-#define OUTPID  (the_conf.CANID)
-
 // CAN ID mask (11 bits)
 #define CANIDMASK           (0x7ff)
 

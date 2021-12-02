@@ -50,7 +50,7 @@ typedef struct{
     uint8_t encreverse : 1;     // bit1 - reversing encoder rotation TODO: configure encoder's timer to downcounting
     uint8_t haveencoder : 1;    // bit2 - have encoder
     uint8_t donthold : 1;       // bit3 - clear power @ stop (don't hold motor when stopped)
-    uint8_t eswinv : 1;         // bit4 - invers end-switches
+    uint8_t eswinv : 1;         // bit4 - inverse end-switches
     uint8_t keeppos : 1;        // bit5 - keep current position (as servo motor)
 } motflags_t;
 
