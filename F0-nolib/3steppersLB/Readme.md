@@ -127,15 +127,131 @@ Loopback control of three stepper motors
 
 # Control points
 
-- **TP1** — 5V
-- **TP2** — 3.3V
-- **TP3** — NRST
-- **TP4** — GND
+- **TP1**  5V
+- **TP2**  3.3V
+- **TP3**  NRST
+- **TP4**  GND
 
 # Firmware download
 
 Activate "Jump to DFU" menu entry through USB protocol. Flash MCU by `dfu-util`.
 
 # USB protocol
+https://github.com/eddyem/stm32samples/tree/master/F0-nolib/3steppersLB build#138 @ 2021-12-02
+Common commands format is cmd[ N[ = val]]
+        where N is command argument (0..127), val is its value
+Different commands:
+        adc - get ADC values
+        button - get buttons state
+        buzzer - change buzzer state (1/0)
+        esw - get end switches state
+        ext - external outputs
+        mcut - get MCU T
+        mcuvdd - get MCU Vdd
+        ping - echo given command back
+        pwm - pwm value
+        relay - change relay state (1/0)
+        reset - reset MCU
+        time - get time from start
+Confuguration:
+        accel - set/get accel/decel (steps/s^2)
+        encrev - set/get max encoder's pulses per revolution
+        encstepmax - maximal encoder ticks per step
+        encstepmin - minimal encoder ticks per step
+        eswreact - end-switches reaction
+        maxspeed - set/get max speed (steps per sec)
+        maxsteps - set/get max steps (from zero)
+        microsteps - set/get microsteps settings
+        minspeed - set/get min speed (steps per sec)
+        motflags - set/get motorN flags
+        saveconf - save current configuration
+        speedlimit - get limiting speed for current microsteps
+Motors' commands:
+        abspos - set/get position (in steps)
+        emerg - emergency stop all motors
+        emstop - emergency stop motor (right now)
+        encpos - set/get encoder's position
+        gotoz - find zero position & refresh counters
+        motreinit - re-init motors after configuration changed
+        relpos - set relative steps, get remaining
+        relslow - set relative steps @ lowest speed
+        state - get motor state
+        stop - smooth motor stopping
+USB-only commands:
+        canid - get/set CAN ID
+        canspeed - CAN bus speed
+        delignlist - delete ignore list
+        dfu - activate DFU mode
+        dumperr - dump error codes
+        dumpcmd - dump command codes
+        dumpconf - dump current configuration
+        filter - add/modify filter, format: bank# FIFO# mode(M/I) num0 [num1 [num2 [num3]]]
+        getctr - get TIM1/2/3 counters
+        ignbuf - print ignore buffer
+        ignore - add ID to ignore list (max 10 IDs)
+        listfilters - list all active filters
+        pause - pause IN packets displaying
+        resume - resume IN packets displaying
+        send - send data over CAN: send ID byte0 .. byteN
+        wd - check watchdog
 
 # CAN bus protocol
+
+bytes   descr
+0       Lcmd - command code
+1       Hcmd
+2       par  - command paremeter (steper, ADC channel number etc)
+3       err  - error code (only in answer)
+4       Ldata - optional data in int32_t
+5
+6
+7       Hdata
+
+dumperr
+Find known command: dumperr
+Error codes:
+0 - all OK
+1 - wrong parameter's value
+2 - wrong setter of parameter
+3 - bad message length
+4 - unknown command
+5 - temporary can't run given command
+
+
+dumpcmd
+Find known command: dumpcmd
+Commands list:
+0 - Different commands:
+1 - change relay state (1/0)
+2 - change buzzer state (1/0)
+3 - get ADC values
+4 - get buttons state
+5 - get end switches state
+6 - get MCU T
+7 - get MCU Vdd
+8 - reset MCU
+9 - get time from start
+10 - pwm value
+11 - external outputs
+12 - save current configuration
+13 - minimal encoder ticks per step
+14 - maximal encoder ticks per step
+15 - set/get microsteps settings
+16 - set/get accel/decel (steps/s^2)
+17 - set/get max speed (steps per sec)
+18 - set/get min speed (steps per sec)
+19 - get limiting speed for current microsteps
+20 - set/get max steps (from zero)
+21 - set/get max encoder's pulses per revolution
+22 - set/get motorN flags
+23 - end-switches reaction
+24 - re-init motors after configuration changed
+25 - set/get position (in steps)
+26 - set relative steps, get remaining
+27 - set relative steps @ lowest speed
+28 - emergency stop motor (right now)
+29 - smooth motor stopping
+30 - emergency stop all motors
+31 - find zero position & refresh counters
+32 - get motor state
+33 - set/get encoder's position

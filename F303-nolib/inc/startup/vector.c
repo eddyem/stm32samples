@@ -833,6 +833,14 @@ void WEAK __attribute__ ((naked)) __attribute__ ((noreturn)) reset_handler(void)
   // enable 8-byte stack alignment to comply with AAPCS
   SCB->CCR |= 0x00000200;
 
+  /* FPU settings ------------------------------------------------------------*/
+  #if (__FPU_PRESENT == 1)
+    SCB->CPACR = 0x0f << 20 ;  /* set CP10 and CP11 Full Access */
+    nop();
+    __DSB();
+    __ISB();
+  #endif
+
   // copy initialized variables data
   while ( dst < &_edata ) { *dst++ = *src++; }
 
