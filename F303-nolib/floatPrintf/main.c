@@ -20,40 +20,11 @@
 #include "hardware.h"
 #include "usart.h"
 
-//#include <arm_math.h>
-
 volatile uint32_t Tms = 0;
 
 void sys_tick_handler(void){
     ++Tms;
 }
-
-# define IEEE_754_FLOAT_MANTISSA_BITS (23)
-# define IEEE_754_FLOAT_EXPONENT_BITS (8)
-# define IEEE_754_FLOAT_SIGN_BITS     (1)
-# if (IS_BIG_ENDIAN == 1)
-    typedef union {
-        float value;
-        struct {
-            __int8_t   sign     : IEEE_754_FLOAT_SIGN_BITS;
-            __int8_t   exponent : IEEE_754_FLOAT_EXPONENT_BITS;
-            __uint32_t mantissa : IEEE_754_FLOAT_MANTISSA_BITS;
-        };
-    } IEEE_754_float;
-# else
-    typedef union {
-        float value;
-        struct {
-            __uint32_t mantissa : IEEE_754_FLOAT_MANTISSA_BITS;
-            __int8_t   exponent : IEEE_754_FLOAT_EXPONENT_BITS;
-            __int8_t   sign     : IEEE_754_FLOAT_SIGN_BITS;
-        };
-    } IEEE_754_float;
-# endif
-
-
-#define P(x)  usart_putchar(x)
-#define S(x) usart_send(x)
 
 // be careful: if pow10 would be bigger you should change str[] size!
 static const float pwr10[] = {1., 10., 100., 1000., 10000.};
@@ -132,14 +103,11 @@ int main(void){
     float x = 0.519, more = 5.123;
     while(1){
         if(Tms - ctr > 499){
-            //usart_send("ping\n");
             ctr = Tms;
             pin_toggle(GPIOB, 1 << 1 | 1 << 0); // toggle LED @ PB0
             /**/
             if((x += 0.519) > more){
-                //usart_send("MORE!\n");
                 more += 5.123;
-                //__get_FPSCR();
             }
         }
         if(bufovr){
