@@ -1,0 +1,1 @@
+Full Rx and Tx DMA, Rx DMA ends on buffer end or when '\n' received by character match interrupt.
