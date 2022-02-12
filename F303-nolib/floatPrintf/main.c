@@ -45,7 +45,7 @@ static char * float2str(float x, uint8_t prec){
         x /= 1000.f;
         pow += 3;
     }
-    while(x < 1.){
+    if(x > 0.) while(x < 1.){
         x *= 1000.f;
         pow -= 3;
     }
@@ -89,8 +89,8 @@ static char * float2str(float x, uint8_t prec){
     return s+1;
 }
 
-static const float tests[] = {-1.23456789e-37, -3.14159265e-2, -1234.56789, -1.2345678, 0.1234567, 123.456789, 1.98765e7, 2.473829e31};
-#define TESTN 8
+static const float tests[] = {-1.23456789e-37, -3.14159265e-2, -1234.56789, -1.2345678, 0., 1e-40, 0.1234567, 123.456789, 2.473829e31};
+#define TESTN 9
 
 int main(void){
     sysreset();
