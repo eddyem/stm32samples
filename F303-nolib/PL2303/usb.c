@@ -1,12 +1,10 @@
 /*
- *                                                                                                  geany_encoding=koi8-r
- * usb.c - base functions for different USB types
+ * This file is part of the pl2303 project.
+ * Copyright 2022 Edward V. Emelianov <edward.emelianoff@gmail.com>.
  *
- * Copyright 2018 Edward V. Emelianov <eddy@sao.ru, edward.emelianoff@gmail.com>
- *
- * This program is free software; you can redistribute it and/or modify
+ * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -15,10 +13,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- * MA 02110-1301, USA.
- *
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #include "usb.h"
@@ -26,6 +21,13 @@
 
 static volatile uint8_t tx_succesfull = 1;
 static volatile uint8_t rxNE = 0;
+
+static int sstrlen(const char *s){
+    if(!s) return 0;
+    int l = 0;
+    while(*s++) ++l;
+    return l;
+}
 
 // interrupt IN handler (never used?)
 static void EP1_Handler(){
@@ -51,35 +53,13 @@ static void receive_Handler(){ // EP2OUT
     USB->EPnR[2] = (epstatus & ~(USB_EPnR_CTR_RX)); // clear RX ctr
 }
 
-void USB_setup(){
-    RCC->APB1ENR |= RCC_APB1ENR_CRSEN | RCC_APB1ENR_USBEN; // enable CRS (hsi48 sync) & USB
-    RCC->CFGR3 &= ~RCC_CFGR3_USBSW; // reset USB
-    RCC->CR2 |= RCC_CR2_HSI48ON; // turn ON HSI48
-    uint32_t tmout = 16000000;
-    while(!(RCC->CR2 & RCC_CR2_HSI48RDY)){if(--tmout == 0) break;}
-    FLASH->ACR = FLASH_ACR_PRFTBE | FLASH_ACR_LATENCY;
-    CRS->CFGR &= ~CRS_CFGR_SYNCSRC;
-    CRS->CFGR |= CRS_CFGR_SYNCSRC_1; // USB SOF selected as sync source
-    CRS->CR |= CRS_CR_AUTOTRIMEN; // enable auto trim
-    CRS->CR |= CRS_CR_CEN; // enable freq counter & block CRS->CFGR as read-only
-    RCC->CFGR |= RCC_CFGR_SW;
-    // allow RESET and WKUPM interrupts
-    USB->CNTR = USB_CNTR_RESETM | USB_CNTR_WKUPM;
-    // clear flags
-    USB->ISTR = 0;
-    // and activate pullup
-    USB->BCDR |= USB_BCDR_DPPU;
-    NVIC_EnableIRQ(USB_IRQn);
-}
-
-
-static int usbwr(const uint8_t *buf, uint16_t l){
+static int usbwr(const char *buf, int l){
     uint32_t ctra = 1000000;
     while(--ctra && tx_succesfull == 0){
         IWDG->KR = IWDG_REFRESH;
     }
     tx_succesfull = 0;
-    EP_Write(3, buf, l);
+    EP_Write(3, (uint8_t*)buf, l);
     ctra = 1000000;
     while(--ctra && tx_succesfull == 0){
         IWDG->KR = IWDG_REFRESH;
@@ -88,19 +68,40 @@ static int usbwr(const uint8_t *buf, uint16_t l){
     return 0;
 }
 
-static uint8_t usbbuff[USB_TXBUFSZ-1]; // temporary buffer (63 - to prevent need of ZLP)
-static uint8_t buflen = 0; // amount of symbols in usbbuff
+static char usbbuff[USB_TXBUFSZ-1]; // temporary buffer (63 - to prevent need of ZLP)
+static int buflen = 0; // amount of symbols in usbbuff
 
 // send next up to 63 bytes of data in usbbuff
 static void send_next(){
     if(!buflen || !tx_succesfull) return;
     tx_succesfull = 0;
-    EP_Write(3, usbbuff, buflen);
+    EP_Write(3, (uint8_t*)usbbuff, buflen);
     buflen = 0;
 }
 
+// blocking sending
+static void USB_send_blk(const char *buf, int len){
+    if(!usbON || !len) return; // USB disconnected
+    if(buflen){
+        usbwr(usbbuff, buflen);
+        buflen = 0;
+    }
+    int needzlp = 0;
+    while(len){
+        if(len == USB_TXBUFSZ) needzlp = 1;
+        int s = (len > USB_TXBUFSZ) ? USB_TXBUFSZ : len;
+        if(usbwr(buf, s)) return;
+        len -= s;
+        buf += s;
+    }
+    if(needzlp){
+        usbwr(NULL, 0);
+    }
+}
+
 // unblocking sending - just fill a buffer
-void USB_send(const uint8_t *buf, uint16_t len){
+void USB_send(const char *buf){
+    int len = sstrlen(buf);
     if(!usbON || !len) return;
     if(len > USB_TXBUFSZ-1 - buflen){
         usbwr(usbbuff, buflen);
@@ -111,34 +112,6 @@ void USB_send(const uint8_t *buf, uint16_t len){
         return;
     }
     while(len--) usbbuff[buflen++] = *buf++;
-}
-
-// send zero-terminated string
-void USB_sendstr(const char *str){
-    uint16_t l = 0;
-    const char *ptr = str;
-    while(*ptr++) ++l;
-    USB_send((uint8_t*)str, l);
-}
-
-// blocking sending
-void USB_send_blk(const uint8_t *buf, uint16_t len){
-    if(!usbON || !len) return; // USB disconnected
-    if(buflen){
-        usbwr(usbbuff, buflen);
-        buflen = 0;
-    }
-    int needzlp = 0;
-    while(len){
-        if(len == USB_TXBUFSZ) needzlp = 1;
-        uint16_t s = (len > USB_TXBUFSZ) ? USB_TXBUFSZ : len;
-        if(usbwr(buf, s)) return;
-        len -= s;
-        buf += s;
-    }
-    if(needzlp){
-        usbwr(NULL, 0);
-    }
 }
 
 void usb_proc(){
@@ -168,13 +141,12 @@ void usb_proc(){
  * @param buf (i) - buffer[64] for received data
  * @return amount of received bytes
  */
-uint8_t USB_receive(uint8_t *buf){
+int USB_receive(char *buf){
     if(!usbON || !rxNE) return 0;
-    uint8_t sz = EP_Read(2, buf);
+    int sz = EP_Read(2, (uint16_t*)buf);
     uint16_t epstatus = KEEP_DTOG(USB->EPnR[2]);
     // keep stat_tx & set ACK rx
     USB->EPnR[2] = (epstatus & ~(USB_EPnR_STAT_TX)) ^ USB_EPnR_STAT_RX;
     rxNE = 0;
     return sz;
 }
-

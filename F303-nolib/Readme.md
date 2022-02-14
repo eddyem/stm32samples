@@ -8,3 +8,4 @@ Most of these samples works with [my non-solder devboard](https://github.com/edd
 - **usarts** - work with all three USARTs with Tx DMA, send to USART1 data read from other, you can send "2\n" or "3\n" to USART1 for tests of USART2/USART3
 - **floatPrintf** - work with floats, convert floating point number into a string
 - **usart1fullDMA** - USART1 Rx and Tx DMA access (Rx terminated by character match of '\n' or buffer overflow).
+- **PL2303** - emulates PL2303
