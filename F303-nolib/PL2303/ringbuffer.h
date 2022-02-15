@@ -17,17 +17,17 @@
  */
 
 #pragma once
-#ifndef PROTO_H__
-#define PROTO_H__
+#ifndef RINGBUFFER_H__
+#define RINGBUFFER_H__
 
-#include <stm32f3.h>
+#include "usbhw.h"
 
-extern uint8_t starttest;
+// ring buffer size in bytes
+#define RBSIZE      (512)
+// max reading portion size
+#define BLOCKSIZE   (USB_TXBUFSZ)
 
-const char *parse_cmd(const char *buf);
-char *omit_spaces(const char *buf);
-char *getnum(const char *buf, uint32_t *N);
-char *u2str(uint32_t val);
-char *u2hexstr(uint32_t val);
+int RB_read(char s[BLOCKSIZE]);
+void RB_write(const char *str, int l);
 
-#endif // PROTO_H__
+#endif // RINGBUFFER_H__

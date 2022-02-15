@@ -27,11 +27,14 @@ void USB_setup(){
     // setup pullup
     RCC->AHBENR |= RCC_AHBENR_GPIOAEN;
     USBPU_OFF();
-    GPIOA->MODER = (GPIOA->MODER & (~GPIO_MODER_MODER15_Msk | GPIO_MODER_MODER11_Msk | GPIO_MODER_MODER12_Msk)) |
-            GPIO_MODER_MODER11_AF | GPIO_MODER_MODER12_AF | GPIO_MODER_MODER15_O;
+    //GPIOA->MODER = (GPIOA->MODER & ~(GPIO_MODER_MODER15_Msk | GPIO_MODER_MODER11_Msk | GPIO_MODER_MODER12_Msk)) |
+    GPIOA->MODER = (GPIOA->MODER & (MODER_CLR(11) & MODER_CLR(12) & MODER_CLR(15))) |
+            (MODER_AF(11) | MODER_AF(12) | MODER_O(15));
+            //(GPIO_MODER_MODER11_AF | GPIO_MODER_MODER12_AF | GPIO_MODER_MODER15_O);
     // USB - alternate function 14 @ pins PA11/PA12
     GPIOA->AFR[1] = (GPIOA->AFR[1] & ~(GPIO_AFRH_AFRH3_Msk | GPIO_AFRH_AFRH4_Msk)) |
-            (14 << (3 * 4)) | (14 << (4 * 4));
+            //AFR1(14, 11) | AFR1(14, 12);
+            AFRf(14, 11) | AFRf(14, 12);
     RCC->APB1ENR |= RCC_APB1ENR_USBEN;
     USB->CNTR   = USB_CNTR_FRES; // Force USB Reset
     for(uint32_t ctr = 0; ctr < 72000; ++ctr) nop(); // wait >1ms

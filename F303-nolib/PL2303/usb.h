@@ -24,7 +24,10 @@
 
 #define BUFFSIZE   (64)
 
+extern volatile uint32_t Tlast;
+
 void usb_proc();
+void send_next();
 void USB_send(const char *buf);
 int USB_receive(char *buf);
 

@@ -19,6 +19,9 @@
 #include "proto.h"
 #include "usart.h"
 #include "usb.h"
+
+uint8_t starttest = 50;
+
 char *omit_spaces(const char *buf){
     while(*buf){
         if(*buf > ' ') break;
@@ -154,6 +157,8 @@ const char* helpmsg =
     "'p' - toggle USB pullup\n"
     "'N' - read number (dec, 0xhex, 0oct, bbin) and show it in decimal\n"
     "'R' - software reset\n"
+    "'T' - test usb sending a very large message\n"
+    "'U' - get USB status\n"
     "'W' - test watchdog\n"
 ;
 
@@ -168,6 +173,7 @@ static void add2buf(const char *s){
     *bptr = 0;
 }
 
+extern uint8_t usbON;
 const char *parse_cmd(const char *buf){
     initbuf();
     if(buf[1] == '\n' || !buf[1]){ // one symbol commands
@@ -189,6 +195,17 @@ const char *parse_cmd(const char *buf){
                 USB_send("Soft reset\n");
                 usart_send("Soft reset\n");
                 NVIC_SystemReset();
+            break;
+            case 'T':
+                add2buf("STARTT=");
+                add2buf(u2str(Tms)); add2buf("\n");
+                starttest = 10;
+            break;
+            case 'U':
+                add2buf("USB status: ");
+                if(usbON) add2buf("ON");
+                else add2buf("OFF");
+                add2buf("\n");
             break;
             case 'W':
                 USB_send("Wait for reboot\n");
