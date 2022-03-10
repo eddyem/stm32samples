@@ -1,0 +1,1 @@
+/home/eddy/Yandex.Disk/Projects/mytakepic/.hg/wcache/checklink-target

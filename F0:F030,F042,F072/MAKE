@@ -1,0 +1,1 @@
+LDFLAGS     += -Wl,-Map=$(OBJDIR)/$(BINARY).map -Wl,--print-memory-usage
