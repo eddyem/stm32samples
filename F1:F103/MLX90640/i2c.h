@@ -29,12 +29,22 @@ typedef enum{
 	I2C_HWPROBLEM,
 } i2c_status;
 
-void i2c_setup();
+typedef enum{
+    I2C_DMA_NOTINIT,
+    I2C_DMA_RELAX,
+    I2C_DMA_BUSY,
+    I2C_DMA_READY
+} i2c_dma_status;
+
+extern volatile i2c_dma_status i2cDMAr;
+
+void i2c_setup(uint8_t withDMA);
 void i2c_set_addr7(uint8_t addr);
 i2c_status i2c_7bit_send(const uint8_t *data, int datalen, uint8_t stop);
 i2c_status i2c_7bit_receive_onebyte(uint8_t *data, uint8_t stop);
 i2c_status i2c_7bit_receive_twobytes(uint8_t *data);
 i2c_status i2c_7bit_receive(uint8_t *data, uint16_t nbytes);
+i2c_status i2c_7bit_receive_DMA(uint8_t *data, uint16_t nbytes);
 
 #define I2C_H__
 #endif // I2C_H__

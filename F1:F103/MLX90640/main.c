@@ -43,10 +43,10 @@ int main(void){
     USB_setup();
     iwdg_setup();
     USBPU_ON();
-    i2c_setup();
+    i2c_setup(TRUE);
     i2c_set_addr7(MLX_DEFAULT_ADDR);
 
-    while (1){
+    while(1){
         IWDG->KR = IWDG_REFRESH; // refresh watchdog
         if(lastT > Tms || Tms - lastT > 499){
             LED_blink(LED0);
@@ -62,6 +62,7 @@ int main(void){
                 NL();
             }
         }
+        mlx90640_process();
     }
     return 0;
 }

@@ -24,8 +24,10 @@
 // default I2C address
 #define MLX_DEFAULT_ADDR    (0x33)
 
+void mlx90640_process();
 int read_reg(uint16_t reg, uint16_t *val);
 int write_reg(uint16_t reg, uint16_t val);
 int read_data(uint16_t reg, uint16_t *data, int N);
+int read_data_dma(uint16_t reg, int N);
 
 #endif // MLX90640__

@@ -22,13 +22,28 @@
 
 extern volatile uint32_t Tms;
 
+volatile i2c_dma_status i2cDMAr = I2C_DMA_NOTINIT;
+
 // current addresses for read/write (should be set with i2c_set_addr7)
 static uint8_t addr7r = 0, addr7w = 0;
 
+// setup DMA receiver
+static void i2c_DMAr_setup(){
+    /* Enable the peripheral clock DMA1 */
+    RCC->AHBENR |= RCC_AHBENR_DMA1EN;
+    DMA1_Channel7->CPAR = (uint32_t)&(I2C1->DR);
+    DMA1_Channel7->CCR |= DMA_CCR_MINC | DMA_CCR_TCIE;
+    NVIC_SetPriority(DMA1_Channel7_IRQn, 0);
+    NVIC_EnableIRQ(DMA1_Channel7_IRQn);
+    I2C1->CR2 |= I2C_CR2_DMAEN;
+    i2cDMAr = I2C_DMA_RELAX;
+}
+
 /*
  * PB10/PB6 - I2C_SCL, PB11/PB7 - I2C_SDA or remap @ PB8 & PB9
+ * @param withDMA == 1 to setup DMA receiver too
  */
-void i2c_setup(){
+void i2c_setup(uint8_t withDMA){
     I2C1->CR1 = 0;
     I2C1->SR1 = 0;
     RCC->APB2ENR |= RCC_APB2ENR_IOPBEN;
@@ -39,6 +54,7 @@ void i2c_setup(){
     I2C1->TRISE = 9; // (9-1)*125 = 1mks
     I2C1->CCR = 40; // normal mode, 8MHz/2/40 = 100kHz
     I2C1->CR1 |= I2C_CR1_PE; // enable periph
+    if(withDMA) i2c_DMAr_setup();
 }
 
 void i2c_set_addr7(uint8_t addr){
@@ -59,7 +75,7 @@ void i2c_set_addr7(uint8_t addr){
 // start writing
 static i2c_status i2c_7bit_startw(){
     i2c_status ret = I2C_LINEBUSY;
-    if(I2C1->CR1 != I2C_CR1_PE) i2c_setup();
+    if(I2C1->CR1 != I2C_CR1_PE) i2c_setup(i2cDMAr != I2C_DMA_NOTINIT);
     if(I2C1->SR1) I2C1->SR1 = 0; // clear NACK and other problems
     (void) I2C1->SR2;
     I2C_LINEWAIT();
@@ -158,7 +174,8 @@ eotr:
 // receive any amount of bytes
 i2c_status i2c_7bit_receive(uint8_t *data, uint16_t nbytes){
     if(nbytes == 0) return I2C_HWPROBLEM;
-    I2C_LINEWAIT();
+    //DBG("linew");
+    //I2C_LINEWAIT();
     I2C1->SR1 = 0; // clear previous NACK flag & other error flags
     if(nbytes == 1) return i2c_7bit_receive_onebyte(data, 1);
     else if(nbytes == 2) return i2c_7bit_receive_twobytes(data);
@@ -197,4 +214,46 @@ i2c_status i2c_7bit_receive(uint8_t *data, uint16_t nbytes){
     ret = I2C_OK;
 eotr:
     return ret;
+}
+
+/**
+ * @brief i2c_7bit_receive_DMA - receive data using DMA
+ * @param data    - pointer to external array
+ * @param nbytes  - data len
+ * @return I2C_OK when receiving started; poll end of receiving by flag i2cDMAr;
+ */
+i2c_status i2c_7bit_receive_DMA(uint8_t *data, uint16_t nbytes){
+    if(i2cDMAr == I2C_DMA_BUSY) return I2C_LINEBUSY; // previous receiving still works
+    if(i2cDMAr == I2C_DMA_NOTINIT) i2c_DMAr_setup();
+    i2c_status ret = I2C_LINEBUSY;
+    DBG("Conf DMA");
+    DMA1_Channel7->CCR &= ~DMA_CCR_EN;
+    DMA1_Channel7->CMAR = (uint32_t)data;
+    DMA1_Channel7->CNDTR = nbytes;
+    // now send address and start I2C receiving
+    //DBG("linew");
+    //I2C_LINEWAIT();
+    I2C1->SR1 = 0;
+    I2C1->CR1 |= I2C_CR1_START | I2C_CR1_ACK;
+    DBG("wait sb");
+    I2C_WAIT(I2C1->SR1 & I2C_SR1_SB);
+    (void) I2C1->SR1;
+    I2C1->DR = addr7r;
+    DBG("wait addr");
+    I2C_WAIT(I2C1->SR1 & I2C_SR1_ADDR);
+    if(I2C1->SR1 & I2C_SR1_AF) return I2C_NACK;
+    (void) I2C1->SR2;
+    DBG("start");
+    DMA1_Channel7->CCR |= DMA_CCR_EN;
+    i2cDMAr = I2C_DMA_BUSY;
+    ret = I2C_OK;
+eotr:
+    return ret;
+}
+
+void dma1_channel7_isr(){
+    I2C1->CR1 |= I2C_CR1_STOP; // send STOP
+    DMA1->IFCR = DMA_IFCR_CTCIF7;
+    DMA1_Channel7->CCR &= ~DMA_CCR_EN;
+    i2cDMAr = I2C_DMA_READY;
 }

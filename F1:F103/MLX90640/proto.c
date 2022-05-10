@@ -23,10 +23,12 @@
 #include "usb.h"
 #include "version.inc"
 
+#define D16LEN  (256)
+
 const char *parse_cmd(char *buf){
     int32_t Num = 0;
     uint16_t r, d;
-    uint16_t data[256];
+    uint16_t data[D16LEN];
     char *ptr;
     switch(*buf++){
         case 'a':
@@ -37,6 +39,16 @@ const char *parse_cmd(char *buf){
             }else return "Wrong address";
         break;
         case 'd':
+            if(buf != (ptr = getnum(buf, &Num))){
+                r = Num;
+                if(ptr != getnum(ptr, &Num)){
+                    if(Num < 1) return "N>0";
+                    if(!read_data_dma(r, Num)) return("Can't read");
+                    else return "OK";
+                }else return "Need amount";
+            }else return "Need reg";
+        break;
+        case 'g':
             if(buf != (ptr = getnum(buf, &Num))){
                 r = Num;
                 if(ptr != getnum(ptr, &Num)){
@@ -58,6 +70,10 @@ const char *parse_cmd(char *buf){
                 }else return "Need amount";
             }else return "Need reg";
         break;
+        case 'I':
+            i2c_setup(TRUE);
+            return "I2C restarted";
+        break;
         case 'r':
             if(buf != (ptr = getnum(buf, &Num))){
                 if(read_reg(Num, &d)){
@@ -74,17 +90,31 @@ const char *parse_cmd(char *buf){
             if(buf == (ptr = getnum(buf, &Num))) return "Need register";
             r = Num;
             if(ptr == getnum(ptr, &Num)) return "Need data";
-            if(write_reg(r, d)) return "OK";
+            if(write_reg(r, Num)) return "OK";
             else return "Failed";
+        break;
+        case 'W':
+            r = 0;
+            while(r < D16LEN){
+                if(buf == (ptr = getnum(buf, &Num))) break;
+                data[r++] = ((Num & 0xff) << 8) | (Num >> 8);
+                buf = ptr + 1;
+            }
+            if(r == 0) return "Need at least one uint8_t";
+            if(I2C_OK == i2c_7bit_send((uint8_t*)data, r*2, 1)) return "Sent\n";
+            else return "Error\n";
         break;
         default: // help
             addtobuf(
             "MLX90640 build #" BUILD_NUMBER " @" BUILD_DATE "\n\n"
             "'a addr' - change MLX I2C address to `addr`\n"
-            "'d reg N' - read N (<256) registers starting from `reg`"
+            "'d reg N' - read  registers starting from `reg` using DMA\n"
+            "'g reg N' - read N (<256) registers starting from `reg`\n"
+            "'I' - restart I2C\n"
             "'r reg' - read `reg`\n"
             "'R' - software reset\n"
             "'w reg dword' - write `dword` to `reg`\n"
+            "'W d0 d1 ...' - write N (<256) 16-bit words directly to I2C\n"
             );
             NL();
             return NULL;

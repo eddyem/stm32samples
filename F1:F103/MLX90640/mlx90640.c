@@ -20,6 +20,9 @@
 #include "mlx90640.h"
 #include "strfunct.h"
 
+static uint8_t dataarray[1536];
+static int portionlen = 0;
+
 // read register value
 int read_reg(uint16_t reg, uint16_t *val){
     uint8_t _2bytes[2];
@@ -62,4 +65,33 @@ int write_reg(uint16_t reg, uint16_t val){
     _4bytes[3] = val & 0xff;
     if(I2C_OK != i2c_7bit_send(_4bytes, 4, 1)) return 0;
     return 1;
+}
+
+int read_data_dma(uint16_t reg, int N){
+    if(N < 1) return 0;
+    uint8_t _2bytes[2];
+    _2bytes[0] = reg >> 8; // big endian!
+    _2bytes[1] = reg & 0xff;
+    portionlen = N;
+    if(I2C_OK != i2c_7bit_send(_2bytes, 2, 0)){
+        DBG("DMA: can't send address");
+        return 0;
+    }
+    if(I2C_OK != i2c_7bit_receive_DMA(dataarray, N*2)) return 0;
+    return 1;
+}
+
+void mlx90640_process(){
+    if(i2cDMAr == I2C_DMA_READY){
+        i2cDMAr = I2C_DMA_RELAX;
+        uint8_t *ptr = dataarray;
+        for(uint16_t i = 0; i < portionlen; ++i, ptr += 2){
+            printu(i);
+            addtobuf(" ");
+            uint16_t d = (ptr[0] << 8) | ptr[1];
+            printuhex(d);
+            newline();
+        }
+        sendbuf();
+    }
 }
