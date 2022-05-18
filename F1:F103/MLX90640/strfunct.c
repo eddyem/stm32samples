@@ -44,7 +44,7 @@ char *get_USB(){
 }
 
 static char buff[OBUFSZ+1], *bptr = buff;
-static uint8_t blen = 0;
+static uint16_t blen = 0;
 
 void sendbuf(){
     if(blen == 0) return;
@@ -63,6 +63,7 @@ void bufputchar(char ch){
 }
 
 void addtobuf(const char *txt){
+    if(!txt) return;
     while(*txt) bufputchar(*txt++);
 }
 
@@ -190,4 +191,86 @@ char *getnum(char *txt, int32_t *N){
         if(txt[1] == 'b' || txt[1] == 'B') return getbin(txt+2, N);
     }
     return getdec(txt, N);
+}
+
+// be careful: if pow10 would be bigger you should change str[] size!
+static const float pwr10[] = {1., 10., 100., 1000., 10000.};
+static const float rounds[] = {0.5, 0.05, 0.005, 0.0005, 0.00005};
+#define P10L  (sizeof(pwr10)/sizeof(uint32_t) - 1)
+void float2str(float x, uint8_t prec){
+    if(prec > P10L) prec = P10L;
+    static char str[16] = {0}; // -117.5494E-36\0 - 14 symbols max!
+    uint32_t *u = (uint32_t*)&x;
+   /* if(*u && (*u == (*u & DENORM))){
+        SEND("DENORM"); return;
+    }*/
+    switch(*u){
+        case INF:
+            SEND("INF");
+            return;
+        break;
+        case MINF:
+            SEND("-INF");
+            return;
+        break;
+        case NAN:
+            SEND("NAN");
+            return;
+        default:
+        break;
+    }
+    char *s = str + 14; // go to end of buffer
+    uint8_t minus = 0;
+    if(x < 0){
+        x = -x;
+        minus = 1;
+    }
+    int pow = 0; // xxxEpow
+    // now convert float to 1.xxxE3y
+    while(x > 1000.f){
+        x /= 1000.f;
+        pow += 3;
+    }
+    if(x > 0.) while(x < 1.){
+        x *= 1000.f;
+        pow -= 3;
+    }
+    // print Eyy
+    if(pow){
+        uint8_t m = 0;
+        if(pow < 0){pow = -pow; m = 1;}
+        while(pow){
+            register int p10 = pow/10;
+            *s-- = '0' + (pow - 10*p10);
+            pow = p10;
+        }
+        if(m) *s-- = '-';
+        *s-- = 'E';
+    }
+    // now our number is in [1, 1000]
+    uint32_t units;
+    if(prec){
+        units = (uint32_t) x;
+        uint32_t decimals = (uint32_t)((x-units+rounds[prec])*pwr10[prec]);
+        // print decimals
+        while(prec){
+            register int d10 = decimals / 10;
+            *s-- = '0' + (decimals - 10*d10);
+            decimals = d10;
+            --prec;
+        }
+        // decimal point
+        *s-- = '.';
+    }else{ // without decimal part
+        units = (uint32_t) (x + 0.5f);
+    }
+    // print main units
+    if(units == 0) *s-- = '0';
+    else while(units){
+        register uint32_t u10 = units / 10;
+        *s-- = '0' + (units - 10*u10);
+        units = u10;
+    }
+    if(minus) *s-- = '-';
+    addtobuf(s+1);
 }

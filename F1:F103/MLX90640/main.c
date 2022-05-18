@@ -41,7 +41,9 @@ int main(void){
 
     USBPU_OFF();
     USB_setup();
+#ifndef EBUG
     iwdg_setup();
+#endif
     USBPU_ON();
     i2c_setup(TRUE);
     i2c_set_addr7(MLX_DEFAULT_ADDR);

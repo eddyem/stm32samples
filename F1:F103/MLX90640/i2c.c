@@ -18,6 +18,11 @@
 
 #include "hardware.h"
 #include "i2c.h"
+/* don't run debugging info */
+#ifdef EBUG
+#undef EBUG
+#endif
+
 #include "strfunct.h"
 
 extern volatile uint32_t Tms;

@@ -22,6 +22,19 @@
 
 #include "stm32f1.h"
 
+#ifndef DENORM
+#define DENORM  (0x007FFFFF)
+#endif
+#ifndef NAN
+#define NAN     (0x7FC00000)
+#endif
+#ifndef INF
+#define INF     (0x7F800000)
+#endif
+#ifndef MINF
+#define MINF    (0xFF800000)
+#endif
+
 #define OBUFSZ      (64)
 #define IBUFSZ      (256)
 
@@ -49,5 +62,6 @@ void printuhex(uint32_t val);
 void sendbuf();
 char *omit_spaces(char *buf);
 char *getnum(char *buf, int32_t *N);
+void float2str(float x, uint8_t prec);
 
 #endif // STRFUNCT_H__

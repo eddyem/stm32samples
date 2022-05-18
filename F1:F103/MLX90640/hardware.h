@@ -29,8 +29,13 @@
 // USB pullup (not present in bluepill, should be soldered) - PA15
 #define USBPU_port  GPIOA
 #define USBPU_pin   (1<<15)
+#define MLXPOW_port GPIOB
+#define MLXPOW_pin  (1<<5)
 #define USBPU_ON()  pin_set(USBPU_port, USBPU_pin)
 #define USBPU_OFF() pin_clear(USBPU_port, USBPU_pin)
+#define MLXPOW_ON() pin_set(MLXPOW_port, MLXPOW_pin)
+#define MLXPOW_OFF() pin_clear(MLXPOW_port, MLXPOW_pin)
+#define MLXPOW_VAL() pin_read(MLXPOW_port, MLXPOW_pin)
 
 #define LED_blink(x)    pin_toggle(x ## _port, x ## _pin)
 #define LED_on(x)       pin_clear(x ## _port, x ## _pin)
