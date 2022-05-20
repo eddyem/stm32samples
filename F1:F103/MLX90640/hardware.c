@@ -28,8 +28,9 @@ static inline void gpio_setup(){
     GPIOC->CRH |= CRH(13, CNF_ODOUTPUT | MODE_SLOW);
     // USB pullup (PA15) - pushpull output
     GPIOA->CRH = CRH(15, CNF_PPOUTPUT | MODE_SLOW);
-    // PB5 is powered MLX sensor (less than 23mA) - pushpull output
-    GPIOB->CRL = CRL(5, CNF_PPOUTPUT | MODE_SLOW);
+    // PB5 is powered MLX sensor (less than 23mA) - OD output
+    MLXPOW_OFF();
+    GPIOB->CRL = CRL(5, CNF_ODOUTPUT | MODE_SLOW);
 }
 
 void hw_setup(){

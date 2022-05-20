@@ -31,7 +31,9 @@
 #define MLX_POWON_WAIT      2000
 
 // amount of pixels
-#define MLX_PIXNO           (24*32)
+#define MLX_W               (32)
+#define MLX_H               (24)
+#define MLX_PIXNO           (MLX_W*MLX_H)
 // pixels + service data
 #define MLX_PIXARRSZ        (MLX_PIXNO + 64)
 
@@ -48,10 +50,10 @@ typedef struct{
     float cpKta;    // K_Ta_CP
     float KsTa;
     float CT[3]; // range borders (0, 160, 320 degrC?)
-    float ksTo[4]; // K_S_To for each range
+    float ksTo[4]; // K_S_To for each range * 273.15
     float alphacorr[4]; // Alpha_corr for each range
     float alpha[MLX_PIXNO]; // full - with alpha_scale
-    int16_t offset[MLX_PIXNO];
+    float offset[MLX_PIXNO];
     float kta[MLX_PIXNO]; // full K_ta - with scale1&2
     float kv[4];  // full - with scale; 0 - odd row, odd col; 1 - odd row even col; 2 - even row, odd col; 3 - even row, even col
     float cpAlpha[2];   // alpha_CP_subpage 0 and 1
@@ -85,7 +87,7 @@ extern float mlx_image[MLX_PIXNO];
 
 int read_reg(uint16_t reg, uint16_t *val);
 int write_reg(uint16_t reg, uint16_t val);
-int read_data(uint16_t reg, uint16_t *data, int N);
+uint16_t *read_data(uint16_t reg, uint16_t *N);
 int read_data_dma(uint16_t reg, int N);
 void mlx90640_process();
 int mlx90640_take_image(uint8_t simple);

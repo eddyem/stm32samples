@@ -74,7 +74,7 @@ LDFLAGS		+= -T$(LDSCRIPT)
 
 ###############################################################################
 # Used libraries
-LDLIBS		+=  -lc $(shell $(CC) $(CFLAGS) -print-libgcc-file-name)
+LDLIBS		+= -lm -lc $(shell $(CC) $(CFLAGS) -print-libgcc-file-name)
 
 DEFS		+= -DSTM32$(FAMILY) -DSTM32$(MCU) -DSTM32F10X_$(DENSITY)
 

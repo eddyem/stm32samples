@@ -16,6 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <math.h>
 #include "hardware.h"
 #include "i2c.h"
 #include "mlx90640.h"
@@ -70,14 +71,27 @@ int read_reg(uint16_t reg, uint16_t *val){
 }
 
 // blocking read N uint16_t values starting from `reg`
-// @return N of registers read
-int read_data(uint16_t reg, uint16_t *data, int N){
-    if(N < 1 ) return 0;
-    int i;
-    for(i = 0; i < N; ++i){
-        if(!read_reg(reg+i, data++)) break;
+// @param reg - register to read
+// @param N (io) - amount of bytes to read / bytes read
+// @return `dataarray` or NULL if failed
+uint16_t *read_data(uint16_t reg, uint16_t *N){
+    uint16_t n = *N;
+    if(n < 1 || n > MLX_DMA_MAXLEN) return NULL;
+    uint16_t i, *data = dataarray;
+#ifdef EBUG
+    SEND("Tms="); printu(Tms); newline();
+#endif
+    for(i = 0; i < n; ++i){
+        if(!read_reg(reg++, data++)){
+            DBG("can't read");
+            break;
+        }
     }
-    return i;
+#ifdef EBUG
+    SEND("Tms="); printu(Tms); newline();
+#endif
+    *N = i;
+    return dataarray;
 }
 
 // write register value
@@ -146,7 +160,7 @@ static int get_parameters(){
     SEND("0 Tms="); printu(Tms); newline();
 #endif
     int8_t i8;
-    int16_t i16, *pi16;
+    int16_t i16;
     uint16_t *pu16;
     uint16_t val = CREG_VAL(REG_VDD);
     i8 = (int8_t) (val >> 8);
@@ -169,14 +183,14 @@ static int get_parameters(){
 #ifdef EBUG
     SEND("1 Tms="); printu(Tms); newline();
 #endif
-    int8_t occRow[24];
-    int8_t occColumn[32];
-    occacc(occRow, 24, &CREG_VAL(REG_OCCROW14));
-    occacc(occColumn, 32, &CREG_VAL(REG_OCCCOL14));
-    int8_t accRow[24];
-    int8_t accColumn[32];
-    occacc(accRow, 24, &CREG_VAL(REG_ACCROW14));
-    occacc(accColumn, 32, &CREG_VAL(REG_ACCCOL14));
+    int8_t occRow[MLX_H];
+    int8_t occColumn[MLX_W];
+    occacc(occRow, MLX_H, &CREG_VAL(REG_OCCROW14));
+    occacc(occColumn, MLX_W, &CREG_VAL(REG_OCCCOL14));
+    int8_t accRow[MLX_H];
+    int8_t accColumn[MLX_W];
+    occacc(accRow, MLX_H, &CREG_VAL(REG_ACCROW14));
+    occacc(accColumn, MLX_W, &CREG_VAL(REG_ACCCOL14));
     val = CREG_VAL(REG_APTATOCCS);
     // need to do multiplication instead of bitshift, so:
     float occRemScale = 1<<(val&0x0F),
@@ -205,31 +219,28 @@ static int get_parameters(){
     float accRowScale = 1<<((val & 0x0f00)>>8),
           accColumnScale = 1<<((val & 0x00f0)>>4),
           accRemScale = 1<<(val & 0x0f);
-    pi16 = params.offset;
     pu16 = &CREG_VAL(REG_OFFAK1);
-    float *fp = params.kta;
+    float *kta = params.kta, *offset = params.offset;
 #ifdef EBUG
     SEND("2 Tms="); printu(Tms); newline();
 #endif
-    for(int row = 0; row < 24; ++row){
+    for(int row = 0; row < MLX_H; ++row){
         int idx = (row&1)<<1;
-        for(int col = 0; col < 32; ++col){
+        for(int col = 0; col < MLX_W; ++col){
             // offset
             register uint16_t rv = *pu16++;
             i16 = (rv & 0xFC00) >> 10;
             if(i16 > 0x1F) i16 -= 0x40;
-            register float oft = (float)offavg + occRow[row]*occRowScale + occColumn[col]*occColumnScale + i16*occRemScale;
-            *pi16++ = (int16_t)oft;
+            *offset++ = (float)offavg + (float)occRow[row]*occRowScale + (float)occColumn[col]*occColumnScale + (float)i16*occRemScale;
             // kta
             i16 = (rv & 0xF) >> 1;
             if(i16  > 0x03) i16 -= 0x08;
-            *fp++ = (ktaavg[idx|(col&1)] + i16*mul) / div;
+            *kta++ = (ktaavg[idx|(col&1)] + i16*mul) / div;
             // alpha
             i16 = (rv & 0x3F0) >> 4;
             if(i16 > 0x1F) i16 -= 0x40;
-            oft = (float)a_r + accRow[row]*accRowScale + accColumn[col]*accColumnScale +i16*accRemScale;
+            float oft = (float)a_r + accRow[row]*accRowScale + accColumn[col]*accColumnScale +i16*accRemScale;
             *a++ = oft / diva;
-            //*a++ /= diva;
         }
     }
 #ifdef EBUG
@@ -280,14 +291,14 @@ static int get_parameters(){
     div = 1<<((CREG_VAL(REG_CT34) & 0x0F) + 8); // kstoscale
     val = CREG_VAL(REG_KSTO12);
     i8 = (int8_t)(val & 0xFF);
-    params.ksTo[0] = (float)i8 / div;
+    params.ksTo[0] = 273.15f * i8 / div;
     i8 = (int8_t)(val >> 8);
-    params.ksTo[1] = (float)i8 / div;
+    params.ksTo[1] = 273.15f * i8 / div;
     val = CREG_VAL(REG_KSTO34);
     i8 = (int8_t)(val & 0xFF);
-    params.ksTo[2] = (float)i8 / div;
+    params.ksTo[2] = 273.15f * i8 / div;
     i8 = (int8_t)(val >> 8);
-    params.ksTo[3] = (float)i8 / div;
+    params.ksTo[3] = 273.15f * i8 / div;
     params.CT[0] = 0.f; // 0degr - between ranges 1 and 2
     val = CREG_VAL(REG_CT34);
     mul = ((val & 0x3000)>>12)*10.f; // step
@@ -305,57 +316,82 @@ static int get_parameters(){
     return TRUE;
 }
 
-
-// calculate Vsup, Tamb, gain, off, Vdd, Ta
-static void stage1(){
-    int16_t i16a = (int16_t)IMD_VAL(REG_IVDDPIX);
-    float dvdd = i16a - params.vdd25;
-    dvdd = dvdd / params.kVdd;
-    float vdd = dvdd + 3.3f;
-    SEND("Vd="); float2str(vdd, 2); newline();
-    i16a = (int16_t)IMD_VAL(REG_ITAPTAT);
-    int16_t i16b = (int16_t)IMD_VAL(REG_ITAVBE);
-    float Ta = (float)i16a / (i16a * params.alphaPTAT + i16b); // vptatart
-    Ta *= (float)(1<<18);
-    Ta = (Ta / (1 + params.KvPTAT*dvdd) - params.vPTAT25);
-    Ta = Ta / params.KtPTAT + 25.;
-    SEND("Ta="); float2str(Ta, 2); newline();
-    i16a = (int16_t)IMD_VAL(REG_IGAIN);
-    float Kgain = params.gainEE / (float)i16a;
-    SEND("Kgain="); float2str(Kgain, 2); newline();
-    ;
-    //int idx = (row&1)<<1;
-    //for(int col = 0; col < 32; ++col){
-    //    *fp++ = (ktaavg[idx|(col&1)]
-    // pix_gain = pix*Kgain
-    // pix_os = pix_gain - offset*(1+kta*(Ta-Ta0))*(1+kv*(vdd-vdd0))
-}
-
 /**
  * @brief process_subpage - calculate all parameters from `dataarray` into `mlx_image`
  */
 static void process_subpage(){
     DBG("process_subpage()");
+SEND("Tms="); printu(Tms); newline();
     SEND("subpage="); printu(subpageno); newline();
     (void)subpageno; (void)simpleimage;
-for(int i = 0; i < 32; ++i){
+for(int i = 0; i < MLX_W; ++i){
     printi((int8_t)dataarray[i]); bufputchar(' ');
 } newline();
-    stage1();
-    NL();
+SEND("072a="); printuhex(IMD_VAL(REG_IVDDPIX));
+SEND("\n0720="); printuhex(IMD_VAL(REG_ITAPTAT));
+SEND("\n0700="); printuhex(IMD_VAL(REG_ITAVBE));
+SEND("\n070a="); printuhex(IMD_VAL(REG_IGAIN)); newline();
+    int16_t i16a = (int16_t)IMD_VAL(REG_IVDDPIX);
+    float dvdd = i16a - params.vdd25;
+    dvdd = dvdd / params.kVdd;
+  SEND("Vd="); float2str(dvdd+3.3f, 2); newline();
+    i16a = (int16_t)IMD_VAL(REG_ITAPTAT);
+    int16_t i16b = (int16_t)IMD_VAL(REG_ITAVBE);
+    float dTa = (float)i16a / (i16a * params.alphaPTAT + i16b); // vptatart
+    dTa *= (float)(1<<18);
+    dTa = (dTa / (1 + params.KvPTAT*dvdd) - params.vPTAT25);
+    dTa = dTa / params.KtPTAT; // without 25degr - Ta0
+  SEND("Ta="); float2str(dTa+25., 2); newline();
+    i16a = (int16_t)IMD_VAL(REG_IGAIN);
+    float Kgain = params.gainEE / (float)i16a;
+  SEND("Kgain="); float2str(Kgain, 2); newline();
+    // now make first approximation to image
+    uint16_t pixno = 0;  // current pixel number - for indexing in parameters etc
+    for(int row = 0; row < MLX_H; ++row){
+        int idx = (row&1)<<1; // index for params.kv
+        for(int col = 0; col < MLX_W; ++col, ++pixno){
+            uint8_t sp = (row&1)^(col&1); // subpage of current pixel
+            if(sp != subpageno) continue;
+            register float curval = (float)((int16_t)dataarray[pixno]) * Kgain; // gain compensation
+            curval -= params.offset[pixno] * (1.f + params.kta[pixno]*dTa) *
+                    (1.f + params.kv[idx|(col&1)]*dvdd); // add offset
+            float IRcompens = curval; // IR_compensated
+            curval -= params.cpOffset[subpageno] * (1.f - params.cpKta * dTa) *
+                    (1.f + params.cpKv * dvdd); // CP
+            if(!simpleimage){
+                curval = IRcompens - params.tgc * curval; // IR gradient compens
+                float alphaComp = params.alpha[pixno] - params.tgc * params.cpAlpha[subpageno];
+                alphaComp /= 1.f + params.KsTa * dTa;
+                // calculate To for basic range
+                float Tar = dTa + 273.15f + 25.f;
+                Tar = Tar*Tar*Tar*Tar;
+                float ac3 = alphaComp*alphaComp*alphaComp;
+                float Sx = ac3*IRcompens + alphaComp*ac3*Tar;
+                Sx = params.KsTa * sqrt(sqrt(Sx));
+                float To = IRcompens / (alphaComp * (1.f - params.ksTo[1]) + Sx) + Tar;
+                curval = sqrt(sqrt(To)) - 273.15; // To
+                // TODO: extended
+            }
+            mlx_image[pixno] = curval;
+        }
+    }
+SEND("Tms="); printu(Tms); newline();
+NL();
 }
 
 // start image acquiring for next subpage
 static int startima(){
     DBG("startima()");
+    // write `overwrite` flag twice
     if(!write_reg(REG_CONTROL, reg_control_val[subpageno]) ||
+            !write_reg(REG_STATUS, REG_STATUS_OVWEN) ||
             !write_reg(REG_STATUS, REG_STATUS_OVWEN)) return FALSE;
     return TRUE;
 }
 
 /**
  * @brief parse_buffer - swap bytes in `dataarray` (after receiving or before transmitting data)
- */
+ *
 static void parse_buffer(){
     uint16_t *ptr = dataarray;
     DBG("parse_buffer()");
@@ -371,7 +407,7 @@ static void parse_buffer(){
 #if 0
     sendbuf();
 #endif
-}
+}*/
 
 /**
  * @brief mlx90640_process - main finite-state machine
@@ -382,13 +418,14 @@ void mlx90640_process(){
 #define chktmout() do{if(Tms - Tlast > MLX_TIMEOUT){chstate(M_ERROR); DBG("Timeout! -> M_ERROR"); }}while(0)
     static int errctr = 0;
     static uint32_t Tlast = 0;
+    uint16_t reg, N;
+    /*
     uint8_t gotdata = 0;
-    uint16_t reg;
     if(i2cDMAr == I2C_DMA_READY){ // convert received data into little-endian
         i2cDMAr = I2C_DMA_RELAX;
         parse_buffer();
         gotdata = 1;
-    }
+    }*/
     switch(mlx_state){
         case M_FIRSTSTART: // init working mode by request
             if(write_reg(REG_CONTROL, reg_control_val[0])
@@ -396,14 +433,30 @@ void mlx90640_process(){
                 SEND("REG_CTRL="); printuhex(reg); NL();
                 if(read_reg(REG_STATUS, &reg)){
                     SEND("REG_STATUS="); printuhex(reg); NL();}
-                if(read_data_dma(REG_CALIDATA, REG_CALIDATA_LEN)){
+/*
+#define PARTD  512
+                if(read_data_dma(REG_CALIDATA, PARTD)){
+                    chstate(M_READCONF);
+                    DBG("-> M_READCONF");
+                }else chkerr();
+*/
+                N = REG_CALIDATA_LEN;
+                if(read_data(REG_CALIDATA, &N)){
                     chstate(M_READCONF);
                     DBG("-> M_READCONF");
                 }else chkerr();
             }else chkerr();
         break;
         case M_READCONF:
-            if(gotdata){ // calculate calibration parameters
+            //if(gotdata){ // calculate calibration parameters
+               /* uint16_t *d = &dataarray[PARTD];
+                for(uint16_t r = REG_CALIDATA+PARTD; r < REG_CALIDATA + REG_CALIDATA_LEN; ++r){
+                    if(!read_reg(r, d++)){
+                        chstate(M_FIRSTSTART);
+                        DBG("can't read all confdata -> M_FIRSTSTART");
+                        return;
+                    }
+                }*/
                 if(get_parameters()){
                     chstate(M_RELAX);
                     DBG("-> M_RELAX");
@@ -411,16 +464,15 @@ void mlx90640_process(){
                     chstate(M_FIRSTSTART);
                     DBG("-> M_FIRSTSTART");
                 }
-            }else chktmout();
+            //}else chktmout();
         break;
         case M_STARTIMA:
-            subpageno = 0;
             if(startima()){
                 chstate(M_PROCESS);
                 DBG("-> M_PROCESS");
             }else{
                 chstate(M_ERROR);
-                DBG("can't start sp0 -> M_ERROR");
+                DBG("can't start subpage -> M_ERROR");
             }
         break;
         case M_PROCESS:
@@ -430,7 +482,15 @@ void mlx90640_process(){
                         chstate(M_ERROR);
                         DBG("wrong subpage number -> M_ERROR");
                     }else{ // all OK, run image reading
-                        if(read_data_dma(REG_IMAGEDATA, MLX_PIXARRSZ)){
+                        write_reg(REG_STATUS, 0); // clear rdy bit
+                        /*
+                        if(read_data_dma(REG_IMAGEDATA, PARTD)){
+                            chstate(M_READOUT);
+                            DBG("-> M_READOUT");
+                        }else chkerr();
+                        */
+                        N = MLX_PIXARRSZ;
+                        if(read_data(REG_IMAGEDATA, &N)){
                             chstate(M_READOUT);
                             DBG("-> M_READOUT");
                         }else chkerr();
@@ -439,21 +499,29 @@ void mlx90640_process(){
             }else chkerr();
         break;
         case M_READOUT:
-            if(gotdata){
+            //if(gotdata){
+              /*  uint16_t *d = &dataarray[PARTD];
+                for(uint16_t r = REG_IMAGEDATA+PARTD; r < REG_IMAGEDATA+MLX_PIXARRSZ; ++r){
+                    if(!read_reg(r, d++)){
+                        chstate(M_ERROR);
+                        DBG("can't read all confdata -> M_ERROR");
+                        return;
+                    }
+                }*/
                 process_subpage();
+                subpageno = !subpageno;
+                DBG("Subpage ready");
+                chstate(M_RELAX);
+                /*
                 if(++subpageno > 1){ // image ready
+                    subpageno = 0;
                     chstate(M_RELAX);
                     DBG("Image READY!");
                 }else{
-                    if(startima()){
-                        chstate(M_PROCESS);
-                        DBG("-> M_PROCESS");
-                    }else{
-                        chstate(M_ERROR);
-                        DBG("can't start sp1 -> M_ERROR");
-                    }
-                }
-            }else chktmout();
+                    chstate(M_STARTIMA);
+                    DBG("-> M_STARTIMA");
+                }*/
+            //}else chktmout();
         break;
         case M_POWERON:
             if(Tms - Tlast > MLX_POWON_WAIT){
@@ -494,12 +562,17 @@ void mlx90640_restart(){
 // @param simple ==1 for simplest image processing (without T calibration)
 int mlx90640_take_image(uint8_t simple){
     simpleimage = simple;
-    if(mlx_state != M_RELAX) return FALSE;
+    if(mlx_state == M_ERROR){
+        DBG("Restart I2C");
+        i2c_setup(i2cDMAr != I2C_DMA_NOTINIT);
+    } else if(mlx_state != M_RELAX) return FALSE;
     if(params.kVdd == 0){ // no parameters -> make first run
         mlx_state = M_FIRSTSTART;
         DBG("no params -> M_FIRSTSTART");
         return TRUE;
     }
+    //subpageno = 0;
     mlx_state = M_STARTIMA;
+    DBG("-> M_STARTIMA");
     return TRUE;
 }

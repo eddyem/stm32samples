@@ -66,13 +66,15 @@ static int usbwr(const uint8_t *buf, uint16_t l){
     while(--ctra && tx_succesfull == 0){
         IWDG->KR = IWDG_REFRESH;
     }
+    if(tx_succesfull == 0) return 1;
     tx_succesfull = 0;
     EP_Write(3, buf, l);
-    ctra = 1000000;
+  /*  ctra = 1000000;
     while(--ctra && tx_succesfull == 0){
         IWDG->KR = IWDG_REFRESH;
     }
     if(tx_succesfull == 0){usbON = 0; return 1;} // usb is OFF?
+    */
     return 0;
 }
 

@@ -23,8 +23,6 @@
 #include "usb.h"
 #include "version.inc"
 
-#define D16LEN  (256)
-
 extern uint32_t Tms;
 
 static const char* _states[M_STATES_AMOUNT] = {
@@ -51,7 +49,6 @@ static void dumpfarr(float *arr){
 }
 
 static void dumpparams(){
-    int16_t *pi16;
     SEND("\nkVdd="); printi(params.kVdd);
     SEND("\nvdd25="); printi(params.vdd25);
     SEND("\nKvPTAT="); float2str(params.KvPTAT, 4);
@@ -60,10 +57,10 @@ static void dumpparams(){
     SEND("\nalphaPTAT="); float2str(params.alphaPTAT, 2);
     SEND("\ngainEE="); printi(params.gainEE);
     SEND("\nPixel offset parameters:\n");
-    pi16 = params.offset;
+    float *offset = params.offset;
     for(int row = 0; row < 24; ++row){
         for(int col = 0; col < 32; ++col){
-            printi(*pi16++); bufputchar(' ');
+            float2str(*offset++, 2); bufputchar(' ');
         }
         newline();
     }
@@ -94,10 +91,21 @@ static void dumpparams(){
     NL();
 }
 
+static void dumpimage(){
+    float *idata = mlx_image;
+    for(int row = 0; row < MLX_H; ++row){
+        for(int col = 0; col < MLX_W; ++col, ++idata){
+            float2str(*idata,1); bufputchar(' ');
+        }
+        newline();
+    }
+    NL();
+}
+
 const char *parse_cmd(char *buf){
     int32_t Num = 0;
     uint16_t r, d;
-    uint16_t data[D16LEN];
+    uint16_t *data;
     const float pi = 3.1415927f, e = 2.7182818f;
     char *ptr, cmd = *buf++;
     switch(cmd){
@@ -112,7 +120,7 @@ const char *parse_cmd(char *buf){
             if(buf != (ptr = getnum(buf, &Num))){
                 r = Num;
                 if(ptr != getnum(ptr, &Num)){
-                    if(Num < 1) return "N>0";
+                    if(Num < 1 || Num > MLX_DMA_MAXLEN) return "0<N<=832";
                     if(!read_data_dma(r, Num)) return("Can't read");
                     else return "OK";
                 }else return "Need amount";
@@ -143,9 +151,13 @@ const char *parse_cmd(char *buf){
             if(buf != (ptr = getnum(buf, &Num))){
                 r = Num;
                 if(ptr != getnum(ptr, &Num)){
-                    if(Num < 1 || Num > 256) return "N from 0 to 256";
-                    d = read_data(r, data, Num);
-                    if(d < Num){
+                    if(Num < 1 || Num > MLX_DMA_MAXLEN) return "N from 0 to 832";
+                    uint16_t od = d = Num;
+                    if(!(data = read_data(r, &d))){
+                        SEND("Can't read\n");
+                        return NULL;
+                    }
+                    if(d != od){
                         addtobuf("Got only ");
                         printu(d);
                         addtobuf(" values\n");
@@ -190,6 +202,10 @@ const char *parse_cmd(char *buf){
             USB_sendstr("Soft reset\n");
             NVIC_SystemReset();
         break;
+        case 'S':
+            dumpimage();
+            return NULL;
+        break;
         case 'T':
             SEND("Tms="); printu(Tms); NL();
             return NULL;
@@ -201,17 +217,6 @@ const char *parse_cmd(char *buf){
             if(write_reg(r, Num)) return "OK";
             else return "Failed";
         break;
-        case 'W':
-            r = 0;
-            while(r < D16LEN){
-                if(buf == (ptr = getnum(buf, &Num))) break;
-                data[r++] = ((Num & 0xff) << 8) | (Num >> 8);
-                buf = ptr + 1;
-            }
-            if(r == 0) return "Need at least one uint8_t";
-            if(I2C_OK == i2c_7bit_send((uint8_t*)data, r*2, 1)) return "Sent\n";
-            else return "Error\n";
-        break;
         default: // help
             addtobuf(
             "MLX90640 build #" BUILD_NUMBER " @" BUILD_DATE "\n\n"
@@ -219,16 +224,16 @@ const char *parse_cmd(char *buf){
             "'d reg N' - read  registers starting from `reg` using DMA\n"
             "'Ee' - expose image: E - full, e - simple\n"
             "'f' - test float printf (0.00, 3.1, -2.72, -3.142, 2.7183, -INF, NAN)\n"
-            "'g reg N' - read N (<256) registers starting from `reg`\n"
+            "'g reg N' - read N registers starting from `reg`\n"
             "'I' - restart I2C\n"
             "'M' - MLX state\n"
             "'O' - turn On or restart MLX sensor\n"
             "'P' - dump params\n"
             "'r reg' - read `reg`\n"
             "'R' - software reset\n"
+            "'S' - show image\n"
             "'T' - get Tms\n"
             "'w reg dword' - write `dword` to `reg`\n"
-            "'W d0 d1 ...' - write N (<256) 16-bit words directly to I2C\n"
             );
             NL();
             return NULL;

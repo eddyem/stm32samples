@@ -33,9 +33,9 @@
 #define MLXPOW_pin  (1<<5)
 #define USBPU_ON()  pin_set(USBPU_port, USBPU_pin)
 #define USBPU_OFF() pin_clear(USBPU_port, USBPU_pin)
-#define MLXPOW_ON() pin_set(MLXPOW_port, MLXPOW_pin)
-#define MLXPOW_OFF() pin_clear(MLXPOW_port, MLXPOW_pin)
-#define MLXPOW_VAL() pin_read(MLXPOW_port, MLXPOW_pin)
+#define MLXPOW_ON() pin_clear(MLXPOW_port, MLXPOW_pin)
+#define MLXPOW_OFF() pin_set(MLXPOW_port, MLXPOW_pin)
+#define MLXPOW_VAL() ((MLXPOW_port->IDR & MLXPOW_pin)?0:1)
 
 #define LED_blink(x)    pin_toggle(x ## _port, x ## _pin)
 #define LED_on(x)       pin_clear(x ## _port, x ## _pin)

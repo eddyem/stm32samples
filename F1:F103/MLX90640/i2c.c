@@ -49,17 +49,22 @@ static void i2c_DMAr_setup(){
  * @param withDMA == 1 to setup DMA receiver too
  */
 void i2c_setup(uint8_t withDMA){
-    I2C1->CR1 = 0;
-    I2C1->SR1 = 0;
     RCC->APB2ENR |= RCC_APB2ENR_IOPBEN;
     GPIOB->CRL = (GPIOB->CRL & ~(GPIO_CRL_CNF6 | GPIO_CRL_CNF7)) |
             CRL(6, CNF_AFOD | MODE_NORMAL) | CRL(7, CNF_AFOD | MODE_NORMAL);
     RCC->APB1ENR |= RCC_APB1ENR_I2C1EN;
+    I2C1->CR1 = 0; // clear all previous settings
+    I2C1->SR1 = 0;
+    RCC->APB1RSTR |=  RCC_APB1RSTR_I2C1RST; // reset peripherial
+    RCC->APB1RSTR &= ~RCC_APB1RSTR_I2C1RST;
     I2C1->CR2 = 8; // FREQR=8MHz, T=125ns
-    I2C1->TRISE = 9; // (9-1)*125 = 1mks
+    //I2C1->CR2 = 10; // FREQR=10MHz, T=100ns
+    I2C1->TRISE = 9; // (9-1)*125 = 1us
+    //I2C1->TRISE = 4; // (4-1)*100 = 300ns
     I2C1->CCR = 40; // normal mode, 8MHz/2/40 = 100kHz
-    I2C1->CR1 |= I2C_CR1_PE; // enable periph
+    //I2C1->CCR = I2C_CCR_FS | 10; // fast mode, 10MHz/2/10 = 500kHz
     if(withDMA) i2c_DMAr_setup();
+    I2C1->CR1 |= I2C_CR1_PE; // enable periph
 }
 
 void i2c_set_addr7(uint8_t addr){
@@ -162,6 +167,7 @@ i2c_status i2c_7bit_receive_twobytes(uint8_t *data){
     DBG("2 ADDR");
     if(I2C1->SR1 & I2C_SR1_AF){             // NACK
         ret = I2C_NACK;
+        DBG("2 NACK");
         goto eotr;
     }
     DBG("2 ACK");
