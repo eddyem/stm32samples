@@ -70,7 +70,7 @@ static char *get_USB(){
 int main(void){
     uint8_t ctr, len;
     CAN_message *can_mesg;
-    //uint32_t oS = 0;
+    uint32_t oS = 0;
     char *txt;
     sysreset();
     SysTick_Config(6000, 1);
@@ -83,19 +83,18 @@ int main(void){
     RCC->CSR |= RCC_CSR_RMVF; // remove reset flags
     iwdg_setup();
 
-    while (1){
+    while(1){
         IWDG->KR = IWDG_REFRESH; // refresh watchdog
-       /* if(Tms - oS > 1999){
+        if(Tms - oS > 99){ // refresh USB buffer each 100ms
             oS = Tms;
-            SEND("2s"); NL();
-        }*/
+            sendbuf();
+        }
         process_keys();
         custom_buttons_process();
         IWDG->KR = IWDG_REFRESH;
         can_proc();
         if(CAN_get_status() == CAN_FIFO_OVERRUN){
             SEND("CAN bus fifo overrun occured!\n");
-            sendbuf();
         }
         IWDG->KR = IWDG_REFRESH;
         usb_proc();
@@ -112,7 +111,7 @@ int main(void){
                     SEND(" ");
                     printuhex(can_mesg->data[ctr]);
                 }
-                newline(); sendbuf();
+                newline();
             }
         }
         IWDG->KR = IWDG_REFRESH;

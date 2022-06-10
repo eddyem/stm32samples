@@ -255,3 +255,66 @@ Commands list:
 31 - find zero position & refresh counters
 32 - get motor state
 33 - set/get encoder's position
+
+dumpconf
+Find known command: dumpconf
+flashsize=64*2048=131072 
+userconf_addr=0x08006800
+userconf_idx=-1		// "index of stored conf"
+userconf_sz=68		// "magick number"
+canspeed=100		// default CAN speed
+canid=170		// identifier (0xaa)
+microsteps0=32		// microsteps amount per step
+accel0=500		// acceleration/deceleration (steps/s^2)
+maxspeed0=2000		// max motor speed (steps per second)
+minspeed0=20		// min motor speed (steps per second)
+maxsteps0=500000	// maximal amount of steps
+encperrev0=4000		// encoders' counts per revolution
+encperstepmin0=17	// min amount of encoder ticks per one step
+encperstepmax0=23	// max amount of encoder ticks per one step
+motflags0=0x3c		// motor's flags
+eswreaction0=0		// end-switches reaction (esw_react)
+microsteps1=32
+accel1=500
+maxspeed1=2000
+minspeed1=20
+maxsteps1=500000
+encperrev1=4000
+encperstepmin1=17
+encperstepmax1=23
+motflags1=0x3c
+eswreaction1=0
+microsteps2=32
+accel2=500
+maxspeed2=2000
+minspeed2=20
+maxsteps2=500000
+encperrev2=4000
+encperstepmin2=17
+encperstepmax2=23
+motflags2=0x3c
+eswreaction2=0
+
+Motor flags:
+bit0 - reversing motor rotation
+bit1 - reversing encoder rotation
+bit2 - have encoder
+bit3 - clear power @ stop (don't hold motor when stopped)
+bit4 - inverse end-switches (Work @ high level when this flag activated)
+bit5 - keep current position (as servo motor)
+
+Stepper states:
+STP_RELAX,      // 0 - no moving
+STP_ACCEL,      // 1 - start moving with acceleration
+STP_MOVE,       // 2 - moving with constant speed
+STP_MVSLOW,     // 3 - moving with slowest constant speed (end of moving)
+STP_DECEL,      // 4 - moving with deceleration
+STP_STALL,      // 5 - stalled
+STP_ERR         // 6 - wrong/error state
+
+ESW reaction:
+
+ESW_IGNORE,     // 0 - don't stop @ end-switch
+ESW_ANYSTOP,    // 1 - stop @ esw in any moving direction
+ESW_STOPMINUS,  // 2 - stop only in negative moving
+

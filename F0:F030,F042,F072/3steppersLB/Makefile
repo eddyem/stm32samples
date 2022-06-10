@@ -65,12 +65,12 @@ CFLAGS		+= -fno-common -ffunction-sections -fdata-sections
 
 ###############################################################################
 # Linker flags
-LDFLAGS		+= --static -nostartfiles
+LDFLAGS		+= --static -nostartfiles -nostdlib
+LDFLAGS		+= -Wl,--gc-sections -Wl,--print-memory-usage 
 #--specs=nano.specs
 LDFLAGS		+= -L$(LIB_DIR)
 LDFLAGS		+= -T$(LDSCRIPT)
 LDFLAGS		+= -Wl,-Map=$(OBJDIR)/$(BINARY).map
-LDFLAGS		+= -Wl,--gc-sections
 
 ###############################################################################
 # Used libraries
@@ -113,7 +113,7 @@ $(VERSION_FILE): *.[ch]
 $(OBJDIR)/strfunct.o: strfunct.c $(VERSION_FILE)
 
 $(OBJDIR)/%.o: %.c 
-	@make $(VERSION_FILE)
+#	@make $(VERSION_FILE)
 	@echo "  CC      $<"
 	$(CC) $(CFLAGS) $(DEFS) $(INCLUDE) $(ARCH_FLAGS) -o $@ -c $<
 

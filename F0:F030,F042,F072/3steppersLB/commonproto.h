@@ -52,7 +52,8 @@ typedef enum{
 typedef errcodes (*fpointer)(uint8_t par, int32_t *val);
 
 enum{
-     CMD_PING               // ping device
+     CMD_NONE               // omit zero
+    ,CMD_PING               // ping device
     ,CMD_RELAY              // relay on/off
     ,CMD_BUZZER             // buzzer on/off
     ,CMD_ADC                // ADC ch#
@@ -86,6 +87,7 @@ enum{
     ,CMD_GOTOZERO           // go to zero's ESW
     ,CMD_MOTORSTATE         // motor state
     ,CMD_ENCPOS             // position of encoder (independing on settings)
+    ,CMD_SETPOS             // set motor position
     //,CMD_STOPDECEL
     //,CMD_FINDZERO
     // should be the last:

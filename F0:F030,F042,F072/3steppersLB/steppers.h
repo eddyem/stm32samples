@@ -25,6 +25,8 @@
 
 // amount of tries to detect motor stall
 #define NSTALLEDMAX     (5)
+// amount of steps to detect stalled state
+#define STALLEDSTEPS    (15)
 
 // stepper states
 typedef enum{
@@ -53,6 +55,7 @@ void encoders_UPD(uint8_t i);
 void init_steppers();
 int32_t encoder_position(uint8_t i);
 int setencpos(uint8_t i, int32_t position);
+errcodes setmotpos(uint8_t i, int32_t position);
 
 errcodes getpos(uint8_t i, int32_t *position);
 errcodes getremainsteps(uint8_t i, int32_t *position);

@@ -217,7 +217,6 @@ void tim16_isr(){
     TIM16->SR = 0;
 }
 
-
 void tim1_brk_up_trg_com_isr(){
     encoders_UPD(0);
 }

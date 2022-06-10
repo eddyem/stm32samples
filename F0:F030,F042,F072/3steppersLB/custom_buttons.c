@@ -22,6 +22,43 @@
 #include "buttons.h"
 #include "custom_buttons.h"
 #include "hardware.h"
+#include "steppers.h"
+#include "strfunct.h"
+
+/**
+ * @brief custom_buttons_process - check four buttons and if find hold:
+ * 0..2 - move motor i by +maxsteps while hold
+ * 3 (or pressed) - switch moving direction to -
+ * if pressed:
+ * 0..2 - stop motor i (if moving) or move by +10 steps
+ */
+void custom_buttons_process(){
+    static uint32_t lastT = 0;
+    static keyevent lastevent[3] = {EVT_NONE, EVT_NONE, EVT_NONE};
+    if(lastUnsleep == lastT) return; // no buttons activity
+    lastT = lastUnsleep;
+    int32_t dir = 1;
+    if(keyevt(3) == EVT_HOLD || keyevt(3) == EVT_PRESS) dir = -1; // button 3: change direction to `-`
+    for(int i = 0; i < 3; ++i){
+        keyevent e = keyevt(i);
+        if(e == EVT_RELEASE){ // move by 10 steps or emergency stop @ release after shot press
+            if(lastevent[i] == EVT_PRESS){
+                if(getmotstate(i) == STP_RELAX) motor_relslow(i, dir*10);
+                else emstopmotor(i);
+            }else stopmotor(i); // stop motor when key was released after long hold
+        }else if(e == EVT_HOLD){ // move by `maxsteps` steps
+            if(getmotstate(i) == STP_RELAX){
+                if(ERR_OK != motor_absmove(i, dir*the_conf.maxsteps[i])){
+                    // here we can do BEEP
+#ifdef EBUG
+                    SEND("can't move\n");
+#endif
+                }
+            }
+        }
+        lastevent[i] = e;
+    }
+}
 
 
 /*
@@ -30,7 +67,7 @@
  * 2 - switch buzzer
  * 3 - work with PWM out 0 (when btn3 pressed, btn1 increased & btn2 decreased PWM width)
  *        press once btn2/3 to change PWM @1, hold to change @25 (repeat as many times as need)
- */
+ *
 void custom_buttons_process(){
     static uint32_t lastT = 0;
     static uint8_t pwmval = 127;
@@ -65,3 +102,4 @@ void custom_buttons_process(){
         TGL(BUZZER);
     }
 }
+*/

@@ -140,10 +140,14 @@ static errcodes extparser(uint8_t par, int32_t *val){
 #error "change the code!!!"
 #endif
     uint8_t n = PARBASE(par);
+#ifdef EBUG
     SEND("par="); printu(par);
     SEND(", n="); bufputchar('0'+n); newline();
+#endif
     if(n > EXTNO-1){ // all
+#ifdef EBUG
         SEND("ALL\n");
+#endif
         uint8_t *arr = (uint8_t*)val;
         if(ISSETTER(par)){
             for(int i = 0; i < EXTNO; ++i)
@@ -310,9 +314,11 @@ static errcodes reinitmparser(uint8_t _U_ par, int32_t _U_ *val){
     return ERR_OK;
 }
 
+#define CHECKN(val, par) do{val = PARBASE(par); \
+    if(val > MOTORSNO-1) return ERR_BADPAR;}while(0)
+
 static errcodes emstopparser(uint8_t par, int32_t _U_ *val){
-    uint8_t n = PARBASE(par);
-    if(n > MOTORSNO-1) return ERR_BADPAR;
+    uint8_t n; CHECKN(n, par);
     emstopmotor(n);
     return ERR_OK;
 }
@@ -324,43 +330,37 @@ static errcodes emstopallparser(uint8_t _U_ par, int32_t _U_ *val){
 }
 
 static errcodes stopparser(uint8_t par, int32_t _U_ *val){
-    uint8_t n = PARBASE(par);
-    if(n > MOTORSNO-1) return ERR_BADPAR;
+    uint8_t n; CHECKN(n, par);
     stopmotor(n);
     return ERR_OK;
 }
 
 static errcodes curposparser(uint8_t par, int32_t *val){
-    uint8_t n = PARBASE(par);
-    if(n > MOTORSNO-1) return ERR_BADPAR;
+    uint8_t n; CHECKN(n, par);
     if(ISSETTER(par)) return motor_absmove(n, *val);
     return getpos(n, val);
 }
 
 static errcodes relstepsparser(uint8_t par, int32_t *val){
-    uint8_t n = PARBASE(par);
-    if(n > MOTORSNO-1) return ERR_BADPAR;
+    uint8_t n; CHECKN(n, par);
     if(ISSETTER(par)) return motor_relmove(n, *val);
     return getremainsteps(n, val);
 }
 
 static errcodes relslowparser(uint8_t par, int32_t *val){
-    uint8_t n = PARBASE(par);
-    if(n > MOTORSNO-1) return ERR_BADPAR;
+    uint8_t n; CHECKN(n, par);
     if(ISSETTER(par)) return motor_relslow(n, *val);
     return getremainsteps(n, val);
 }
 
 static errcodes motstateparser(uint8_t par, int32_t *val){
-    uint8_t n = PARBASE(par);
-    if(n > MOTORSNO-1) return ERR_BADPAR;
+    uint8_t n; CHECKN(n, par);
     *val = getmotstate(n);
     return ERR_OK;
 }
 
 static errcodes encposparser(uint8_t par, int32_t *val){
-    uint8_t n = PARBASE(par);
-    if(n > MOTORSNO-1) return ERR_BADPAR;
+    uint8_t n; CHECKN(n, par);
     errcodes ret = ERR_OK;
     if(ISSETTER(par)){
         if(!setencpos(n, *val)) ret = ERR_CANTRUN;
@@ -369,11 +369,22 @@ static errcodes encposparser(uint8_t par, int32_t *val){
     return ret;
 }
 
+static errcodes setposparser(uint8_t par, int32_t *val){
+    uint8_t n; CHECKN(n, par);
+    errcodes ret = ERR_OK;
+    if(ISSETTER(par)){
+        ret = setmotpos(n, *val);
+    }
+    getpos(n, val);
+    return ret;
+}
+
 static errcodes gotozeroparser(uint8_t par, _U_ int32_t *val){
-    uint8_t n = PARBASE(par);
-    if(n > MOTORSNO-1) return ERR_BADPAR;
+    uint8_t n; CHECKN(n, par);
     return motor_goto0(n);
 }
+
+#undef CHECKN
 /******************* END of motors' parsers *******************/
 
 /*
@@ -419,6 +430,7 @@ const fpointer cmdlist[CMD_AMOUNT] = {
     [CMD_REINITMOTORS] = reinitmparser,
     [CMD_MOTORSTATE] = motstateparser,
     [CMD_ENCPOS] = encposparser,
+    [CMD_SETPOS] = setposparser,
     [CMD_GOTOZERO] = gotozeroparser,
 };
 

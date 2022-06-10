@@ -76,7 +76,7 @@ int cmpstr(const char *s1, const char *s2){
 }
 
 /**
- * @brief getchr - analog of strchr
+ * @brief getchr - analog of strchr; this function saves 200 bytes comparing to strchr
  * @param str - string to search
  * @param symbol - searching symbol
  * @return pointer to symbol found or NULL
@@ -126,7 +126,6 @@ static CAN_message *parseCANmsg(char *txt){
         return NULL;
     }
     SEND("Message parsed OK\n");
-    sendbuf();
     canmsg.length = (uint8_t) ctr;
     return &canmsg;
 }
@@ -422,7 +421,6 @@ void dumperrcodes(_U_ char *txt){
         newline();
         ++c;
     }
-    sendbuf();
 }
 
 typedef void(*specfpointer)(char *arg);
@@ -479,7 +477,7 @@ typedef struct{
 // the main commands list, index is CAN command code
 static const commands textcommands[] = {
     // different commands
-    {0, "", "Different commands:"}, // DELIMETERS
+    {CMD_NONE, "", "Different commands:"}, // DELIMETERS
     {CMD_ADC, "adc", "get ADC values"},
     {CMD_BUTTONS, "button", "get buttons state"},
     {CMD_BUZZER, "buzzer", "change buzzer state (1/0)"},
@@ -493,7 +491,7 @@ static const commands textcommands[] = {
     {CMD_RESET, "reset", "reset MCU"},
     {CMD_TIMEFROMSTART, "time", "get time from start"},
     // configuration
-    {0, "", "Confuguration:"},
+    {CMD_NONE, "", "Confuguration:"},
     {CMD_ACCEL, "accel", "set/get accel/decel (steps/s^2)"},
     {CMD_ENCREV, "encrev", "set/get max encoder's pulses per revolution"},
     {CMD_ENCSTEPMAX, "encstepmax", "maximal encoder ticks per step"},
@@ -507,8 +505,8 @@ static const commands textcommands[] = {
     {CMD_SAVECONF, "saveconf", "save current configuration"},
     {CMD_SPEEDLIMIT, "speedlimit", "get limiting speed for current microsteps"},
     // motors' commands
-    {0, "", "Motors' commands:"},
-    {CMD_ABSPOS, "abspos", "set/get position (in steps)"},
+    {CMD_NONE, "", "Motors' commands:"},
+    {CMD_ABSPOS, "abspos", "move to/get absolute position (in steps)"},
     {CMD_EMERGSTOPALL, "emerg", "emergency stop all motors"},
     {CMD_EMERGSTOP, "emstop", "emergency stop motor (right now)"},
     {CMD_ENCPOS, "encpos", "set/get encoder's position"},
@@ -516,10 +514,11 @@ static const commands textcommands[] = {
     {CMD_REINITMOTORS, "motreinit", "re-init motors after configuration changed"},
     {CMD_RELPOS, "relpos", "set relative steps, get remaining"},
     {CMD_RELSLOW, "relslow", "set relative steps @ lowest speed"},
+    {CMD_SETPOS, "setpos", "set/get absolute position (in steps)"},
     {CMD_MOTORSTATE, "state", "get motor state"},
     {CMD_STOP, "stop", "smooth motor stopping"},
     // USB-only commands
-    {0, "", "USB-only commands:"},
+    {CMD_NONE, "", "USB-only commands:"},
     {-SCMD_CANID, "canid", "get/set CAN ID"},
     {-SCMD_CANSPEED, "canspeed", "CAN bus speed"},
     {-SCMD_DELIGNLIST, "delignlist", "delete ignore list"},
@@ -540,8 +539,9 @@ static const commands textcommands[] = {
     {0, NULL, NULL}
 };
 
+// dump base commands codes (for CAN protocol)
 void dumpcmdcodes(_U_ char *txt){
-    SEND("Commands list:\n");
+    SEND("CANbus commands list:\n");
     for(uint16_t i = 0; i < CMD_AMOUNT; ++i){
         printu(i);
         SEND(" - ");
@@ -554,7 +554,6 @@ void dumpcmdcodes(_U_ char *txt){
         }
         newline();
     }
-    sendbuf();
 }
 
 /*
@@ -582,22 +581,17 @@ static void showHelp(){
     while(cmd->command){
         if(*cmd->command){
             bufputchar('\t');
-            SEND(cmd->command); /*SEND(" (");
-            if(cmd->cmd_code < 0) bufputchar('u');
-            else bufputchar('c');
-            SEND(") - ");*/
+            SEND(cmd->command);
             SEND(" - ");
         }
         SEND(cmd->help); newline();
         ++cmd;
     }
-    sendbuf();
 }
 
 /**
  * @brief cmd_parser - command parsing
  * @param txt   - buffer with commands & data (will be broken by this function!)
- * @param isUSB - == 1 if data got from USB
  * Common commands format: command [[N]=I], where
  *      command - one of `command` from `cmdlist`
  *      N - optional parameter (0..255)
@@ -605,7 +599,6 @@ static void showHelp(){
  * Special commands format: s_command [text], where
  *      s_command - one of `spec_cmdlist`
  *      text - optional list of arguments
- * The space after command name is mandatory (it will be substituted by \0)
  */
 void cmd_parser(char *txt){
     char cmd[32], *pcmd = cmd;

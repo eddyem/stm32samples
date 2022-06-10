@@ -36,7 +36,7 @@
 
 #define newline() do{bufputchar('\n');}while(0)
 // newline &  send buffer
-#define NL() do{bufputchar('\n'); sendbuf();}while(0)
+#define NL() do{bufputchar('\n');}while(0)
 
 #define IGN_SIZE 10
 extern uint16_t Ignore_IDs[IGN_SIZE];
