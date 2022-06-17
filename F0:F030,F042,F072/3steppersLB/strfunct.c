@@ -423,6 +423,14 @@ void dumperrcodes(_U_ char *txt){
     }
 }
 
+static void eraseflash(_U_ char *txt){
+    SEND("Start at "); printu(Tms);
+    int e = erase_storage();
+    SEND("\nStop at "); printu(Tms); newline();
+    if(e) SEND("Error\n");
+    else SEND("OK\n");
+}
+
 typedef void(*specfpointer)(char *arg);
 
 enum{
@@ -443,7 +451,7 @@ enum{
     SCMD_WD,
     SCMD_DUMPERR,
     SCMD_DUMPCMD,
-    //SCMD_ST,
+    SCMD_ERASEFLASH,
     SCMD_AMOUNT
 };
 
@@ -466,7 +474,7 @@ static specfpointer speccmdlist[SCMD_AMOUNT] = {
     [SCMD_WD] = wdcheck,
     [SCMD_DUMPCMD] = dumpcmdcodes,
     [SCMD_DUMPERR] = dumperrcodes,
-    //[SCMD_ST] = stp_check,
+    [SCMD_ERASEFLASH] = eraseflash,
 };
 
 typedef struct{
@@ -526,6 +534,7 @@ static const commands textcommands[] = {
     {-SCMD_DUMPERR, "dumperr", "dump error codes"},
     {-SCMD_DUMPCMD, "dumpcmd", "dump command codes"},
     {-SCMD_DUMPCONF, "dumpconf", "dump current configuration"},
+    {-SCMD_ERASEFLASH, "eraseflash", "erase flash data storage"},
     {-SCMD_FILTER, "filter", "add/modify filter, format: bank# FIFO# mode(M/I) num0 [num1 [num2 [num3]]]"},
     {-SCMD_GETCTR, "getctr", "get TIM1/2/3 counters"},
     {-SCMD_IGNBUF, "ignbuf", "print ignore buffer"},
@@ -542,7 +551,7 @@ static const commands textcommands[] = {
 // dump base commands codes (for CAN protocol)
 void dumpcmdcodes(_U_ char *txt){
     SEND("CANbus commands list:\n");
-    for(uint16_t i = 0; i < CMD_AMOUNT; ++i){
+    for(uint16_t i = 1; i < CMD_AMOUNT; ++i){
         printu(i);
         SEND(" - ");
         const commands *c = textcommands;
@@ -656,7 +665,9 @@ void cmd_parser(char *txt){
                 par &= 0x7f;
                 if(par != CANMESG_NOPAR) printu(par);
                 bufputchar('='); printi(val);
+#ifdef EBUG
                 SEND(" ("); printuhex((uint32_t)val); bufputchar(')');
+#endif
                 if(ERR_OK != retcode){
                     SEND("\nERRCODE=");
                     printu(retcode);

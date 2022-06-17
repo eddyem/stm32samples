@@ -142,10 +142,10 @@ Common commands format is cmd[ N[ = val]]
         where N is command argument (0..127), val is its value
 Different commands:
         adc - get ADC values
-        button - get buttons state
+        button - get buttons state (return time of last event & ERRCODE == buttonstate)
         buzzer - change buzzer state (1/0)
-        esw - get end switches state
-        ext - external outputs
+        esw - get end switches state (without number - all, by bytes)
+        ext - external outputs (without number - all, by bytes; value= 0-off, 1-on, other-toggle)
         mcut - get MCU T
         mcuvdd - get MCU Vdd
         ping - echo given command back
@@ -175,6 +175,7 @@ Motors' commands:
         motreinit - re-init motors after configuration changed
         relpos - set relative steps, get remaining
         relslow - set relative steps @ lowest speed
+	setpos - set/get absolute position (in steps)
         state - get motor state
         stop - smooth motor stopping
 USB-only commands:
@@ -185,6 +186,7 @@ USB-only commands:
         dumperr - dump error codes
         dumpcmd - dump command codes
         dumpconf - dump current configuration
+	eraseflash - erase flash data storage
         filter - add/modify filter, format: bank# FIFO# mode(M/I) num0 [num1 [num2 [num3]]]
         getctr - get TIM1/2/3 counters
         ignbuf - print ignore buffer
@@ -208,7 +210,6 @@ bytes   descr
 7       Hdata
 
 dumperr
-Find known command: dumperr
 Error codes:
 0 - all OK
 1 - wrong parameter's value
@@ -219,81 +220,81 @@ Error codes:
 
 
 dumpcmd
-Find known command: dumpcmd
 Commands list:
-0 - Different commands:
-1 - change relay state (1/0)
-2 - change buzzer state (1/0)
-3 - get ADC values
-4 - get buttons state
-5 - get end switches state
-6 - get MCU T
-7 - get MCU Vdd
-8 - reset MCU
-9 - get time from start
-10 - pwm value
-11 - external outputs
-12 - save current configuration
-13 - minimal encoder ticks per step
-14 - maximal encoder ticks per step
-15 - set/get microsteps settings
-16 - set/get accel/decel (steps/s^2)
-17 - set/get max speed (steps per sec)
-18 - set/get min speed (steps per sec)
-19 - get limiting speed for current microsteps
-20 - set/get max steps (from zero)
-21 - set/get max encoder's pulses per revolution
-22 - set/get motorN flags
-23 - end-switches reaction
-24 - re-init motors after configuration changed
-25 - set/get position (in steps)
-26 - set relative steps, get remaining
-27 - set relative steps @ lowest speed
-28 - emergency stop motor (right now)
-29 - smooth motor stopping
-30 - emergency stop all motors
-31 - find zero position & refresh counters
-32 - get motor state
-33 - set/get encoder's position
+1 - echo given command back
+2 - change relay state (1/0)
+3 - change buzzer state (1/0)
+4 - get ADC values
+5 - get buttons state
+6 - get end switches state
+7 - get MCU T
+8 - get MCU Vdd
+9 - reset MCU
+10 - get time from start
+11 - pwm value
+12 - external outputs
+13 - save current configuration
+14 - minimal encoder ticks per step
+15 - maximal encoder ticks per step
+16 - set/get microsteps settings
+17 - set/get accel/decel (steps/s^2)
+18 - set/get max speed (steps per sec)
+19 - set/get min speed (steps per sec)
+20 - get limiting speed for current microsteps
+21 - set/get max steps (from zero)
+22 - set/get max encoder's pulses per revolution
+23 - set/get motorN flags
+24 - end-switches reaction
+25 - re-init motors after configuration changed
+26 - move to/get absolute position (in steps)
+27 - set relative steps, get remaining
+28 - set relative steps @ lowest speed
+29 - emergency stop motor (right now)
+30 - smooth motor stopping
+31 - emergency stop all motors
+32 - find zero position & refresh counters
+33 - get motor state
+34 - set/get encoder's position
+35 - set/get absolute position (in steps)
+
 
 dumpconf
-Find known command: dumpconf
-flashsize=64*2048=131072 
-userconf_addr=0x08006800
-userconf_idx=-1		// "index of stored conf"
+userconf_addr=0x08006000// address from which userconf started
+userconf_idx=5 		// "index of stored conf"
 userconf_sz=68		// "magick number"
 canspeed=100		// default CAN speed
 canid=170		// identifier (0xaa)
 microsteps0=32		// microsteps amount per step
-accel0=500		// acceleration/deceleration (steps/s^2)
-maxspeed0=2000		// max motor speed (steps per second)
+accel0=1500		// acceleration/deceleration (steps/s^2)
+maxspeed0=1501		// max motor speed (steps per second)
 minspeed0=20		// min motor speed (steps per second)
 maxsteps0=500000	// maximal amount of steps
 encperrev0=4000		// encoders' counts per revolution
 encperstepmin0=17	// min amount of encoder ticks per one step
 encperstepmax0=23	// max amount of encoder ticks per one step
-motflags0=0x3c		// motor's flags
+motflags0=0x2f		// motor's flags
 eswreaction0=0		// end-switches reaction (esw_react)
 microsteps1=32
-accel1=500
+accel1=1500
 maxspeed1=2000
 minspeed1=20
 maxsteps1=500000
 encperrev1=4000
 encperstepmin1=17
 encperstepmax1=23
-motflags1=0x3c
+motflags1=0x2f
 eswreaction1=0
 microsteps2=32
-accel2=500
-maxspeed2=2000
+accel2=1500
+maxspeed2=2500
 minspeed2=20
 maxsteps2=500000
 encperrev2=4000
 encperstepmin2=17
 encperstepmax2=23
-motflags2=0x3c
+motflags2=0x2f
 eswreaction2=0
+
 
 Motor flags:
 bit0 - reversing motor rotation

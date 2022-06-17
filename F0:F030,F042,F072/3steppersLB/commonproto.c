@@ -27,6 +27,11 @@
 #include "strfunct.h"
 #endif
 
+#define NOPARCHK() do{uint8_t n = PARBASE(par); if(n != CANMESG_NOPAR) return ERR_BADPAR;}while(0)
+
+#define CHECKN(val, par) do{val = PARBASE(par); \
+    if(val > MOTORSNO-1) return ERR_BADPAR;}while(0)
+
 /******* All functions from cmdlist[i].function *******/
 
 static errcodes pingparser(uint8_t _U_ par, int32_t _U_ *val){
@@ -34,6 +39,7 @@ static errcodes pingparser(uint8_t _U_ par, int32_t _U_ *val){
 }
 
 static errcodes relayparser(uint8_t par, int32_t *val){
+    NOPARCHK();
     if(ISSETTER(par)){
         if(*val) ON(RELAY);
         else OFF(RELAY);
@@ -43,6 +49,7 @@ static errcodes relayparser(uint8_t par, int32_t *val){
 }
 
 static errcodes buzzerparser(uint8_t par, int32_t *val){
+    NOPARCHK();
     if(ISSETTER(par)){
         if(*val) ON(BUZZER);
         else OFF(BUZZER);
@@ -63,7 +70,7 @@ static errcodes adcparser(uint8_t par, int32_t *val){
 static errcodes buttonsparser(uint8_t par, int32_t *val){
     uint8_t n = PARBASE(par);
     if(n > BTNSNO-1){
-        par = CANMESG_NOPAR; // the only chance to understand error
+        *val = CANMESG_NOPAR; // the only chance to understand error
         return ERR_BADPAR;
     }
     return (uint8_t) keystate(n, (uint32_t*)val);
@@ -75,39 +82,43 @@ static errcodes eswparser(uint8_t par, int32_t *val){
 #error "change the code!!!"
 #endif
     uint8_t n = PARBASE(par);
-    if(n > ESWNO-1){ // all
+    if(n == CANMESG_NOPAR){ // all
         *val = 0;
         uint8_t *arr = (uint8_t*)val;
         for(int i = 0; i < ESWNO; ++i)
             *arr++ = ESW_state(i);
         return ERR_OK;
-    }
+    }else if(n > ESWNO - 1) return ERR_BADPAR;
     *val = (int32_t)ESW_state(n);
     return ERR_OK;
 }
 
 static errcodes mcutparser(uint8_t _U_ par, int32_t *val){
+    NOPARCHK();
     *val = getMCUtemp();
     return ERR_OK;
 }
 
 static errcodes mcuvddparser(uint8_t _U_ par, int32_t *val){
+    NOPARCHK();
     *val = getVdd();
     return ERR_OK;
 }
 
 static errcodes resetparser(uint8_t _U_ par, int32_t _U_ *val){
+    NOPARCHK();
     NVIC_SystemReset();
     return ERR_OK;
 }
 
 static errcodes timeparser(uint8_t _U_ par, int32_t *val){
+    NOPARCHK();
     *val = Tms;
     return ERR_OK;
 }
 
 static errcodes pwmparser(uint8_t par, int32_t *val){
-    if(PARBASE(par) > PWMCHMAX && par != CANMESG_NOPAR) return ERR_BADPAR;
+    NOPARCHK();
 #if PWMCHMAX != 0
 #error "change the code!!!"
 #endif
@@ -144,7 +155,7 @@ static errcodes extparser(uint8_t par, int32_t *val){
     SEND("par="); printu(par);
     SEND(", n="); bufputchar('0'+n); newline();
 #endif
-    if(n > EXTNO-1){ // all
+    if(n == CANMESG_NOPAR){ // all
 #ifdef EBUG
         SEND("ALL\n");
 #endif
@@ -157,7 +168,7 @@ static errcodes extparser(uint8_t par, int32_t *val){
             arr[i] = EXT_CHK(i);
         }
         return ERR_OK;
-    }
+    }else if(n > EXTNO-1) return ERR_BADPAR;
     if(ISSETTER(par))
         setextpar((uint8_t)*val, n);
     *val = (int32_t) EXT_CHK(n);
@@ -166,8 +177,7 @@ static errcodes extparser(uint8_t par, int32_t *val){
 
 /******************* START of config parsers *******************/
 static errcodes ustepsparser(uint8_t par, int32_t *val){
-    uint8_t n = PARBASE(par);
-    if(n > MOTORSNO-1) return ERR_BADPAR;
+    uint8_t n; CHECKN(n, par);
     if(ISSETTER(par)){
 #if MICROSTEPSMAX > 512
 #error "Change the code anywhere!"
@@ -184,8 +194,7 @@ static errcodes ustepsparser(uint8_t par, int32_t *val){
 }
 
 static errcodes encstepsminparser(uint8_t par, int32_t *val){
-    uint8_t n = PARBASE(par);
-    if(n > MOTORSNO-1) return ERR_BADPAR;
+    uint8_t n; CHECKN(n, par);
     if(ISSETTER(par)){
         if(*val < 1 || *val > MAXENCTICKSPERSTEP - 1) return ERR_BADVAL;
         the_conf.encperstepmin[n] = *val;
@@ -195,8 +204,7 @@ static errcodes encstepsminparser(uint8_t par, int32_t *val){
 }
 
 static errcodes encstepsmaxparser(uint8_t par, int32_t *val){
-    uint8_t n = PARBASE(par);
-    if(n > MOTORSNO-1) return ERR_BADPAR;
+    uint8_t n; CHECKN(n, par);
     if(ISSETTER(par)){
         if(*val < 1 || *val > MAXENCTICKSPERSTEP) return ERR_BADVAL;
         the_conf.encperstepmax[n] = *val;
@@ -206,8 +214,7 @@ static errcodes encstepsmaxparser(uint8_t par, int32_t *val){
 }
 
 static errcodes accparser(uint8_t par, int32_t *val){
-    uint8_t n = PARBASE(par);
-    if(n > MOTORSNO-1) return ERR_BADPAR;
+    uint8_t n; CHECKN(n, par);
     if(ISSETTER(par)){
         if(*val/the_conf.microsteps[n] > ACCELMAXSTEPS || *val < 1) return ERR_BADVAL;
         the_conf.accel[n] = *val;
@@ -227,8 +234,7 @@ static uint16_t getSPD(uint8_t n, int32_t speed){
 }
 
 static errcodes maxspdparser(uint8_t par, int32_t *val){
-    uint8_t n = PARBASE(par);
-    if(n > MOTORSNO-1) return ERR_BADPAR;
+    uint8_t n; CHECKN(n, par);
     if(ISSETTER(par)){
         if(*val <= the_conf.minspd[n]) return ERR_BADVAL;
         the_conf.maxspd[n] = getSPD(n, *val);
@@ -238,8 +244,7 @@ static errcodes maxspdparser(uint8_t par, int32_t *val){
 }
 
 static errcodes minspdparser(uint8_t par, int32_t *val){
-    uint8_t n = PARBASE(par);
-    if(n > MOTORSNO-1) return ERR_BADPAR;
+    uint8_t n; CHECKN(n, par);
     if(ISSETTER(par)){
         if(*val >= the_conf.maxspd[n]) return ERR_BADVAL;
         the_conf.minspd[n] = getSPD(n, *val);
@@ -249,15 +254,13 @@ static errcodes minspdparser(uint8_t par, int32_t *val){
 }
 
 static errcodes spdlimparser(uint8_t par, int32_t *val){
-    uint8_t n = PARBASE(par);
-    if(n > MOTORSNO-1) return ERR_BADPAR;
+    uint8_t n; CHECKN(n, par);
     *val = getSPD(n, 0xffff);
     return ERR_OK;
 }
 
 static errcodes maxstepsparser(uint8_t par, int32_t *val){
-    uint8_t n = PARBASE(par);
-    if(n > MOTORSNO-1) return ERR_BADPAR;
+    uint8_t n; CHECKN(n, par);
     if(ISSETTER(par)){
         if(*val < 1) return ERR_BADVAL;
         the_conf.maxsteps[n] = *val;
@@ -267,8 +270,7 @@ static errcodes maxstepsparser(uint8_t par, int32_t *val){
 }
 
 static errcodes encrevparser(uint8_t par, int32_t *val){
-    uint8_t n = PARBASE(par);
-    if(n > MOTORSNO-1) return ERR_BADPAR;
+    uint8_t n; CHECKN(n, par);
     if(ISSETTER(par)){
         if(*val < 1 || *val > MAXENCREV) return ERR_BADVAL;
         the_conf.encrev[n] = *val;
@@ -279,8 +281,7 @@ static errcodes encrevparser(uint8_t par, int32_t *val){
 }
 
 static errcodes motflagsparser(uint8_t par, int32_t *val){
-    uint8_t n = PARBASE(par);
-    if(n > MOTORSNO-1) return ERR_BADPAR;
+    uint8_t n; CHECKN(n, par);
     if(ISSETTER(par)){
         the_conf.motflags[n] = *((motflags_t*)val);
     }
@@ -290,8 +291,7 @@ static errcodes motflagsparser(uint8_t par, int32_t *val){
 
 // setter of GLOBAL reaction, getter of LOCAL!
 static errcodes eswreactparser(uint8_t par, int32_t *val){
-    uint8_t n = PARBASE(par);
-    if(n > MOTORSNO-1) return ERR_BADPAR;
+    uint8_t n; CHECKN(n, par);
     if(ISSETTER(par)){
         if(*val < 0 || *val > ESW_AMOUNT-1) return ERR_BADVAL;
         the_conf.ESW_reaction[n] = *val;
@@ -302,6 +302,7 @@ static errcodes eswreactparser(uint8_t par, int32_t *val){
 }
 
 static errcodes saveconfparser(uint8_t _U_ par, int32_t _U_ *val){
+    NOPARCHK();
     if(store_userconf()) return ERR_CANTRUN;
     return ERR_OK;
 }
@@ -310,12 +311,10 @@ static errcodes saveconfparser(uint8_t _U_ par, int32_t _U_ *val){
 
 /******************* START of motors' parsers *******************/
 static errcodes reinitmparser(uint8_t _U_ par, int32_t _U_ *val){
+    NOPARCHK();
     init_steppers();
     return ERR_OK;
 }
-
-#define CHECKN(val, par) do{val = PARBASE(par); \
-    if(val > MOTORSNO-1) return ERR_BADPAR;}while(0)
 
 static errcodes emstopparser(uint8_t par, int32_t _U_ *val){
     uint8_t n; CHECKN(n, par);
@@ -324,6 +323,7 @@ static errcodes emstopparser(uint8_t par, int32_t _U_ *val){
 }
 
 static errcodes emstopallparser(uint8_t _U_ par, int32_t _U_ *val){
+    NOPARCHK();
     for(int i = 0; i < MOTORSNO; ++i)
         emstopmotor(i);
     return ERR_OK;
@@ -384,7 +384,6 @@ static errcodes gotozeroparser(uint8_t par, _U_ int32_t *val){
     return motor_goto0(n);
 }
 
-#undef CHECKN
 /******************* END of motors' parsers *******************/
 
 /*

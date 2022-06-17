@@ -112,7 +112,7 @@ int store_userconf(){
     // for binarySearch() checking that there's nothing more after it!
     if(currentconfidx > (int)maxCnum - 3){ // there's no more place
         currentconfidx = 0;
-        if(erase_flash(Flash_Data, (&__varsstart))) return 1;
+        if(erase_flash(Flash_Data, NULL)) return 1;
     }else ++currentconfidx; // take next data position (0 - within first run after firmware flashing)
     return write2flash((const void*)&Flash_Data[currentconfidx], &the_conf, sizeof(the_conf));
 }
@@ -240,4 +240,8 @@ void dump_userconf(_U_ char *txt){
 #undef PROPNAME
     }
     NL();
+}
+
+int erase_storage(){
+    return erase_flash(Flash_Data, NULL);
 }

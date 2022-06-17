@@ -27,16 +27,18 @@
 #define NSTALLEDMAX     (5)
 // amount of steps to detect stalled state
 #define STALLEDSTEPS    (15)
+// amount of tries to keep current position (need for states near problem places)
+#define KEEPPOSMAX      (10)
 
 // stepper states
 typedef enum{
-    STP_RELAX,      // no moving
-    STP_ACCEL,      // start moving with acceleration
-    STP_MOVE,       // moving with constant speed
-    STP_MVSLOW,     // moving with slowest constant speed (end of moving)
-    STP_DECEL,      // moving with deceleration
-    STP_STALL,      // stalled
-    STP_ERR         // wrong/error state
+    STP_RELAX,      // 0 - no moving
+    STP_ACCEL,      // 1 - start moving with acceleration
+    STP_MOVE,       // 2 - moving with constant speed
+    STP_MVSLOW,     // 3 - moving with slowest constant speed (end of moving)
+    STP_DECEL,      // 4 - moving with deceleration
+    STP_STALL,      // 5 - stalled
+    STP_ERR         // 6 - wrong/error state
 } stp_state;
 
 // end-switches reaction

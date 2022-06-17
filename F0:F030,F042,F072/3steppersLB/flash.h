@@ -79,5 +79,6 @@ extern user_conf the_conf; // global user config (read from FLASH to RAM)
 void flashstorage_init();
 int store_userconf();
 void dump_userconf(_U_ char *txt);
+int erase_storage();
 
 #endif // __FLASH_H__
