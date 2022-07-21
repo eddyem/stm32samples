@@ -1,6 +1,7 @@
 (sym_lib_table
-  (lib (name stm32-rescue)(type Legacy)(uri ${KIPRJMOD}/stm32-rescue.lib)(options "")(descr ""))
-  (lib (name stm32)(type Legacy)(uri /home/eddy/kicad/Kicad-Libraries/library/stm32.lib)(options "")(descr ""))
-  (lib (name vreg)(type Legacy)(uri /home/eddy/kicad/Kicad-Libraries/library/vreg.lib)(options "")(descr ""))
-  (lib (name elements)(type Legacy)(uri ${KIPRJMOD}/elements.lib)(options "")(descr ""))
+  (lib (name "stm32-rescue")(type "KiCad")(uri "${KIPRJMOD}/stm32-rescue.kicad_sym")(options "")(descr ""))
+  (lib (name "stm32")(type "KiCad")(uri "/home/eddy/kicad/Kicad-Libraries/library/stm32.kicad_sym")(options "")(descr ""))
+  (lib (name "vreg")(type "KiCad")(uri "/home/eddy/kicad/Kicad-Libraries/library/vreg.kicad_sym")(options "")(descr ""))
+  (lib (name "elements")(type "KiCad")(uri "${KIPRJMOD}/elements.kicad_sym")(options "")(descr ""))
+  (lib (name "stm32-cache")(type "KiCad")(uri "${KIPRJMOD}/stm32-cache.kicad_sym")(options "")(descr ""))
 )
