@@ -40,12 +40,18 @@ void send_next(){
 
 // put `buf` into queue to send
 void USB_send(const char *buf){
-    if(!buf) return;
+    if(!buf || !usbON) return;
     int len = 0;
     const char *b = buf;
     while(*b++) ++len;
     if(!usbON || !len) return;
-    RB_write(buf, len); // this is a blocking procedure if there's too little free memory in buffer
+    int l = len;
+    while(l){
+        if(tx_succesfull) send_next();
+        int a = RB_write(buf, l);
+        l -= a;
+        buf += a;
+    }
 }
 
 // interrupt IN handler (never used?)

@@ -63,7 +63,7 @@ int RB_read(char s[BLOCKSIZE]){
     return _1st;
 }
 
-static int addportion(const char *str, int l){
+int RB_write(const char *str, int l){
     int r = restlen();
     if(l > r) l = r;
     if(!l) return 0;
@@ -77,13 +77,3 @@ static int addportion(const char *str, int l){
     return l;
 }
 
-void RB_write(const char *str, int l){
-    if(!str || !*str) return;
-    if(!usbON) return;
-    while(l){
-        if(tx_succesfull) send_next();
-        int a = addportion(str, l);
-        l -= a;
-        str += a;
-    }
-}

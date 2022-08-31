@@ -28,6 +28,6 @@
 #define BLOCKSIZE   (USB_TXBUFSZ)
 
 int RB_read(char s[BLOCKSIZE]);
-void RB_write(const char *str, int l);
+int RB_write(const char *str, int l);
 
 #endif // RINGBUFFER_H__
