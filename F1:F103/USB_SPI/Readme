@@ -1,0 +1,11 @@
+USB PL2303 emulation. Send data to SPI and read answer.
+
+Protocol:
+    "F - change SPI flags (F f val), f== l-LSBFIRST, b-BR [18MHz/2^(b+1)], p-CPOL, h-CPHA\n"
+    "G - get SPI status\n"
+    "I - reinit SPI\n"
+    "R - software reset\n"
+    "S - send data over SPI\n"
+    "T - show Tms value\n"
+
+APB2 clock is 18MHz
