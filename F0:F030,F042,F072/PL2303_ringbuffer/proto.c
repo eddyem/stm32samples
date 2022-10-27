@@ -23,6 +23,7 @@
 
 extern uint32_t Tms;
 
+// 250 symbols == 1000 bit
 const char *test = "123456789A123456789B123456789C123456789D123456789E123456789F123456789G123456789H123456789I123456789J123456789K123456789L123456789M123456789N123456789O123456789P123456789Q123456789R123456789S123456789T123456789U123456789V123456789W123456789X123456789Y";
 
 char *omit_spaces(const char *buf){
@@ -198,7 +199,11 @@ const char *parse_cmd(const char *buf){
                 u3 = Tms;
                 for(int i = 0; i < 1000; ++i) USB_sendstr(test);
                 add2buf("\n\nspd=");
-                add2buf(u2str(2000000000/(Tms - u3))); add2buf("\n"); // strlen == 2Mbit, speed in bits per second
+                // strlen == 2Mbit, speed in bits per second
+                add2buf(u2str(2000000000/(Tms - u3)));
+                add2buf("\ntransfer time is ");
+                add2buf(u2str(Tms - u3));
+                add2buf("\n");
             break;
             case 'U':
                 add2buf("USB status: ");

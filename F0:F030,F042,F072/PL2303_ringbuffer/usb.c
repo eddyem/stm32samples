@@ -16,7 +16,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// USB read/write for text or binary data through ring-buffers (mean 5187476b/s)
+// USB read/write for text or binary data through ring-buffers
+/*
+ * mean speeds (bit/s) @ buffer size (bytes):
+    5333333 @ 128
+    5249343 @ 256
+    5181347 @ 512
+    5277044 @ 2048
+    5434782 @ 4096
+*/
 
 #include "ringbuffer.h"
 #include "usb.h"
@@ -28,27 +36,26 @@ static uint8_t obuf[RBOUTSZ], ibuf[RBINSZ];
 static ringbuffer out = {.data = obuf, .length = RBOUTSZ, .head = 0, .tail = 0};
 static ringbuffer in = {.data = ibuf, .length = RBINSZ, .head = 0, .tail = 0};
 // transmission is succesfull
-static volatile uint8_t tx_succesfull = 1;
+static volatile uint8_t bufisempty = 1;
 static volatile uint8_t bufovrfl = 0;
 
 static void send_next(){
-    if(!tx_succesfull) return;
+    if(bufisempty) return;
     static int lastdsz = 0;
     int buflen = RB_read(&out, usbbuff, USB_TXBUFSZ);
     if(!buflen){
         if(lastdsz == 64) EP_Write(3, NULL, 0); // send ZLP after 64 bits packet when nothing more to send
         lastdsz = 0;
+        bufisempty = 1;
         return;
     }
-    tx_succesfull = 0;
     EP_Write(3, usbbuff, buflen);
     lastdsz = buflen;
 }
 
 // send full content of ring buffer
 int USB_sendall(){
-    while(RB_datalen(&out)){
-        send_next();
+    while(!bufisempty){
         if(!usbON) return 0;
     }
     return 1;
@@ -58,10 +65,13 @@ int USB_sendall(){
 int USB_send(const uint8_t *buf, int len){
     if(!buf || !usbON || !len) return 0;
     while(len){
-        if(tx_succesfull) send_next();
         int a = RB_write(&out, buf, len);
         len -= a;
         buf += a;
+        if(bufisempty){
+            bufisempty = 0;
+            send_next();
+        }
     }
     return 1;
 }
@@ -119,10 +129,10 @@ static void EP1_Handler(){
 
 // data IN/OUT handlers
 static void transmit_Handler(){ // EP3IN
-    tx_succesfull = 1;
     uint16_t epstatus = KEEP_DTOG_STAT(USB->EPnR[3]);
     // clear CTR keep DTOGs & STATs
     USB->EPnR[3] = (epstatus & ~(USB_EPnR_CTR_TX)); // clear TX ctr
+    send_next();
 }
 
 static void receive_Handler(){ // EP2OUT
@@ -153,6 +163,5 @@ void USB_proc(){
         break;
         default: // USB_STATE_CONNECTED - send next data portion
             if(!usbON) return;
-            if(tx_succesfull) send_next();
     }
 }
