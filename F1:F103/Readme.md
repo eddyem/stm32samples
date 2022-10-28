@@ -1,0 +1,32 @@
+- **BMP180** - I2C temperature/pressure sensor BMP180
+- **BMP280** - I2C temperature/pressure sensor BMP280 and temp/pres/humidity sensor BME280
+- **Canon_managing_device** - device for independent managing of some Canon lens
+- **CDC_ACM** - simplest CDC-ACM snippet (*deprecated*)
+- **chronometer** - first version of chronometer for bike/auto/moto competitions
+- **chronometer_v2** - chrono-2
+- **chronometer_v3** - chrono-3
+- **DHT22_DHT11** - DHT11 and DHT22 humidity/temperature sensors management based on timer+DMA
+- **DS18** - DS18x20 temperature sensor management
+- **F1_testbrd** - code for universal testboard for STM32 in LQFP48 package
+- **I2Cscan** - simplest I2C scanner, can read and write registers
+- **inc** - base includes
+- **led_blink** - simple blink
+- **LED_Screen** - management with matrixes of LED screens 32x16 (or another size) pixels (P10)
+- **MAX7219_screen** - work with N LED matrices 8x8
+- **MLX90640** - test of MLX90640 (*deprecated* as can't calculate so many sqrt's on STM32F103)
+- **PL2303** - based PL2303 emulation (*deprecated*)
+- **PL2303_ringbuffer** - PL2303 with ringbuffer (need rebuld as for STM32F0x2)
+- **pl2303_snippet** - (*deprecated*)
+- **pl2303_snippet_naked** - (*deprecated*)
+- **pwmdmatest** - generate signals on PA8 by PWM through DMA @ TIM1_CC1 (awfull code)
+- **pwmtest** - generate signals on PA8 by PWM @ TIM1_CC1
+- **RGB_LED_Screen** - HUB75E-based RGB LED panel management, 8.8.4 color (RRRGGGBB)
+- **SevenCDCs** - a joke - 7 CDCs @ one STM32F103
+- **SI7005_HTU21D** - work with I2C humidity/temperature sensors SI7005 & HTU21D
+- **SPI** - SPI over DMA for "bluepill"
+- **Tetris** - some games @ HUB75E-based RGB LED panel: snake, balls and tetris
+- **uart** - simplest UART snippet
+- **USB_HID** - USB HID (mouse + keyboard)
+- **USB_SPI** - work with SPI over USB
+- **ws2815** - running rainbow on LED strip WS2815
+
