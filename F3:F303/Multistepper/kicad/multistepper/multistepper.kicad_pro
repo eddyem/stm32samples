@@ -366,7 +366,7 @@
     "classes": [
       {
         "bus_width": 12.0,
-        "clearance": 0.2,
+        "clearance": 0.1,
         "diff_pair_gap": 0.25,
         "diff_pair_via_gap": 0.25,
         "diff_pair_width": 0.2,
@@ -383,7 +383,7 @@
       },
       {
         "bus_width": 12.0,
-        "clearance": 0.5,
+        "clearance": 0.2,
         "diff_pair_gap": 0.25,
         "diff_pair_via_gap": 0.25,
         "diff_pair_width": 0.2,
@@ -392,7 +392,10 @@
         "microvia_drill": 0.1,
         "name": "thick",
         "nets": [
+          "+3.3VADC",
+          "+3V3",
           "+5V",
+          "GND",
           "Vdrive"
         ],
         "pcb_color": "rgba(0, 0, 0, 0.000)",
@@ -487,6 +490,18 @@
     [
       "beac4271-940a-4bcd-9fa5-ece775a07d41",
       "ADC"
+    ],
+    [
+      "916f71ef-9b2f-424f-a64d-0b6af99b627f",
+      "Power"
+    ],
+    [
+      "cf2c4fa9-a57e-4812-ae0c-3db57f6071a5",
+      "Motors"
+    ],
+    [
+      "610893b8-7125-40df-867c-22854f8efd58",
+      "stepper_M"
     ]
   ],
   "text_variables": {}
