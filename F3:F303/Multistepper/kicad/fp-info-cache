@@ -1,2318 +1,3557 @@
-552340191732864
-Package_SO
-Diodes_PSOP-8
-8-Lead Plastic PSOP, Exposed Die Pad (see https://www.diodes.com/assets/Datasheets/AP2204.pdf)
-SSOP 0.50 exposed pad
+841418160870690
+Connector_JST
+JST_ACH_BM01B-ACHSS-A-GAN-ETF_1x01-1MP_P1.20mm_Vertical
+JST ACH series connector, BM01B-ACHSS-A-GAN-ETF (http://www.jst-mfg.com/product/pdf/eng/eACH.pdf), generated with kicad-footprint-generator
+connector JST ACH vertical
+0
+3
+2
+Connector_JST
+JST_ACH_BM02B-ACHSS-GAN-ETF_1x02-1MP_P1.20mm_Vertical
+JST ACH series connector, BM02B-ACHSS-GAN-ETF (http://www.jst-mfg.com/product/pdf/eng/eACH.pdf), generated with kicad-footprint-generator
+connector JST ACH vertical
+0
+4
+3
+Connector_JST
+JST_ACH_BM03B-ACHSS-GAN-ETF_1x03-1MP_P1.20mm_Vertical
+JST ACH series connector, BM03B-ACHSS-GAN-ETF (http://www.jst-mfg.com/product/pdf/eng/eACH.pdf), generated with kicad-footprint-generator
+connector JST ACH vertical
+0
+5
+4
+Connector_JST
+JST_ACH_BM04B-ACHSS-A-GAN-ETF_1x04-1MP_P1.20mm_Vertical
+JST ACH series connector, BM04B-ACHSS-A-GAN-ETF (http://www.jst-mfg.com/product/pdf/eng/eACH.pdf), generated with kicad-footprint-generator
+connector JST ACH vertical
+0
+6
+5
+Connector_JST
+JST_ACH_BM05B-ACHSS-A-GAN-ETF_1x05-1MP_P1.20mm_Vertical
+JST ACH series connector, BM05B-ACHSS-A-GAN-ETF (http://www.jst-mfg.com/product/pdf/eng/eACH.pdf), generated with kicad-footprint-generator
+connector JST ACH vertical
+0
+7
+6
+Connector_JST
+JST_AUH_BM03B-AUHKS-GA-TB_1x03-1MP_P1.50mm_Vertical
+JST AUH series connector, BM03B-AUHKS-GA-TB (http://www.jst-mfg.com/product/pdf/eng/eAUH.pdf), generated with kicad-footprint-generator
+connector JST AUH side entry
+0
+5
+4
+Connector_JST
+JST_AUH_BM05B-AUHKS-GA-TB_1x05-1MP_P1.50mm_Vertical
+JST AUH series connector, BM05B-AUHKS-GA-TB (http://www.jst-mfg.com/product/pdf/eng/eAUH.pdf), generated with kicad-footprint-generator
+connector JST AUH side entry
+0
+7
+6
+Connector_JST
+JST_EH_B2B-EH-A_1x02_P2.50mm_Vertical
+JST EH series connector, B2B-EH-A (http://www.jst-mfg.com/product/pdf/eng/eEH.pdf), generated with kicad-footprint-generator
+connector JST EH vertical
+0
+2
+2
+Connector_JST
+JST_EH_B3B-EH-A_1x03_P2.50mm_Vertical
+JST EH series connector, B3B-EH-A (http://www.jst-mfg.com/product/pdf/eng/eEH.pdf), generated with kicad-footprint-generator
+connector JST EH vertical
+0
+3
+3
+Connector_JST
+JST_EH_B4B-EH-A_1x04_P2.50mm_Vertical
+JST EH series connector, B4B-EH-A (http://www.jst-mfg.com/product/pdf/eng/eEH.pdf), generated with kicad-footprint-generator
+connector JST EH vertical
+0
+4
+4
+Connector_JST
+JST_EH_B5B-EH-A_1x05_P2.50mm_Vertical
+JST EH series connector, B5B-EH-A (http://www.jst-mfg.com/product/pdf/eng/eEH.pdf), generated with kicad-footprint-generator
+connector JST EH vertical
+0
+5
+5
+Connector_JST
+JST_EH_B6B-EH-A_1x06_P2.50mm_Vertical
+JST EH series connector, B6B-EH-A (http://www.jst-mfg.com/product/pdf/eng/eEH.pdf), generated with kicad-footprint-generator
+connector JST EH vertical
+0
+6
+6
+Connector_JST
+JST_EH_B7B-EH-A_1x07_P2.50mm_Vertical
+JST EH series connector, B7B-EH-A (http://www.jst-mfg.com/product/pdf/eng/eEH.pdf), generated with kicad-footprint-generator
+connector JST EH vertical
+0
+7
+7
+Connector_JST
+JST_EH_B8B-EH-A_1x08_P2.50mm_Vertical
+JST EH series connector, B8B-EH-A (http://www.jst-mfg.com/product/pdf/eng/eEH.pdf), generated with kicad-footprint-generator
+connector JST EH vertical
+0
+8
+8
+Connector_JST
+JST_EH_B9B-EH-A_1x09_P2.50mm_Vertical
+JST EH series connector, B9B-EH-A (http://www.jst-mfg.com/product/pdf/eng/eEH.pdf), generated with kicad-footprint-generator
+connector JST EH vertical
+0
+9
+9
+Connector_JST
+JST_EH_B10B-EH-A_1x10_P2.50mm_Vertical
+JST EH series connector, B10B-EH-A (http://www.jst-mfg.com/product/pdf/eng/eEH.pdf), generated with kicad-footprint-generator
+connector JST EH side entry
+0
+10
+10
+Connector_JST
+JST_EH_B11B-EH-A_1x11_P2.50mm_Vertical
+JST EH series connector, B11B-EH-A (http://www.jst-mfg.com/product/pdf/eng/eEH.pdf), generated with kicad-footprint-generator
+connector JST EH side entry
+0
+11
+11
+Connector_JST
+JST_EH_B12B-EH-A_1x12_P2.50mm_Vertical
+JST EH series connector, B12B-EH-A (http://www.jst-mfg.com/product/pdf/eng/eEH.pdf), generated with kicad-footprint-generator
+connector JST EH side entry
 0
 12
-9
-Package_SO
-Diodes_SO-8EP
-8-Lead Plastic SO, Exposed Die Pad (see https://www.diodes.com/assets/Package-Files/SO-8EP.pdf)
-SO exposed pad
-0
-9
-9
-Package_SO
-ETSSOP-20-1EP_4.4x6.5mm_P0.65mm_EP3x4.2mm
-20-Lead Plastic Thin Shrink Small Outline (ST)-4.4 mm Body with Exposed Pad [eTSSOP] (see Microchip Packaging Specification 00000049BS.pdf)
-SSOP 0.65
-0
-27
-21
-Package_SO
-HSOP-8-1EP_3.9x4.9mm_P1.27mm_EP2.3x2.3mm
-HSOP, 8 Pin (https://www.st.com/resource/en/datasheet/l7980.pdf), generated with kicad-footprint-generator ipc_gullwing_generator.py
-HSOP SO
+12
+Connector_JST
+JST_EH_B13B-EH-A_1x13_P2.50mm_Vertical
+JST EH series connector, B13B-EH-A (http://www.jst-mfg.com/product/pdf/eng/eEH.pdf), generated with kicad-footprint-generator
+connector JST EH side entry
 0
 13
+13
+Connector_JST
+JST_EH_B14B-EH-A_1x14_P2.50mm_Vertical
+JST EH series connector, B14B-EH-A (http://www.jst-mfg.com/product/pdf/eng/eEH.pdf), generated with kicad-footprint-generator
+connector JST EH side entry
+0
+14
+14
+Connector_JST
+JST_EH_B15B-EH-A_1x15_P2.50mm_Vertical
+JST EH series connector, B15B-EH-A (http://www.jst-mfg.com/product/pdf/eng/eEH.pdf), generated with kicad-footprint-generator
+connector JST EH side entry
+0
+15
+15
+Connector_JST
+JST_EH_S2B-EH_1x02_P2.50mm_Horizontal
+JST EH series connector, S2B-EH (http://www.jst-mfg.com/product/pdf/eng/eEH.pdf), generated with kicad-footprint-generator
+connector JST EH horizontal
+0
+2
+2
+Connector_JST
+JST_EH_S3B-EH_1x03_P2.50mm_Horizontal
+JST EH series connector, S3B-EH (http://www.jst-mfg.com/product/pdf/eng/eEH.pdf), generated with kicad-footprint-generator
+connector JST EH horizontal
+0
+3
+3
+Connector_JST
+JST_EH_S4B-EH_1x04_P2.50mm_Horizontal
+JST EH series connector, S4B-EH (http://www.jst-mfg.com/product/pdf/eng/eEH.pdf), generated with kicad-footprint-generator
+connector JST EH horizontal
+0
+4
+4
+Connector_JST
+JST_EH_S5B-EH_1x05_P2.50mm_Horizontal
+JST EH series connector, S5B-EH (http://www.jst-mfg.com/product/pdf/eng/eEH.pdf), generated with kicad-footprint-generator
+connector JST EH horizontal
+0
+5
+5
+Connector_JST
+JST_EH_S6B-EH_1x06_P2.50mm_Horizontal
+JST EH series connector, S6B-EH (http://www.jst-mfg.com/product/pdf/eng/eEH.pdf), generated with kicad-footprint-generator
+connector JST EH horizontal
+0
+6
+6
+Connector_JST
+JST_EH_S7B-EH_1x07_P2.50mm_Horizontal
+JST EH series connector, S7B-EH (http://www.jst-mfg.com/product/pdf/eng/eEH.pdf), generated with kicad-footprint-generator
+connector JST EH horizontal
+0
+7
+7
+Connector_JST
+JST_EH_S8B-EH_1x08_P2.50mm_Horizontal
+JST EH series connector, S8B-EH (http://www.jst-mfg.com/product/pdf/eng/eEH.pdf), generated with kicad-footprint-generator
+connector JST EH horizontal
+0
+8
+8
+Connector_JST
+JST_EH_S9B-EH_1x09_P2.50mm_Horizontal
+JST EH series connector, S9B-EH (http://www.jst-mfg.com/product/pdf/eng/eEH.pdf), generated with kicad-footprint-generator
+connector JST EH horizontal
+0
 9
-Package_SO
-HSOP-8-1EP_3.9x4.9mm_P1.27mm_EP2.3x2.3mm_ThermalVias
-HSOP, 8 Pin (https://www.st.com/resource/en/datasheet/l7980.pdf), generated with kicad-footprint-generator ipc_gullwing_generator.py
-HSOP SO
+9
+Connector_JST
+JST_EH_S10B-EH_1x10_P2.50mm_Horizontal
+JST EH series connector, S10B-EH (http://www.jst-mfg.com/product/pdf/eng/eEH.pdf), generated with kicad-footprint-generator
+connector JST EH top entry
+0
+10
+10
+Connector_JST
+JST_EH_S11B-EH_1x11_P2.50mm_Horizontal
+JST EH series connector, S11B-EH (http://www.jst-mfg.com/product/pdf/eng/eEH.pdf), generated with kicad-footprint-generator
+connector JST EH top entry
+0
+11
+11
+Connector_JST
+JST_EH_S12B-EH_1x12_P2.50mm_Horizontal
+JST EH series connector, S12B-EH (http://www.jst-mfg.com/product/pdf/eng/eEH.pdf), generated with kicad-footprint-generator
+connector JST EH top entry
+0
+12
+12
+Connector_JST
+JST_EH_S13B-EH_1x13_P2.50mm_Horizontal
+JST EH series connector, S13B-EH (http://www.jst-mfg.com/product/pdf/eng/eEH.pdf), generated with kicad-footprint-generator
+connector JST EH top entry
+0
+13
+13
+Connector_JST
+JST_EH_S14B-EH_1x14_P2.50mm_Horizontal
+JST EH series connector, S14B-EH (http://www.jst-mfg.com/product/pdf/eng/eEH.pdf), generated with kicad-footprint-generator
+connector JST EH top entry
+0
+14
+14
+Connector_JST
+JST_EH_S15B-EH_1x15_P2.50mm_Horizontal
+JST EH series connector, S15B-EH (http://www.jst-mfg.com/product/pdf/eng/eEH.pdf), generated with kicad-footprint-generator
+connector JST EH top entry
+0
+15
+15
+Connector_JST
+JST_GH_BM02B-GHS-TBT_1x02-1MP_P1.25mm_Vertical
+JST GH series connector, BM02B-GHS-TBT (http://www.jst-mfg.com/product/pdf/eng/eGH.pdf), generated with kicad-footprint-generator
+connector JST GH side entry
+0
+4
+3
+Connector_JST
+JST_GH_BM03B-GHS-TBT_1x03-1MP_P1.25mm_Vertical
+JST GH series connector, BM03B-GHS-TBT (http://www.jst-mfg.com/product/pdf/eng/eGH.pdf), generated with kicad-footprint-generator
+connector JST GH side entry
+0
+5
+4
+Connector_JST
+JST_GH_BM04B-GHS-TBT_1x04-1MP_P1.25mm_Vertical
+JST GH series connector, BM04B-GHS-TBT (http://www.jst-mfg.com/product/pdf/eng/eGH.pdf), generated with kicad-footprint-generator
+connector JST GH side entry
+0
+6
+5
+Connector_JST
+JST_GH_BM05B-GHS-TBT_1x05-1MP_P1.25mm_Vertical
+JST GH series connector, BM05B-GHS-TBT (http://www.jst-mfg.com/product/pdf/eng/eGH.pdf), generated with kicad-footprint-generator
+connector JST GH side entry
+0
+7
+6
+Connector_JST
+JST_GH_BM06B-GHS-TBT_1x06-1MP_P1.25mm_Vertical
+JST GH series connector, BM06B-GHS-TBT (http://www.jst-mfg.com/product/pdf/eng/eGH.pdf), generated with kicad-footprint-generator
+connector JST GH side entry
+0
+8
+7
+Connector_JST
+JST_GH_BM07B-GHS-TBT_1x07-1MP_P1.25mm_Vertical
+JST GH series connector, BM07B-GHS-TBT (http://www.jst-mfg.com/product/pdf/eng/eGH.pdf), generated with kicad-footprint-generator
+connector JST GH side entry
+0
+9
+8
+Connector_JST
+JST_GH_BM08B-GHS-TBT_1x08-1MP_P1.25mm_Vertical
+JST GH series connector, BM08B-GHS-TBT (http://www.jst-mfg.com/product/pdf/eng/eGH.pdf), generated with kicad-footprint-generator
+connector JST GH side entry
+0
+10
+9
+Connector_JST
+JST_GH_BM09B-GHS-TBT_1x09-1MP_P1.25mm_Vertical
+JST GH series connector, BM09B-GHS-TBT (http://www.jst-mfg.com/product/pdf/eng/eGH.pdf), generated with kicad-footprint-generator
+connector JST GH side entry
+0
+11
+10
+Connector_JST
+JST_GH_BM10B-GHS-TBT_1x10-1MP_P1.25mm_Vertical
+JST GH series connector, BM10B-GHS-TBT (http://www.jst-mfg.com/product/pdf/eng/eGH.pdf), generated with kicad-footprint-generator
+connector JST GH side entry
+0
+12
+11
+Connector_JST
+JST_GH_BM11B-GHS-TBT_1x11-1MP_P1.25mm_Vertical
+JST GH series connector, BM11B-GHS-TBT (http://www.jst-mfg.com/product/pdf/eng/eGH.pdf), generated with kicad-footprint-generator
+connector JST GH side entry
+0
+13
+12
+Connector_JST
+JST_GH_BM12B-GHS-TBT_1x12-1MP_P1.25mm_Vertical
+JST GH series connector, BM12B-GHS-TBT (http://www.jst-mfg.com/product/pdf/eng/eGH.pdf), generated with kicad-footprint-generator
+connector JST GH side entry
+0
+14
+13
+Connector_JST
+JST_GH_BM13B-GHS-TBT_1x13-1MP_P1.25mm_Vertical
+JST GH series connector, BM13B-GHS-TBT (http://www.jst-mfg.com/product/pdf/eng/eGH.pdf), generated with kicad-footprint-generator
+connector JST GH side entry
+0
+15
+14
+Connector_JST
+JST_GH_BM14B-GHS-TBT_1x14-1MP_P1.25mm_Vertical
+JST GH series connector, BM14B-GHS-TBT (http://www.jst-mfg.com/product/pdf/eng/eGH.pdf), generated with kicad-footprint-generator
+connector JST GH side entry
+0
+16
+15
+Connector_JST
+JST_GH_BM15B-GHS-TBT_1x15-1MP_P1.25mm_Vertical
+JST GH series connector, BM15B-GHS-TBT (http://www.jst-mfg.com/product/pdf/eng/eGH.pdf), generated with kicad-footprint-generator
+connector JST GH side entry
+0
+17
+16
+Connector_JST
+JST_GH_SM02B-GHS-TB_1x02-1MP_P1.25mm_Horizontal
+JST GH series connector, SM02B-GHS-TB (http://www.jst-mfg.com/product/pdf/eng/eGH.pdf), generated with kicad-footprint-generator
+connector JST GH top entry
+0
+4
+3
+Connector_JST
+JST_GH_SM03B-GHS-TB_1x03-1MP_P1.25mm_Horizontal
+JST GH series connector, SM03B-GHS-TB (http://www.jst-mfg.com/product/pdf/eng/eGH.pdf), generated with kicad-footprint-generator
+connector JST GH top entry
+0
+5
+4
+Connector_JST
+JST_GH_SM04B-GHS-TB_1x04-1MP_P1.25mm_Horizontal
+JST GH series connector, SM04B-GHS-TB (http://www.jst-mfg.com/product/pdf/eng/eGH.pdf), generated with kicad-footprint-generator
+connector JST GH top entry
+0
+6
+5
+Connector_JST
+JST_GH_SM05B-GHS-TB_1x05-1MP_P1.25mm_Horizontal
+JST GH series connector, SM05B-GHS-TB (http://www.jst-mfg.com/product/pdf/eng/eGH.pdf), generated with kicad-footprint-generator
+connector JST GH top entry
+0
+7
+6
+Connector_JST
+JST_GH_SM06B-GHS-TB_1x06-1MP_P1.25mm_Horizontal
+JST GH series connector, SM06B-GHS-TB (http://www.jst-mfg.com/product/pdf/eng/eGH.pdf), generated with kicad-footprint-generator
+connector JST GH top entry
+0
+8
+7
+Connector_JST
+JST_GH_SM07B-GHS-TB_1x07-1MP_P1.25mm_Horizontal
+JST GH series connector, SM07B-GHS-TB (http://www.jst-mfg.com/product/pdf/eng/eGH.pdf), generated with kicad-footprint-generator
+connector JST GH top entry
+0
+9
+8
+Connector_JST
+JST_GH_SM08B-GHS-TB_1x08-1MP_P1.25mm_Horizontal
+JST GH series connector, SM08B-GHS-TB (http://www.jst-mfg.com/product/pdf/eng/eGH.pdf), generated with kicad-footprint-generator
+connector JST GH top entry
+0
+10
+9
+Connector_JST
+JST_GH_SM09B-GHS-TB_1x09-1MP_P1.25mm_Horizontal
+JST GH series connector, SM09B-GHS-TB (http://www.jst-mfg.com/product/pdf/eng/eGH.pdf), generated with kicad-footprint-generator
+connector JST GH top entry
+0
+11
+10
+Connector_JST
+JST_GH_SM10B-GHS-TB_1x10-1MP_P1.25mm_Horizontal
+JST GH series connector, SM10B-GHS-TB (http://www.jst-mfg.com/product/pdf/eng/eGH.pdf), generated with kicad-footprint-generator
+connector JST GH top entry
+0
+12
+11
+Connector_JST
+JST_GH_SM11B-GHS-TB_1x11-1MP_P1.25mm_Horizontal
+JST GH series connector, SM11B-GHS-TB (http://www.jst-mfg.com/product/pdf/eng/eGH.pdf), generated with kicad-footprint-generator
+connector JST GH top entry
+0
+13
+12
+Connector_JST
+JST_GH_SM12B-GHS-TB_1x12-1MP_P1.25mm_Horizontal
+JST GH series connector, SM12B-GHS-TB (http://www.jst-mfg.com/product/pdf/eng/eGH.pdf), generated with kicad-footprint-generator
+connector JST GH top entry
+0
+14
+13
+Connector_JST
+JST_GH_SM13B-GHS-TB_1x13-1MP_P1.25mm_Horizontal
+JST GH series connector, SM13B-GHS-TB (http://www.jst-mfg.com/product/pdf/eng/eGH.pdf), generated with kicad-footprint-generator
+connector JST GH top entry
+0
+15
+14
+Connector_JST
+JST_GH_SM14B-GHS-TB_1x14-1MP_P1.25mm_Horizontal
+JST GH series connector, SM14B-GHS-TB (http://www.jst-mfg.com/product/pdf/eng/eGH.pdf), generated with kicad-footprint-generator
+connector JST GH top entry
+0
+16
+15
+Connector_JST
+JST_GH_SM15B-GHS-TB_1x15-1MP_P1.25mm_Horizontal
+JST GH series connector, SM15B-GHS-TB (http://www.jst-mfg.com/product/pdf/eng/eGH.pdf), generated with kicad-footprint-generator
+connector JST GH top entry
+0
+17
+16
+Connector_JST
+JST_J2100_B06B-J21DK-GGXR_2x03_P2.50x4.00mm_Vertical
+JST J2100 series connector, B06B-J21DK-GGXR (http://www.jst-mfg.com/product/pdf/eng/eJFA-J2000.pdf), generated with kicad-footprint-generator
+connector JST J2100 vertical
+0
+8
+6
+Connector_JST
+JST_J2100_B08B-J21DK-GGXR_2x04_P2.50x4.00mm_Vertical
+JST J2100 series connector, B08B-J21DK-GGXR (http://www.jst-mfg.com/product/pdf/eng/eJFA-J2000.pdf), generated with kicad-footprint-generator
+connector JST J2100 vertical
+0
+10
+8
+Connector_JST
+JST_J2100_B10B-J21DK-GGXR_2x05_P2.50x4.00mm_Vertical
+JST J2100 series connector, B10B-J21DK-GGXR (http://www.jst-mfg.com/product/pdf/eng/eJFA-J2000.pdf), generated with kicad-footprint-generator
+connector JST J2100 vertical
+0
+12
+10
+Connector_JST
+JST_J2100_B12B-J21DK-GGXR_2x06_P2.50x4.00mm_Vertical
+JST J2100 series connector, B12B-J21DK-GGXR (http://www.jst-mfg.com/product/pdf/eng/eJFA-J2000.pdf), generated with kicad-footprint-generator
+connector JST J2100 vertical
+0
+14
+12
+Connector_JST
+JST_J2100_B16B-J21DK-GGXR_2x08_P2.50x4.00mm_Vertical
+JST J2100 series connector, B16B-J21DK-GGXR (http://www.jst-mfg.com/product/pdf/eng/eJFA-J2000.pdf), generated with kicad-footprint-generator
+connector JST J2100 vertical
 0
 18
-9
-Package_SO
-HSOP-8-1EP_3.9x4.9mm_P1.27mm_EP2.41x3.1mm
-HSOP, 8 Pin (https://www.st.com/resource/en/datasheet/l5973d.pdf), generated with kicad-footprint-generator ipc_gullwing_generator.py
-HSOP SO
+16
+Connector_JST
+JST_J2100_B20B-J21DK-GGXR_2x10_P2.50x4.00mm_Vertical
+JST J2100 series connector, B20B-J21DK-GGXR (http://www.jst-mfg.com/product/pdf/eng/eJFA-J2000.pdf), generated with kicad-footprint-generator
+connector JST J2100 vertical
 0
-13
-9
-Package_SO
-HSOP-8-1EP_3.9x4.9mm_P1.27mm_EP2.41x3.1mm_ThermalVias
-HSOP, 8 Pin (https://www.st.com/resource/en/datasheet/l5973d.pdf), generated with kicad-footprint-generator ipc_gullwing_generator.py
-HSOP SO
+22
+20
+Connector_JST
+JST_J2100_S06B-J21DK-GGXR_2x03_P2.50mm_Horizontal
+JST J2100 series connector, S06B-J21DK-GGXR (http://www.jst-mfg.com/product/pdf/eng/eJFA-J2000.pdf), generated with kicad-footprint-generator
+connector JST J2100 horizontal
+0
+7
+6
+Connector_JST
+JST_J2100_S08B-J21DK-GGXR_2x04_P2.50mm_Horizontal
+JST J2100 series connector, S08B-J21DK-GGXR (http://www.jst-mfg.com/product/pdf/eng/eJFA-J2000.pdf), generated with kicad-footprint-generator
+connector JST J2100 horizontal
+0
+10
+8
+Connector_JST
+JST_J2100_S10B-J21DK-GGXR_2x05_P2.50mm_Horizontal
+JST J2100 series connector, S10B-J21DK-GGXR (http://www.jst-mfg.com/product/pdf/eng/eJFA-J2000.pdf), generated with kicad-footprint-generator
+connector JST J2100 horizontal
+0
+12
+10
+Connector_JST
+JST_J2100_S12B-J21DK-GGXR_2x06_P2.50mm_Horizontal
+JST J2100 series connector, S12B-J21DK-GGXR (http://www.jst-mfg.com/product/pdf/eng/eJFA-J2000.pdf), generated with kicad-footprint-generator
+connector JST J2100 horizontal
+0
+14
+12
+Connector_JST
+JST_J2100_S16B-J21DK-GGXR_2x08_P2.50mm_Horizontal
+JST J2100 series connector, S16B-J21DK-GGXR (http://www.jst-mfg.com/product/pdf/eng/eJFA-J2000.pdf), generated with kicad-footprint-generator
+connector JST J2100 horizontal
+0
+18
+16
+Connector_JST
+JST_J2100_S20B-J21DK-GGXR_2x10_P2.50mm_Horizontal
+JST J2100 series connector, S20B-J21DK-GGXR (http://www.jst-mfg.com/product/pdf/eng/eJFA-J2000.pdf), generated with kicad-footprint-generator
+connector JST J2100 horizontal
+0
+22
+20
+Connector_JST
+JST_JWPF_B02B-JWPF-SK-R_1x02_P2.00mm_Vertical
+JST JWPF series connector, B02B-JWPF-SK-R (http://www.jst-mfg.com/product/pdf/eng/eJWPF1.pdf), generated with kicad-footprint-generator
+connector JST JWPF side entry
+0
+2
+2
+Connector_JST
+JST_JWPF_B03B-JWPF-SK-R_1x03_P2.00mm_Vertical
+JST JWPF series connector, B03B-JWPF-SK-R (http://www.jst-mfg.com/product/pdf/eng/eJWPF1.pdf), generated with kicad-footprint-generator
+connector JST JWPF side entry
+0
+3
+3
+Connector_JST
+JST_JWPF_B04B-JWPF-SK-R_1x04_P2.00mm_Vertical
+JST JWPF series connector, B04B-JWPF-SK-R (http://www.jst-mfg.com/product/pdf/eng/eJWPF1.pdf), generated with kicad-footprint-generator
+connector JST JWPF side entry
+0
+4
+4
+Connector_JST
+JST_JWPF_B06B-JWPF-SK-R_2x03_P2.00mm_Vertical
+JST JWPF series connector, B06B-JWPF-SK-R (http://www.jst-mfg.com/product/pdf/eng/eJWPF1.pdf), generated with kicad-footprint-generator
+connector JST JWPF side entry
+0
+6
+6
+Connector_JST
+JST_JWPF_B08B-JWPF-SK-R_2x04_P2.00mm_Vertical
+JST JWPF series connector, B08B-JWPF-SK-R (http://www.jst-mfg.com/product/pdf/eng/eJWPF1.pdf), generated with kicad-footprint-generator
+connector JST JWPF side entry
+0
+8
+8
+Connector_JST
+JST_LEA_SM02B-LEASS-TF_1x02-1MP_P4.20mm_Horizontal
+JST LEA series connector, SM02B-LEASS-TF (http://www.jst-mfg.com/product/pdf/eng/eLEA.pdf), generated with kicad-footprint-generator
+connector JST LEA top entry
+0
+4
+3
+Connector_JST
+JST_NV_B02P-NV_1x02_P5.00mm_Vertical
+JST NV series connector, B02P-NV (http://www.jst-mfg.com/product/pdf/eng/eNV.pdf), generated with kicad-footprint-generator
+connector JST NV side entry
+0
+2
+2
+Connector_JST
+JST_NV_B03P-NV_1x03_P5.00mm_Vertical
+JST NV series connector, B03P-NV (http://www.jst-mfg.com/product/pdf/eng/eNV.pdf), generated with kicad-footprint-generator
+connector JST NV side entry
+0
+3
+3
+Connector_JST
+JST_NV_B04P-NV_1x04_P5.00mm_Vertical
+JST NV series connector, B04P-NV (http://www.jst-mfg.com/product/pdf/eng/eNV.pdf), generated with kicad-footprint-generator
+connector JST NV side entry
+0
+4
+4
+Connector_JST
+JST_PHD_B8B-PHDSS_2x04_P2.00mm_Vertical
+JST PHD series connector, B8B-PHDSS (http://www.jst-mfg.com/product/pdf/eng/ePHD.pdf), generated with kicad-footprint-generator
+connector JST PHD vertical
+0
+8
+8
+Connector_JST
+JST_PHD_B10B-PHDSS_2x05_P2.00mm_Vertical
+JST PHD series connector, B10B-PHDSS (http://www.jst-mfg.com/product/pdf/eng/ePHD.pdf), generated with kicad-footprint-generator
+connector JST PHD vertical
+0
+10
+10
+Connector_JST
+JST_PHD_B12B-PHDSS_2x06_P2.00mm_Vertical
+JST PHD series connector, B12B-PHDSS (http://www.jst-mfg.com/product/pdf/eng/ePHD.pdf), generated with kicad-footprint-generator
+connector JST PHD vertical
+0
+12
+12
+Connector_JST
+JST_PHD_B14B-PHDSS_2x07_P2.00mm_Vertical
+JST PHD series connector, B14B-PHDSS (http://www.jst-mfg.com/product/pdf/eng/ePHD.pdf), generated with kicad-footprint-generator
+connector JST PHD vertical
+0
+14
+14
+Connector_JST
+JST_PHD_B16B-PHDSS_2x08_P2.00mm_Vertical
+JST PHD series connector, B16B-PHDSS (http://www.jst-mfg.com/product/pdf/eng/ePHD.pdf), generated with kicad-footprint-generator
+connector JST PHD vertical
+0
+16
+16
+Connector_JST
+JST_PHD_B18B-PHDSS_2x09_P2.00mm_Vertical
+JST PHD series connector, B18B-PHDSS (http://www.jst-mfg.com/product/pdf/eng/ePHD.pdf), generated with kicad-footprint-generator
+connector JST PHD vertical
+0
+18
+18
+Connector_JST
+JST_PHD_B20B-PHDSS_2x10_P2.00mm_Vertical
+JST PHD series connector, B20B-PHDSS (http://www.jst-mfg.com/product/pdf/eng/ePHD.pdf), generated with kicad-footprint-generator
+connector JST PHD vertical
 0
 20
-9
-Package_SO
-HSOP-20-1EP_11.0x15.9mm_P1.27mm_SlugDown
-HSOP 11.0x15.9mm Pitch 1.27mm Slug Down (PowerSO-20) [JEDEC MO-166] (http://www.st.com/resource/en/datasheet/tda7266d.pdf, www.st.com/resource/en/application_note/cd00003801.pdf)
-HSOP 11.0 x 15.9mm Pitch 1.27mm
-0
-23
-21
-Package_SO
-HSOP-20-1EP_11.0x15.9mm_P1.27mm_SlugDown_ThermalVias
-HSOP 11.0x15.9mm Pitch 1.27mm Slug Down Thermal Vias (PowerSO-20) [JEDEC MO-166] (http://www.st.com/resource/en/datasheet/tda7266d.pdf, www.st.com/resource/en/application_note/cd00003801.pdf)
-HSOP 11.0 x 15.9mm Pitch 1.27mm
-0
-45
-21
-Package_SO
-HSOP-20-1EP_11.0x15.9mm_P1.27mm_SlugUp
-HSOP 11.0x15.9mm Pitch 1.27mm Slug Up (PowerSO-20) [JEDEC MO-166] (http://www.st.com/resource/en/datasheet/tda7266d.pdf, www.st.com/resource/en/application_note/cd00003801.pdf)
-HSOP 11.0 x 15.9mm Pitch 1.27mm
-0
 20
-20
-Package_SO
-HSOP-32-1EP_7.5x11mm_P0.65mm_EP4.7x4.7mm
-HSOP, 32 Pin (https://www.nxp.com/docs/en/package-information/SOT1746-3.pdf), generated with kicad-footprint-generator ipc_gullwing_generator.py
-HSOP SO
+Connector_JST
+JST_PHD_B22B-PHDSS_2x11_P2.00mm_Vertical
+JST PHD series connector, B22B-PHDSS (http://www.jst-mfg.com/product/pdf/eng/ePHD.pdf), generated with kicad-footprint-generator
+connector JST PHD vertical
 0
-37
-33
-Package_SO
-HSOP-36-1EP_11.0x15.9mm_P0.65mm_SlugDown
-HSOP 11.0x15.9mm Pitch 0.65mm Slug Down (PowerSO-36) [JEDEC MO-166] (http://www.st.com/resource/en/datasheet/vn808cm-32-e.pdf, http://www.st.com/resource/en/application_note/cd00003801.pdf)
-HSOP 11.0 x 15.9mm Pitch 0.65mm
-0
-39
-37
-Package_SO
-HSOP-36-1EP_11.0x15.9mm_P0.65mm_SlugDown_ThermalVias
-HSOP 11.0x15.9mm Pitch 0.65mm Slug Down Thermal Vias (PowerSO-36) [JEDEC MO-166] (http://www.st.com/resource/en/datasheet/vn808cm-32-e.pdf, http://www.st.com/resource/en/application_note/cd00003801.pdf)
-HSOP 11.0 x 15.9mm Pitch 0.65mm
-0
-61
-37
-Package_SO
-HSOP-36-1EP_11.0x15.9mm_P0.65mm_SlugUp
-HSOP 11.0x15.9mm Pitch 0.65mm Slug Up (PowerSO-36) [JEDEC MO-166] (http://www.st.com/resource/en/datasheet/vn808cm-32-e.pdf, http://www.st.com/resource/en/application_note/cd00003801.pdf)
-HSOP 11.0 x 15.9mm Pitch 0.65mm
-0
-36
-36
-Package_SO
-HSOP-54-1EP_7.5x17.9mm_P0.65mm_EP4.6x4.6mm
-HSOP, 54 Pin (https://www.nxp.com/docs/en/package-information/98ASA10506D.pdf), generated with kicad-footprint-generator ipc_gullwing_generator.py
-HSOP SO
-0
-59
-55
-Package_SO
-HTSOP-8-1EP_3.9x4.9mm_P1.27mm_EP2.4x3.2mm
-HTSOP, 8 Pin (https://media.digikey.com/pdf/Data%20Sheets/Rohm%20PDFs/BD9G341EFJ.pdf), generated with kicad-footprint-generator ipc_gullwing_generator.py
-HTSOP SO
-0
-13
-9
-Package_SO
-HTSOP-8-1EP_3.9x4.9mm_P1.27mm_EP2.4x3.2mm_ThermalVias
-HTSOP, 8 Pin (https://media.digikey.com/pdf/Data%20Sheets/Rohm%20PDFs/BD9G341EFJ.pdf), generated with kicad-footprint-generator ipc_gullwing_generator.py
-HTSOP SO
-0
-20
-9
-Package_SO
-HTSSOP-14-1EP_4.4x5mm_P0.65mm_EP3.4x5mm_Mask3x3.1mm
-HTSSOP, 14 Pin (http://www.ti.com/lit/ds/symlink/lm5161.pdf#page=34), generated with kicad-footprint-generator ipc_gullwing_generator.py
-HTSSOP SO
-0
-20
-15
-Package_SO
-HTSSOP-14-1EP_4.4x5mm_P0.65mm_EP3.4x5mm_Mask3x3.1mm_ThermalVias
-HTSSOP, 14 Pin (http://www.ti.com/lit/ds/symlink/lm5161.pdf#page=34), generated with kicad-footprint-generator ipc_gullwing_generator.py
-HTSSOP SO
-0
-36
-15
-Package_SO
-HTSSOP-16-1EP_4.4x5mm_P0.65mm_EP3.4x5mm
-16-Lead Plastic HTSSOP (4.4x5x1.2mm); Thermal pad; (http://www.ti.com/lit/ds/symlink/drv8833.pdf)
-SSOP 0.65
-0
-29
-17
-Package_SO
-HTSSOP-16-1EP_4.4x5mm_P0.65mm_EP3.4x5mm_Mask2.46x2.31mm
-HTSSOP, 16 Pin (http://www.analog.com/media/en/technical-documentation/data-sheets/LTC7810.pdf), generated with kicad-footprint-generator ipc_gullwing_generator.py
-HTSSOP SO
-0
-20
-17
-Package_SO
-HTSSOP-16-1EP_4.4x5mm_P0.65mm_EP3.4x5mm_Mask2.46x2.31mm_ThermalVias
-HTSSOP, 16 Pin (http://www.analog.com/media/en/technical-documentation/data-sheets/LTC7810.pdf), generated with kicad-footprint-generator ipc_gullwing_generator.py
-HTSSOP SO
-0
-27
-17
-Package_SO
-HTSSOP-16-1EP_4.4x5mm_P0.65mm_EP3.4x5mm_Mask3x3mm_ThermalVias
-16-Lead Plastic HTSSOP (4.4x5x1.2mm); Thermal pad with vias; (http://www.ti.com/lit/ds/symlink/drv8800.pdf)
-SSOP 0.65
-0
-46
-17
-Package_SO
-HTSSOP-16-1EP_4.4x5mm_P0.65mm_EP3x3mm
-HTSSOP, 16 Pin (https://www.st.com/resource/en/datasheet/stp08cp05.pdf#page=20), generated with kicad-footprint-generator ipc_gullwing_generator.py
-HTSSOP SO
-0
-21
-17
-Package_SO
-HTSSOP-20-1EP_4.4x6.5mm_P0.65mm_EP2.74x3.86mm
-HTSSOP, 20 Pin (https://www.analog.com/media/en/technical-documentation/data-sheets/4011fb.pdf#page=24), generated with kicad-footprint-generator ipc_gullwing_generator.py
-HTSSOP SO
-0
-23
-21
-Package_SO
-HTSSOP-20-1EP_4.4x6.5mm_P0.65mm_EP2.85x4mm
-HTSSOP, 20 Pin (https://pdfserv.maximintegrated.com/package_dwgs/21-0108.PDF U20E-1), generated with kicad-footprint-generator ipc_gullwing_generator.py
-HTSSOP SO
-0
-23
-21
-Package_SO
-HTSSOP-20-1EP_4.4x6.5mm_P0.65mm_EP3.4x6.5mm
-20-Lead Plastic Thin Shrink Small Outline (ST)-4.4 mm Body [HTSSOP], with thermal pad with vias
-HTSSOP 0.65
-0
-29
-21
-Package_SO
-HTSSOP-20-1EP_4.4x6.5mm_P0.65mm_EP3.4x6.5mm_Mask2.4x3.7mm
-HTSSOP, 20 Pin (http://www.ti.com/lit/ds/symlink/bq24006.pdf), generated with kicad-footprint-generator ipc_gullwing_generator.py
-HTSSOP SO
+22
+22
+Connector_JST
+JST_PHD_B24B-PHDSS_2x12_P2.00mm_Vertical
+JST PHD series connector, B24B-PHDSS (http://www.jst-mfg.com/product/pdf/eng/ePHD.pdf), generated with kicad-footprint-generator
+connector JST PHD vertical
 0
 24
-21
-Package_SO
-HTSSOP-20-1EP_4.4x6.5mm_P0.65mm_EP3.4x6.5mm_Mask2.75x3.43mm
-HTSSOP, 20 Pin (http://www.ti.com/lit/ds/symlink/tlc5971.pdf#page=37&zoom=160,-90,3), generated with kicad-footprint-generator ipc_gullwing_generator.py
-HTSSOP SO
+24
+Connector_JST
+JST_PHD_B26B-PHDSS_2x13_P2.00mm_Vertical
+JST PHD series connector, B26B-PHDSS (http://www.jst-mfg.com/product/pdf/eng/ePHD.pdf), generated with kicad-footprint-generator
+connector JST PHD vertical
 0
 26
-21
-Package_SO
-HTSSOP-20-1EP_4.4x6.5mm_P0.65mm_EP3.4x6.5mm_Mask2.75x3.43mm_ThermalVias
-HTSSOP, 20 Pin (http://www.ti.com/lit/ds/symlink/tlc5971.pdf#page=37&zoom=160,-90,3), generated with kicad-footprint-generator ipc_gullwing_generator.py
-HTSSOP SO
-0
-42
-21
-Package_SO
-HTSSOP-20-1EP_4.4x6.5mm_P0.65mm_EP3.4x6.5mm_Mask2.75x3.43mm_ThermalVias_HandSolder
-HTSSOP, 20 Pin (http://www.ti.com/lit/ds/symlink/tlc5971.pdf#page=37&zoom=160,-90,3), generated with kicad-footprint-generator ipc_gullwing_generator.py
-HTSSOP SO
-0
-42
-21
-Package_SO
-HTSSOP-20-1EP_4.4x6.5mm_P0.65mm_EP3.4x6.5mm_Mask2.96x2.96mm
-HTSSOP, 20 Pin (https://www.ti.com/lit/ds/symlink/tps2663.pdf#page=49), generated with kicad-footprint-generator ipc_gullwing_generator.py
-HTSSOP SO
-0
-23
-21
-Package_SO
-HTSSOP-20-1EP_4.4x6.5mm_P0.65mm_EP3.4x6.5mm_Mask2.96x2.96mm_ThermalVias
-HTSSOP, 20 Pin (https://www.ti.com/lit/ds/symlink/tps2663.pdf#page=49), generated with kicad-footprint-generator ipc_gullwing_generator.py
-HTSSOP SO
-0
-42
-21
-Package_SO
-HTSSOP-20-1EP_4.4x6.5mm_P0.65mm_EP3.4x6.5mm_ThermalVias
-20-Lead Plastic Thin Shrink Small Outline (ST)-4.4 mm Body [HTSSOP], with thermal pad with vias
-HTSSOP 0.65
-0
-45
-21
-Package_SO
-HTSSOP-24-1EP_4.4x7.8mm_P0.65mm_EP3.2x5mm
-HTSSOP, 24 Pin (https://www.st.com/resource/en/datasheet/stp16cp05.pdf#page=25), generated with kicad-footprint-generator ipc_gullwing_generator.py
-HTSSOP SO
-0
-31
-25
-Package_SO
-HTSSOP-24-1EP_4.4x7.8mm_P0.65mm_EP3.4x7.8mm_Mask2.4x4.68mm
-HTSSOP, 24 Pin (http://www.ti.com/lit/ds/symlink/tps703.pdf), generated with kicad-footprint-generator ipc_gullwing_generator.py
-HTSSOP SO
+26
+Connector_JST
+JST_PHD_B28B-PHDSS_2x14_P2.00mm_Vertical
+JST PHD series connector, B28B-PHDSS (http://www.jst-mfg.com/product/pdf/eng/ePHD.pdf), generated with kicad-footprint-generator
+connector JST PHD vertical
 0
 28
-25
-Package_SO
-HTSSOP-24-1EP_4.4x7.8mm_P0.65mm_EP3.4x7.8mm_Mask2.4x4.68mm_ThermalVias
-HTSSOP, 24 Pin (http://www.ti.com/lit/ds/symlink/tps703.pdf), generated with kicad-footprint-generator ipc_gullwing_generator.py
-HTSSOP SO
-0
-47
-25
-Package_SO
-HTSSOP-28-1EP_4.4x9.7mm_P0.65mm_EP2.85x5.4mm
-HTSSOP, 28 Pin (https://pdfserv.maximintegrated.com/package_dwgs/21-0108.PDF), generated with kicad-footprint-generator ipc_gullwing_generator.py
-HTSSOP SO
+28
+Connector_JST
+JST_PHD_B30B-PHDSS_2x15_P2.00mm_Vertical
+JST PHD series connector, B30B-PHDSS (http://www.jst-mfg.com/product/pdf/eng/ePHD.pdf), generated with kicad-footprint-generator
+connector JST PHD vertical
 0
 30
-29
-Package_SO
-HTSSOP-28-1EP_4.4x9.7mm_P0.65mm_EP2.85x5.4mm_ThermalVias
-HTSSOP, 28 Pin (https://pdfserv.maximintegrated.com/package_dwgs/21-0108.PDF), generated with kicad-footprint-generator ipc_gullwing_generator.py
-HTSSOP SO
+30
+Connector_JST
+JST_PHD_B32B-PHDSS_2x16_P2.00mm_Vertical
+JST PHD series connector, B32B-PHDSS (http://www.jst-mfg.com/product/pdf/eng/ePHD.pdf), generated with kicad-footprint-generator
+connector JST PHD vertical
 0
-41
-29
-Package_SO
-HTSSOP-28-1EP_4.4x9.7mm_P0.65mm_EP3.4x9.5mm
-HTSSOP28: plastic thin shrink small outline package; 28 leads; body width 4.4 mm; thermal pad
-TSSOP HTSSOP 0.65 thermal pad
+32
+32
+Connector_JST
+JST_PHD_B34B-PHDSS_2x17_P2.00mm_Vertical
+JST PHD series connector, B34B-PHDSS (http://www.jst-mfg.com/product/pdf/eng/ePHD.pdf), generated with kicad-footprint-generator
+connector JST PHD vertical
 0
-39
-29
-Package_SO
-HTSSOP-28-1EP_4.4x9.7mm_P0.65mm_EP3.4x9.5mm_Mask2.4x6.17mm
-HTSSOP28: plastic thin shrink small outline package; 28 leads; body width 4.4 mm; thermal pad
-TSSOP HTSSOP 0.65 thermal pad
-0
-40
-29
-Package_SO
-HTSSOP-28-1EP_4.4x9.7mm_P0.65mm_EP3.4x9.5mm_Mask2.4x6.17mm_ThermalVias
-HTSSOP28: plastic thin shrink small outline package; 28 leads; body width 4.4 mm; thermal pad
-TSSOP HTSSOP 0.65 thermal pad
-0
-55
-29
-Package_SO
-HTSSOP-28-1EP_4.4x9.7mm_P0.65mm_EP3.4x9.5mm_ThermalVias
-HTSSOP28: plastic thin shrink small outline package; 28 leads; body width 4.4 mm; thermal pad
-TSSOP HTSSOP 0.65 thermal pad
-0
-58
-29
-Package_SO
-HTSSOP-32-1EP_6.1x11mm_P0.65mm_EP5.2x11mm_Mask4.11x4.36mm
-HTSSOP32: plastic thin shrink small outline package; 32 leads; body width 6.1 mm; lead pitch 0.65 mm (see NXP SSOP-TSSOP-VSO-REFLOW.pdf and sot487-1_po.pdf)
-SSOP 0.65 PowerPAD
-0
-43
-33
-Package_SO
-HTSSOP-32-1EP_6.1x11mm_P0.65mm_EP5.2x11mm_Mask4.11x4.36mm_ThermalVias
-HTSSOP32: plastic thin shrink small outline package; 32 leads; body width 6.1 mm; lead pitch 0.65 mm (see NXP SSOP-TSSOP-VSO-REFLOW.pdf and sot487-1_po.pdf)
-SSOP 0.65 PowerPAD
-0
-83
-33
-Package_SO
-HTSSOP-38-1EP_6.1x12.5mm_P0.65mm_EP5.2x12.5mm_Mask3.39x6.35mm
-HTSSOP, 38 Pin (http://www.ti.com/lit/ds/symlink/tlc5951.pdf#page=47&zoom=140,-67,15), generated with kicad-footprint-generator ipc_gullwing_generator.py
-HTSSOP SO
-0
-46
-39
-Package_SO
-HTSSOP-38-1EP_6.1x12.5mm_P0.65mm_EP5.2x12.5mm_Mask3.39x6.35mm_ThermalVias
-HTSSOP, 38 Pin (http://www.ti.com/lit/ds/symlink/tlc5951.pdf#page=47&zoom=140,-67,15), generated with kicad-footprint-generator ipc_gullwing_generator.py
-HTSSOP SO
-0
-87
-39
-Package_SO
-HTSSOP-44_6.1x14mm_P0.635mm_TopEP4.14x7.01mm
-HTSSOP, 44 Pin (http://www.ti.com/lit/ds/symlink/tpa3251.pdf#page=38), generated with kicad-footprint-generator ipc_gullwing_generator.py
-HTSSOP SO
-0
-44
-44
-Package_SO
-HTSSOP-56-1EP_6.1x14mm_P0.5mm_EP3.61x6.35mm
-HTSSOP56: plastic thin shrink small outline package http://www.ti.com/lit/ds/symlink/drv8301.pdf
-HTSSOP 0.5
-0
-72
-57
-Package_SO
-HVSSOP-10-1EP_3x3mm_P0.5mm_EP1.57x1.88mm
-HVSSOP, 10 Pin (https://www.ti.com/lit/ds/symlink/bq24090.pdf), generated with kicad-footprint-generator ipc_gullwing_generator.py
-HVSSOP SO
-0
-15
-11
-Package_SO
-HVSSOP-10-1EP_3x3mm_P0.5mm_EP1.57x1.88mm_ThermalVias
-HVSSOP, 10 Pin (https://www.ti.com/lit/ds/symlink/bq24090.pdf), generated with kicad-footprint-generator ipc_gullwing_generator.py
-HVSSOP SO
-0
-20
-11
-Package_SO
-Infineon_PG-DSO-8-27_3.9x4.9mm_EP2.65x3mm
-Infineon  PG-DSO, 8 Pin (https://www.infineon.com/cms/en/product/packages/PG-DSO/PG-DSO-8-27), generated with kicad-footprint-generator ipc_gullwing_generator.py
-Infineon PG-DSO SO
-0
-13
-9
-Package_SO
-Infineon_PG-DSO-8-27_3.9x4.9mm_EP2.65x3mm_ThermalVias
-Infineon  PG-DSO, 8 Pin (https://www.infineon.com/cms/en/product/packages/PG-DSO/PG-DSO-8-27), generated with kicad-footprint-generator ipc_gullwing_generator.py
-Infineon PG-DSO SO
-0
-23
-9
-Package_SO
-Infineon_PG-DSO-8-43
-Infineon_PG-DSO-8-43
-DSO DSO-8 SOIC SOIC-8
-0
-12
-9
-Package_SO
-Infineon_PG-DSO-12-9
-Infineon PG-DSO 12 pin, exposed pad: 4.5x8.1mm, with thermal vias (https://www.infineon.com/cms/en/product/packages/PG-DSO/PG-DSO-12-9/)
-PG-DSO
-0
-23
-13
-Package_SO
-Infineon_PG-DSO-12-9_ThermalVias
-Infineon PG-DSO 12 pin, exposed pad: 4.5x8.1mm, with thermal vias (https://www.infineon.com/cms/en/product/packages/PG-DSO/PG-DSO-12-9/)
-PG-DSO
-0
-42
-13
-Package_SO
-Infineon_PG-DSO-12-11
-Infineon PG-DSO 12 pin, exposed pad: 4.5x8.1mm, with thermal vias (https://www.infineon.com/cms/en/product/packages/PG-DSO/PG-DSO-12-11/)
-PG-DSO
-0
-23
-13
-Package_SO
-Infineon_PG-DSO-12-11_ThermalVias
-Infineon PG-DSO 12 pin, exposed pad: 4.5x8.1mm, with thermal vias (https://www.infineon.com/cms/en/product/packages/PG-DSO/PG-DSO-12-11/)
-PG-DSO
-0
-42
-13
-Package_SO
-Infineon_PG-DSO-20-30
-Infineon SO package 20pin, exposed pad 4.5x7mm (https://www.infineon.com/cms/en/product/packages/PG-DSO/PG-DSO-20-71/)
-DSO-20
-0
-31
-21
-Package_SO
-Infineon_PG-DSO-20-30_ThermalVias
-Infineon SO package 20pin, exposed pad 4.5x7mm (https://www.infineon.com/cms/en/product/packages/PG-DSO/PG-DSO-20-71/)
-DSO-20
-0
-45
-21
-Package_SO
-Infineon_PG-DSO-20-32
-Infineon SO package 20pin without exposed pad (https://www.infineon.com/cms/en/product/packages/PG-DSO/PG-DSO-20-32/)
-DSO-20
-0
-20
-20
-Package_SO
-Infineon_PG-DSO-20-85
-Infineon SO package 20pin with exposed pad (https://www.infineon.com/cms/en/product/packages/PG-DSO/PG-DSO-20-85/)
-DSO-20
-0
-31
-21
-Package_SO
-Infineon_PG-DSO-20-85_ThermalVias
-Infineon SO package 20pin with exposed pad (https://www.infineon.com/cms/en/product/packages/PG-DSO/PG-DSO-20-85/)
-DSO-20
-0
-113
-21
-Package_SO
-Infineon_PG-DSO-20-87
-Infineon SO package 20pin without exposed pad (https://www.infineon.com/cms/en/product/packages/PG-DSO/PG-DSO-20-87/)
-DSO-20
-0
-20
-20
-Package_SO
-Infineon_PG-TSDSO-14-22
-Infineon_PG-TSDSO-14-22
-Infineon TSDSO 14-22 
-0
-17
-15
-Package_SO
-Linear_MSOP-12-16-1EP_3x4mm_P0.5mm
-12-Lead Plastic Micro Small Outline Package (MS) [MSOP], variant of MSOP-16 (see http://cds.linear.com/docs/en/datasheet/3630fd.pdf)
-SSOP 0.5
-0
-15
-13
-Package_SO
-Linear_MSOP-12-16_3x4mm_P0.5mm
-12-Lead Plastic Micro Small Outline Package (MS) [MSOP], variant of MSOP-16 (see https://www.analog.com/media/en/technical-documentation/data-sheets/3748fb.pdf)
-SSOP 0.5
-0
-12
-12
-Package_SO
-MFSOP6-4_4.4x3.6mm_P1.27mm
-https://toshiba.semicon-storage.com/ap-en/design-support/package/detail.4pin%20MFSOP6.html
-MFSOP 4 pin SMD
-0
-4
-4
-Package_SO
-MFSOP6-5_4.4x3.6mm_P1.27mm
-https://toshiba.semicon-storage.com/ap-en/design-support/package/detail.5pin%20MFSOP6.html
-MFSOP 4 pin SMD
-0
-5
-5
-Package_SO
-MSOP-8-1EP_3x3mm_P0.65mm_EP1.68x1.88mm
-MSOP, 8 Pin (https://www.analog.com/media/en/technical-documentation/data-sheets/4440fb.pdf#page=13), generated with kicad-footprint-generator ipc_gullwing_generator.py
-MSOP SO
-0
-13
-9
-Package_SO
-MSOP-8-1EP_3x3mm_P0.65mm_EP1.68x1.88mm_ThermalVias
-MSOP, 8 Pin (https://www.analog.com/media/en/technical-documentation/data-sheets/4440fb.pdf#page=13), generated with kicad-footprint-generator ipc_gullwing_generator.py
-MSOP SO
-0
-18
-9
-Package_SO
-MSOP-8-1EP_3x3mm_P0.65mm_EP1.73x1.85mm
-MSOP, 8 Pin (http://www.ti.com/lit/ds/symlink/lm25085.pdf#page=32), generated with kicad-footprint-generator ipc_gullwing_generator.py
-MSOP SO
-0
-13
-9
-Package_SO
-MSOP-8-1EP_3x3mm_P0.65mm_EP1.73x1.85mm_ThermalVias
-MSOP, 8 Pin (http://www.ti.com/lit/ds/symlink/lm25085.pdf#page=32), generated with kicad-footprint-generator ipc_gullwing_generator.py
-MSOP SO
-0
-18
-9
-Package_SO
-MSOP-8-1EP_3x3mm_P0.65mm_EP1.95x2.15mm
-MSOP, 8 Pin (http://www.st.com/resource/en/datasheet/pm8834.pdf), generated with kicad-footprint-generator ipc_gullwing_generator.py
-MSOP SO
-0
-13
-9
-Package_SO
-MSOP-8-1EP_3x3mm_P0.65mm_EP1.95x2.15mm_ThermalVias
-MSOP, 8 Pin (http://www.st.com/resource/en/datasheet/pm8834.pdf), generated with kicad-footprint-generator ipc_gullwing_generator.py
-MSOP SO
-0
-18
-9
-Package_SO
-MSOP-8-1EP_3x3mm_P0.65mm_EP2.5x3mm_Mask1.73x2.36mm
-MSOP, 8 Pin (http://ww1.microchip.com/downloads/en/DeviceDoc/mic5355_6.pdf#page=15), generated with kicad-footprint-generator ipc_gullwing_generator.py
-MSOP SO
-0
-14
-9
-Package_SO
-MSOP-8-1EP_3x3mm_P0.65mm_EP2.5x3mm_Mask1.73x2.36mm_ThermalVias
-MSOP, 8 Pin (http://ww1.microchip.com/downloads/en/DeviceDoc/mic5355_6.pdf#page=15), generated with kicad-footprint-generator ipc_gullwing_generator.py
-MSOP SO
-0
-19
-9
-Package_SO
-MSOP-8_3x3mm_P0.65mm
-MSOP, 8 Pin (https://www.jedec.org/system/files/docs/mo-187F.pdf variant AA), generated with kicad-footprint-generator ipc_gullwing_generator.py
-MSOP SO
+34
+34
+Connector_JST
+JST_PHD_S8B-PHDSS_2x04_P2.00mm_Horizontal
+JST PHD series connector, S8B-PHDSS (http://www.jst-mfg.com/product/pdf/eng/ePHD.pdf), generated with kicad-footprint-generator
+connector JST PHD horizontal
 0
 8
 8
-Package_SO
-MSOP-10-1EP_3x3mm_P0.5mm_EP1.68x1.88mm
-MSOP, 10 Pin (https://www.analog.com/media/en/technical-documentation/data-sheets/3805fg.pdf#page=18), generated with kicad-footprint-generator ipc_gullwing_generator.py
-MSOP SO
-0
-15
-11
-Package_SO
-MSOP-10-1EP_3x3mm_P0.5mm_EP1.68x1.88mm_ThermalVias
-MSOP, 10 Pin (https://www.analog.com/media/en/technical-documentation/data-sheets/3805fg.pdf#page=18), generated with kicad-footprint-generator ipc_gullwing_generator.py
-MSOP SO
-0
-20
-11
-Package_SO
-MSOP-10-1EP_3x3mm_P0.5mm_EP1.73x1.98mm
-MSOP, 10 Pin (www.allegromicro.com/~/media/Files/Datasheets/A4952-3-Datasheet.ashx?la=en#page=10), generated with kicad-footprint-generator ipc_gullwing_generator.py
-MSOP SO
-0
-15
-11
-Package_SO
-MSOP-10-1EP_3x3mm_P0.5mm_EP1.73x1.98mm_ThermalVias
-MSOP, 10 Pin (www.allegromicro.com/~/media/Files/Datasheets/A4952-3-Datasheet.ashx?la=en#page=10), generated with kicad-footprint-generator ipc_gullwing_generator.py
-MSOP SO
-0
-20
-11
-Package_SO
-MSOP-10-1EP_3x3mm_P0.5mm_EP2.2x3.1mm_Mask1.83x1.89mm
-MSOP, 10 Pin (https://www.ti.com/lit/ds/symlink/xtr111.pdf#page=27), generated with kicad-footprint-generator ipc_gullwing_generator.py
-MSOP SO
-0
-16
-11
-Package_SO
-MSOP-10-1EP_3x3mm_P0.5mm_EP2.2x3.1mm_Mask1.83x1.89mm_ThermalVias
-MSOP, 10 Pin (https://www.ti.com/lit/ds/symlink/xtr111.pdf#page=27), generated with kicad-footprint-generator ipc_gullwing_generator.py
-MSOP SO
-0
-23
-11
-Package_SO
-MSOP-10_3x3mm_P0.5mm
-10-Lead Plastic Micro Small Outline Package (MS) [MSOP] (see Microchip Packaging Specification 00000049BS.pdf)
-SSOP 0.5
+Connector_JST
+JST_PHD_S10B-PHDSS_2x05_P2.00mm_Horizontal
+JST PHD series connector, S10B-PHDSS (http://www.jst-mfg.com/product/pdf/eng/ePHD.pdf), generated with kicad-footprint-generator
+connector JST PHD horizontal
 0
 10
 10
-Package_SO
-MSOP-12-1EP_3x4mm_P0.65mm_EP1.65x2.85mm
-MSOP, 12 Pin (https://www.analog.com/media/en/technical-documentation/data-sheets/3652fe.pdf#page=24), generated with kicad-footprint-generator ipc_gullwing_generator.py
-MSOP SO
-0
-17
-13
-Package_SO
-MSOP-12-1EP_3x4mm_P0.65mm_EP1.65x2.85mm_ThermalVias
-MSOP, 12 Pin (https://www.analog.com/media/en/technical-documentation/data-sheets/3652fe.pdf#page=24), generated with kicad-footprint-generator ipc_gullwing_generator.py
-MSOP SO
-0
-24
-13
-Package_SO
-MSOP-12-16-1EP_3x4mm_P0.5mm_EP1.65x2.85mm
-10-Lead Plastic Micro Small Outline Package (MS) [MSOP] (see Microchip Packaging Specification 00000049BS.pdf)
-SSOP 0.5
-0
-19
-13
-Package_SO
-MSOP-12-16-1EP_3x4mm_P0.5mm_EP1.65x2.85mm_ThermalVias
-10-Lead Plastic Micro Small Outline Package (MS) [MSOP] (see Microchip Packaging Specification 00000049BS.pdf)
-SSOP 0.5
-0
-25
-13
-Package_SO
-MSOP-12-16_3x4mm_P0.5mm
-10-Lead Plastic Micro Small Outline Package (MS) [MSOP] (see Microchip Packaging Specification 00000049BS.pdf)
-SSOP 0.5
+Connector_JST
+JST_PHD_S12B-PHDSS_2x06_P2.00mm_Horizontal
+JST PHD series connector, S12B-PHDSS (http://www.jst-mfg.com/product/pdf/eng/ePHD.pdf), generated with kicad-footprint-generator
+connector JST PHD horizontal
 0
 12
 12
-Package_SO
-MSOP-12_3x4mm_P0.65mm
-MSOP, 12 Pin (https://www.analog.com/media/en/technical-documentation/data-sheets/6957fb.pdf#page=36), generated with kicad-footprint-generator ipc_gullwing_generator.py
-MSOP SO
-0
-12
-12
-Package_SO
-MSOP-16-1EP_3x4.039mm_P0.5mm_EP1.651x2.845mm
-MSOP, 16 Pin (https://www.analog.com/media/en/package-pcb-resources/package/pkg_pdf/ltc-legacy-msop/05081667_F_MSE16.pdf), generated with kicad-footprint-generator ipc_gullwing_generator.py
-MSOP SO
-0
-21
-17
-Package_SO
-MSOP-16-1EP_3x4.039mm_P0.5mm_EP1.651x2.845mm_ThermalVias
-MSOP, 16 Pin (https://www.analog.com/media/en/package-pcb-resources/package/pkg_pdf/ltc-legacy-msop/05081667_F_MSE16.pdf), generated with kicad-footprint-generator ipc_gullwing_generator.py
-MSOP SO
-0
-28
-17
-Package_SO
-MSOP-16-1EP_3x4mm_P0.5mm_EP1.65x2.85mm
-MSOP, 16 Pin (http://cds.linear.com/docs/en/datasheet/37551fd.pdf#page=23), generated with kicad-footprint-generator ipc_gullwing_generator.py
-MSOP SO
-0
-21
-17
-Package_SO
-MSOP-16-1EP_3x4mm_P0.5mm_EP1.65x2.85mm_ThermalVias
-MSOP, 16 Pin (http://cds.linear.com/docs/en/datasheet/37551fd.pdf#page=23), generated with kicad-footprint-generator ipc_gullwing_generator.py
-MSOP SO
-0
-28
-17
-Package_SO
-MSOP-16_3x4.039mm_P0.5mm
-MSOP, 16 Pin (http://www.analog.com/media/en/package-pcb-resources/package/pkg_pdf/ltc-legacy-msop/05081669_A_MS16.pdf), generated with kicad-footprint-generator ipc_gullwing_generator.py
-MSOP SO
-0
-16
-16
-Package_SO
-MSOP-16_3x4mm_P0.5mm
-MSOP, 16 Pin (https://www.analog.com/media/en/technical-documentation/data-sheets/436412f.pdf#page=22), generated with kicad-footprint-generator ipc_gullwing_generator.py
-MSOP SO
-0
-16
-16
-Package_SO
-ONSemi_SO-8FL_488AA
-ON Semi DFN5 5x6mm 1.27P SO-8FL CASE 488A https://www.onsemi.com/pub/Collateral/488AA.PDF
-ON Semi DFN5 5x6mm 1.27P SO-8FL CASE 488A 
-0
-5
-5
-Package_SO
-OnSemi_Micro8
-ON Semiconductor Micro8 (Case846A-02): https://www.onsemi.com/pub/Collateral/846A-02.PDF
-micro8
-0
-8
-8
-Package_SO
-PSOP-44_16.9x27.17mm_P1.27mm
-PSOP44: plastic thin shrink small outline package; 44 leads; body width 16.90 mm
-PSOP 1.27
-0
-44
-44
-Package_SO
-PowerIntegrations_SO-8
-Power-Integrations variant of 8-Lead Plastic Small Outline (SN) - Narrow, 3.90 mm Body [SOIC], see https://ac-dc.power.com/sites/default/files/product-docs/senzero_family_datasheet.pdf
-SOIC 1.27
-0
-8
-8
-Package_SO
-PowerIntegrations_SO-8B
-Power-Integrations variant of 8-Lead Plastic Small Outline (SN) - Narrow, 3.90 mm Body [SOIC], see https://www.mouser.com/ds/2/328/linkswitch-pl_family_datasheet-12517.pdf
-SOIC 1.27
-0
-7
-7
-Package_SO
-PowerIntegrations_SO-8C
-Power-Integrations variant of 8-Lead Plastic Small Outline (SN) - Narrow, 3.90 mm Body [SOIC], see https://www.mouser.com/ds/2/328/linkswitch-pl_family_datasheet-12517.pdf
-SOIC 1.27
-0
-7
-7
-Package_SO
-PowerIntegrations_eSOP-12B
-eSOP-12B SMT Flat Package with Heatsink Tab, see https://ac-dc.power.com/sites/default/files/product-docs/topswitch-jx_family_datasheet.pdf
-Power Integrations K Package
-0
-12
-12
-Package_SO
-PowerPAK_SO-8_Dual
-PowerPAK SO-8 Dual (https://www.vishay.com/docs/71655/powerpak.pdf, https://www.vishay.com/docs/72600/72600.pdf)
-PowerPAK SO-8 Dual
-0
-10
-6
-Package_SO
-PowerPAK_SO-8_Single
-PowerPAK SO-8 Single (https://www.vishay.com/docs/71655/powerpak.pdf, https://www.vishay.com/docs/72599/72599.pdf)
-PowerPAK SO-8 Single
-0
-9
-5
-Package_SO
-QSOP-16_3.9x4.9mm_P0.635mm
-16-Lead Plastic Shrink Small Outline Narrow Body (QR)-.150" Body [QSOP] (see Microchip Packaging Specification 00000049BS.pdf)
-SSOP 0.635
-0
-16
-16
-Package_SO
-QSOP-20_3.9x8.7mm_P0.635mm
-20-Lead Plastic Shrink Small Outline Narrow Body (http://www.analog.com/media/en/technical-documentation/data-sheets/ADuM7640_7641_7642_7643.pdf)
-QSOP 0.635
-0
-20
-20
-Package_SO
-QSOP-24_3.9x8.7mm_P0.635mm
-24-Lead Plastic Shrink Small Outline Narrow Body (QR)-.150" Body [QSOP] (see Microchip Packaging Specification 00000049CH.pdf)
-QSOP 0.635
-0
-24
-24
-Package_SO
-SC-74-6_1.5x2.9mm_P0.95mm
-SC-74, 6 Pin (https://www.nxp.com/docs/en/package-information/SOT457.pdf), generated with kicad-footprint-generator ipc_gullwing_generator.py
-SC-74 SO
-0
-6
-6
-Package_SO
-SO-4_4.4x2.3mm_P1.27mm
-4-Lead Plastic Small Outline (SO), see http://datasheet.octopart.com/OPIA403BTRE-Optek-datasheet-5328560.pdf
-SO SOIC 1.27
-0
-4
-4
-Package_SO
-SO-4_4.4x3.6mm_P2.54mm
-4-Lead Plastic Small Outline (SO), see https://www.elpro.org/de/index.php?controller=attachment&id_attachment=339
-SO SOIC 2.54
-0
-4
-4
-Package_SO
-SO-4_4.4x3.9mm_P2.54mm
-SO, 4 Pin (https://toshiba.semicon-storage.com/info/docget.jsp?did=10047&prodName=TLP3123), generated with kicad-footprint-generator ipc_gullwing_generator.py
-SO SO
-0
-4
-4
-Package_SO
-SO-4_4.4x4.3mm_P2.54mm
-4-Lead Plastic Small Outline (SO), see https://docs.broadcom.com/docs/AV02-0173EN
-SO SOIC 2.54
-0
-4
-4
-Package_SO
-SO-4_7.6x3.6mm_P2.54mm
-4-Lead Plastic Small Outline (SO) (http://www.everlight.com/file/ProductFile/201407061745083848.pdf)
-SO SOIC 2.54
-0
-4
-4
-Package_SO
-SO-5_4.4x3.6mm_P1.27mm
-5-Lead Plastic Small Outline (SO), see https://docs.broadcom.com/cs/Satellite?blobcol=urldata&blobheader=application%2Fpdf&blobheadername1=Content-Disposition&blobheadername2=Content-Type&blobheadername3=MDT-Type&blobheadervalue1=attachment%3Bfilename%3DIPD-Selection-Guide_AV00-0254EN_030617.pdf&blobheadervalue2=application%2Fx-download&blobheadervalue3=abinary%253B%2Bcharset%253DUTF-8&blobkey=id&blobnocache=true&blobtable=MungoBlobs&blobwhere=1430884105675&ssbinary=true
-SO SOIC 1.27
-0
-5
-5
-Package_SO
-SO-6L_10x3.84mm_P1.27mm
-6-pin plasic small outline 7,5mm long https://toshiba.semicon-storage.com/info/docget.jsp?did=53548&prodName=TLP2770
-SO-6L
-0
-6
-6
-Package_SO
-SO-6_4.4x3.6mm_P1.27mm
-6-Lead Plastic Small Outline (SO), see https://docs.broadcom.com/cs/Satellite?blobcol=urldata&blobheader=application%2Fpdf&blobheadername1=Content-Disposition&blobheadername2=Content-Type&blobheadername3=MDT-Type&blobheadervalue1=attachment%3Bfilename%3DIPD-Selection-Guide_AV00-0254EN_030617.pdf&blobheadervalue2=application%2Fx-download&blobheadervalue3=abinary%253B%2Bcharset%253DUTF-8&blobkey=id&blobnocache=true&blobtable=MungoBlobs&blobwhere=1430884105675&ssbinary=true
-SO SOIC 1.27
-0
-6
-6
-Package_SO
-SO-8_3.9x4.9mm_P1.27mm
-SO, 8 Pin (https://www.nxp.com/docs/en/data-sheet/PCF8523.pdf), generated with kicad-footprint-generator ipc_gullwing_generator.py
-SO SO
-0
-8
-8
-Package_SO
-SO-8_5.3x6.2mm_P1.27mm
-SO, 8 Pin (https://www.ti.com/lit/ml/msop001a/msop001a.pdf), generated with kicad-footprint-generator ipc_gullwing_generator.py
-SO SO
-0
-8
-8
-Package_SO
-SO-14_3.9x8.65mm_P1.27mm
-SO, 14 Pin (https://www.st.com/resource/en/datasheet/l6491.pdf), generated with kicad-footprint-generator ipc_gullwing_generator.py
-SO SO
+Connector_JST
+JST_PHD_S14B-PHDSS_2x07_P2.00mm_Horizontal
+JST PHD series connector, S14B-PHDSS (http://www.jst-mfg.com/product/pdf/eng/ePHD.pdf), generated with kicad-footprint-generator
+connector JST PHD horizontal
 0
 14
 14
-Package_SO
-SO-14_5.3x10.2mm_P1.27mm
-SO, 14 Pin (https://www.ti.com/lit/ml/msop002a/msop002a.pdf), generated with kicad-footprint-generator ipc_gullwing_generator.py
-SO SO
-0
-14
-14
-Package_SO
-SO-16_3.9x9.9mm_P1.27mm
-SO, 16 Pin (https://www.nxp.com/docs/en/package-information/SOT109-1.pdf), generated with kicad-footprint-generator ipc_gullwing_generator.py
-SO SO
+Connector_JST
+JST_PHD_S16B-PHDSS_2x08_P2.00mm_Horizontal
+JST PHD series connector, S16B-PHDSS (http://www.jst-mfg.com/product/pdf/eng/ePHD.pdf), generated with kicad-footprint-generator
+connector JST PHD horizontal
 0
 16
 16
-Package_SO
-SO-16_5.3x10.2mm_P1.27mm
-SO, 16 Pin (https://www.ti.com/lit/ml/msop002a/msop002a.pdf), generated with kicad-footprint-generator ipc_gullwing_generator.py
-SO SO
-0
-16
-16
-Package_SO
-SO-20-1EP_7.52x12.825mm_P1.27mm_EP6.045x12.09mm_Mask3.56x4.47mm
-SO, 20 Pin (http://www.ti.com/lit/ds/symlink/opa569.pdf, http://www.ti.com/lit/an/slma004b/slma004b.pdf), generated with kicad-footprint-generator ipc_gullwing_generator.py
-SO SO
-0
-23
-21
-Package_SO
-SO-20-1EP_7.52x12.825mm_P1.27mm_EP6.045x12.09mm_Mask3.56x4.47mm_ThermalVias
-SO, 20 Pin (http://www.ti.com/lit/ds/symlink/opa569.pdf, http://www.ti.com/lit/an/slma004b/slma004b.pdf), generated with kicad-footprint-generator ipc_gullwing_generator.py
-SO SO
-0
-51
-21
-Package_SO
-SO-20_5.3x12.6mm_P1.27mm
-SO, 20 Pin (https://www.ti.com/lit/ml/msop002a/msop002a.pdf), generated with kicad-footprint-generator ipc_gullwing_generator.py
-SO SO
-0
-20
-20
-Package_SO
-SO-20_12.8x7.5mm_P1.27mm
-SO-20, 12.8x7.5mm, https://www.nxp.com/docs/en/data-sheet/SA605.pdf
-S0-20 
-0
-20
-20
-Package_SO
-SO-24_5.3x15mm_P1.27mm
-SO, 24 Pin (https://www.ti.com/lit/ml/msop002a/msop002a.pdf), generated with kicad-footprint-generator ipc_gullwing_generator.py
-SO SO
-0
-24
-24
-Package_SO
-SOIC-4_4.55x2.6mm_P1.27mm
-SOIC, 4 Pin (https://toshiba.semicon-storage.com/info/docget.jsp?did=12884&prodName=TLP291), generated with kicad-footprint-generator ipc_gullwing_generator.py
-SOIC SO
-0
-4
-4
-Package_SO
-SOIC-4_4.55x3.7mm_P2.54mm
-SOIC, 6 Pin (https://toshiba.semicon-storage.com/info/docget.jsp?did=11791&prodName=TLP185), generated with kicad-footprint-generator ipc_gullwing_generator.py
-SOIC SO
-0
-4
-4
-Package_SO
-SOIC-8-1EP_3.9x4.9mm_P1.27mm_EP2.29x3mm
-SOIC, 8 Pin (https://www.analog.com/media/en/technical-documentation/data-sheets/ada4898-1_4898-2.pdf#page=29), generated with kicad-footprint-generator ipc_gullwing_generator.py
-SOIC SO
-0
-13
-9
-Package_SO
-SOIC-8-1EP_3.9x4.9mm_P1.27mm_EP2.29x3mm_ThermalVias
-SOIC, 8 Pin (https://www.analog.com/media/en/technical-documentation/data-sheets/ada4898-1_4898-2.pdf#page=29), generated with kicad-footprint-generator ipc_gullwing_generator.py
-SOIC SO
-0
-20
-9
-Package_SO
-SOIC-8-1EP_3.9x4.9mm_P1.27mm_EP2.41x3.3mm
-SOIC, 8 Pin (http://www.allegromicro.com/~/media/Files/Datasheets/A4950-Datasheet.ashx#page=8), generated with kicad-footprint-generator ipc_gullwing_generator.py
-SOIC SO
-0
-13
-9
-Package_SO
-SOIC-8-1EP_3.9x4.9mm_P1.27mm_EP2.41x3.3mm_ThermalVias
-SOIC, 8 Pin (http://www.allegromicro.com/~/media/Files/Datasheets/A4950-Datasheet.ashx#page=8), generated with kicad-footprint-generator ipc_gullwing_generator.py
-SOIC SO
-0
-20
-9
-Package_SO
-SOIC-8-1EP_3.9x4.9mm_P1.27mm_EP2.41x3.81mm
-SOIC, 8 Pin (https://www.analog.com/media/en/technical-documentation/data-sheets/ada4898-1_4898-2.pdf#page=29), generated with kicad-footprint-generator ipc_gullwing_generator.py
-SOIC SO
-0
-13
-9
-Package_SO
-SOIC-8-1EP_3.9x4.9mm_P1.27mm_EP2.41x3.81mm_ThermalVias
-SOIC, 8 Pin (https://www.analog.com/media/en/technical-documentation/data-sheets/ada4898-1_4898-2.pdf#page=29), generated with kicad-footprint-generator ipc_gullwing_generator.py
-SOIC SO
-0
-20
-9
-Package_SO
-SOIC-8-1EP_3.9x4.9mm_P1.27mm_EP2.62x3.51mm
-SOIC, 8 Pin (https://www.monolithicpower.com/en/documentview/productdocument/index/version/2/document_type/Datasheet/lang/en/sku/MP2303A/document_id/494#page=14), generated with kicad-footprint-generator ipc_gullwing_generator.py
-SOIC SO
-0
-13
-9
-Package_SO
-SOIC-8-1EP_3.9x4.9mm_P1.27mm_EP2.62x3.51mm_ThermalVias
-SOIC, 8 Pin (https://www.monolithicpower.com/en/documentview/productdocument/index/version/2/document_type/Datasheet/lang/en/sku/MP2303A/document_id/494#page=14), generated with kicad-footprint-generator ipc_gullwing_generator.py
-SOIC SO
-0
-20
-9
-Package_SO
-SOIC-8-1EP_3.9x4.9mm_P1.27mm_EP2.95x4.9mm_Mask2.71x3.4mm
-SOIC, 8 Pin (http://www.ti.com/lit/ds/symlink/lm5017.pdf#page=31), generated with kicad-footprint-generator ipc_gullwing_generator.py
-SOIC SO
-0
-14
-9
-Package_SO
-SOIC-8-1EP_3.9x4.9mm_P1.27mm_EP2.95x4.9mm_Mask2.71x3.4mm_ThermalVias
-SOIC, 8 Pin (http://www.ti.com/lit/ds/symlink/lm5017.pdf#page=31), generated with kicad-footprint-generator ipc_gullwing_generator.py
-SOIC SO
-0
-23
-9
-Package_SO
-SOIC-8-1EP_3.9x4.9mm_P1.27mm_EP2.514x3.2mm
-SOIC, 8 Pin (https://www.renesas.com/eu/en/www/doc/datasheet/hip2100.pdf#page=13), generated with kicad-footprint-generator ipc_gullwing_generator.py
-SOIC SO
-0
-13
-9
-Package_SO
-SOIC-8-1EP_3.9x4.9mm_P1.27mm_EP2.514x3.2mm_ThermalVias
-SOIC, 8 Pin (https://www.renesas.com/eu/en/www/doc/datasheet/hip2100.pdf#page=13), generated with kicad-footprint-generator ipc_gullwing_generator.py
-SOIC SO
-0
-20
-9
-Package_SO
-SOIC-8-N7_3.9x4.9mm_P1.27mm
-8-Lead Plastic Small Outline (SN) - Narrow, 3.90 mm Body [SOIC], pin 7 removed (Microchip Packaging Specification 00000049BS.pdf, http://www.onsemi.com/pub/Collateral/NCP1207B.PDF)
-SOIC 1.27
-0
-7
-7
-Package_SO
-SOIC-8W_5.3x5.3mm_P1.27mm
-8-Lead Plastic Small Outline (SM) - 5.28 mm Body [SOIC] (http://ww1.microchip.com/downloads/en/PackagingSpec/00000049BQ.pdf)
-SOIC 1.27
-0
-8
-8
-Package_SO
-SOIC-8_3.9x4.9mm_P1.27mm
-SOIC, 8 Pin (JEDEC MS-012AA, https://www.analog.com/media/en/package-pcb-resources/package/pkg_pdf/soic_narrow-r/r_8.pdf), generated with kicad-footprint-generator ipc_gullwing_generator.py
-SOIC SO
-0
-8
-8
-Package_SO
-SOIC-8_5.23x5.23mm_P1.27mm
-SOIC, 8 Pin (http://www.winbond.com/resource-files/w25q32jv%20revg%2003272018%20plus.pdf#page=68), generated with kicad-footprint-generator ipc_gullwing_generator.py
-SOIC SO
-0
-8
-8
-Package_SO
-SOIC-8_5.275x5.275mm_P1.27mm
-SOIC, 8 Pin (http://ww1.microchip.com/downloads/en/DeviceDoc/20005045C.pdf#page=23), generated with kicad-footprint-generator ipc_gullwing_generator.py
-SOIC SO
-0
-8
-8
-Package_SO
-SOIC-8_7.5x5.85mm_P1.27mm
-SOIC, 8 Pin (http://www.ti.com/lit/ml/mpds382b/mpds382b.pdf), generated with kicad-footprint-generator ipc_gullwing_generator.py
-SOIC SO
-0
-8
-8
-Package_SO
-SOIC-14-16_3.9x9.9mm_P1.27mm
-SOIC, 16 Pin package with pin 2 and 13 removed for voltage clearance  (UCC256301, https://www.ti.com/lit/ds/symlink/ucc256301.pdf)
-SOIC SO
-0
-14
-14
-Package_SO
-SOIC-14W_7.5x9mm_P1.27mm
-SOIC, 14 Pin (JEDEC MS-013AF, https://www.analog.com/media/en/package-pcb-resources/package/54614177245586rw_14.pdf), generated with kicad-footprint-generator ipc_gullwing_generator.py
-SOIC SO
-0
-14
-14
-Package_SO
-SOIC-14_3.9x8.7mm_P1.27mm
-SOIC, 14 Pin (JEDEC MS-012AB, https://www.analog.com/media/en/package-pcb-resources/package/pkg_pdf/soic_narrow-r/r_14.pdf), generated with kicad-footprint-generator ipc_gullwing_generator.py
-SOIC SO
-0
-14
-14
-Package_SO
-SOIC-16W-12_7.5x10.3mm_P1.27mm
-SOIC-16 With 12 Pin Placed - Wide, 7.50 mm Body [SOIC] (https://docs.broadcom.com/docs/AV02-0169EN)
-SOIC 1.27 16 12 Wide
-0
-12
-12
-Package_SO
-SOIC-16W_5.3x10.2mm_P1.27mm
-16-Lead Plastic Small Outline (SO) - Wide, 5.3 mm Body (http://www.ti.com/lit/ml/msop002a/msop002a.pdf)
-SOIC 1.27
-0
-16
-16
-Package_SO
-SOIC-16W_7.5x10.3mm_P1.27mm
-SOIC, 16 Pin (JEDEC MS-013AA, https://www.analog.com/media/en/package-pcb-resources/package/pkg_pdf/soic_wide-rw/rw_16.pdf), generated with kicad-footprint-generator ipc_gullwing_generator.py
-SOIC SO
-0
-16
-16
-Package_SO
-SOIC-16W_7.5x12.8mm_P1.27mm
-SOIC, 16 Pin (https://www.analog.com/media/en/package-pcb-resources/package/pkg_pdf/ri_soic_ic/ri_16_1.pdf), generated with kicad-footprint-generator ipc_gullwing_generator.py
-SOIC SO
-0
-16
-16
-Package_SO
-SOIC-16_3.9x9.9mm_P1.27mm
-SOIC, 16 Pin (JEDEC MS-012AC, https://www.analog.com/media/en/package-pcb-resources/package/pkg_pdf/soic_narrow-r/r_16.pdf), generated with kicad-footprint-generator ipc_gullwing_generator.py
-SOIC SO
-0
-16
-16
-Package_SO
-SOIC-16_4.55x10.3mm_P1.27mm
-SOIC, 16 Pin (https://toshiba.semicon-storage.com/info/docget.jsp?did=12858&prodName=TLP291-4), generated with kicad-footprint-generator ipc_gullwing_generator.py
-SOIC SO
-0
-16
-16
-Package_SO
-SOIC-18W_7.5x11.6mm_P1.27mm
-SOIC, 18 Pin (JEDEC MS-013AB, https://www.analog.com/media/en/package-pcb-resources/package/33254132129439rw_18.pdf), generated with kicad-footprint-generator ipc_gullwing_generator.py
-SOIC SO
+Connector_JST
+JST_PHD_S18B-PHDSS_2x09_P2.00mm_Horizontal
+JST PHD series connector, S18B-PHDSS (http://www.jst-mfg.com/product/pdf/eng/ePHD.pdf), generated with kicad-footprint-generator
+connector JST PHD horizontal
 0
 18
 18
-Package_SO
-SOIC-20W_7.5x12.8mm_P1.27mm
-SOIC, 20 Pin (JEDEC MS-013AC, https://www.analog.com/media/en/package-pcb-resources/package/233848rw_20.pdf), generated with kicad-footprint-generator ipc_gullwing_generator.py
-SOIC SO
+Connector_JST
+JST_PHD_S20B-PHDSS_2x10_P2.00mm_Horizontal
+JST PHD series connector, S20B-PHDSS (http://www.jst-mfg.com/product/pdf/eng/ePHD.pdf), generated with kicad-footprint-generator
+connector JST PHD horizontal
 0
 20
 20
-Package_SO
-SOIC-20W_7.5x15.4mm_P1.27mm
-SOIC, 20 Pin (JEDEC MS-013AD, https://www.analog.com/media/en/package-pcb-resources/package/pkg_pdf/soic_wide-rw/RI_20_1.pdf), generated with kicad-footprint-generator ipc_gullwing_generator.py
-SOIC SO
+Connector_JST
+JST_PHD_S22B-PHDSS_2x11_P2.00mm_Horizontal
+JST PHD series connector, S22B-PHDSS (http://www.jst-mfg.com/product/pdf/eng/ePHD.pdf), generated with kicad-footprint-generator
+connector JST PHD horizontal
 0
-20
-20
-Package_SO
-SOIC-24W_7.5x15.4mm_P1.27mm
-SOIC, 24 Pin (JEDEC MS-013AD, https://www.analog.com/media/en/package-pcb-resources/package/pkg_pdf/soic_wide-rw/RW_24.pdf), generated with kicad-footprint-generator ipc_gullwing_generator.py
-SOIC SO
-0
-24
-24
-Package_SO
-SOIC-28W_7.5x17.9mm_P1.27mm
-SOIC, 28 Pin (JEDEC MS-013AE, https://www.analog.com/media/en/package-pcb-resources/package/35833120341221rw_28.pdf), generated with kicad-footprint-generator ipc_gullwing_generator.py
-SOIC SO
-0
-28
-28
-Package_SO
-SOIC-28W_7.5x18.7mm_P1.27mm
-SOIC, 28 Pin (https://www.akm.com/akm/en/file/datasheet/AK5394AVS.pdf#page=23), generated with kicad-footprint-generator ipc_gullwing_generator.py
-SOIC SO
-0
-28
-28
-Package_SO
-SOJ-36_10.16x23.49mm_P1.27mm
-SOJ, 36 Pin (http://www.issi.com/WW/pdf/61-64C5128AL.pdf), generated with kicad-footprint-generator ipc_gullwing_generator.py
-SOJ SO
-0
-36
-36
-Package_SO
-SOP-4_3.8x4.1mm_P2.54mm
-SOP, 4 Pin (http://www.ixysic.com/home/pdfs.nsf/www/CPC1017N.pdf/$file/CPC1017N.pdf), generated with kicad-footprint-generator ipc_gullwing_generator.py
-SOP SO
-0
-4
-4
-Package_SO
-SOP-4_4.4x2.6mm_P1.27mm
-SOP, 4 Pin (http://www.vishay.com/docs/83510/tcmt1100.pdf), generated with kicad-footprint-generator ipc_gullwing_generator.py
-SOP SO
-0
-4
-4
-Package_SO
-SOP-8-1EP_4.57x4.57mm_P1.27mm_EP4.57x4.45mm
-SOP, 8 Pin (https://ww2.minicircuits.com/case_style/XX112.pdf), generated with kicad-footprint-generator ipc_gullwing_generator.py
-SOP SO
-0
-13
-9
-Package_SO
-SOP-8-1EP_4.57x4.57mm_P1.27mm_EP4.57x4.45mm_ThermalVias
-SOP, 8 Pin (https://ww2.minicircuits.com/case_style/XX112.pdf), generated with kicad-footprint-generator ipc_gullwing_generator.py
-SOP SO
-0
-20
-9
-Package_SO
-SOP-8_3.9x4.9mm_P1.27mm
-SOP, 8 Pin (http://www.macronix.com/Lists/Datasheet/Attachments/7534/MX25R3235F,%20Wide%20Range,%2032Mb,%20v1.6.pdf#page=79), generated with kicad-footprint-generator ipc_gullwing_generator.py
-SOP SO
-0
-8
-8
-Package_SO
-SOP-8_3.76x4.96mm_P1.27mm
-SOP, 8 Pin (https://ww2.minicircuits.com/case_style/XX211.pdf), generated with kicad-footprint-generator ipc_gullwing_generator.py
-SOP SO
-0
-8
-8
-Package_SO
-SOP-8_5.28x5.23mm_P1.27mm
-SOP, 8 Pin (http://www.macronix.com/Lists/Datasheet/Attachments/7534/MX25R3235F,%20Wide%20Range,%2032Mb,%20v1.6.pdf#page=80), generated with kicad-footprint-generator ipc_gullwing_generator.py
-SOP SO
-0
-8
-8
-Package_SO
-SOP-8_6.62x9.15mm_P2.54mm
-SOP, 8 Pin (http://www.ti.com/lit/ds/symlink/iso1050.pdf), generated with kicad-footprint-generator ipc_gullwing_generator.py
-SOP SO
-0
-8
-8
-Package_SO
-SOP-16_3.9x9.9mm_P1.27mm
-SOP, 16 Pin (https://www.diodes.com/assets/Datasheets/PAM8403.pdf), generated with kicad-footprint-generator ipc_gullwing_generator.py
-SOP SO
-0
-16
-16
-Package_SO
-SOP-16_4.4x10.4mm_P1.27mm
-16-Lead Plastic Small Outline http://www.vishay.com/docs/49633/sg2098.pdf
-SOP 1.27
-0
-16
-16
-Package_SO
-SOP-16_4.55x10.3mm_P1.27mm
-SOP, 16 Pin (https://toshiba.semicon-storage.com/info/docget.jsp?did=12855&prodName=TLP290-4), generated with kicad-footprint-generator ipc_gullwing_generator.py
-SOP SO
-0
-16
-16
-Package_SO
-SOP-18_7x12.5mm_P1.27mm
-SOP, 18 Pin (https://toshiba.semicon-storage.com/info/docget.jsp?did=30523), generated with kicad-footprint-generator ipc_gullwing_generator.py
-SOP SO
-0
-18
-18
-Package_SO
-SOP-20_7.5x12.8mm_P1.27mm
-SOP, 20 Pin (https://www.holtek.com/documents/10179/116723/sop20-300.pdf), generated with kicad-footprint-generator ipc_gullwing_generator.py
-SOP SO
-0
-20
-20
-Package_SO
-SOP-24_7.5x15.4mm_P1.27mm
-SOP, 24 Pin (http://www.issi.com/WW/pdf/31FL3218.pdf#page=14), generated with kicad-footprint-generator ipc_gullwing_generator.py
-SOP SO
+22
+22
+Connector_JST
+JST_PHD_S24B-PHDSS_2x12_P2.00mm_Horizontal
+JST PHD series connector, S24B-PHDSS (http://www.jst-mfg.com/product/pdf/eng/ePHD.pdf), generated with kicad-footprint-generator
+connector JST PHD horizontal
 0
 24
 24
-Package_SO
-SSO-4_6.7x5.1mm_P2.54mm_Clearance8mm
-4-Lead Plastic Stretched Small Outline (SSO/Stretched SO), see https://www.vishay.com/docs/84299/vor1142b4.pdf
-SSO Stretched SO SOIC 2.54
-0
-4
-4
-Package_SO
-SSO-6_6.8x4.6mm_P1.27mm_Clearance7mm
-8-Lead Plastic Stretched Small Outline (SSO/Stretched SO), see https://docs.broadcom.com/cs/Satellite?blobcol=urldata&blobheader=application%2Fpdf&blobheadername1=Content-Disposition&blobheadername2=Content-Type&blobheadername3=MDT-Type&blobheadervalue1=attachment%3Bfilename%3DIPD-Selection-Guide_AV00-0254EN_030617.pdf&blobheadervalue2=application%2Fx-download&blobheadervalue3=abinary%253B%2Bcharset%253DUTF-8&blobkey=id&blobnocache=true&blobtable=MungoBlobs&blobwhere=1430884105675&ssbinary=true
-SSO Stretched SO SOIC 1.27
-0
-6
-6
-Package_SO
-SSO-6_6.8x4.6mm_P1.27mm_Clearance8mm
-8-Lead Plastic Stretched Small Outline (SSO/Stretched SO), see https://docs.broadcom.com/cs/Satellite?blobcol=urldata&blobheader=application%2Fpdf&blobheadername1=Content-Disposition&blobheadername2=Content-Type&blobheadername3=MDT-Type&blobheadervalue1=attachment%3Bfilename%3DIPD-Selection-Guide_AV00-0254EN_030617.pdf&blobheadervalue2=application%2Fx-download&blobheadervalue3=abinary%253B%2Bcharset%253DUTF-8&blobkey=id&blobnocache=true&blobtable=MungoBlobs&blobwhere=1430884105675&ssbinary=true
-SSO Stretched SO SOIC 1.27
-0
-6
-6
-Package_SO
-SSO-7-8_6.4x9.78mm_P2.54mm
-SSO, 7 Pin (https://b2b-api.panasonic.eu/file_stream/pids/fileversion/2787), generated with kicad-footprint-generator ipc_gullwing_generator.py
-SSO SO
-0
-7
-7
-Package_SO
-SSO-8_6.7x9.8mm_P2.54mm_Clearance8mm
-8-Lead Plastic Stretched Small Outline (SSO/Stretched SO), see https://www.vishay.com/docs/83831/lh1533ab.pdf
-SSO Stretched SO SOIC Pitch 2.54
-0
-8
-8
-Package_SO
-SSO-8_6.8x5.9mm_P1.27mm_Clearance7mm
-8-Lead Plastic Stretched Small Outline (SSO/Stretched SO), see https://docs.broadcom.com/cs/Satellite?blobcol=urldata&blobheader=application%2Fpdf&blobheadername1=Content-Disposition&blobheadername2=Content-Type&blobheadername3=MDT-Type&blobheadervalue1=attachment%3Bfilename%3DIPD-Selection-Guide_AV00-0254EN_030617.pdf&blobheadervalue2=application%2Fx-download&blobheadervalue3=abinary%253B%2Bcharset%253DUTF-8&blobkey=id&blobnocache=true&blobtable=MungoBlobs&blobwhere=1430884105675&ssbinary=true
-SSO Stretched SO SOIC Pitch 1.27
-0
-8
-8
-Package_SO
-SSO-8_6.8x5.9mm_P1.27mm_Clearance8mm
-8-Lead Plastic Stretched Small Outline (SSO/Stretched SO), see https://docs.broadcom.com/cs/Satellite?blobcol=urldata&blobheader=application%2Fpdf&blobheadername1=Content-Disposition&blobheadername2=Content-Type&blobheadername3=MDT-Type&blobheadervalue1=attachment%3Bfilename%3DIPD-Selection-Guide_AV00-0254EN_030617.pdf&blobheadervalue2=application%2Fx-download&blobheadervalue3=abinary%253B%2Bcharset%253DUTF-8&blobkey=id&blobnocache=true&blobtable=MungoBlobs&blobwhere=1430884105675&ssbinary=true
-SSO Stretched SO SOIC Pitch 1.27
-0
-8
-8
-Package_SO
-SSO-8_9.6x6.3mm_P1.27mm_Clearance10.5mm
-8-Lead Plastic Stretched Small Outline (SSO/Stretched SO), see https://docs.broadcom.com/cs/Satellite?blobcol=urldata&blobheader=application%2Fpdf&blobheadername1=Content-Disposition&blobheadername2=Content-Type&blobheadername3=MDT-Type&blobheadervalue1=attachment%3Bfilename%3DIPD-Selection-Guide_AV00-0254EN_030617.pdf&blobheadervalue2=application%2Fx-download&blobheadervalue3=abinary%253B%2Bcharset%253DUTF-8&blobkey=id&blobnocache=true&blobtable=MungoBlobs&blobwhere=1430884105675&ssbinary=true
-SSO Stretched SO SOIC Pitch 1.27
-0
-8
-8
-Package_SO
-SSO-8_13.6x6.3mm_P1.27mm_Clearance14.2mm
-8-Lead Plastic Stretched Small Outline (SSO/Stretched SO), see https://docs.broadcom.com/cs/Satellite?blobcol=urldata&blobheader=application%2Fpdf&blobheadername1=Content-Disposition&blobheadername2=Content-Type&blobheadername3=MDT-Type&blobheadervalue1=attachment%3Bfilename%3DIPD-Selection-Guide_AV00-0254EN_030617.pdf&blobheadervalue2=application%2Fx-download&blobheadervalue3=abinary%253B%2Bcharset%253DUTF-8&blobkey=id&blobnocache=true&blobtable=MungoBlobs&blobwhere=1430884105675&ssbinary=true
-SSO Stretched SO SOIC Pitch 1.27
-0
-8
-8
-Package_SO
-SSOP-8_2.95x2.8mm_P0.65mm
-SSOP-8 2.9 x2.8mm Pitch 0.65mm
-SSOP-8 2.95x2.8mm Pitch 0.65mm
-0
-8
-8
-Package_SO
-SSOP-8_3.9x5.05mm_P1.27mm
-SSOP, 8 Pin (http://www.fujitsu.com/downloads/MICRO/fsa/pdf/products/memory/fram/MB85RS16-DS501-00014-6v0-E.pdf), generated with kicad-footprint-generator ipc_gullwing_generator.py
-SSOP SO
-0
-8
-8
-Package_SO
-SSOP-8_3.95x5.21x3.27mm_P1.27mm
-SSOP-8 3.95x5.21x3.27mm Pitch 1.27mm
-SSOP-8 3.95x5.21x3.27mm 1.27mm
-0
-8
-8
-Package_SO
-SSOP-8_5.25x5.24mm_P1.27mm
-SSOP, 8 Pin (http://www.fujitsu.com/ca/en/Images/MB85RS2MT-DS501-00023-1v0-E.pdf), generated with kicad-footprint-generator ipc_gullwing_generator.py
-SSOP SO
-0
-8
-8
-Package_SO
-SSOP-10_3.9x4.9mm_P1.00mm
-10-Lead SSOP, 3.9 x 4.9mm body, 1.00mm pitch (http://www.st.com/resource/en/datasheet/viper01.pdf)
-SSOP 3.9 4.9 1.00
-0
-10
-10
-Package_SO
-SSOP-14_5.3x6.2mm_P0.65mm
-SSOP14: plastic shrink small outline package; 14 leads; body width 5.3 mm; (see NXP SSOP-TSSOP-VSO-REFLOW.pdf and sot337-1_po.pdf)
-SSOP 0.65
-0
-14
-14
-Package_SO
-SSOP-16_3.9x4.9mm_P0.635mm
-SSOP16: plastic shrink small outline package; 16 leads; body width 3.9 mm; lead pitch 0.635; (see NXP SSOP-TSSOP-VSO-REFLOW.pdf and sot519-1_po.pdf)
-SSOP 0.635
-0
-16
-16
-Package_SO
-SSOP-16_4.4x5.2mm_P0.65mm
-SSOP16: plastic shrink small outline package; 16 leads; body width 4.4 mm; (see NXP SSOP-TSSOP-VSO-REFLOW.pdf and sot369-1_po.pdf)
-SSOP 0.65
-0
-16
-16
-Package_SO
-SSOP-16_5.3x6.2mm_P0.65mm
-SSOP, 16 Pin (https://assets.nexperia.com/documents/data-sheet/74HC_HCT165.pdf#page=14), generated with kicad-footprint-generator ipc_gullwing_generator.py
-SSOP SO
-0
-16
-16
-Package_SO
-SSOP-18_4.4x6.5mm_P0.65mm
-SSOP18: plastic shrink small outline package; 18 leads; body width 4.4 mm (http://toshiba.semicon-storage.com/info/docget.jsp?did=30523&prodName=TBD62783APG)
-SSOP 0.65
-0
-18
-18
-Package_SO
-SSOP-20_3.9x8.7mm_P0.635mm
-SSOP20: plastic shrink small outline package; 24 leads; body width 3.9 mm; lead pitch 0.635; (see http://www.ftdichip.com/Support/Documents/DataSheets/ICs/DS_FT231X.pdf)
-SSOP 0.635
-0
-20
-20
-Package_SO
-SSOP-20_4.4x6.5mm_P0.65mm
-SSOP20: plastic shrink small outline package; 20 leads; body width 4.4 mm; (see NXP SSOP-TSSOP-VSO-REFLOW.pdf and sot266-1_po.pdf)
-SSOP 0.65
-0
-20
-20
-Package_SO
-SSOP-20_5.3x7.2mm_P0.65mm
-SSOP, 20 Pin (http://ww1.microchip.com/downloads/en/DeviceDoc/40001800C.pdf), generated with kicad-footprint-generator ipc_gullwing_generator.py
-SSOP SO
-0
-20
-20
-Package_SO
-SSOP-24_3.9x8.7mm_P0.635mm
-SSOP24: plastic shrink small outline package; 24 leads; body width 3.9 mm; lead pitch 0.635; (see NXP SSOP-TSSOP-VSO-REFLOW.pdf and sot556-1_po.pdf)
-SSOP 0.635
-0
-24
-24
-Package_SO
-SSOP-24_5.3x8.2mm_P0.65mm
-24-Lead Plastic Shrink Small Outline (SS)-5.30 mm Body [SSOP] (see Microchip Packaging Specification 00000049BS.pdf)
-SSOP 0.65
-0
-24
-24
-Package_SO
-SSOP-28_3.9x9.9mm_P0.635mm
-SSOP28: plastic shrink small outline package; 28 leads; body width 3.9 mm; lead pitch 0.635; (see http://cds.linear.com/docs/en/datasheet/38901fb.pdf)
-SSOP 0.635
-0
-28
-28
-Package_SO
-SSOP-28_5.3x10.2mm_P0.65mm
-28-Lead Plastic Shrink Small Outline (SS)-5.30 mm Body [SSOP] (see Microchip Packaging Specification 00000049BS.pdf)
-SSOP 0.65
-0
-28
-28
-Package_SO
-SSOP-32_11.305x20.495mm_P1.27mm
-SSOP, 32 Pin (http://www.issi.com/WW/pdf/61-64C5128AL.pdf), generated with kicad-footprint-generator ipc_gullwing_generator.py
-SSOP SO
-0
-32
-32
-Package_SO
-SSOP-44_5.3x12.8mm_P0.5mm
-44-Lead Plastic Shrink Small Outline (SS)-5.30 mm Body [SSOP] (http://cds.linear.com/docs/en/datasheet/680313fa.pdf)
-SSOP 0.5
-0
-44
-44
-Package_SO
-SSOP-48_5.3x12.8mm_P0.5mm
-SSOP, 48 Pin (https://www.analog.com/media/en/package-pcb-resources/package/pkg_pdf/ltc-legacy-ssop/05081887_A_G48.pdf), generated with kicad-footprint-generator ipc_gullwing_generator.py
-SSOP SO
-0
-48
-48
-Package_SO
-SSOP-48_7.5x15.9mm_P0.635mm
-SSOP48: plastic shrink small outline package; 48 leads; body width 7.5 mm; (see NXP SSOP-TSSOP-VSO-REFLOW.pdf and sot370-1_po.pdf)
-SSOP 0.635
-0
-48
-48
-Package_SO
-SSOP-56_7.5x18.5mm_P0.635mm
-SSOP56: plastic shrink small outline package; 56 leads; body width 7.5 mm; (see NXP SSOP-TSSOP-VSO-REFLOW.pdf and sot371-1_po.pdf)
-SSOP 0.635
-0
-56
-56
-Package_SO
-STC_SOP-16_3.9x9.9mm_P1.27mm
-STC  SOP, 16 Pin (https://www.stcmicro.com/datasheet/STC15F2K60S2-en.pdf#page=156), generated with kicad-footprint-generator ipc_gullwing_generator.py
-STC SOP SO
-0
-16
-16
-Package_SO
-ST_MultiPowerSO-30
-MultiPowerSO-30 3EP 16.0x17.2mm Pitch 1mm (http://www.st.com/resource/en/datasheet/vnh2sp30-e.pdf)
-MultiPowerSO-30 3EP 16.0x17.2mm Pitch 1mm
-0
-33
-33
-Package_SO
-ST_PowerSSO-24_SlugDown
-ST PowerSSO-24 1EP 7.5x10.3mm Pitch 0.8mm [JEDEC MO-271] (http://www.st.com/resource/en/datasheet/tda7266p.pdf, http://freedatasheets.com/downloads/Technical%20Note%20Powersso24%20TN0054.pdf)
-ST PowerSSO-24 1EP 7.5x10.3mm Pitch 0.8mm
-0
-25
-25
-Package_SO
-ST_PowerSSO-24_SlugDown_ThermalVias
-ST PowerSSO-24 1EP 7.5x10.3mm Pitch 0.8mm [JEDEC MO-271] (http://www.st.com/resource/en/datasheet/tda7266p.pdf, http://freedatasheets.com/downloads/Technical%20Note%20Powersso24%20TN0054.pdf)
-ST PowerSSO-24 1EP 7.5x10.3mm Pitch 0.8mm
-0
-38
-25
-Package_SO
-ST_PowerSSO-24_SlugUp
-ST PowerSSO-24 1EP 7.5x10.3mm Pitch 0.8mm [JEDEC MO-271] (http://www.st.com/resource/en/datasheet/tda7266p.pdf, http://freedatasheets.com/downloads/Technical%20Note%20Powersso24%20TN0054.pdf)
-ST PowerSSO-24 1EP 7.5x10.3mm Pitch 0.8mm
-0
-24
-24
-Package_SO
-ST_PowerSSO-36_SlugDown
-ST PowerSSO-36 1EP 7.5x10.3mm Pitch 0.8mm [JEDEC MO-271] (http://www.st.com/resource/en/datasheet/tda7492p.pdf, http://freedatasheets.com/downloads/Technical%20Note%20Powersso24%20TN0054.pdf)
-ST PowerSSO-36 1EP 7.5x10.3mm Pitch 0.8mm
-0
-37
-37
-Package_SO
-ST_PowerSSO-36_SlugDown_ThermalVias
-ST PowerSSO-36 1EP 7.5x10.3mm Pitch 0.8mm [JEDEC MO-271] (http://www.st.com/resource/en/datasheet/tda7492p.pdf, http://freedatasheets.com/downloads/Technical%20Note%20Powersso24%20TN0054.pdf)
-ST PowerSSO-36 1EP 7.5x10.3mm Pitch 0.8mm
-0
-50
-37
-Package_SO
-ST_PowerSSO-36_SlugUp
-ST PowerSSO-36 1EP 7.5x10.3mm Pitch 0.8mm [JEDEC MO-271] (http://www.st.com/resource/en/datasheet/tda7492p.pdf, http://freedatasheets.com/downloads/Technical%20Note%20Powersso24%20TN0054.pdf)
-ST PowerSSO-36 1EP 7.5x10.3mm Pitch 0.8mm
-0
-36
-36
-Package_SO
-TI_SO-PowerPAD-8
-8-Lead Plastic PSOP, Exposed Die Pad (TI DDA0008B, see http://www.ti.com/lit/ds/symlink/lm3404.pdf)
-SSOP 0.50 exposed pad
-0
-12
-9
-Package_SO
-TI_SO-PowerPAD-8_ThermalVias
-8-pin HTSOP package with 1.27mm pin pitch, compatible with SOIC-8, 3.9x4.9mm² body, exposed pad, thermal vias with large copper area, as proposed in http://www.ti.com/lit/ds/symlink/tps5430.pdf
-HTSOP 1.27
-0
-19
-9
-Package_SO
-TSOP-5_1.65x3.05mm_P0.95mm
-TSOP-5 package (comparable to TSOT-23), https://www.vishay.com/docs/71200/71200.pdf
-Jedec MO-193C TSOP-5L
-0
-5
-5
-Package_SO
-TSOP-6_1.65x3.05mm_P0.95mm
-TSOP-6 package (comparable to TSOT-23), https://www.vishay.com/docs/71200/71200.pdf
-Jedec MO-193C TSOP-6L
-0
-6
-6
-Package_SO
-TSOP-I-24_12.4x6mm_P0.5mm
-TSOP-I, 24 Pin (https://www.jedec.org/standards-documents/docs/mo-142-d variation AA), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSOP-I SO
-0
-24
-24
-Package_SO
-TSOP-I-24_14.4x6mm_P0.5mm
-TSOP-I, 24 Pin (https://www.jedec.org/standards-documents/docs/mo-142-d variation AB), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSOP-I SO
-0
-24
-24
-Package_SO
-TSOP-I-24_16.4x6mm_P0.5mm
-TSOP-I, 24 Pin (https://www.jedec.org/standards-documents/docs/mo-142-d variation AC), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSOP-I SO
-0
-24
-24
-Package_SO
-TSOP-I-24_18.4x6mm_P0.5mm
-TSOP-I, 24 Pin (https://www.jedec.org/standards-documents/docs/mo-142-d variation AD), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSOP-I SO
-0
-24
-24
-Package_SO
-TSOP-I-28_11.8x8mm_P0.55mm
-TSOP I, 28 pins, 18.8x8mm body, 0.55mm pitch, IPC-calculated pads (http://ww1.microchip.com/downloads/en/devicedoc/doc0807.pdf)
-TSOP I 28 pins
-0
-28
-28
-Package_SO
-TSOP-I-32_11.8x8mm_P0.5mm
-TSOP-I, 32 Pin (http://www.issi.com/WW/pdf/61-64C5128AL.pdf), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSOP-I SO
-0
-32
-32
-Package_SO
-TSOP-I-32_12.4x8mm_P0.5mm
-TSOP-I, 32 Pin (https://www.jedec.org/standards-documents/docs/mo-142-d variation BA), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSOP-I SO
-0
-32
-32
-Package_SO
-TSOP-I-32_14.4x8mm_P0.5mm
-TSOP-I, 32 Pin (https://www.jedec.org/standards-documents/docs/mo-142-d variation BB), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSOP-I SO
-0
-32
-32
-Package_SO
-TSOP-I-32_16.4x8mm_P0.5mm
-TSOP-I, 32 Pin (https://www.jedec.org/standards-documents/docs/mo-142-d variation BC), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSOP-I SO
-0
-32
-32
-Package_SO
-TSOP-I-32_18.4x8mm_P0.5mm
-TSOP-I, 32 Pin (https://www.jedec.org/standards-documents/docs/mo-142-d variation BD), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSOP-I SO
-0
-32
-32
-Package_SO
-TSOP-I-32_18.4x8mm_P0.5mm_Reverse
-TSOP I, 32 pins, 18.4x8mm body (http://www.futurlec.com/Datasheet/Memory/628128.pdf), reverse mount
-TSOP I 32 reverse
-0
-32
-32
-Package_SO
-TSOP-I-40_12.4x10mm_P0.5mm
-TSOP-I, 40 Pin (https://www.jedec.org/standards-documents/docs/mo-142-d variation CA), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSOP-I SO
-0
-40
-40
-Package_SO
-TSOP-I-40_14.4x10mm_P0.5mm
-TSOP-I, 40 Pin (https://www.jedec.org/standards-documents/docs/mo-142-d variation CB), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSOP-I SO
-0
-40
-40
-Package_SO
-TSOP-I-40_16.4x10mm_P0.5mm
-TSOP-I, 40 Pin (https://www.jedec.org/standards-documents/docs/mo-142-d variation CC), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSOP-I SO
-0
-40
-40
-Package_SO
-TSOP-I-40_18.4x10mm_P0.5mm
-TSOP-I, 40 Pin (https://www.jedec.org/standards-documents/docs/mo-142-d variation CD), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSOP-I SO
-0
-40
-40
-Package_SO
-TSOP-I-48_12.4x12mm_P0.5mm
-TSOP-I, 48 Pin (https://www.jedec.org/standards-documents/docs/mo-142-d variation DA), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSOP-I SO
-0
-48
-48
-Package_SO
-TSOP-I-48_14.4x12mm_P0.5mm
-TSOP-I, 48 Pin (https://www.jedec.org/standards-documents/docs/mo-142-d variation DB), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSOP-I SO
-0
-48
-48
-Package_SO
-TSOP-I-48_16.4x12mm_P0.5mm
-TSOP-I, 48 Pin (https://www.jedec.org/standards-documents/docs/mo-142-d variation DC), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSOP-I SO
-0
-48
-48
-Package_SO
-TSOP-I-48_18.4x12mm_P0.5mm
-TSOP-I, 48 Pin (https://www.jedec.org/standards-documents/docs/mo-142-d variation DD), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSOP-I SO
-0
-48
-48
-Package_SO
-TSOP-I-56_14.4x14mm_P0.5mm
-TSOP-I, 56 Pin (https://www.jedec.org/standards-documents/docs/mo-142-d variation EA), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSOP-I SO
-0
-56
-56
-Package_SO
-TSOP-I-56_16.4x14mm_P0.5mm
-TSOP-I, 56 Pin (https://www.jedec.org/standards-documents/docs/mo-142-d variation EB), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSOP-I SO
-0
-56
-56
-Package_SO
-TSOP-I-56_18.4x14mm_P0.5mm
-TSOP-I, 56 Pin (https://www.jedec.org/standards-documents/docs/mo-142-d variation EC), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSOP-I SO
-0
-56
-56
-Package_SO
-TSOP-II-32_21.0x10.2mm_P1.27mm
-32-lead plastic TSOP; Type II
-TSOP-II 32
-0
-32
-32
-Package_SO
-TSOP-II-44_10.16x18.41mm_P0.8mm
-TSOP-II, 44 Pin (http://www.issi.com/WW/pdf/61-64C5128AL.pdf), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSOP-II SO
-0
-44
-44
-Package_SO
-TSOP-II-54_22.2x10.16mm_P0.8mm
-54-lead TSOP typ II package
-TSOPII TSOP2
-0
-54
-54
-Package_SO
-TSSOP-4_4.4x5mm_P4mm
-TSSOP, 4 Pin (https://www.onsemi.com/pub/Collateral/MDB8S-D.PDF#page=4), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSSOP SO
-0
-4
-4
-Package_SO
-TSSOP-8_3x3mm_P0.65mm
-TSSOP8: plastic thin shrink small outline package; 8 leads; body width 3 mm; (see NXP SSOP-TSSOP-VSO-REFLOW.pdf and sot505-1_po.pdf)
-SSOP 0.65
-0
-8
-8
-Package_SO
-TSSOP-8_4.4x3mm_P0.65mm
-TSSOP, 8 Pin (JEDEC MO-153 Var AA https://www.jedec.org/document_search?search_api_views_fulltext=MO-153), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSSOP SO
-0
-8
-8
-Package_SO
-TSSOP-10_3x3mm_P0.5mm
-TSSOP10: plastic thin shrink small outline package; 10 leads; body width 3 mm; (see NXP SSOP-TSSOP-VSO-REFLOW.pdf and sot552-1_po.pdf)
-SSOP 0.5
-0
-10
-10
-Package_SO
-TSSOP-14-1EP_4.4x5mm_P0.65mm
-14-Lead Plastic Thin Shrink Small Outline (ST)-4.4 mm Body [TSSOP] with exposed pad (http://cds.linear.com/docs/en/datasheet/34301fa.pdf)
-SSOP 0.65 exposed pad
-0
-18
-15
-Package_SO
-TSSOP-14_4.4x3.6mm_P0.4mm
-TSSOP, 14 Pin (JEDEC MO-194 Var AA https://www.jedec.org/document_search?search_api_views_fulltext=MO-194), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSSOP SO
-0
-14
-14
-Package_SO
-TSSOP-14_4.4x5mm_P0.65mm
-TSSOP, 14 Pin (JEDEC MO-153 Var AB-1 https://www.jedec.org/document_search?search_api_views_fulltext=MO-153), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSSOP SO
-0
-14
-14
-Package_SO
-TSSOP-16-1EP_4.4x5mm_P0.65mm
-FE Package; 16-Lead Plastic TSSOP (4.4mm); Exposed Pad Variation BB; (see Linear Technology 1956f.pdf)
-SSOP 0.65
-0
-24
-17
-Package_SO
-TSSOP-16-1EP_4.4x5mm_P0.65mm_EP3x3mm
-TSSOP, 16 Pin (Allegro A4954 https://www.allegromicro.com/-/media/Files/Datasheets/A4954-Datasheet.ashx), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSSOP SO
-0
-21
-17
-Package_SO
-TSSOP-16-1EP_4.4x5mm_P0.65mm_EP3x3mm_ThermalVias
-TSSOP, 16 Pin (Allegro A4954 https://www.allegromicro.com/-/media/Files/Datasheets/A4954-Datasheet.ashx), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSSOP SO
+Connector_JST
+JST_PHD_S26B-PHDSS_2x13_P2.00mm_Horizontal
+JST PHD series connector, S26B-PHDSS (http://www.jst-mfg.com/product/pdf/eng/ePHD.pdf), generated with kicad-footprint-generator
+connector JST PHD horizontal
 0
 26
-17
-Package_SO
-TSSOP-16_4.4x3.6mm_P0.4mm
-TSSOP, 16 Pin (JEDEC MO-194 Var AB https://www.jedec.org/document_search?search_api_views_fulltext=MO-194), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSSOP SO
-0
-16
-16
-Package_SO
-TSSOP-16_4.4x5mm_P0.65mm
-TSSOP, 16 Pin (JEDEC MO-153 Var AB https://www.jedec.org/document_search?search_api_views_fulltext=MO-153), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSSOP SO
-0
-16
-16
-Package_SO
-TSSOP-20_4.4x5mm_P0.4mm
-TSSOP, 20 Pin (JEDEC MO-194 Var AC https://www.jedec.org/document_search?search_api_views_fulltext=MO-194), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSSOP SO
-0
-20
-20
-Package_SO
-TSSOP-20_4.4x5mm_P0.5mm
-TSSOP, 20 Pin (JEDEC MO-153 Var BA https://www.jedec.org/document_search?search_api_views_fulltext=MO-153), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSSOP SO
-0
-20
-20
-Package_SO
-TSSOP-20_4.4x6.5mm_P0.65mm
-TSSOP, 20 Pin (JEDEC MO-153 Var AC https://www.jedec.org/document_search?search_api_views_fulltext=MO-153), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSSOP SO
-0
-20
-20
-Package_SO
-TSSOP-24-1EP_4.4x7.8mm_P0.65mm_EP3.2x5mm
-TSSOP, 24 Pin (https://www.st.com/resource/en/datasheet/led1642gw.pdf#page=37), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSSOP SO
-0
-31
-25
-Package_SO
-TSSOP-24_4.4x5mm_P0.4mm
-TSSOP, 24 Pin (JEDEC MO-153 Var CA https://www.jedec.org/document_search?search_api_views_fulltext=MO-153), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSSOP SO
-0
-24
-24
-Package_SO
-TSSOP-24_4.4x6.5mm_P0.5mm
-TSSOP, 24 Pin (JEDEC MO-153 Var BB https://www.jedec.org/document_search?search_api_views_fulltext=MO-153), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSSOP SO
-0
-24
-24
-Package_SO
-TSSOP-24_4.4x7.8mm_P0.65mm
-TSSOP, 24 Pin (JEDEC MO-153 Var AD https://www.jedec.org/document_search?search_api_views_fulltext=MO-153), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSSOP SO
-0
-24
-24
-Package_SO
-TSSOP-24_6.1x7.8mm_P0.65mm
-TSSOP, 24 Pin (JEDEC MO-153 Var DA https://www.jedec.org/document_search?search_api_views_fulltext=MO-153), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSSOP SO
-0
-24
-24
-Package_SO
-TSSOP-28-1EP_4.4x9.7mm_P0.65mm
-TSSOP28: plastic thin shrink small outline package; 28 leads; body width 4.4 mm; Exposed Pad Variation; (see NXP SSOP-TSSOP-VSO-REFLOW.pdf and sot361-1_po.pdf)
-SSOP 0.65
-0
-36
-29
-Package_SO
-TSSOP-28-1EP_4.4x9.7mm_P0.65mm_EP2.85x6.7mm
-TSSOP, 28 Pin (JEDEC MO-153 Var AET Pkg.Code U28E-4 https://pdfserv.maximintegrated.com/package_dwgs/21-0108.PDF), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSSOP SO
-0
-35
-29
-Package_SO
-TSSOP-28_4.4x7.8mm_P0.5mm
-TSSOP, 28 Pin (JEDEC MO-153 Var BC https://www.jedec.org/document_search?search_api_views_fulltext=MO-153), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSSOP SO
+26
+Connector_JST
+JST_PHD_S28B-PHDSS_2x14_P2.00mm_Horizontal
+JST PHD series connector, S28B-PHDSS (http://www.jst-mfg.com/product/pdf/eng/ePHD.pdf), generated with kicad-footprint-generator
+connector JST PHD horizontal
 0
 28
 28
-Package_SO
-TSSOP-28_4.4x9.7mm_P0.65mm
-TSSOP, 28 Pin (JEDEC MO-153 Var AE https://www.jedec.org/document_search?search_api_views_fulltext=MO-153), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSSOP SO
-0
-28
-28
-Package_SO
-TSSOP-28_6.1x7.8mm_P0.5mm
-TSSOP, 28 Pin (JEDEC MO-153 Var EA https://www.jedec.org/document_search?search_api_views_fulltext=MO-153), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSSOP SO
-0
-28
-28
-Package_SO
-TSSOP-28_6.1x9.7mm_P0.65mm
-TSSOP, 28 Pin (JEDEC MO-153 Var DB https://www.jedec.org/document_search?search_api_views_fulltext=MO-153), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSSOP SO
-0
-28
-28
-Package_SO
-TSSOP-28_8x9.7mm_P0.65mm
-TSSOP, 28 Pin (JEDEC MO-153 Var GA https://www.jedec.org/document_search?search_api_views_fulltext=MO-153), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSSOP SO
-0
-28
-28
-Package_SO
-TSSOP-30_4.4x7.8mm_P0.5mm
-TSSOP, 30 Pin (JEDEC MO-153 Var BC-1 https://www.jedec.org/document_search?search_api_views_fulltext=MO-153), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSSOP SO
+Connector_JST
+JST_PHD_S30B-PHDSS_2x15_P2.00mm_Horizontal
+JST PHD series connector, S30B-PHDSS (http://www.jst-mfg.com/product/pdf/eng/ePHD.pdf), generated with kicad-footprint-generator
+connector JST PHD horizontal
 0
 30
 30
-Package_SO
-TSSOP-30_6.1x9.7mm_P0.65mm
-TSSOP, 30 Pin (JEDEC MO-153 Var DB-1 https://www.jedec.org/document_search?search_api_views_fulltext=MO-153), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSSOP SO
-0
-30
-30
-Package_SO
-TSSOP-32_4.4x6.5mm_P0.4mm
-TSSOP, 32 Pin (JEDEC MO-153 Var CB https://www.jedec.org/document_search?search_api_views_fulltext=MO-153), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSSOP SO
+Connector_JST
+JST_PHD_S32B-PHDSS_2x16_P2.00mm_Horizontal
+JST PHD series connector, S32B-PHDSS (http://www.jst-mfg.com/product/pdf/eng/ePHD.pdf), generated with kicad-footprint-generator
+connector JST PHD horizontal
 0
 32
 32
-Package_SO
-TSSOP-32_6.1x11mm_P0.65mm
-TSSOP, 32 Pin (JEDEC MO-153 Var DC https://www.jedec.org/document_search?search_api_views_fulltext=MO-153), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSSOP SO
+Connector_JST
+JST_PHD_S34B-PHDSS_2x17_P2.00mm_Horizontal
+JST PHD series connector, S34B-PHDSS (http://www.jst-mfg.com/product/pdf/eng/ePHD.pdf), generated with kicad-footprint-generator
+connector JST PHD horizontal
 0
-32
-32
-Package_SO
-TSSOP-32_8x11mm_P0.65mm
-TSSOP, 32 Pin (JEDEC MO-153 Var GB https://www.jedec.org/document_search?search_api_views_fulltext=MO-153), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSSOP SO
+34
+34
+Connector_JST
+JST_PH_B2B-PH-K_1x02_P2.00mm_Vertical
+JST PH series connector, B2B-PH-K (http://www.jst-mfg.com/product/pdf/eng/ePH.pdf), generated with kicad-footprint-generator
+connector JST PH side entry
 0
-32
-32
-Package_SO
-TSSOP-36_4.4x7.8mm_P0.4mm
-TSSOP, 36 Pin (JEDEC MO-153 Var CC https://www.jedec.org/document_search?search_api_views_fulltext=MO-153), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSSOP SO
+2
+2
+Connector_JST
+JST_PH_B2B-PH-SM4-TB_1x02-1MP_P2.00mm_Vertical
+JST PH series connector, B2B-PH-SM4-TB (http://www.jst-mfg.com/product/pdf/eng/ePH.pdf), generated with kicad-footprint-generator
+connector JST PH side entry
 0
-36
-36
-Package_SO
-TSSOP-36_4.4x9.7mm_P0.5mm
-TSSOP, 36 Pin (JEDEC MO-153 Var BD https://www.jedec.org/document_search?search_api_views_fulltext=MO-153), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSSOP SO
+4
+3
+Connector_JST
+JST_PH_B3B-PH-K_1x03_P2.00mm_Vertical
+JST PH series connector, B3B-PH-K (http://www.jst-mfg.com/product/pdf/eng/ePH.pdf), generated with kicad-footprint-generator
+connector JST PH side entry
 0
-36
-36
-Package_SO
-TSSOP-36_6.1x7.8mm_P0.4mm
-TSSOP, 36 Pin (JEDEC MO-153 Var FA https://www.jedec.org/document_search?search_api_views_fulltext=MO-153), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSSOP SO
+3
+3
+Connector_JST
+JST_PH_B3B-PH-SM4-TB_1x03-1MP_P2.00mm_Vertical
+JST PH series connector, B3B-PH-SM4-TB (http://www.jst-mfg.com/product/pdf/eng/ePH.pdf), generated with kicad-footprint-generator
+connector JST PH side entry
 0
-36
-36
-Package_SO
-TSSOP-36_6.1x9.7mm_P0.5mm
-TSSOP, 36 Pin (JEDEC MO-153 Var EB https://www.jedec.org/document_search?search_api_views_fulltext=MO-153), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSSOP SO
+5
+4
+Connector_JST
+JST_PH_B4B-PH-K_1x04_P2.00mm_Vertical
+JST PH series connector, B4B-PH-K (http://www.jst-mfg.com/product/pdf/eng/ePH.pdf), generated with kicad-footprint-generator
+connector JST PH side entry
 0
-36
-36
-Package_SO
-TSSOP-36_6.1x12.5mm_P0.65mm
-TSSOP, 36 Pin (JEDEC MO-153 Var DD https://www.jedec.org/document_search?search_api_views_fulltext=MO-153), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSSOP SO
+4
+4
+Connector_JST
+JST_PH_B4B-PH-SM4-TB_1x04-1MP_P2.00mm_Vertical
+JST PH series connector, B4B-PH-SM4-TB (http://www.jst-mfg.com/product/pdf/eng/ePH.pdf), generated with kicad-footprint-generator
+connector JST PH side entry
 0
-36
-36
-Package_SO
-TSSOP-36_8x9.7mm_P0.5mm
-TSSOP, 36 Pin (JEDEC MO-153 Var HA https://www.jedec.org/document_search?search_api_views_fulltext=MO-153), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSSOP SO
+6
+5
+Connector_JST
+JST_PH_B5B-PH-K_1x05_P2.00mm_Vertical
+JST PH series connector, B5B-PH-K (http://www.jst-mfg.com/product/pdf/eng/ePH.pdf), generated with kicad-footprint-generator
+connector JST PH side entry
 0
-36
-36
-Package_SO
-TSSOP-36_8x12.5mm_P0.65mm
-TSSOP, 36 Pin (JEDEC MO-153 Var GC https://www.jedec.org/document_search?search_api_views_fulltext=MO-153), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSSOP SO
+5
+5
+Connector_JST
+JST_PH_B5B-PH-SM4-TB_1x05-1MP_P2.00mm_Vertical
+JST PH series connector, B5B-PH-SM4-TB (http://www.jst-mfg.com/product/pdf/eng/ePH.pdf), generated with kicad-footprint-generator
+connector JST PH side entry
 0
-36
-36
-Package_SO
-TSSOP-38_4.4x9.7mm_P0.5mm
-TSSOP, 38 Pin (JEDEC MO-153 Var BD https://www.jedec.org/document_search?search_api_views_fulltext=MO-153), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSSOP SO
+7
+6
+Connector_JST
+JST_PH_B6B-PH-K_1x06_P2.00mm_Vertical
+JST PH series connector, B6B-PH-K (http://www.jst-mfg.com/product/pdf/eng/ePH.pdf), generated with kicad-footprint-generator
+connector JST PH side entry
 0
-38
-38
-Package_SO
-TSSOP-38_6.1x12.5mm_P0.65mm
-TSSOP, 38 Pin (JEDEC MO-153 Var DD-1 https://www.jedec.org/document_search?search_api_views_fulltext=MO-153), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSSOP SO
+6
+6
+Connector_JST
+JST_PH_B6B-PH-SM4-TB_1x06-1MP_P2.00mm_Vertical
+JST PH series connector, B6B-PH-SM4-TB (http://www.jst-mfg.com/product/pdf/eng/ePH.pdf), generated with kicad-footprint-generator
+connector JST PH side entry
 0
-38
-38
-Package_SO
-TSSOP-40_6.1x11mm_P0.5mm
-TSSOP, 40 Pin (JEDEC MO-153 Var EC https://www.jedec.org/document_search?search_api_views_fulltext=MO-153), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSSOP SO
+8
+7
+Connector_JST
+JST_PH_B7B-PH-K_1x07_P2.00mm_Vertical
+JST PH series connector, B7B-PH-K (http://www.jst-mfg.com/product/pdf/eng/ePH.pdf), generated with kicad-footprint-generator
+connector JST PH side entry
 0
-40
-40
-Package_SO
-TSSOP-40_6.1x14mm_P0.65mm
-TSSOP, 40 Pin (JEDEC MO-153 Var DE https://www.jedec.org/document_search?search_api_views_fulltext=MO-153), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSSOP SO
+7
+7
+Connector_JST
+JST_PH_B7B-PH-SM4-TB_1x07-1MP_P2.00mm_Vertical
+JST PH series connector, B7B-PH-SM4-TB (http://www.jst-mfg.com/product/pdf/eng/ePH.pdf), generated with kicad-footprint-generator
+connector JST PH side entry
 0
-40
-40
-Package_SO
-TSSOP-40_8x11mm_P0.5mm
-TSSOP, 40 Pin (JEDEC MO-153 Var HB https://www.jedec.org/document_search?search_api_views_fulltext=MO-153), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSSOP SO
+9
+8
+Connector_JST
+JST_PH_B8B-PH-K_1x08_P2.00mm_Vertical
+JST PH series connector, B8B-PH-K (http://www.jst-mfg.com/product/pdf/eng/ePH.pdf), generated with kicad-footprint-generator
+connector JST PH side entry
 0
-40
-40
-Package_SO
-TSSOP-40_8x14mm_P0.65mm
-TSSOP, 40 Pin (JEDEC MO-153 Var GD https://www.jedec.org/document_search?search_api_views_fulltext=MO-153), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSSOP SO
+8
+8
+Connector_JST
+JST_PH_B8B-PH-SM4-TB_1x08-1MP_P2.00mm_Vertical
+JST PH series connector, B8B-PH-SM4-TB (http://www.jst-mfg.com/product/pdf/eng/ePH.pdf), generated with kicad-footprint-generator
+connector JST PH side entry
 0
-40
-40
-Package_SO
-TSSOP-44_4.4x11.2mm_P0.5mm
-TSSOP44: plastic thin shrink small outline package; 44 leads; body width 4.4 mm (see NXP SSOP-TSSOP-VSO-REFLOW.pdf and sot510-1_po.pdf)
-SSOP 0.5
+10
+9
+Connector_JST
+JST_PH_B9B-PH-K_1x09_P2.00mm_Vertical
+JST PH series connector, B9B-PH-K (http://www.jst-mfg.com/product/pdf/eng/ePH.pdf), generated with kicad-footprint-generator
+connector JST PH side entry
 0
-44
-44
-Package_SO
-TSSOP-44_4.4x11mm_P0.5mm
-TSSOP, 44 Pin (JEDEC MO-153 Var BE https://www.jedec.org/document_search?search_api_views_fulltext=MO-153), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSSOP SO
-0
-44
-44
-Package_SO
-TSSOP-44_6.1x11mm_P0.5mm
-TSSOP, 44 Pin (JEDEC MO-153 Var EC-1 https://www.jedec.org/document_search?search_api_views_fulltext=MO-153), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSSOP SO
-0
-44
-44
-Package_SO
-TSSOP-48_4.4x9.7mm_P0.4mm
-TSSOP, 48 Pin (JEDEC MO-153 Var CD https://www.jedec.org/document_search?search_api_views_fulltext=MO-153), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSSOP SO
-0
-48
-48
-Package_SO
-TSSOP-48_6.1x9.7mm_P0.4mm
-TSSOP, 48 Pin (JEDEC MO-153 Var FB https://www.jedec.org/document_search?search_api_views_fulltext=MO-153), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSSOP SO
-0
-48
-48
-Package_SO
-TSSOP-48_6.1x12.5mm_P0.5mm
-TSSOP, 48 Pin (JEDEC MO-153 Var ED https://www.jedec.org/document_search?search_api_views_fulltext=MO-153), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSSOP SO
-0
-48
-48
-Package_SO
-TSSOP-48_8x9.7mm_P0.4mm
-TSSOP, 48 Pin (JEDEC MO-153 Var JA https://www.jedec.org/document_search?search_api_views_fulltext=MO-153), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSSOP SO
-0
-48
-48
-Package_SO
-TSSOP-48_8x12.5mm_P0.5mm
-TSSOP, 48 Pin (JEDEC MO-153 Var HC https://www.jedec.org/document_search?search_api_views_fulltext=MO-153), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSSOP SO
-0
-48
-48
-Package_SO
-TSSOP-50_4.4x12.5mm_P0.5mm
-TSSOP, 50 Pin (JEDEC MO-153 Var BF https://www.jedec.org/document_search?search_api_views_fulltext=MO-153), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSSOP SO
-0
-50
-50
-Package_SO
-TSSOP-52_6.1x11mm_P0.4mm
-TSSOP, 52 Pin (JEDEC MO-153 Var FC https://www.jedec.org/document_search?search_api_views_fulltext=MO-153), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSSOP SO
-0
-52
-52
-Package_SO
-TSSOP-52_8x11mm_P0.4mm
-TSSOP, 52 Pin (JEDEC MO-153 Var JB https://www.jedec.org/document_search?search_api_views_fulltext=MO-153), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSSOP SO
-0
-52
-52
-Package_SO
-TSSOP-56_4.4x11.3mm_P0.4mm
-TSSOP, 56 Pin (JEDEC MO-194 Var AF https://www.jedec.org/document_search?search_api_views_fulltext=MO-194), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSSOP SO
-0
-56
-56
-Package_SO
-TSSOP-56_6.1x12.5mm_P0.4mm
-TSSOP, 56 Pin (JEDEC MO-153 Var FD https://www.jedec.org/document_search?search_api_views_fulltext=MO-153), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSSOP SO
-0
-56
-56
-Package_SO
-TSSOP-56_6.1x14mm_P0.5mm
-TSSOP, 56 Pin (JEDEC MO-153 Var EE https://www.jedec.org/document_search?search_api_views_fulltext=MO-153), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSSOP SO
-0
-56
-56
-Package_SO
-TSSOP-56_8x12.5mm_P0.4mm
-TSSOP, 56 Pin (JEDEC MO-153 Var JC https://www.jedec.org/document_search?search_api_views_fulltext=MO-153), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSSOP SO
-0
-56
-56
-Package_SO
-TSSOP-56_8x14mm_P0.5mm
-TSSOP, 56 Pin (JEDEC MO-153 Var HD https://www.jedec.org/document_search?search_api_views_fulltext=MO-153), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSSOP SO
-0
-56
-56
-Package_SO
-TSSOP-60_8x12.5mm_P0.4mm
-TSSOP, 60 Pin (JEDEC MO-153 Var JC-1 https://www.jedec.org/document_search?search_api_views_fulltext=MO-153), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSSOP SO
-0
-60
-60
-Package_SO
-TSSOP-64_6.1x14mm_P0.4mm
-TSSOP, 64 Pin (JEDEC MO-153 Var FE https://www.jedec.org/document_search?search_api_views_fulltext=MO-153), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSSOP SO
-0
-64
-64
-Package_SO
-TSSOP-64_6.1x17mm_P0.5mm
-TSSOP, 64 Pin (JEDEC MO-153 Var EF https://www.jedec.org/document_search?search_api_views_fulltext=MO-153), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSSOP SO
-0
-64
-64
-Package_SO
-TSSOP-64_8x14mm_P0.4mm
-TSSOP, 64 Pin (JEDEC MO-153 Var JD https://www.jedec.org/document_search?search_api_views_fulltext=MO-153), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSSOP SO
-0
-64
-64
-Package_SO
-TSSOP-68_8x14mm_P0.4mm
-TSSOP, 68 Pin (JEDEC MO-153 Var JD-1 https://www.jedec.org/document_search?search_api_views_fulltext=MO-153), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSSOP SO
-0
-68
-68
-Package_SO
-TSSOP-80_6.1x17mm_P0.4mm
-TSSOP, 80 Pin (JEDEC MO-153 Var FF https://www.jedec.org/document_search?search_api_views_fulltext=MO-153), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSSOP SO
-0
-80
-80
-Package_SO
-TSSOP-100_6.1x20.8mm_P0.4mm
-TSSOP, 100 Pin (JEDEC MO-194 Var BB https://www.jedec.org/document_search?search_api_views_fulltext=MO-194), generated with kicad-footprint-generator ipc_gullwing_generator.py
-TSSOP SO
-0
-100
-100
-Package_SO
-Texas_HSOP-8-1EP_3.9x4.9mm_P1.27mm
-Texas Instruments HSOP 9, 1.27mm pitch, 3.9x4.9mm body, exposed pad, DDA0008J (http://www.ti.com/lit/ds/symlink/tps5430.pdf)
-HSOP 1.27
+9
+9
+Connector_JST
+JST_PH_B9B-PH-SM4-TB_1x09-1MP_P2.00mm_Vertical
+JST PH series connector, B9B-PH-SM4-TB (http://www.jst-mfg.com/product/pdf/eng/ePH.pdf), generated with kicad-footprint-generator
+connector JST PH side entry
 0
 11
-9
-Package_SO
-Texas_HSOP-8-1EP_3.9x4.9mm_P1.27mm_ThermalVias
-Texas Instruments HSOP 9, 1.27mm pitch, 3.9x4.9mm body, exposed pad, thermal vias, DDA0008J (http://www.ti.com/lit/ds/symlink/tps5430.pdf)
-HSOP 1.27
+10
+Connector_JST
+JST_PH_B10B-PH-K_1x10_P2.00mm_Vertical
+JST PH series connector, B10B-PH-K (http://www.jst-mfg.com/product/pdf/eng/ePH.pdf), generated with kicad-footprint-generator
+connector JST PH side entry
 0
-20
-9
-Package_SO
-Texas_HTSOP-8-1EP_3.9x4.9mm_P1.27mm_EP2.95x4.9mm_Mask2.4x3.1mm_ThermalVias
-8-pin HTSOP package with 1.27mm pin pitch, compatible with SOIC-8, 3.9x4.9mm body, exposed pad, thermal vias, http://www.ti.com/lit/ds/symlink/drv8870.pdf
-HTSOP 1.27
+10
+10
+Connector_JST
+JST_PH_B10B-PH-SM4-TB_1x10-1MP_P2.00mm_Vertical
+JST PH series connector, B10B-PH-SM4-TB (http://www.jst-mfg.com/product/pdf/eng/ePH.pdf), generated with kicad-footprint-generator
+connector JST PH side entry
 0
-18
-9
-Package_SO
-Texas_PWP0020A
-20-Pin Thermally Enhanced Thin Shrink Small-Outline Package, Body 4.4x6.5x1.1mm, Pad 3.0x4.2mm, Texas Instruments (see http://www.ti.com/lit/ds/symlink/lm5118.pdf)
-PWP HTSSOP 0.65mm
+12
+11
+Connector_JST
+JST_PH_B11B-PH-K_1x11_P2.00mm_Vertical
+JST PH series connector, B11B-PH-K (http://www.jst-mfg.com/product/pdf/eng/ePH.pdf), generated with kicad-footprint-generator
+connector JST PH side entry
 0
-25
-21
-Package_SO
-Texas_R-PDSO-G8_EP2.95x4.9mm_Mask2.4x3.1mm
-HSOIC, 8 Pin (http://www.ti.com/lit/ds/symlink/lmr14030.pdf#page=28, http://www.ti.com/lit/ml/msoi002j/msoi002j.pdf), generated with kicad-footprint-generator ipc_gullwing_generator.py
-HSOIC SO
+11
+11
+Connector_JST
+JST_PH_B11B-PH-SM4-TB_1x11-1MP_P2.00mm_Vertical
+JST PH series connector, B11B-PH-SM4-TB (http://www.jst-mfg.com/product/pdf/eng/ePH.pdf), generated with kicad-footprint-generator
+connector JST PH side entry
+0
+13
+12
+Connector_JST
+JST_PH_B12B-PH-K_1x12_P2.00mm_Vertical
+JST PH series connector, B12B-PH-K (http://www.jst-mfg.com/product/pdf/eng/ePH.pdf), generated with kicad-footprint-generator
+connector JST PH side entry
+0
+12
+12
+Connector_JST
+JST_PH_B12B-PH-SM4-TB_1x12-1MP_P2.00mm_Vertical
+JST PH series connector, B12B-PH-SM4-TB (http://www.jst-mfg.com/product/pdf/eng/ePH.pdf), generated with kicad-footprint-generator
+connector JST PH side entry
+0
+14
+13
+Connector_JST
+JST_PH_B13B-PH-K_1x13_P2.00mm_Vertical
+JST PH series connector, B13B-PH-K (http://www.jst-mfg.com/product/pdf/eng/ePH.pdf), generated with kicad-footprint-generator
+connector JST PH side entry
+0
+13
+13
+Connector_JST
+JST_PH_B13B-PH-SM4-TB_1x13-1MP_P2.00mm_Vertical
+JST PH series connector, B13B-PH-SM4-TB (http://www.jst-mfg.com/product/pdf/eng/ePH.pdf), generated with kicad-footprint-generator
+connector JST PH side entry
+0
+15
+14
+Connector_JST
+JST_PH_B14B-PH-K_1x14_P2.00mm_Vertical
+JST PH series connector, B14B-PH-K (http://www.jst-mfg.com/product/pdf/eng/ePH.pdf), generated with kicad-footprint-generator
+connector JST PH side entry
+0
+14
+14
+Connector_JST
+JST_PH_B14B-PH-SM4-TB_1x14-1MP_P2.00mm_Vertical
+JST PH series connector, B14B-PH-SM4-TB (http://www.jst-mfg.com/product/pdf/eng/ePH.pdf), generated with kicad-footprint-generator
+connector JST PH side entry
 0
 16
-9
-Package_SO
-Texas_R-PDSO-G8_EP2.95x4.9mm_Mask2.4x3.1mm_ThermalVias
-HSOIC, 8 Pin (http://www.ti.com/lit/ds/symlink/lmr14030.pdf#page=28, http://www.ti.com/lit/ml/msoi002j/msoi002j.pdf), generated with kicad-footprint-generator ipc_gullwing_generator.py
-HSOIC SO
+15
+Connector_JST
+JST_PH_B15B-PH-K_1x15_P2.00mm_Vertical
+JST PH series connector, B15B-PH-K (http://www.jst-mfg.com/product/pdf/eng/ePH.pdf), generated with kicad-footprint-generator
+connector JST PH side entry
 0
+15
+15
+Connector_JST
+JST_PH_B15B-PH-SM4-TB_1x15-1MP_P2.00mm_Vertical
+JST PH series connector, B15B-PH-SM4-TB (http://www.jst-mfg.com/product/pdf/eng/ePH.pdf), generated with kicad-footprint-generator
+connector JST PH side entry
+0
+17
+16
+Connector_JST
+JST_PH_B16B-PH-K_1x16_P2.00mm_Vertical
+JST PH series connector, B16B-PH-K (http://www.jst-mfg.com/product/pdf/eng/ePH.pdf), generated with kicad-footprint-generator
+connector JST PH side entry
+0
+16
+16
+Connector_JST
+JST_PH_B16B-PH-SM4-TB_1x16-1MP_P2.00mm_Vertical
+JST PH series connector, B16B-PH-SM4-TB (http://www.jst-mfg.com/product/pdf/eng/ePH.pdf), generated with kicad-footprint-generator
+connector JST PH side entry
+0
+18
+17
+Connector_JST
+JST_PH_S2B-PH-K_1x02_P2.00mm_Horizontal
+JST PH series connector, S2B-PH-K (http://www.jst-mfg.com/product/pdf/eng/ePH.pdf), generated with kicad-footprint-generator
+connector JST PH top entry
+0
+2
+2
+Connector_JST
+JST_PH_S2B-PH-SM4-TB_1x02-1MP_P2.00mm_Horizontal
+JST PH series connector, S2B-PH-SM4-TB (http://www.jst-mfg.com/product/pdf/eng/ePH.pdf), generated with kicad-footprint-generator
+connector JST PH top entry
+0
+4
+3
+Connector_JST
+JST_PH_S3B-PH-K_1x03_P2.00mm_Horizontal
+JST PH series connector, S3B-PH-K (http://www.jst-mfg.com/product/pdf/eng/ePH.pdf), generated with kicad-footprint-generator
+connector JST PH top entry
+0
+3
+3
+Connector_JST
+JST_PH_S3B-PH-SM4-TB_1x03-1MP_P2.00mm_Horizontal
+JST PH series connector, S3B-PH-SM4-TB (http://www.jst-mfg.com/product/pdf/eng/ePH.pdf), generated with kicad-footprint-generator
+connector JST PH top entry
+0
+5
+4
+Connector_JST
+JST_PH_S4B-PH-K_1x04_P2.00mm_Horizontal
+JST PH series connector, S4B-PH-K (http://www.jst-mfg.com/product/pdf/eng/ePH.pdf), generated with kicad-footprint-generator
+connector JST PH top entry
+0
+4
+4
+Connector_JST
+JST_PH_S4B-PH-SM4-TB_1x04-1MP_P2.00mm_Horizontal
+JST PH series connector, S4B-PH-SM4-TB (http://www.jst-mfg.com/product/pdf/eng/ePH.pdf), generated with kicad-footprint-generator
+connector JST PH top entry
+0
+6
+5
+Connector_JST
+JST_PH_S5B-PH-K_1x05_P2.00mm_Horizontal
+JST PH series connector, S5B-PH-K (http://www.jst-mfg.com/product/pdf/eng/ePH.pdf), generated with kicad-footprint-generator
+connector JST PH top entry
+0
+5
+5
+Connector_JST
+JST_PH_S5B-PH-SM4-TB_1x05-1MP_P2.00mm_Horizontal
+JST PH series connector, S5B-PH-SM4-TB (http://www.jst-mfg.com/product/pdf/eng/ePH.pdf), generated with kicad-footprint-generator
+connector JST PH top entry
+0
+7
+6
+Connector_JST
+JST_PH_S6B-PH-K_1x06_P2.00mm_Horizontal
+JST PH series connector, S6B-PH-K (http://www.jst-mfg.com/product/pdf/eng/ePH.pdf), generated with kicad-footprint-generator
+connector JST PH top entry
+0
+6
+6
+Connector_JST
+JST_PH_S6B-PH-SM4-TB_1x06-1MP_P2.00mm_Horizontal
+JST PH series connector, S6B-PH-SM4-TB (http://www.jst-mfg.com/product/pdf/eng/ePH.pdf), generated with kicad-footprint-generator
+connector JST PH top entry
+0
+8
+7
+Connector_JST
+JST_PH_S7B-PH-K_1x07_P2.00mm_Horizontal
+JST PH series connector, S7B-PH-K (http://www.jst-mfg.com/product/pdf/eng/ePH.pdf), generated with kicad-footprint-generator
+connector JST PH top entry
+0
+7
+7
+Connector_JST
+JST_PH_S7B-PH-SM4-TB_1x07-1MP_P2.00mm_Horizontal
+JST PH series connector, S7B-PH-SM4-TB (http://www.jst-mfg.com/product/pdf/eng/ePH.pdf), generated with kicad-footprint-generator
+connector JST PH top entry
+0
+9
+8
+Connector_JST
+JST_PH_S8B-PH-K_1x08_P2.00mm_Horizontal
+JST PH series connector, S8B-PH-K (http://www.jst-mfg.com/product/pdf/eng/ePH.pdf), generated with kicad-footprint-generator
+connector JST PH top entry
+0
+8
+8
+Connector_JST
+JST_PH_S8B-PH-SM4-TB_1x08-1MP_P2.00mm_Horizontal
+JST PH series connector, S8B-PH-SM4-TB (http://www.jst-mfg.com/product/pdf/eng/ePH.pdf), generated with kicad-footprint-generator
+connector JST PH top entry
+0
+10
+9
+Connector_JST
+JST_PH_S9B-PH-K_1x09_P2.00mm_Horizontal
+JST PH series connector, S9B-PH-K (http://www.jst-mfg.com/product/pdf/eng/ePH.pdf), generated with kicad-footprint-generator
+connector JST PH top entry
+0
+9
+9
+Connector_JST
+JST_PH_S9B-PH-SM4-TB_1x09-1MP_P2.00mm_Horizontal
+JST PH series connector, S9B-PH-SM4-TB (http://www.jst-mfg.com/product/pdf/eng/ePH.pdf), generated with kicad-footprint-generator
+connector JST PH top entry
+0
+11
+10
+Connector_JST
+JST_PH_S10B-PH-K_1x10_P2.00mm_Horizontal
+JST PH series connector, S10B-PH-K (http://www.jst-mfg.com/product/pdf/eng/ePH.pdf), generated with kicad-footprint-generator
+connector JST PH top entry
+0
+10
+10
+Connector_JST
+JST_PH_S10B-PH-SM4-TB_1x10-1MP_P2.00mm_Horizontal
+JST PH series connector, S10B-PH-SM4-TB (http://www.jst-mfg.com/product/pdf/eng/ePH.pdf), generated with kicad-footprint-generator
+connector JST PH top entry
+0
+12
+11
+Connector_JST
+JST_PH_S11B-PH-K_1x11_P2.00mm_Horizontal
+JST PH series connector, S11B-PH-K (http://www.jst-mfg.com/product/pdf/eng/ePH.pdf), generated with kicad-footprint-generator
+connector JST PH top entry
+0
+11
+11
+Connector_JST
+JST_PH_S11B-PH-SM4-TB_1x11-1MP_P2.00mm_Horizontal
+JST PH series connector, S11B-PH-SM4-TB (http://www.jst-mfg.com/product/pdf/eng/ePH.pdf), generated with kicad-footprint-generator
+connector JST PH top entry
+0
+13
+12
+Connector_JST
+JST_PH_S12B-PH-K_1x12_P2.00mm_Horizontal
+JST PH series connector, S12B-PH-K (http://www.jst-mfg.com/product/pdf/eng/ePH.pdf), generated with kicad-footprint-generator
+connector JST PH top entry
+0
+12
+12
+Connector_JST
+JST_PH_S12B-PH-SM4-TB_1x12-1MP_P2.00mm_Horizontal
+JST PH series connector, S12B-PH-SM4-TB (http://www.jst-mfg.com/product/pdf/eng/ePH.pdf), generated with kicad-footprint-generator
+connector JST PH top entry
+0
+14
+13
+Connector_JST
+JST_PH_S13B-PH-K_1x13_P2.00mm_Horizontal
+JST PH series connector, S13B-PH-K (http://www.jst-mfg.com/product/pdf/eng/ePH.pdf), generated with kicad-footprint-generator
+connector JST PH top entry
+0
+13
+13
+Connector_JST
+JST_PH_S13B-PH-SM4-TB_1x13-1MP_P2.00mm_Horizontal
+JST PH series connector, S13B-PH-SM4-TB (http://www.jst-mfg.com/product/pdf/eng/ePH.pdf), generated with kicad-footprint-generator
+connector JST PH top entry
+0
+15
+14
+Connector_JST
+JST_PH_S14B-PH-K_1x14_P2.00mm_Horizontal
+JST PH series connector, S14B-PH-K (http://www.jst-mfg.com/product/pdf/eng/ePH.pdf), generated with kicad-footprint-generator
+connector JST PH top entry
+0
+14
+14
+Connector_JST
+JST_PH_S14B-PH-SM4-TB_1x14-1MP_P2.00mm_Horizontal
+JST PH series connector, S14B-PH-SM4-TB (http://www.jst-mfg.com/product/pdf/eng/ePH.pdf), generated with kicad-footprint-generator
+connector JST PH top entry
+0
+16
+15
+Connector_JST
+JST_PH_S15B-PH-K_1x15_P2.00mm_Horizontal
+JST PH series connector, S15B-PH-K (http://www.jst-mfg.com/product/pdf/eng/ePH.pdf), generated with kicad-footprint-generator
+connector JST PH top entry
+0
+15
+15
+Connector_JST
+JST_PH_S15B-PH-SM4-TB_1x15-1MP_P2.00mm_Horizontal
+JST PH series connector, S15B-PH-SM4-TB (http://www.jst-mfg.com/product/pdf/eng/ePH.pdf), generated with kicad-footprint-generator
+connector JST PH top entry
+0
+17
+16
+Connector_JST
+JST_PH_S16B-PH-K_1x16_P2.00mm_Horizontal
+JST PH series connector, S16B-PH-K (http://www.jst-mfg.com/product/pdf/eng/ePH.pdf), generated with kicad-footprint-generator
+connector JST PH top entry
+0
+16
+16
+Connector_JST
+JST_PUD_B08B-PUDSS_2x04_P2.00mm_Vertical
+JST PUD series connector, B08B-PUDSS (http://www.jst-mfg.com/product/pdf/eng/ePUD.pdf), generated with kicad-footprint-generator
+connector JST PUD side entry
+0
+8
+8
+Connector_JST
+JST_PUD_B10B-PUDSS_2x05_P2.00mm_Vertical
+JST PUD series connector, B10B-PUDSS (http://www.jst-mfg.com/product/pdf/eng/ePUD.pdf), generated with kicad-footprint-generator
+connector JST PUD side entry
+0
+10
+10
+Connector_JST
+JST_PUD_B12B-PUDSS_2x06_P2.00mm_Vertical
+JST PUD series connector, B12B-PUDSS (http://www.jst-mfg.com/product/pdf/eng/ePUD.pdf), generated with kicad-footprint-generator
+connector JST PUD side entry
+0
+12
+12
+Connector_JST
+JST_PUD_B14B-PUDSS_2x07_P2.00mm_Vertical
+JST PUD series connector, B14B-PUDSS (http://www.jst-mfg.com/product/pdf/eng/ePUD.pdf), generated with kicad-footprint-generator
+connector JST PUD side entry
+0
+14
+14
+Connector_JST
+JST_PUD_B16B-PUDSS_2x08_P2.00mm_Vertical
+JST PUD series connector, B16B-PUDSS (http://www.jst-mfg.com/product/pdf/eng/ePUD.pdf), generated with kicad-footprint-generator
+connector JST PUD side entry
+0
+16
+16
+Connector_JST
+JST_PUD_B18B-PUDSS_2x09_P2.00mm_Vertical
+JST PUD series connector, B18B-PUDSS (http://www.jst-mfg.com/product/pdf/eng/ePUD.pdf), generated with kicad-footprint-generator
+connector JST PUD side entry
+0
+18
+18
+Connector_JST
+JST_PUD_B20B-PUDSS_2x10_P2.00mm_Vertical
+JST PUD series connector, B20B-PUDSS (http://www.jst-mfg.com/product/pdf/eng/ePUD.pdf), generated with kicad-footprint-generator
+connector JST PUD side entry
+0
+20
+20
+Connector_JST
+JST_PUD_B22B-PUDSS_2x11_P2.00mm_Vertical
+JST PUD series connector, B22B-PUDSS (http://www.jst-mfg.com/product/pdf/eng/ePUD.pdf), generated with kicad-footprint-generator
+connector JST PUD side entry
+0
+22
+22
+Connector_JST
+JST_PUD_B24B-PUDSS_2x12_P2.00mm_Vertical
+JST PUD series connector, B24B-PUDSS (http://www.jst-mfg.com/product/pdf/eng/ePUD.pdf), generated with kicad-footprint-generator
+connector JST PUD side entry
+0
+24
+24
+Connector_JST
+JST_PUD_B26B-PUDSS_2x13_P2.00mm_Vertical
+JST PUD series connector, B26B-PUDSS (http://www.jst-mfg.com/product/pdf/eng/ePUD.pdf), generated with kicad-footprint-generator
+connector JST PUD side entry
+0
+26
+26
+Connector_JST
+JST_PUD_B28B-PUDSS_2x14_P2.00mm_Vertical
+JST PUD series connector, B28B-PUDSS (http://www.jst-mfg.com/product/pdf/eng/ePUD.pdf), generated with kicad-footprint-generator
+connector JST PUD side entry
+0
+28
+28
+Connector_JST
+JST_PUD_B30B-PUDSS_2x15_P2.00mm_Vertical
+JST PUD series connector, B30B-PUDSS (http://www.jst-mfg.com/product/pdf/eng/ePUD.pdf), generated with kicad-footprint-generator
+connector JST PUD side entry
+0
+30
+30
+Connector_JST
+JST_PUD_B32B-PUDSS_2x16_P2.00mm_Vertical
+JST PUD series connector, B32B-PUDSS (http://www.jst-mfg.com/product/pdf/eng/ePUD.pdf), generated with kicad-footprint-generator
+connector JST PUD side entry
+0
+32
+32
+Connector_JST
+JST_PUD_B34B-PUDSS_2x17_P2.00mm_Vertical
+JST PUD series connector, B34B-PUDSS (http://www.jst-mfg.com/product/pdf/eng/ePUD.pdf), generated with kicad-footprint-generator
+connector JST PUD side entry
+0
+34
+34
+Connector_JST
+JST_PUD_B36B-PUDSS_2x18_P2.00mm_Vertical
+JST PUD series connector, B36B-PUDSS (http://www.jst-mfg.com/product/pdf/eng/ePUD.pdf), generated with kicad-footprint-generator
+connector JST PUD side entry
+0
+36
+36
+Connector_JST
+JST_PUD_B38B-PUDSS_2x19_P2.00mm_Vertical
+JST PUD series connector, B38B-PUDSS (http://www.jst-mfg.com/product/pdf/eng/ePUD.pdf), generated with kicad-footprint-generator
+connector JST PUD side entry
+0
+38
+38
+Connector_JST
+JST_PUD_B40B-PUDSS_2x20_P2.00mm_Vertical
+JST PUD series connector, B40B-PUDSS (http://www.jst-mfg.com/product/pdf/eng/ePUD.pdf), generated with kicad-footprint-generator
+connector JST PUD side entry
+0
+40
+40
+Connector_JST
+JST_PUD_S08B-PUDSS-1_2x04_P2.00mm_Horizontal
+JST PUD series connector, S08B-PUDSS-1 (http://www.jst-mfg.com/product/pdf/eng/ePUD.pdf), generated with kicad-footprint-generator
+connector JST PUD top entry
+0
+8
+8
+Connector_JST
+JST_PUD_S10B-PUDSS-1_2x05_P2.00mm_Horizontal
+JST PUD series connector, S10B-PUDSS-1 (http://www.jst-mfg.com/product/pdf/eng/ePUD.pdf), generated with kicad-footprint-generator
+connector JST PUD top entry
+0
+10
+10
+Connector_JST
+JST_PUD_S12B-PUDSS-1_2x06_P2.00mm_Horizontal
+JST PUD series connector, S12B-PUDSS-1 (http://www.jst-mfg.com/product/pdf/eng/ePUD.pdf), generated with kicad-footprint-generator
+connector JST PUD top entry
+0
+12
+12
+Connector_JST
+JST_PUD_S14B-PUDSS-1_2x07_P2.00mm_Horizontal
+JST PUD series connector, S14B-PUDSS-1 (http://www.jst-mfg.com/product/pdf/eng/ePUD.pdf), generated with kicad-footprint-generator
+connector JST PUD top entry
+0
+14
+14
+Connector_JST
+JST_PUD_S16B-PUDSS-1_2x08_P2.00mm_Horizontal
+JST PUD series connector, S16B-PUDSS-1 (http://www.jst-mfg.com/product/pdf/eng/ePUD.pdf), generated with kicad-footprint-generator
+connector JST PUD top entry
+0
+16
+16
+Connector_JST
+JST_PUD_S18B-PUDSS-1_2x09_P2.00mm_Horizontal
+JST PUD series connector, S18B-PUDSS-1 (http://www.jst-mfg.com/product/pdf/eng/ePUD.pdf), generated with kicad-footprint-generator
+connector JST PUD top entry
+0
+18
+18
+Connector_JST
+JST_PUD_S20B-PUDSS-1_2x10_P2.00mm_Horizontal
+JST PUD series connector, S20B-PUDSS-1 (http://www.jst-mfg.com/product/pdf/eng/ePUD.pdf), generated with kicad-footprint-generator
+connector JST PUD top entry
+0
+20
+20
+Connector_JST
+JST_PUD_S22B-PUDSS-1_2x11_P2.00mm_Horizontal
+JST PUD series connector, S22B-PUDSS-1 (http://www.jst-mfg.com/product/pdf/eng/ePUD.pdf), generated with kicad-footprint-generator
+connector JST PUD top entry
+0
+22
+22
+Connector_JST
+JST_PUD_S24B-PUDSS-1_2x12_P2.00mm_Horizontal
+JST PUD series connector, S24B-PUDSS-1 (http://www.jst-mfg.com/product/pdf/eng/ePUD.pdf), generated with kicad-footprint-generator
+connector JST PUD top entry
+0
+24
+24
+Connector_JST
+JST_PUD_S26B-PUDSS-1_2x13_P2.00mm_Horizontal
+JST PUD series connector, S26B-PUDSS-1 (http://www.jst-mfg.com/product/pdf/eng/ePUD.pdf), generated with kicad-footprint-generator
+connector JST PUD top entry
+0
+26
+26
+Connector_JST
+JST_PUD_S28B-PUDSS-1_2x14_P2.00mm_Horizontal
+JST PUD series connector, S28B-PUDSS-1 (http://www.jst-mfg.com/product/pdf/eng/ePUD.pdf), generated with kicad-footprint-generator
+connector JST PUD top entry
+0
+28
+28
+Connector_JST
+JST_PUD_S30B-PUDSS-1_2x15_P2.00mm_Horizontal
+JST PUD series connector, S30B-PUDSS-1 (http://www.jst-mfg.com/product/pdf/eng/ePUD.pdf), generated with kicad-footprint-generator
+connector JST PUD top entry
+0
+30
+30
+Connector_JST
+JST_PUD_S32B-PUDSS-1_2x16_P2.00mm_Horizontal
+JST PUD series connector, S32B-PUDSS-1 (http://www.jst-mfg.com/product/pdf/eng/ePUD.pdf), generated with kicad-footprint-generator
+connector JST PUD top entry
+0
+32
+32
+Connector_JST
+JST_PUD_S34B-PUDSS-1_2x17_P2.00mm_Horizontal
+JST PUD series connector, S34B-PUDSS-1 (http://www.jst-mfg.com/product/pdf/eng/ePUD.pdf), generated with kicad-footprint-generator
+connector JST PUD top entry
+0
+34
+34
+Connector_JST
+JST_PUD_S36B-PUDSS-1_2x18_P2.00mm_Horizontal
+JST PUD series connector, S36B-PUDSS-1 (http://www.jst-mfg.com/product/pdf/eng/ePUD.pdf), generated with kicad-footprint-generator
+connector JST PUD top entry
+0
+36
+36
+Connector_JST
+JST_PUD_S38B-PUDSS-1_2x19_P2.00mm_Horizontal
+JST PUD series connector, S38B-PUDSS-1 (http://www.jst-mfg.com/product/pdf/eng/ePUD.pdf), generated with kicad-footprint-generator
+connector JST PUD top entry
+0
+38
+38
+Connector_JST
+JST_PUD_S40B-PUDSS-1_2x20_P2.00mm_Horizontal
+JST PUD series connector, S40B-PUDSS-1 (http://www.jst-mfg.com/product/pdf/eng/ePUD.pdf), generated with kicad-footprint-generator
+connector JST PUD top entry
+0
+40
+40
+Connector_JST
+JST_SFH_SM02B-SFHRS-TF_1x02-1MP_P4.20mm_Horizontal
+JST SFH series connector, SM02B-SFHRS-TF (http://www.jst-mfg.com/product/pdf/eng/eSFH.pdf), generated with kicad-footprint-generator
+connector JST SFH horizontal
+0
+4
+3
+Connector_JST
+JST_SHL_SM02B-SHLS-TF_1x02-1MP_P1.00mm_Horizontal
+JST SHL series connector, SM02B-SHLS-TF (http://www.jst-mfg.com/product/pdf/eng/eSHL.pdf), generated with kicad-footprint-generator
+connector JST SHL top entry
+0
+4
+3
+Connector_JST
+JST_SHL_SM05B-SHLS-TF_1x05-1MP_P1.00mm_Horizontal
+JST SHL series connector, SM05B-SHLS-TF (http://www.jst-mfg.com/product/pdf/eng/eSHL.pdf), generated with kicad-footprint-generator
+connector JST SHL top entry
+0
+7
+6
+Connector_JST
+JST_SHL_SM06B-SHLS-TF_1x06-1MP_P1.00mm_Horizontal
+JST SHL series connector, SM06B-SHLS-TF (http://www.jst-mfg.com/product/pdf/eng/eSHL.pdf), generated with kicad-footprint-generator
+connector JST SHL top entry
+0
+8
+7
+Connector_JST
+JST_SHL_SM07B-SHLS-TF_1x07-1MP_P1.00mm_Horizontal
+JST SHL series connector, SM07B-SHLS-TF (http://www.jst-mfg.com/product/pdf/eng/eSHL.pdf), generated with kicad-footprint-generator
+connector JST SHL top entry
+0
+9
+8
+Connector_JST
+JST_SHL_SM08B-SHLS-TF_1x08-1MP_P1.00mm_Horizontal
+JST SHL series connector, SM08B-SHLS-TF (http://www.jst-mfg.com/product/pdf/eng/eSHL.pdf), generated with kicad-footprint-generator
+connector JST SHL top entry
+0
+10
+9
+Connector_JST
+JST_SHL_SM10B-SHLS-TF_1x10-1MP_P1.00mm_Horizontal
+JST SHL series connector, SM10B-SHLS-TF (http://www.jst-mfg.com/product/pdf/eng/eSHL.pdf), generated with kicad-footprint-generator
+connector JST SHL top entry
+0
+12
+11
+Connector_JST
+JST_SHL_SM11B-SHLS-TF_1x11-1MP_P1.00mm_Horizontal
+JST SHL series connector, SM11B-SHLS-TF (http://www.jst-mfg.com/product/pdf/eng/eSHL.pdf), generated with kicad-footprint-generator
+connector JST SHL top entry
+0
+13
+12
+Connector_JST
+JST_SHL_SM12B-SHLS-TF_1x12-1MP_P1.00mm_Horizontal
+JST SHL series connector, SM12B-SHLS-TF (http://www.jst-mfg.com/product/pdf/eng/eSHL.pdf), generated with kicad-footprint-generator
+connector JST SHL top entry
+0
+14
+13
+Connector_JST
+JST_SHL_SM14B-SHLS-TF_1x14-1MP_P1.00mm_Horizontal
+JST SHL series connector, SM14B-SHLS-TF (http://www.jst-mfg.com/product/pdf/eng/eSHL.pdf), generated with kicad-footprint-generator
+connector JST SHL top entry
+0
+16
+15
+Connector_JST
+JST_SHL_SM16B-SHLS-TF_1x16-1MP_P1.00mm_Horizontal
+JST SHL series connector, SM16B-SHLS-TF (http://www.jst-mfg.com/product/pdf/eng/eSHL.pdf), generated with kicad-footprint-generator
+connector JST SHL top entry
+0
+18
+17
+Connector_JST
+JST_SHL_SM20B-SHLS-TF_1x20-1MP_P1.00mm_Horizontal
+JST SHL series connector, SM20B-SHLS-TF (http://www.jst-mfg.com/product/pdf/eng/eSHL.pdf), generated with kicad-footprint-generator
+connector JST SHL top entry
+0
+22
+21
+Connector_JST
+JST_SHL_SM22B-SHLS-TF_1x22-1MP_P1.00mm_Horizontal
+JST SHL series connector, SM22B-SHLS-TF (http://www.jst-mfg.com/product/pdf/eng/eSHL.pdf), generated with kicad-footprint-generator
+connector JST SHL top entry
+0
+24
 23
+Connector_JST
+JST_SHL_SM26B-SHLS-TF_1x26-1MP_P1.00mm_Horizontal
+JST SHL series connector, SM26B-SHLS-TF (http://www.jst-mfg.com/product/pdf/eng/eSHL.pdf), generated with kicad-footprint-generator
+connector JST SHL top entry
+0
+28
+27
+Connector_JST
+JST_SHL_SM30B-SHLS-TF_1x30-1MP_P1.00mm_Horizontal
+JST SHL series connector, SM30B-SHLS-TF (http://www.jst-mfg.com/product/pdf/eng/eSHL.pdf), generated with kicad-footprint-generator
+connector JST SHL top entry
+0
+32
+31
+Connector_JST
+JST_SH_BM02B-SRSS-TB_1x02-1MP_P1.00mm_Vertical
+JST SH series connector, BM02B-SRSS-TB (http://www.jst-mfg.com/product/pdf/eng/eSH.pdf), generated with kicad-footprint-generator
+connector JST SH side entry
+0
+4
+3
+Connector_JST
+JST_SH_BM03B-SRSS-TB_1x03-1MP_P1.00mm_Vertical
+JST SH series connector, BM03B-SRSS-TB (http://www.jst-mfg.com/product/pdf/eng/eSH.pdf), generated with kicad-footprint-generator
+connector JST SH side entry
+0
+5
+4
+Connector_JST
+JST_SH_BM04B-SRSS-TB_1x04-1MP_P1.00mm_Vertical
+JST SH series connector, BM04B-SRSS-TB (http://www.jst-mfg.com/product/pdf/eng/eSH.pdf), generated with kicad-footprint-generator
+connector JST SH side entry
+0
+6
+5
+Connector_JST
+JST_SH_BM05B-SRSS-TB_1x05-1MP_P1.00mm_Vertical
+JST SH series connector, BM05B-SRSS-TB (http://www.jst-mfg.com/product/pdf/eng/eSH.pdf), generated with kicad-footprint-generator
+connector JST SH side entry
+0
+7
+6
+Connector_JST
+JST_SH_BM06B-SRSS-TB_1x06-1MP_P1.00mm_Vertical
+JST SH series connector, BM06B-SRSS-TB (http://www.jst-mfg.com/product/pdf/eng/eSH.pdf), generated with kicad-footprint-generator
+connector JST SH side entry
+0
+8
+7
+Connector_JST
+JST_SH_BM07B-SRSS-TB_1x07-1MP_P1.00mm_Vertical
+JST SH series connector, BM07B-SRSS-TB (http://www.jst-mfg.com/product/pdf/eng/eSH.pdf), generated with kicad-footprint-generator
+connector JST SH side entry
+0
 9
-Package_SO
-Texas_R-PDSO-N5
-Plastic Small outline http://www.ti.com/lit/ml/mpds158c/mpds158c.pdf
-SOT23 R-PDSO-N5
+8
+Connector_JST
+JST_SH_BM08B-SRSS-TB_1x08-1MP_P1.00mm_Vertical
+JST SH series connector, BM08B-SRSS-TB (http://www.jst-mfg.com/product/pdf/eng/eSH.pdf), generated with kicad-footprint-generator
+connector JST SH side entry
+0
+10
+9
+Connector_JST
+JST_SH_BM09B-SRSS-TB_1x09-1MP_P1.00mm_Vertical
+JST SH series connector, BM09B-SRSS-TB (http://www.jst-mfg.com/product/pdf/eng/eSH.pdf), generated with kicad-footprint-generator
+connector JST SH side entry
+0
+11
+10
+Connector_JST
+JST_SH_BM10B-SRSS-TB_1x10-1MP_P1.00mm_Vertical
+JST SH series connector, BM10B-SRSS-TB (http://www.jst-mfg.com/product/pdf/eng/eSH.pdf), generated with kicad-footprint-generator
+connector JST SH side entry
+0
+12
+11
+Connector_JST
+JST_SH_BM11B-SRSS-TB_1x11-1MP_P1.00mm_Vertical
+JST SH series connector, BM11B-SRSS-TB (http://www.jst-mfg.com/product/pdf/eng/eSH.pdf), generated with kicad-footprint-generator
+connector JST SH side entry
+0
+13
+12
+Connector_JST
+JST_SH_BM12B-SRSS-TB_1x12-1MP_P1.00mm_Vertical
+JST SH series connector, BM12B-SRSS-TB (http://www.jst-mfg.com/product/pdf/eng/eSH.pdf), generated with kicad-footprint-generator
+connector JST SH side entry
+0
+14
+13
+Connector_JST
+JST_SH_BM13B-SRSS-TB_1x13-1MP_P1.00mm_Vertical
+JST SH series connector, BM13B-SRSS-TB (http://www.jst-mfg.com/product/pdf/eng/eSH.pdf), generated with kicad-footprint-generator
+connector JST SH side entry
+0
+15
+14
+Connector_JST
+JST_SH_BM14B-SRSS-TB_1x14-1MP_P1.00mm_Vertical
+JST SH series connector, BM14B-SRSS-TB (http://www.jst-mfg.com/product/pdf/eng/eSH.pdf), generated with kicad-footprint-generator
+connector JST SH side entry
+0
+16
+15
+Connector_JST
+JST_SH_BM15B-SRSS-TB_1x15-1MP_P1.00mm_Vertical
+JST SH series connector, BM15B-SRSS-TB (http://www.jst-mfg.com/product/pdf/eng/eSH.pdf), generated with kicad-footprint-generator
+connector JST SH side entry
+0
+17
+16
+Connector_JST
+JST_SH_SM02B-SRSS-TB_1x02-1MP_P1.00mm_Horizontal
+JST SH series connector, SM02B-SRSS-TB (http://www.jst-mfg.com/product/pdf/eng/eSH.pdf), generated with kicad-footprint-generator
+connector JST SH top entry
+0
+4
+3
+Connector_JST
+JST_SH_SM03B-SRSS-TB_1x03-1MP_P1.00mm_Horizontal
+JST SH series connector, SM03B-SRSS-TB (http://www.jst-mfg.com/product/pdf/eng/eSH.pdf), generated with kicad-footprint-generator
+connector JST SH top entry
+0
+5
+4
+Connector_JST
+JST_SH_SM04B-SRSS-TB_1x04-1MP_P1.00mm_Horizontal
+JST SH series connector, SM04B-SRSS-TB (http://www.jst-mfg.com/product/pdf/eng/eSH.pdf), generated with kicad-footprint-generator
+connector JST SH top entry
+0
+6
+5
+Connector_JST
+JST_SH_SM05B-SRSS-TB_1x05-1MP_P1.00mm_Horizontal
+JST SH series connector, SM05B-SRSS-TB (http://www.jst-mfg.com/product/pdf/eng/eSH.pdf), generated with kicad-footprint-generator
+connector JST SH top entry
+0
+7
+6
+Connector_JST
+JST_SH_SM06B-SRSS-TB_1x06-1MP_P1.00mm_Horizontal
+JST SH series connector, SM06B-SRSS-TB (http://www.jst-mfg.com/product/pdf/eng/eSH.pdf), generated with kicad-footprint-generator
+connector JST SH top entry
+0
+8
+7
+Connector_JST
+JST_SH_SM07B-SRSS-TB_1x07-1MP_P1.00mm_Horizontal
+JST SH series connector, SM07B-SRSS-TB (http://www.jst-mfg.com/product/pdf/eng/eSH.pdf), generated with kicad-footprint-generator
+connector JST SH top entry
+0
+9
+8
+Connector_JST
+JST_SH_SM08B-SRSS-TB_1x08-1MP_P1.00mm_Horizontal
+JST SH series connector, SM08B-SRSS-TB (http://www.jst-mfg.com/product/pdf/eng/eSH.pdf), generated with kicad-footprint-generator
+connector JST SH top entry
+0
+10
+9
+Connector_JST
+JST_SH_SM09B-SRSS-TB_1x09-1MP_P1.00mm_Horizontal
+JST SH series connector, SM09B-SRSS-TB (http://www.jst-mfg.com/product/pdf/eng/eSH.pdf), generated with kicad-footprint-generator
+connector JST SH top entry
+0
+11
+10
+Connector_JST
+JST_SH_SM10B-SRSS-TB_1x10-1MP_P1.00mm_Horizontal
+JST SH series connector, SM10B-SRSS-TB (http://www.jst-mfg.com/product/pdf/eng/eSH.pdf), generated with kicad-footprint-generator
+connector JST SH top entry
+0
+12
+11
+Connector_JST
+JST_SH_SM11B-SRSS-TB_1x11-1MP_P1.00mm_Horizontal
+JST SH series connector, SM11B-SRSS-TB (http://www.jst-mfg.com/product/pdf/eng/eSH.pdf), generated with kicad-footprint-generator
+connector JST SH top entry
+0
+13
+12
+Connector_JST
+JST_SH_SM12B-SRSS-TB_1x12-1MP_P1.00mm_Horizontal
+JST SH series connector, SM12B-SRSS-TB (http://www.jst-mfg.com/product/pdf/eng/eSH.pdf), generated with kicad-footprint-generator
+connector JST SH top entry
+0
+14
+13
+Connector_JST
+JST_SH_SM13B-SRSS-TB_1x13-1MP_P1.00mm_Horizontal
+JST SH series connector, SM13B-SRSS-TB (http://www.jst-mfg.com/product/pdf/eng/eSH.pdf), generated with kicad-footprint-generator
+connector JST SH top entry
+0
+15
+14
+Connector_JST
+JST_SH_SM14B-SRSS-TB_1x14-1MP_P1.00mm_Horizontal
+JST SH series connector, SM14B-SRSS-TB (http://www.jst-mfg.com/product/pdf/eng/eSH.pdf), generated with kicad-footprint-generator
+connector JST SH top entry
+0
+16
+15
+Connector_JST
+JST_SH_SM15B-SRSS-TB_1x15-1MP_P1.00mm_Horizontal
+JST SH series connector, SM15B-SRSS-TB (http://www.jst-mfg.com/product/pdf/eng/eSH.pdf), generated with kicad-footprint-generator
+connector JST SH top entry
+0
+17
+16
+Connector_JST
+JST_SH_SM20B-SRSS-TB_1x20-1MP_P1.00mm_Horizontal
+JST SH series connector, SM20B-SRSS-TB (http://www.jst-mfg.com/product/pdf/eng/eSH.pdf), generated with kicad-footprint-generator
+connector JST SH top entry
+0
+22
+21
+Connector_JST
+JST_SUR_BM02B-SURS-TF_1x02-1MP_P0.80mm_Vertical
+JST SUR series connector, BM02B-SURS-TF (http://www.jst-mfg.com/product/pdf/eng/eSUR.pdf), generated with kicad-footprint-generator
+connector JST SUR side entry
+0
+4
+3
+Connector_JST
+JST_SUR_BM03B-SURS-TF_1x03-1MP_P0.80mm_Vertical
+JST SUR series connector, BM03B-SURS-TF (http://www.jst-mfg.com/product/pdf/eng/eSUR.pdf), generated with kicad-footprint-generator
+connector JST SUR side entry
+0
+5
+4
+Connector_JST
+JST_SUR_BM04B-SURS-TF_1x04-1MP_P0.80mm_Vertical
+JST SUR series connector, BM04B-SURS-TF (http://www.jst-mfg.com/product/pdf/eng/eSUR.pdf), generated with kicad-footprint-generator
+connector JST SUR side entry
+0
+6
+5
+Connector_JST
+JST_SUR_BM05B-SURS-TF_1x05-1MP_P0.80mm_Vertical
+JST SUR series connector, BM05B-SURS-TF (http://www.jst-mfg.com/product/pdf/eng/eSUR.pdf), generated with kicad-footprint-generator
+connector JST SUR side entry
+0
+7
+6
+Connector_JST
+JST_SUR_BM06B-SURS-TF_1x06-1MP_P0.80mm_Vertical
+JST SUR series connector, BM06B-SURS-TF (http://www.jst-mfg.com/product/pdf/eng/eSUR.pdf), generated with kicad-footprint-generator
+connector JST SUR side entry
+0
+8
+7
+Connector_JST
+JST_SUR_BM08B-SURS-TF_1x08-1MP_P0.80mm_Vertical
+JST SUR series connector, BM08B-SURS-TF (http://www.jst-mfg.com/product/pdf/eng/eSUR.pdf), generated with kicad-footprint-generator
+connector JST SUR side entry
+0
+10
+9
+Connector_JST
+JST_SUR_BM10B-SURS-TF_1x10-1MP_P0.80mm_Vertical
+JST SUR series connector, BM10B-SURS-TF (http://www.jst-mfg.com/product/pdf/eng/eSUR.pdf), generated with kicad-footprint-generator
+connector JST SUR side entry
+0
+12
+11
+Connector_JST
+JST_SUR_BM12B-SURS-TF_1x12-1MP_P0.80mm_Vertical
+JST SUR series connector, BM12B-SURS-TF (http://www.jst-mfg.com/product/pdf/eng/eSUR.pdf), generated with kicad-footprint-generator
+connector JST SUR side entry
+0
+14
+13
+Connector_JST
+JST_SUR_BM14B-SURS-TF_1x14-1MP_P0.80mm_Vertical
+JST SUR series connector, BM14B-SURS-TF (http://www.jst-mfg.com/product/pdf/eng/eSUR.pdf), generated with kicad-footprint-generator
+connector JST SUR side entry
+0
+16
+15
+Connector_JST
+JST_SUR_BM15B-SURS-TF_1x15-1MP_P0.80mm_Vertical
+JST SUR series connector, BM15B-SURS-TF (http://www.jst-mfg.com/product/pdf/eng/eSUR.pdf), generated with kicad-footprint-generator
+connector JST SUR side entry
+0
+17
+16
+Connector_JST
+JST_SUR_BM16B-SURS-TF_1x16-1MP_P0.80mm_Vertical
+JST SUR series connector, BM16B-SURS-TF (http://www.jst-mfg.com/product/pdf/eng/eSUR.pdf), generated with kicad-footprint-generator
+connector JST SUR side entry
+0
+18
+17
+Connector_JST
+JST_SUR_BM17B-SURS-TF_1x17-1MP_P0.80mm_Vertical
+JST SUR series connector, BM17B-SURS-TF (http://www.jst-mfg.com/product/pdf/eng/eSUR.pdf), generated with kicad-footprint-generator
+connector JST SUR side entry
+0
+19
+18
+Connector_JST
+JST_SUR_BM20B-SURS-TF_1x20-1MP_P0.80mm_Vertical
+JST SUR series connector, BM20B-SURS-TF (http://www.jst-mfg.com/product/pdf/eng/eSUR.pdf), generated with kicad-footprint-generator
+connector JST SUR side entry
+0
+22
+21
+Connector_JST
+JST_SUR_SM02B-SURS-TF_1x02-1MP_P0.80mm_Horizontal
+JST SUR series connector, SM02B-SURS-TF (http://www.jst-mfg.com/product/pdf/eng/eSUR.pdf), generated with kicad-footprint-generator
+connector JST SUR top entry
+0
+4
+3
+Connector_JST
+JST_SUR_SM03B-SURS-TF_1x03-1MP_P0.80mm_Horizontal
+JST SUR series connector, SM03B-SURS-TF (http://www.jst-mfg.com/product/pdf/eng/eSUR.pdf), generated with kicad-footprint-generator
+connector JST SUR top entry
+0
+5
+4
+Connector_JST
+JST_SUR_SM04B-SURS-TF_1x04-1MP_P0.80mm_Horizontal
+JST SUR series connector, SM04B-SURS-TF (http://www.jst-mfg.com/product/pdf/eng/eSUR.pdf), generated with kicad-footprint-generator
+connector JST SUR top entry
+0
+6
+5
+Connector_JST
+JST_SUR_SM05B-SURS-TF_1x05-1MP_P0.80mm_Horizontal
+JST SUR series connector, SM05B-SURS-TF (http://www.jst-mfg.com/product/pdf/eng/eSUR.pdf), generated with kicad-footprint-generator
+connector JST SUR top entry
+0
+7
+6
+Connector_JST
+JST_SUR_SM06B-SURS-TF_1x06-1MP_P0.80mm_Horizontal
+JST SUR series connector, SM06B-SURS-TF (http://www.jst-mfg.com/product/pdf/eng/eSUR.pdf), generated with kicad-footprint-generator
+connector JST SUR top entry
+0
+8
+7
+Connector_JST
+JST_SUR_SM08B-SURS-TF_1x08-1MP_P0.80mm_Horizontal
+JST SUR series connector, SM08B-SURS-TF (http://www.jst-mfg.com/product/pdf/eng/eSUR.pdf), generated with kicad-footprint-generator
+connector JST SUR top entry
+0
+10
+9
+Connector_JST
+JST_SUR_SM10B-SURS-TF_1x10-1MP_P0.80mm_Horizontal
+JST SUR series connector, SM10B-SURS-TF (http://www.jst-mfg.com/product/pdf/eng/eSUR.pdf), generated with kicad-footprint-generator
+connector JST SUR top entry
+0
+12
+11
+Connector_JST
+JST_SUR_SM12B-SURS-TF_1x12-1MP_P0.80mm_Horizontal
+JST SUR series connector, SM12B-SURS-TF (http://www.jst-mfg.com/product/pdf/eng/eSUR.pdf), generated with kicad-footprint-generator
+connector JST SUR top entry
+0
+14
+13
+Connector_JST
+JST_SUR_SM14B-SURS-TF_1x14-1MP_P0.80mm_Horizontal
+JST SUR series connector, SM14B-SURS-TF (http://www.jst-mfg.com/product/pdf/eng/eSUR.pdf), generated with kicad-footprint-generator
+connector JST SUR top entry
+0
+16
+15
+Connector_JST
+JST_SUR_SM15B-SURS-TF_1x15-1MP_P0.80mm_Horizontal
+JST SUR series connector, SM15B-SURS-TF (http://www.jst-mfg.com/product/pdf/eng/eSUR.pdf), generated with kicad-footprint-generator
+connector JST SUR top entry
+0
+17
+16
+Connector_JST
+JST_SUR_SM16B-SURS-TF_1x16-1MP_P0.80mm_Horizontal
+JST SUR series connector, SM16B-SURS-TF (http://www.jst-mfg.com/product/pdf/eng/eSUR.pdf), generated with kicad-footprint-generator
+connector JST SUR top entry
+0
+18
+17
+Connector_JST
+JST_SUR_SM17B-SURS-TF_1x17-1MP_P0.80mm_Horizontal
+JST SUR series connector, SM17B-SURS-TF (http://www.jst-mfg.com/product/pdf/eng/eSUR.pdf), generated with kicad-footprint-generator
+connector JST SUR top entry
+0
+19
+18
+Connector_JST
+JST_SUR_SM20B-SURS-TF_1x20-1MP_P0.80mm_Horizontal
+JST SUR series connector, SM20B-SURS-TF (http://www.jst-mfg.com/product/pdf/eng/eSUR.pdf), generated with kicad-footprint-generator
+connector JST SUR top entry
+0
+22
+21
+Connector_JST
+JST_SUR_SM22B-SURS-TF_1x22-1MP_P0.80mm_Horizontal
+JST SUR series connector, SM22B-SURS-TF (http://www.jst-mfg.com/product/pdf/eng/eSUR.pdf), generated with kicad-footprint-generator
+connector JST SUR top entry
+0
+24
+23
+Connector_JST
+JST_VH_B2P-VH-B_1x02_P3.96mm_Vertical
+JST VH PBT series connector, B2P-VH-B (http://www.jst-mfg.com/product/pdf/eng/eVH.pdf), generated with kicad-footprint-generator
+connector JST VH vertical
+0
+2
+2
+Connector_JST
+JST_VH_B2P-VH-FB-B_1x02_P3.96mm_Vertical
+JST VH series connector, B2P-VH-FB-B, shrouded (http://www.jst-mfg.com/product/pdf/eng/eVH.pdf),  generated with kicad-footprint-generator
+connector JST VH side entry
+0
+2
+2
+Connector_JST
+JST_VH_B2P-VH_1x02_P3.96mm_Vertical
+JST VH series connector, B2P-VH (http://www.jst-mfg.com/product/pdf/eng/eVH.pdf), generated with kicad-footprint-generator
+connector JST VH vertical
+0
+2
+2
+Connector_JST
+JST_VH_B2P3-VH_1x02_P7.92mm_Vertical
+JST VH series connector, B2P3-VH (http://www.jst-mfg.com/product/pdf/eng/eVH.pdf), generated with kicad-footprint-generator
+connector JST VH vertical
+0
+2
+2
+Connector_JST
+JST_VH_B2PS-VH_1x02_P3.96mm_Horizontal
+JST VH series connector, B2PS-VH (http://www.jst-mfg.com/product/pdf/eng/eVH.pdf), generated with kicad-footprint-generator
+connector JST VH top entry
+0
+2
+2
+Connector_JST
+JST_VH_B3P-VH-B_1x03_P3.96mm_Vertical
+JST VH PBT series connector, B3P-VH-B (http://www.jst-mfg.com/product/pdf/eng/eVH.pdf), generated with kicad-footprint-generator
+connector JST VH vertical
+0
+3
+3
+Connector_JST
+JST_VH_B3P-VH-FB-B_1x03_P3.96mm_Vertical
+JST VH series connector, B3P-VH-FB-B, shrouded (http://www.jst-mfg.com/product/pdf/eng/eVH.pdf),  generated with kicad-footprint-generator
+connector JST VH side entry
+0
+3
+3
+Connector_JST
+JST_VH_B3P-VH_1x03_P3.96mm_Vertical
+JST VH series connector, B3P-VH (http://www.jst-mfg.com/product/pdf/eng/eVH.pdf), generated with kicad-footprint-generator
+connector JST VH vertical
+0
+3
+3
+Connector_JST
+JST_VH_B3PS-VH_1x03_P3.96mm_Horizontal
+JST VH series connector, B3PS-VH (http://www.jst-mfg.com/product/pdf/eng/eVH.pdf), generated with kicad-footprint-generator
+connector JST VH top entry
+0
+3
+3
+Connector_JST
+JST_VH_B4P-VH-B_1x04_P3.96mm_Vertical
+JST VH PBT series connector, B4P-VH-B (http://www.jst-mfg.com/product/pdf/eng/eVH.pdf), generated with kicad-footprint-generator
+connector JST VH vertical
+0
+4
+4
+Connector_JST
+JST_VH_B4P-VH-FB-B_1x04_P3.96mm_Vertical
+JST VH series connector, B4P-VH-FB-B, shrouded (http://www.jst-mfg.com/product/pdf/eng/eVH.pdf),  generated with kicad-footprint-generator
+connector JST VH side entry
+0
+4
+4
+Connector_JST
+JST_VH_B4P-VH_1x04_P3.96mm_Vertical
+JST VH series connector, B4P-VH (http://www.jst-mfg.com/product/pdf/eng/eVH.pdf), generated with kicad-footprint-generator
+connector JST VH vertical
+0
+4
+4
+Connector_JST
+JST_VH_B4PS-VH_1x04_P3.96mm_Horizontal
+JST VH series connector, B4PS-VH (http://www.jst-mfg.com/product/pdf/eng/eVH.pdf), generated with kicad-footprint-generator
+connector JST VH top entry
+0
+4
+4
+Connector_JST
+JST_VH_B5P-VH-B_1x05_P3.96mm_Vertical
+JST VH PBT series connector, B5P-VH-B (http://www.jst-mfg.com/product/pdf/eng/eVH.pdf), generated with kicad-footprint-generator
+connector JST VH vertical
 0
 5
 5
-Package_SO
-VSO-40_7.6x15.4mm_P0.762mm
-VSO40: plastic very small outline package; 40 leads (see NXP SSOP-TSSOP-VSO-REFLOW.pdf and sot158-1_po.pdf)
-SSOP 0.762
+Connector_JST
+JST_VH_B5P-VH-FB-B_1x05_P3.96mm_Vertical
+JST VH series connector, B5P-VH-FB-B, shrouded (http://www.jst-mfg.com/product/pdf/eng/eVH.pdf),  generated with kicad-footprint-generator
+connector JST VH side entry
 0
-40
-40
-Package_SO
-VSO-56_11.1x21.5mm_P0.75mm
-VSO56: plastic very small outline package; 56 leads (see NXP SSOP-TSSOP-VSO-REFLOW.pdf and sot190-1_po.pdf)
-SSOP 0.75
+5
+5
+Connector_JST
+JST_VH_B5P-VH_1x05_P3.96mm_Vertical
+JST VH series connector, B5P-VH (http://www.jst-mfg.com/product/pdf/eng/eVH.pdf), generated with kicad-footprint-generator
+connector JST VH vertical
 0
-56
-56
-Package_SO
-VSSOP-8_2.3x2mm_P0.5mm
-VSSOP-8 2.3x2mm Pitch 0.5mm
-VSSOP-8 2.3x2mm Pitch 0.5mm
+5
+5
+Connector_JST
+JST_VH_B5PS-VH_1x05_P3.96mm_Horizontal
+JST VH series connector, B5PS-VH (http://www.jst-mfg.com/product/pdf/eng/eVH.pdf), generated with kicad-footprint-generator
+connector JST VH top entry
 0
-8
-8
-Package_SO
-VSSOP-8_2.4x2.1mm_P0.5mm
-http://www.ti.com/lit/ml/mpds050d/mpds050d.pdf
-VSSOP DCU R-PDSO-G8 Pitch0.5mm
-0
-8
-8
-Package_SO
-VSSOP-8_3.0x3.0mm_P0.65mm
-VSSOP-8 3.0 x 3.0, http://www.ti.com/lit/ds/symlink/lm75b.pdf
-VSSOP-8 3.0 x 3.0
-0
-8
-8
-Package_SO
-VSSOP-10_3x3mm_P0.5mm
-VSSOP, 10 Pin (http://www.ti.com/lit/ds/symlink/ads1115.pdf), generated with kicad-footprint-generator ipc_gullwing_generator.py
-VSSOP SO
-0
-10
-10
-Package_SO
-Vishay_PowerPAK_1212-8_Dual
-PowerPAK 1212-8 Dual (https://www.vishay.com/docs/71656/ppak12128.pdf, https://www.vishay.com/docs/72598/72598.pdf)
-Vishay_PowerPAK_1212-8_Dual
+5
+5
+Connector_JST
+JST_VH_B6P-VH-B_1x06_P3.96mm_Vertical
+JST VH PBT series connector, B6P-VH-B (http://www.jst-mfg.com/product/pdf/eng/eVH.pdf), generated with kicad-footprint-generator
+connector JST VH vertical
 0
 6
 6
-Package_SO
-Vishay_PowerPAK_1212-8_Single
-PowerPAK 1212-8 Single (https://www.vishay.com/docs/71656/ppak12128.pdf, https://www.vishay.com/docs/72597/72597.pdf)
-Vishay PowerPAK 1212-8 Single
+Connector_JST
+JST_VH_B6P-VH-FB-B_1x06_P3.96mm_Vertical
+JST VH series connector, B6P-VH-FB-B, shrouded (http://www.jst-mfg.com/product/pdf/eng/eVH.pdf),  generated with kicad-footprint-generator
+connector JST VH side entry
 0
-5
-5
-Package_SO
-Zetex_SM8
-Zetex,  SMD, 8 pin package (http://datasheet.octopart.com/ZDT6758TA-Zetex-datasheet-68057.pdf)
-Zetex SM8
+6
+6
+Connector_JST
+JST_VH_B6P-VH_1x06_P3.96mm_Vertical
+JST VH series connector, B6P-VH (http://www.jst-mfg.com/product/pdf/eng/eVH.pdf), generated with kicad-footprint-generator
+connector JST VH vertical
+0
+6
+6
+Connector_JST
+JST_VH_B6PS-VH_1x06_P3.96mm_Horizontal
+JST VH series connector, B6PS-VH (http://www.jst-mfg.com/product/pdf/eng/eVH.pdf), generated with kicad-footprint-generator
+connector JST VH top entry
+0
+6
+6
+Connector_JST
+JST_VH_B7P-VH-B_1x07_P3.96mm_Vertical
+JST VH PBT series connector, B7P-VH-B (http://www.jst-mfg.com/product/pdf/eng/eVH.pdf), generated with kicad-footprint-generator
+connector JST VH vertical
+0
+7
+7
+Connector_JST
+JST_VH_B7P-VH-FB-B_1x07_P3.96mm_Vertical
+JST VH series connector, B7P-VH-FB-B, shrouded (http://www.jst-mfg.com/product/pdf/eng/eVH.pdf),  generated with kicad-footprint-generator
+connector JST VH side entry
+0
+7
+7
+Connector_JST
+JST_VH_B7P-VH_1x07_P3.96mm_Vertical
+JST VH series connector, B7P-VH (http://www.jst-mfg.com/product/pdf/eng/eVH.pdf), generated with kicad-footprint-generator
+connector JST VH vertical
+0
+7
+7
+Connector_JST
+JST_VH_B7PS-VH_1x07_P3.96mm_Horizontal
+JST VH series connector, B7PS-VH (http://www.jst-mfg.com/product/pdf/eng/eVH.pdf), generated with kicad-footprint-generator
+connector JST VH top entry
+0
+7
+7
+Connector_JST
+JST_VH_B8P-VH-B_1x08_P3.96mm_Vertical
+JST VH PBT series connector, B8P-VH-B (http://www.jst-mfg.com/product/pdf/eng/eVH.pdf), generated with kicad-footprint-generator
+connector JST VH vertical
 0
 8
 8
+Connector_JST
+JST_VH_B8P-VH-FB-B_1x08_P3.96mm_Vertical
+JST VH series connector, B8P-VH-FB-B, shrouded (http://www.jst-mfg.com/product/pdf/eng/eVH.pdf),  generated with kicad-footprint-generator
+connector JST VH side entry
+0
+8
+8
+Connector_JST
+JST_VH_B8P-VH_1x08_P3.96mm_Vertical
+JST VH series connector, B8P-VH (http://www.jst-mfg.com/product/pdf/eng/eVH.pdf), generated with kicad-footprint-generator
+connector JST VH vertical
+0
+8
+8
+Connector_JST
+JST_VH_B8PS-VH_1x08_P3.96mm_Horizontal
+JST VH series connector, B8PS-VH (http://www.jst-mfg.com/product/pdf/eng/eVH.pdf), generated with kicad-footprint-generator
+connector JST VH top entry
+0
+8
+8
+Connector_JST
+JST_VH_B9P-VH-B_1x09_P3.96mm_Vertical
+JST VH PBT series connector, B9P-VH-B (http://www.jst-mfg.com/product/pdf/eng/eVH.pdf), generated with kicad-footprint-generator
+connector JST VH vertical
+0
+9
+9
+Connector_JST
+JST_VH_B9P-VH-FB-B_1x09_P3.96mm_Vertical
+JST VH series connector, B9P-VH-FB-B, shrouded (http://www.jst-mfg.com/product/pdf/eng/eVH.pdf),  generated with kicad-footprint-generator
+connector JST VH side entry
+0
+9
+9
+Connector_JST
+JST_VH_B9P-VH_1x09_P3.96mm_Vertical
+JST VH series connector, B9P-VH (http://www.jst-mfg.com/product/pdf/eng/eVH.pdf), generated with kicad-footprint-generator
+connector JST VH vertical
+0
+9
+9
+Connector_JST
+JST_VH_B9PS-VH_1x09_P3.96mm_Horizontal
+JST VH series connector, B9PS-VH (http://www.jst-mfg.com/product/pdf/eng/eVH.pdf), generated with kicad-footprint-generator
+connector JST VH top entry
+0
+9
+9
+Connector_JST
+JST_VH_B10P-VH-B_1x10_P3.96mm_Vertical
+JST VH PBT series connector, B10P-VH-B (http://www.jst-mfg.com/product/pdf/eng/eVH.pdf), generated with kicad-footprint-generator
+connector JST VH vertical
+0
+10
+10
+Connector_JST
+JST_VH_B10P-VH-FB-B_1x10_P3.96mm_Vertical
+JST VH series connector, B10P-VH-FB-B, shrouded (http://www.jst-mfg.com/product/pdf/eng/eVH.pdf),  generated with kicad-footprint-generator
+connector JST VH side entry
+0
+10
+10
+Connector_JST
+JST_VH_B10P-VH_1x10_P3.96mm_Vertical
+JST VH series connector, B10P-VH (http://www.jst-mfg.com/product/pdf/eng/eVH.pdf), generated with kicad-footprint-generator
+connector JST VH vertical
+0
+10
+10
+Connector_JST
+JST_VH_B10PS-VH_1x10_P3.96mm_Horizontal
+JST VH series connector, B10PS-VH (http://www.jst-mfg.com/product/pdf/eng/eVH.pdf), generated with kicad-footprint-generator
+connector JST VH top entry
+0
+10
+10
+Connector_JST
+JST_VH_B11P-VH-B_1x11_P3.96mm_Vertical
+JST VH PBT series connector, B11P-VH-B (http://www.jst-mfg.com/product/pdf/eng/eVH.pdf), generated with kicad-footprint-generator
+connector JST VH vertical
+0
+11
+11
+Connector_JST
+JST_VH_S2P-VH_1x02_P3.96mm_Horizontal
+JST VH series connector, S2P-VH (http://www.jst-mfg.com/product/pdf/eng/eVH.pdf), generated with kicad-footprint-generator
+connector JST VH top entry
+0
+2
+2
+Connector_JST
+JST_VH_S3P-VH_1x03_P3.96mm_Horizontal
+JST VH series connector, S3P-VH (http://www.jst-mfg.com/product/pdf/eng/eVH.pdf), generated with kicad-footprint-generator
+connector JST VH top entry
+0
+3
+3
+Connector_JST
+JST_VH_S4P-VH_1x04_P3.96mm_Horizontal
+JST VH series connector, S4P-VH (http://www.jst-mfg.com/product/pdf/eng/eVH.pdf), generated with kicad-footprint-generator
+connector JST VH top entry
+0
+4
+4
+Connector_JST
+JST_VH_S5P-VH_1x05_P3.96mm_Horizontal
+JST VH series connector, S5P-VH (http://www.jst-mfg.com/product/pdf/eng/eVH.pdf), generated with kicad-footprint-generator
+connector JST VH top entry
+0
+5
+5
+Connector_JST
+JST_VH_S6P-VH_1x06_P3.96mm_Horizontal
+JST VH series connector, S6P-VH (http://www.jst-mfg.com/product/pdf/eng/eVH.pdf), generated with kicad-footprint-generator
+connector JST VH top entry
+0
+6
+6
+Connector_JST
+JST_VH_S7P-VH_1x07_P3.96mm_Horizontal
+JST VH series connector, S7P-VH (http://www.jst-mfg.com/product/pdf/eng/eVH.pdf), generated with kicad-footprint-generator
+connector JST VH top entry
+0
+7
+7
+Connector_JST
+JST_XAG_SM05B-XAGKS-BN-TB_1x05-1MP_P2.50mm_Horizontal
+JST XAG series connector, SM05B-XAGKS-BN-TB (http://www.jst-mfg.com/product/pdf/eng/eXAG.pdf), generated with kicad-footprint-generator
+connector JST XAG top entry
+0
+7
+6
+Connector_JST
+JST_XA_B02B-XASK-1-A_1x02_P2.50mm_Vertical
+JST XA series connector, B02B-XASK-1-A (http://www.jst-mfg.com/product/pdf/eng/eXA1.pdf), generated with kicad-footprint-generator
+connector JST XA vertical boss
+0
+2
+2
+Connector_JST
+JST_XA_B02B-XASK-1_1x02_P2.50mm_Vertical
+JST XA series connector, B02B-XASK-1 (http://www.jst-mfg.com/product/pdf/eng/eXA1.pdf), generated with kicad-footprint-generator
+connector JST XA vertical
+0
+2
+2
+Connector_JST
+JST_XA_B03B-XASK-1-A_1x03_P2.50mm_Vertical
+JST XA series connector, B03B-XASK-1-A (http://www.jst-mfg.com/product/pdf/eng/eXA1.pdf), generated with kicad-footprint-generator
+connector JST XA vertical boss
+0
+3
+3
+Connector_JST
+JST_XA_B03B-XASK-1_1x03_P2.50mm_Vertical
+JST XA series connector, B03B-XASK-1 (http://www.jst-mfg.com/product/pdf/eng/eXA1.pdf), generated with kicad-footprint-generator
+connector JST XA vertical
+0
+3
+3
+Connector_JST
+JST_XA_B04B-XASK-1-A_1x04_P2.50mm_Vertical
+JST XA series connector, B04B-XASK-1-A (http://www.jst-mfg.com/product/pdf/eng/eXA1.pdf), generated with kicad-footprint-generator
+connector JST XA vertical boss
+0
+4
+4
+Connector_JST
+JST_XA_B04B-XASK-1_1x04_P2.50mm_Vertical
+JST XA series connector, B04B-XASK-1 (http://www.jst-mfg.com/product/pdf/eng/eXA1.pdf), generated with kicad-footprint-generator
+connector JST XA vertical
+0
+4
+4
+Connector_JST
+JST_XA_B05B-XASK-1-A_1x05_P2.50mm_Vertical
+JST XA series connector, B05B-XASK-1-A (http://www.jst-mfg.com/product/pdf/eng/eXA1.pdf), generated with kicad-footprint-generator
+connector JST XA vertical boss
+0
+5
+5
+Connector_JST
+JST_XA_B05B-XASK-1_1x05_P2.50mm_Vertical
+JST XA series connector, B05B-XASK-1 (http://www.jst-mfg.com/product/pdf/eng/eXA1.pdf), generated with kicad-footprint-generator
+connector JST XA vertical
+0
+5
+5
+Connector_JST
+JST_XA_B06B-XASK-1-A_1x06_P2.50mm_Vertical
+JST XA series connector, B06B-XASK-1-A (http://www.jst-mfg.com/product/pdf/eng/eXA1.pdf), generated with kicad-footprint-generator
+connector JST XA vertical boss
+0
+6
+6
+Connector_JST
+JST_XA_B06B-XASK-1_1x06_P2.50mm_Vertical
+JST XA series connector, B06B-XASK-1 (http://www.jst-mfg.com/product/pdf/eng/eXA1.pdf), generated with kicad-footprint-generator
+connector JST XA vertical
+0
+6
+6
+Connector_JST
+JST_XA_B07B-XASK-1-A_1x07_P2.50mm_Vertical
+JST XA series connector, B07B-XASK-1-A (http://www.jst-mfg.com/product/pdf/eng/eXA1.pdf), generated with kicad-footprint-generator
+connector JST XA vertical boss
+0
+7
+7
+Connector_JST
+JST_XA_B07B-XASK-1_1x07_P2.50mm_Vertical
+JST XA series connector, B07B-XASK-1 (http://www.jst-mfg.com/product/pdf/eng/eXA1.pdf), generated with kicad-footprint-generator
+connector JST XA vertical
+0
+7
+7
+Connector_JST
+JST_XA_B08B-XASK-1-A_1x08_P2.50mm_Vertical
+JST XA series connector, B08B-XASK-1-A (http://www.jst-mfg.com/product/pdf/eng/eXA1.pdf), generated with kicad-footprint-generator
+connector JST XA vertical boss
+0
+8
+8
+Connector_JST
+JST_XA_B08B-XASK-1_1x08_P2.50mm_Vertical
+JST XA series connector, B08B-XASK-1 (http://www.jst-mfg.com/product/pdf/eng/eXA1.pdf), generated with kicad-footprint-generator
+connector JST XA vertical
+0
+8
+8
+Connector_JST
+JST_XA_B09B-XASK-1-A_1x09_P2.50mm_Vertical
+JST XA series connector, B09B-XASK-1-A (http://www.jst-mfg.com/product/pdf/eng/eXA1.pdf), generated with kicad-footprint-generator
+connector JST XA vertical boss
+0
+9
+9
+Connector_JST
+JST_XA_B09B-XASK-1_1x09_P2.50mm_Vertical
+JST XA series connector, B09B-XASK-1 (http://www.jst-mfg.com/product/pdf/eng/eXA1.pdf), generated with kicad-footprint-generator
+connector JST XA vertical
+0
+9
+9
+Connector_JST
+JST_XA_B10B-XASK-1-A_1x10_P2.50mm_Vertical
+JST XA series connector, B10B-XASK-1-A (http://www.jst-mfg.com/product/pdf/eng/eXA1.pdf), generated with kicad-footprint-generator
+connector JST XA vertical boss
+0
+10
+10
+Connector_JST
+JST_XA_B10B-XASK-1_1x10_P2.50mm_Vertical
+JST XA series connector, B10B-XASK-1 (http://www.jst-mfg.com/product/pdf/eng/eXA1.pdf), generated with kicad-footprint-generator
+connector JST XA vertical
+0
+10
+10
+Connector_JST
+JST_XA_B11B-XASK-1-A_1x11_P2.50mm_Vertical
+JST XA series connector, B11B-XASK-1-A (http://www.jst-mfg.com/product/pdf/eng/eXA1.pdf), generated with kicad-footprint-generator
+connector JST XA vertical boss
+0
+11
+11
+Connector_JST
+JST_XA_B11B-XASK-1_1x11_P2.50mm_Vertical
+JST XA series connector, B11B-XASK-1 (http://www.jst-mfg.com/product/pdf/eng/eXA1.pdf), generated with kicad-footprint-generator
+connector JST XA vertical
+0
+11
+11
+Connector_JST
+JST_XA_B12B-XASK-1-A_1x12_P2.50mm_Vertical
+JST XA series connector, B12B-XASK-1-A (http://www.jst-mfg.com/product/pdf/eng/eXA1.pdf), generated with kicad-footprint-generator
+connector JST XA vertical boss
+0
+12
+12
+Connector_JST
+JST_XA_B12B-XASK-1_1x12_P2.50mm_Vertical
+JST XA series connector, B12B-XASK-1 (http://www.jst-mfg.com/product/pdf/eng/eXA1.pdf), generated with kicad-footprint-generator
+connector JST XA vertical
+0
+12
+12
+Connector_JST
+JST_XA_B13B-XASK-1-A_1x13_P2.50mm_Vertical
+JST XA series connector, B13B-XASK-1-A (http://www.jst-mfg.com/product/pdf/eng/eXA1.pdf), generated with kicad-footprint-generator
+connector JST XA vertical boss
+0
+13
+13
+Connector_JST
+JST_XA_B13B-XASK-1_1x13_P2.50mm_Vertical
+JST XA series connector, B13B-XASK-1 (http://www.jst-mfg.com/product/pdf/eng/eXA1.pdf), generated with kicad-footprint-generator
+connector JST XA vertical
+0
+13
+13
+Connector_JST
+JST_XA_B14B-XASK-1-A_1x14_P2.50mm_Vertical
+JST XA series connector, B14B-XASK-1-A (http://www.jst-mfg.com/product/pdf/eng/eXA1.pdf), generated with kicad-footprint-generator
+connector JST XA vertical boss
+0
+14
+14
+Connector_JST
+JST_XA_B14B-XASK-1_1x14_P2.50mm_Vertical
+JST XA series connector, B14B-XASK-1 (http://www.jst-mfg.com/product/pdf/eng/eXA1.pdf), generated with kicad-footprint-generator
+connector JST XA vertical
+0
+14
+14
+Connector_JST
+JST_XA_B15B-XASK-1-A_1x15_P2.50mm_Vertical
+JST XA series connector, B15B-XASK-1-A (http://www.jst-mfg.com/product/pdf/eng/eXA1.pdf), generated with kicad-footprint-generator
+connector JST XA vertical boss
+0
+15
+15
+Connector_JST
+JST_XA_B15B-XASK-1_1x15_P2.50mm_Vertical
+JST XA series connector, B15B-XASK-1 (http://www.jst-mfg.com/product/pdf/eng/eXA1.pdf), generated with kicad-footprint-generator
+connector JST XA vertical
+0
+15
+15
+Connector_JST
+JST_XA_B18B-XASK-1_1x18_P2.50mm_Vertical
+JST XA series connector, B18B-XASK-1 (http://www.jst-mfg.com/product/pdf/eng/eXA1.pdf), generated with kicad-footprint-generator
+connector JST XA vertical
+0
+18
+18
+Connector_JST
+JST_XA_B20B-XASK-1-A_1x20_P2.50mm_Vertical
+JST XA series connector, B20B-XASK-1-A (http://www.jst-mfg.com/product/pdf/eng/eXA1.pdf), generated with kicad-footprint-generator
+connector JST XA vertical boss
+0
+20
+20
+Connector_JST
+JST_XA_B20B-XASK-1_1x20_P2.50mm_Vertical
+JST XA series connector, B20B-XASK-1 (http://www.jst-mfg.com/product/pdf/eng/eXA1.pdf), generated with kicad-footprint-generator
+connector JST XA vertical
+0
+20
+20
+Connector_JST
+JST_XA_S02B-XASK-1N-BN_1x02_P2.50mm_Horizontal
+JST XA series connector, S02B-XASK-1N-BN (http://www.jst-mfg.com/product/pdf/eng/eXA1.pdf), generated with kicad-footprint-generator
+connector JST XA horizontal
+0
+2
+2
+Connector_JST
+JST_XA_S02B-XASK-1_1x02_P2.50mm_Horizontal
+JST XA series connector, S02B-XASK-1 (http://www.jst-mfg.com/product/pdf/eng/eXA1.pdf), generated with kicad-footprint-generator
+connector JST XA horizontal hook
+0
+2
+2
+Connector_JST
+JST_XA_S03B-XASK-1N-BN_1x03_P2.50mm_Horizontal
+JST XA series connector, S03B-XASK-1N-BN (http://www.jst-mfg.com/product/pdf/eng/eXA1.pdf), generated with kicad-footprint-generator
+connector JST XA horizontal
+0
+3
+3
+Connector_JST
+JST_XA_S03B-XASK-1_1x03_P2.50mm_Horizontal
+JST XA series connector, S03B-XASK-1 (http://www.jst-mfg.com/product/pdf/eng/eXA1.pdf), generated with kicad-footprint-generator
+connector JST XA horizontal hook
+0
+3
+3
+Connector_JST
+JST_XA_S04B-XASK-1N-BN_1x04_P2.50mm_Horizontal
+JST XA series connector, S04B-XASK-1N-BN (http://www.jst-mfg.com/product/pdf/eng/eXA1.pdf), generated with kicad-footprint-generator
+connector JST XA horizontal
+0
+4
+4
+Connector_JST
+JST_XA_S04B-XASK-1_1x04_P2.50mm_Horizontal
+JST XA series connector, S04B-XASK-1 (http://www.jst-mfg.com/product/pdf/eng/eXA1.pdf), generated with kicad-footprint-generator
+connector JST XA horizontal hook
+0
+4
+4
+Connector_JST
+JST_XA_S05B-XASK-1N-BN_1x05_P2.50mm_Horizontal
+JST XA series connector, S05B-XASK-1N-BN (http://www.jst-mfg.com/product/pdf/eng/eXA1.pdf), generated with kicad-footprint-generator
+connector JST XA horizontal
+0
+5
+5
+Connector_JST
+JST_XA_S05B-XASK-1_1x05_P2.50mm_Horizontal
+JST XA series connector, S05B-XASK-1 (http://www.jst-mfg.com/product/pdf/eng/eXA1.pdf), generated with kicad-footprint-generator
+connector JST XA horizontal hook
+0
+5
+5
+Connector_JST
+JST_XA_S06B-XASK-1N-BN_1x06_P2.50mm_Horizontal
+JST XA series connector, S06B-XASK-1N-BN (http://www.jst-mfg.com/product/pdf/eng/eXA1.pdf), generated with kicad-footprint-generator
+connector JST XA horizontal
+0
+6
+6
+Connector_JST
+JST_XA_S06B-XASK-1_1x06_P2.50mm_Horizontal
+JST XA series connector, S06B-XASK-1 (http://www.jst-mfg.com/product/pdf/eng/eXA1.pdf), generated with kicad-footprint-generator
+connector JST XA horizontal hook
+0
+6
+6
+Connector_JST
+JST_XA_S07B-XASK-1N-BN_1x07_P2.50mm_Horizontal
+JST XA series connector, S07B-XASK-1N-BN (http://www.jst-mfg.com/product/pdf/eng/eXA1.pdf), generated with kicad-footprint-generator
+connector JST XA horizontal
+0
+7
+7
+Connector_JST
+JST_XA_S07B-XASK-1_1x07_P2.50mm_Horizontal
+JST XA series connector, S07B-XASK-1 (http://www.jst-mfg.com/product/pdf/eng/eXA1.pdf), generated with kicad-footprint-generator
+connector JST XA horizontal hook
+0
+7
+7
+Connector_JST
+JST_XA_S08B-XASK-1N-BN_1x08_P2.50mm_Horizontal
+JST XA series connector, S08B-XASK-1N-BN (http://www.jst-mfg.com/product/pdf/eng/eXA1.pdf), generated with kicad-footprint-generator
+connector JST XA horizontal
+0
+8
+8
+Connector_JST
+JST_XA_S08B-XASK-1_1x08_P2.50mm_Horizontal
+JST XA series connector, S08B-XASK-1 (http://www.jst-mfg.com/product/pdf/eng/eXA1.pdf), generated with kicad-footprint-generator
+connector JST XA horizontal hook
+0
+8
+8
+Connector_JST
+JST_XA_S09B-XASK-1N-BN_1x09_P2.50mm_Horizontal
+JST XA series connector, S09B-XASK-1N-BN (http://www.jst-mfg.com/product/pdf/eng/eXA1.pdf), generated with kicad-footprint-generator
+connector JST XA horizontal
+0
+9
+9
+Connector_JST
+JST_XA_S09B-XASK-1_1x09_P2.50mm_Horizontal
+JST XA series connector, S09B-XASK-1 (http://www.jst-mfg.com/product/pdf/eng/eXA1.pdf), generated with kicad-footprint-generator
+connector JST XA horizontal hook
+0
+9
+9
+Connector_JST
+JST_XA_S10B-XASK-1N-BN_1x10_P2.50mm_Horizontal
+JST XA series connector, S10B-XASK-1N-BN (http://www.jst-mfg.com/product/pdf/eng/eXA1.pdf), generated with kicad-footprint-generator
+connector JST XA horizontal
+0
+10
+10
+Connector_JST
+JST_XA_S10B-XASK-1_1x10_P2.50mm_Horizontal
+JST XA series connector, S10B-XASK-1 (http://www.jst-mfg.com/product/pdf/eng/eXA1.pdf), generated with kicad-footprint-generator
+connector JST XA horizontal hook
+0
+10
+10
+Connector_JST
+JST_XA_S11B-XASK-1N-BN_1x11_P2.50mm_Horizontal
+JST XA series connector, S11B-XASK-1N-BN (http://www.jst-mfg.com/product/pdf/eng/eXA1.pdf), generated with kicad-footprint-generator
+connector JST XA horizontal
+0
+11
+11
+Connector_JST
+JST_XA_S11B-XASK-1_1x11_P2.50mm_Horizontal
+JST XA series connector, S11B-XASK-1 (http://www.jst-mfg.com/product/pdf/eng/eXA1.pdf), generated with kicad-footprint-generator
+connector JST XA horizontal hook
+0
+11
+11
+Connector_JST
+JST_XA_S12B-XASK-1N-BN_1x12_P2.50mm_Horizontal
+JST XA series connector, S12B-XASK-1N-BN (http://www.jst-mfg.com/product/pdf/eng/eXA1.pdf), generated with kicad-footprint-generator
+connector JST XA horizontal
+0
+12
+12
+Connector_JST
+JST_XA_S12B-XASK-1_1x12_P2.50mm_Horizontal
+JST XA series connector, S12B-XASK-1 (http://www.jst-mfg.com/product/pdf/eng/eXA1.pdf), generated with kicad-footprint-generator
+connector JST XA horizontal hook
+0
+12
+12
+Connector_JST
+JST_XA_S13B-XASK-1N-BN_1x13_P2.50mm_Horizontal
+JST XA series connector, S13B-XASK-1N-BN (http://www.jst-mfg.com/product/pdf/eng/eXA1.pdf), generated with kicad-footprint-generator
+connector JST XA horizontal
+0
+13
+13
+Connector_JST
+JST_XA_S13B-XASK-1_1x13_P2.50mm_Horizontal
+JST XA series connector, S13B-XASK-1 (http://www.jst-mfg.com/product/pdf/eng/eXA1.pdf), generated with kicad-footprint-generator
+connector JST XA horizontal hook
+0
+13
+13
+Connector_JST
+JST_XA_S14B-XASK-1N-BN_1x14_P2.50mm_Horizontal
+JST XA series connector, S14B-XASK-1N-BN (http://www.jst-mfg.com/product/pdf/eng/eXA1.pdf), generated with kicad-footprint-generator
+connector JST XA horizontal
+0
+14
+14
+Connector_JST
+JST_XA_S14B-XASK-1_1x14_P2.50mm_Horizontal
+JST XA series connector, S14B-XASK-1 (http://www.jst-mfg.com/product/pdf/eng/eXA1.pdf), generated with kicad-footprint-generator
+connector JST XA horizontal hook
+0
+14
+14
+Connector_JST
+JST_XH_B1B-XH-AM_1x01_P2.50mm_Vertical
+JST XH series connector, B1B-XH-AM, with boss (http://www.jst-mfg.com/product/pdf/eng/eXH.pdf), generated with kicad-footprint-generator
+connector JST XH vertical boss
+0
+1
+1
+Connector_JST
+JST_XH_B2B-XH-AM_1x02_P2.50mm_Vertical
+JST XH series connector, B2B-XH-AM, with boss (http://www.jst-mfg.com/product/pdf/eng/eXH.pdf), generated with kicad-footprint-generator
+connector JST XH vertical boss
+0
+2
+2
+Connector_JST
+JST_XH_B2B-XH-A_1x02_P2.50mm_Vertical
+JST XH series connector, B2B-XH-A (http://www.jst-mfg.com/product/pdf/eng/eXH.pdf), generated with kicad-footprint-generator
+connector JST XH vertical
+0
+2
+2
+Connector_JST
+JST_XH_B3B-XH-AM_1x03_P2.50mm_Vertical
+JST XH series connector, B3B-XH-AM, with boss (http://www.jst-mfg.com/product/pdf/eng/eXH.pdf), generated with kicad-footprint-generator
+connector JST XH vertical boss
+0
+3
+3
+Connector_JST
+JST_XH_B3B-XH-A_1x03_P2.50mm_Vertical
+JST XH series connector, B3B-XH-A (http://www.jst-mfg.com/product/pdf/eng/eXH.pdf), generated with kicad-footprint-generator
+connector JST XH vertical
+0
+3
+3
+Connector_JST
+JST_XH_B4B-XH-AM_1x04_P2.50mm_Vertical
+JST XH series connector, B4B-XH-AM, with boss (http://www.jst-mfg.com/product/pdf/eng/eXH.pdf), generated with kicad-footprint-generator
+connector JST XH vertical boss
+0
+4
+4
+Connector_JST
+JST_XH_B4B-XH-A_1x04_P2.50mm_Vertical
+JST XH series connector, B4B-XH-A (http://www.jst-mfg.com/product/pdf/eng/eXH.pdf), generated with kicad-footprint-generator
+connector JST XH vertical
+0
+4
+4
+Connector_JST
+JST_XH_B5B-XH-AM_1x05_P2.50mm_Vertical
+JST XH series connector, B5B-XH-AM, with boss (http://www.jst-mfg.com/product/pdf/eng/eXH.pdf), generated with kicad-footprint-generator
+connector JST XH vertical boss
+0
+5
+5
+Connector_JST
+JST_XH_B5B-XH-A_1x05_P2.50mm_Vertical
+JST XH series connector, B5B-XH-A (http://www.jst-mfg.com/product/pdf/eng/eXH.pdf), generated with kicad-footprint-generator
+connector JST XH vertical
+0
+5
+5
+Connector_JST
+JST_XH_B6B-XH-AM_1x06_P2.50mm_Vertical
+JST XH series connector, B6B-XH-AM, with boss (http://www.jst-mfg.com/product/pdf/eng/eXH.pdf), generated with kicad-footprint-generator
+connector JST XH vertical boss
+0
+6
+6
+Connector_JST
+JST_XH_B6B-XH-A_1x06_P2.50mm_Vertical
+JST XH series connector, B6B-XH-A (http://www.jst-mfg.com/product/pdf/eng/eXH.pdf), generated with kicad-footprint-generator
+connector JST XH vertical
+0
+6
+6
+Connector_JST
+JST_XH_B7B-XH-AM_1x07_P2.50mm_Vertical
+JST XH series connector, B7B-XH-AM, with boss (http://www.jst-mfg.com/product/pdf/eng/eXH.pdf), generated with kicad-footprint-generator
+connector JST XH vertical boss
+0
+7
+7
+Connector_JST
+JST_XH_B7B-XH-A_1x07_P2.50mm_Vertical
+JST XH series connector, B7B-XH-A (http://www.jst-mfg.com/product/pdf/eng/eXH.pdf), generated with kicad-footprint-generator
+connector JST XH vertical
+0
+7
+7
+Connector_JST
+JST_XH_B8B-XH-AM_1x08_P2.50mm_Vertical
+JST XH series connector, B8B-XH-AM, with boss (http://www.jst-mfg.com/product/pdf/eng/eXH.pdf), generated with kicad-footprint-generator
+connector JST XH vertical boss
+0
+8
+8
+Connector_JST
+JST_XH_B8B-XH-A_1x08_P2.50mm_Vertical
+JST XH series connector, B8B-XH-A (http://www.jst-mfg.com/product/pdf/eng/eXH.pdf), generated with kicad-footprint-generator
+connector JST XH vertical
+0
+8
+8
+Connector_JST
+JST_XH_B9B-XH-AM_1x09_P2.50mm_Vertical
+JST XH series connector, B9B-XH-AM, with boss (http://www.jst-mfg.com/product/pdf/eng/eXH.pdf), generated with kicad-footprint-generator
+connector JST XH vertical boss
+0
+9
+9
+Connector_JST
+JST_XH_B9B-XH-A_1x09_P2.50mm_Vertical
+JST XH series connector, B9B-XH-A (http://www.jst-mfg.com/product/pdf/eng/eXH.pdf), generated with kicad-footprint-generator
+connector JST XH vertical
+0
+9
+9
+Connector_JST
+JST_XH_B10B-XH-AM_1x10_P2.50mm_Vertical
+JST XH series connector, B10B-XH-AM, with boss (http://www.jst-mfg.com/product/pdf/eng/eXH.pdf), generated with kicad-footprint-generator
+connector JST XH side entry boss
+0
+10
+10
+Connector_JST
+JST_XH_B10B-XH-A_1x10_P2.50mm_Vertical
+JST XH series connector, B10B-XH-A (http://www.jst-mfg.com/product/pdf/eng/eXH.pdf), generated with kicad-footprint-generator
+connector JST XH side entry
+0
+10
+10
+Connector_JST
+JST_XH_B11B-XH-A_1x11_P2.50mm_Vertical
+JST XH series connector, B11B-XH-A (http://www.jst-mfg.com/product/pdf/eng/eXH.pdf), generated with kicad-footprint-generator
+connector JST XH side entry
+0
+11
+11
+Connector_JST
+JST_XH_B12B-XH-AM_1x12_P2.50mm_Vertical
+JST XH series connector, B12B-XH-AM, with boss (http://www.jst-mfg.com/product/pdf/eng/eXH.pdf), generated with kicad-footprint-generator
+connector JST XH side entry boss
+0
+12
+12
+Connector_JST
+JST_XH_B12B-XH-A_1x12_P2.50mm_Vertical
+JST XH series connector, B12B-XH-A (http://www.jst-mfg.com/product/pdf/eng/eXH.pdf), generated with kicad-footprint-generator
+connector JST XH side entry
+0
+12
+12
+Connector_JST
+JST_XH_B13B-XH-A_1x13_P2.50mm_Vertical
+JST XH series connector, B13B-XH-A (http://www.jst-mfg.com/product/pdf/eng/eXH.pdf), generated with kicad-footprint-generator
+connector JST XH side entry
+0
+13
+13
+Connector_JST
+JST_XH_B14B-XH-A_1x14_P2.50mm_Vertical
+JST XH series connector, B14B-XH-A (http://www.jst-mfg.com/product/pdf/eng/eXH.pdf), generated with kicad-footprint-generator
+connector JST XH side entry
+0
+14
+14
+Connector_JST
+JST_XH_B15B-XH-A_1x15_P2.50mm_Vertical
+JST XH series connector, B15B-XH-A (http://www.jst-mfg.com/product/pdf/eng/eXH.pdf), generated with kicad-footprint-generator
+connector JST XH side entry
+0
+15
+15
+Connector_JST
+JST_XH_B16B-XH-A_1x16_P2.50mm_Vertical
+JST XH series connector, B16B-XH-A (http://www.jst-mfg.com/product/pdf/eng/eXH.pdf), generated with kicad-footprint-generator
+connector JST XH side entry
+0
+16
+16
+Connector_JST
+JST_XH_B20B-XH-A_1x20_P2.50mm_Vertical
+JST XH series connector, B20B-XH-A (http://www.jst-mfg.com/product/pdf/eng/eXH.pdf), generated with kicad-footprint-generator
+connector JST XH side entry
+0
+20
+20
+Connector_JST
+JST_XH_S2B-XH-A-1_1x02_P2.50mm_Horizontal
+JST XH series connector, S2B-XH-A-1 (http://www.jst-mfg.com/product/pdf/eng/eXH.pdf), generated with kicad-footprint-generator
+connector JST XH horizontal
+0
+2
+2
+Connector_JST
+JST_XH_S2B-XH-A_1x02_P2.50mm_Horizontal
+JST XH series connector, S2B-XH-A (http://www.jst-mfg.com/product/pdf/eng/eXH.pdf), generated with kicad-footprint-generator
+connector JST XH horizontal
+0
+2
+2
+Connector_JST
+JST_XH_S3B-XH-A-1_1x03_P2.50mm_Horizontal
+JST XH series connector, S3B-XH-A-1 (http://www.jst-mfg.com/product/pdf/eng/eXH.pdf), generated with kicad-footprint-generator
+connector JST XH horizontal
+0
+3
+3
+Connector_JST
+JST_XH_S3B-XH-A_1x03_P2.50mm_Horizontal
+JST XH series connector, S3B-XH-A (http://www.jst-mfg.com/product/pdf/eng/eXH.pdf), generated with kicad-footprint-generator
+connector JST XH horizontal
+0
+3
+3
+Connector_JST
+JST_XH_S4B-XH-A-1_1x04_P2.50mm_Horizontal
+JST XH series connector, S4B-XH-A-1 (http://www.jst-mfg.com/product/pdf/eng/eXH.pdf), generated with kicad-footprint-generator
+connector JST XH horizontal
+0
+4
+4
+Connector_JST
+JST_XH_S4B-XH-A_1x04_P2.50mm_Horizontal
+JST XH series connector, S4B-XH-A (http://www.jst-mfg.com/product/pdf/eng/eXH.pdf), generated with kicad-footprint-generator
+connector JST XH horizontal
+0
+4
+4
+Connector_JST
+JST_XH_S5B-XH-A-1_1x05_P2.50mm_Horizontal
+JST XH series connector, S5B-XH-A-1 (http://www.jst-mfg.com/product/pdf/eng/eXH.pdf), generated with kicad-footprint-generator
+connector JST XH horizontal
+0
+5
+5
+Connector_JST
+JST_XH_S5B-XH-A_1x05_P2.50mm_Horizontal
+JST XH series connector, S5B-XH-A (http://www.jst-mfg.com/product/pdf/eng/eXH.pdf), generated with kicad-footprint-generator
+connector JST XH horizontal
+0
+5
+5
+Connector_JST
+JST_XH_S6B-XH-A-1_1x06_P2.50mm_Horizontal
+JST XH series connector, S6B-XH-A-1 (http://www.jst-mfg.com/product/pdf/eng/eXH.pdf), generated with kicad-footprint-generator
+connector JST XH horizontal
+0
+6
+6
+Connector_JST
+JST_XH_S6B-XH-A_1x06_P2.50mm_Horizontal
+JST XH series connector, S6B-XH-A (http://www.jst-mfg.com/product/pdf/eng/eXH.pdf), generated with kicad-footprint-generator
+connector JST XH horizontal
+0
+6
+6
+Connector_JST
+JST_XH_S7B-XH-A-1_1x07_P2.50mm_Horizontal
+JST XH series connector, S7B-XH-A-1 (http://www.jst-mfg.com/product/pdf/eng/eXH.pdf), generated with kicad-footprint-generator
+connector JST XH horizontal
+0
+7
+7
+Connector_JST
+JST_XH_S7B-XH-A_1x07_P2.50mm_Horizontal
+JST XH series connector, S7B-XH-A (http://www.jst-mfg.com/product/pdf/eng/eXH.pdf), generated with kicad-footprint-generator
+connector JST XH horizontal
+0
+7
+7
+Connector_JST
+JST_XH_S8B-XH-A-1_1x08_P2.50mm_Horizontal
+JST XH series connector, S8B-XH-A-1 (http://www.jst-mfg.com/product/pdf/eng/eXH.pdf), generated with kicad-footprint-generator
+connector JST XH horizontal
+0
+8
+8
+Connector_JST
+JST_XH_S8B-XH-A_1x08_P2.50mm_Horizontal
+JST XH series connector, S8B-XH-A (http://www.jst-mfg.com/product/pdf/eng/eXH.pdf), generated with kicad-footprint-generator
+connector JST XH horizontal
+0
+8
+8
+Connector_JST
+JST_XH_S9B-XH-A-1_1x09_P2.50mm_Horizontal
+JST XH series connector, S9B-XH-A-1 (http://www.jst-mfg.com/product/pdf/eng/eXH.pdf), generated with kicad-footprint-generator
+connector JST XH horizontal
+0
+9
+9
+Connector_JST
+JST_XH_S9B-XH-A_1x09_P2.50mm_Horizontal
+JST XH series connector, S9B-XH-A (http://www.jst-mfg.com/product/pdf/eng/eXH.pdf), generated with kicad-footprint-generator
+connector JST XH horizontal
+0
+9
+9
+Connector_JST
+JST_XH_S10B-XH-A-1_1x10_P2.50mm_Horizontal
+JST XH series connector, S10B-XH-A-1 (http://www.jst-mfg.com/product/pdf/eng/eXH.pdf), generated with kicad-footprint-generator
+connector JST XH top entry
+0
+10
+10
+Connector_JST
+JST_XH_S10B-XH-A_1x10_P2.50mm_Horizontal
+JST XH series connector, S10B-XH-A (http://www.jst-mfg.com/product/pdf/eng/eXH.pdf), generated with kicad-footprint-generator
+connector JST XH top entry
+0
+10
+10
+Connector_JST
+JST_XH_S11B-XH-A-1_1x11_P2.50mm_Horizontal
+JST XH series connector, S11B-XH-A-1 (http://www.jst-mfg.com/product/pdf/eng/eXH.pdf), generated with kicad-footprint-generator
+connector JST XH top entry
+0
+11
+11
+Connector_JST
+JST_XH_S11B-XH-A_1x11_P2.50mm_Horizontal
+JST XH series connector, S11B-XH-A (http://www.jst-mfg.com/product/pdf/eng/eXH.pdf), generated with kicad-footprint-generator
+connector JST XH top entry
+0
+11
+11
+Connector_JST
+JST_XH_S12B-XH-A-1_1x12_P2.50mm_Horizontal
+JST XH series connector, S12B-XH-A-1 (http://www.jst-mfg.com/product/pdf/eng/eXH.pdf), generated with kicad-footprint-generator
+connector JST XH top entry
+0
+12
+12
+Connector_JST
+JST_XH_S12B-XH-A_1x12_P2.50mm_Horizontal
+JST XH series connector, S12B-XH-A (http://www.jst-mfg.com/product/pdf/eng/eXH.pdf), generated with kicad-footprint-generator
+connector JST XH top entry
+0
+12
+12
+Connector_JST
+JST_XH_S13B-XH-A-1_1x13_P2.50mm_Horizontal
+JST XH series connector, S13B-XH-A-1 (http://www.jst-mfg.com/product/pdf/eng/eXH.pdf), generated with kicad-footprint-generator
+connector JST XH top entry
+0
+13
+13
+Connector_JST
+JST_XH_S13B-XH-A_1x13_P2.50mm_Horizontal
+JST XH series connector, S13B-XH-A (http://www.jst-mfg.com/product/pdf/eng/eXH.pdf), generated with kicad-footprint-generator
+connector JST XH top entry
+0
+13
+13
+Connector_JST
+JST_XH_S14B-XH-A-1_1x14_P2.50mm_Horizontal
+JST XH series connector, S14B-XH-A-1 (http://www.jst-mfg.com/product/pdf/eng/eXH.pdf), generated with kicad-footprint-generator
+connector JST XH top entry
+0
+14
+14
+Connector_JST
+JST_XH_S14B-XH-A_1x14_P2.50mm_Horizontal
+JST XH series connector, S14B-XH-A (http://www.jst-mfg.com/product/pdf/eng/eXH.pdf), generated with kicad-footprint-generator
+connector JST XH top entry
+0
+14
+14
+Connector_JST
+JST_XH_S15B-XH-A-1_1x15_P2.50mm_Horizontal
+JST XH series connector, S15B-XH-A-1 (http://www.jst-mfg.com/product/pdf/eng/eXH.pdf), generated with kicad-footprint-generator
+connector JST XH top entry
+0
+15
+15
+Connector_JST
+JST_XH_S15B-XH-A_1x15_P2.50mm_Horizontal
+JST XH series connector, S15B-XH-A (http://www.jst-mfg.com/product/pdf/eng/eXH.pdf), generated with kicad-footprint-generator
+connector JST XH top entry
+0
+15
+15
+Connector_JST
+JST_XH_S16B-XH-A_1x16_P2.50mm_Horizontal
+JST XH series connector, S16B-XH-A (http://www.jst-mfg.com/product/pdf/eng/eXH.pdf), generated with kicad-footprint-generator
+connector JST XH top entry
+0
+16
+16
+Connector_JST
+JST_ZE_B02B-ZESK-1D_1x02_P1.50mm_Vertical
+JST ZE series connector, B02B-ZESK-1D, with boss (http://www.jst-mfg.com/product/pdf/eng/eZE.pdf), generated with kicad-footprint-generator
+connector JST ZE side entry boss
+0
+2
+2
+Connector_JST
+JST_ZE_B03B-ZESK-1D_1x03_P1.50mm_Vertical
+JST ZE series connector, B03B-ZESK-1D, with boss (http://www.jst-mfg.com/product/pdf/eng/eZE.pdf), generated with kicad-footprint-generator
+connector JST ZE side entry boss
+0
+3
+3
+Connector_JST
+JST_ZE_B03B-ZESK-D_1x03_P1.50mm_Vertical
+JST ZE series connector, B03B-ZESK-D (http://www.jst-mfg.com/product/pdf/eng/eZE.pdf), generated with kicad-footprint-generator
+connector JST ZE side entry
+0
+3
+3
+Connector_JST
+JST_ZE_B04B-ZESK-1D_1x04_P1.50mm_Vertical
+JST ZE series connector, B04B-ZESK-1D, with boss (http://www.jst-mfg.com/product/pdf/eng/eZE.pdf), generated with kicad-footprint-generator
+connector JST ZE side entry boss
+0
+4
+4
+Connector_JST
+JST_ZE_B04B-ZESK-D_1x04_P1.50mm_Vertical
+JST ZE series connector, B04B-ZESK-D (http://www.jst-mfg.com/product/pdf/eng/eZE.pdf), generated with kicad-footprint-generator
+connector JST ZE side entry
+0
+4
+4
+Connector_JST
+JST_ZE_B05B-ZESK-1D_1x05_P1.50mm_Vertical
+JST ZE series connector, B05B-ZESK-1D, with boss (http://www.jst-mfg.com/product/pdf/eng/eZE.pdf), generated with kicad-footprint-generator
+connector JST ZE side entry boss
+0
+5
+5
+Connector_JST
+JST_ZE_B05B-ZESK-D_1x05_P1.50mm_Vertical
+JST ZE series connector, B05B-ZESK-D (http://www.jst-mfg.com/product/pdf/eng/eZE.pdf), generated with kicad-footprint-generator
+connector JST ZE side entry
+0
+5
+5
+Connector_JST
+JST_ZE_B06B-ZESK-1D_1x06_P1.50mm_Vertical
+JST ZE series connector, B06B-ZESK-1D, with boss (http://www.jst-mfg.com/product/pdf/eng/eZE.pdf), generated with kicad-footprint-generator
+connector JST ZE side entry boss
+0
+6
+6
+Connector_JST
+JST_ZE_B06B-ZESK-D_1x06_P1.50mm_Vertical
+JST ZE series connector, B06B-ZESK-D (http://www.jst-mfg.com/product/pdf/eng/eZE.pdf), generated with kicad-footprint-generator
+connector JST ZE side entry
+0
+6
+6
+Connector_JST
+JST_ZE_B07B-ZESK-1D_1x07_P1.50mm_Vertical
+JST ZE series connector, B07B-ZESK-1D, with boss (http://www.jst-mfg.com/product/pdf/eng/eZE.pdf), generated with kicad-footprint-generator
+connector JST ZE side entry boss
+0
+7
+7
+Connector_JST
+JST_ZE_B07B-ZESK-D_1x07_P1.50mm_Vertical
+JST ZE series connector, B07B-ZESK-D (http://www.jst-mfg.com/product/pdf/eng/eZE.pdf), generated with kicad-footprint-generator
+connector JST ZE side entry
+0
+7
+7
+Connector_JST
+JST_ZE_B08B-ZESK-1D_1x08_P1.50mm_Vertical
+JST ZE series connector, B08B-ZESK-1D, with boss (http://www.jst-mfg.com/product/pdf/eng/eZE.pdf), generated with kicad-footprint-generator
+connector JST ZE side entry boss
+0
+8
+8
+Connector_JST
+JST_ZE_B08B-ZESK-D_1x08_P1.50mm_Vertical
+JST ZE series connector, B08B-ZESK-D (http://www.jst-mfg.com/product/pdf/eng/eZE.pdf), generated with kicad-footprint-generator
+connector JST ZE side entry
+0
+8
+8
+Connector_JST
+JST_ZE_B09B-ZESK-1D_1x09_P1.50mm_Vertical
+JST ZE series connector, B09B-ZESK-1D, with boss (http://www.jst-mfg.com/product/pdf/eng/eZE.pdf), generated with kicad-footprint-generator
+connector JST ZE side entry boss
+0
+9
+9
+Connector_JST
+JST_ZE_B09B-ZESK-D_1x09_P1.50mm_Vertical
+JST ZE series connector, B09B-ZESK-D (http://www.jst-mfg.com/product/pdf/eng/eZE.pdf), generated with kicad-footprint-generator
+connector JST ZE side entry
+0
+9
+9
+Connector_JST
+JST_ZE_B10B-ZESK-1D_1x10_P1.50mm_Vertical
+JST ZE series connector, B10B-ZESK-1D, with boss (http://www.jst-mfg.com/product/pdf/eng/eZE.pdf), generated with kicad-footprint-generator
+connector JST ZE side entry boss
+0
+10
+10
+Connector_JST
+JST_ZE_B10B-ZESK-D_1x10_P1.50mm_Vertical
+JST ZE series connector, B10B-ZESK-D (http://www.jst-mfg.com/product/pdf/eng/eZE.pdf), generated with kicad-footprint-generator
+connector JST ZE side entry
+0
+10
+10
+Connector_JST
+JST_ZE_B11B-ZESK-1D_1x11_P1.50mm_Vertical
+JST ZE series connector, B11B-ZESK-1D, with boss (http://www.jst-mfg.com/product/pdf/eng/eZE.pdf), generated with kicad-footprint-generator
+connector JST ZE side entry boss
+0
+11
+11
+Connector_JST
+JST_ZE_B11B-ZESK-D_1x11_P1.50mm_Vertical
+JST ZE series connector, B11B-ZESK-D (http://www.jst-mfg.com/product/pdf/eng/eZE.pdf), generated with kicad-footprint-generator
+connector JST ZE side entry
+0
+11
+11
+Connector_JST
+JST_ZE_B12B-ZESK-1D_1x12_P1.50mm_Vertical
+JST ZE series connector, B12B-ZESK-1D, with boss (http://www.jst-mfg.com/product/pdf/eng/eZE.pdf), generated with kicad-footprint-generator
+connector JST ZE side entry boss
+0
+12
+12
+Connector_JST
+JST_ZE_B12B-ZESK-D_1x12_P1.50mm_Vertical
+JST ZE series connector, B12B-ZESK-D (http://www.jst-mfg.com/product/pdf/eng/eZE.pdf), generated with kicad-footprint-generator
+connector JST ZE side entry
+0
+12
+12
+Connector_JST
+JST_ZE_B13B-ZESK-1D_1x13_P1.50mm_Vertical
+JST ZE series connector, B13B-ZESK-1D, with boss (http://www.jst-mfg.com/product/pdf/eng/eZE.pdf), generated with kicad-footprint-generator
+connector JST ZE side entry boss
+0
+13
+13
+Connector_JST
+JST_ZE_B13B-ZESK-D_1x13_P1.50mm_Vertical
+JST ZE series connector, B13B-ZESK-D (http://www.jst-mfg.com/product/pdf/eng/eZE.pdf), generated with kicad-footprint-generator
+connector JST ZE side entry
+0
+13
+13
+Connector_JST
+JST_ZE_B14B-ZESK-1D_1x14_P1.50mm_Vertical
+JST ZE series connector, B14B-ZESK-1D, with boss (http://www.jst-mfg.com/product/pdf/eng/eZE.pdf), generated with kicad-footprint-generator
+connector JST ZE side entry boss
+0
+14
+14
+Connector_JST
+JST_ZE_B14B-ZESK-D_1x14_P1.50mm_Vertical
+JST ZE series connector, B14B-ZESK-D (http://www.jst-mfg.com/product/pdf/eng/eZE.pdf), generated with kicad-footprint-generator
+connector JST ZE side entry
+0
+14
+14
+Connector_JST
+JST_ZE_B15B-ZESK-1D_1x15_P1.50mm_Vertical
+JST ZE series connector, B15B-ZESK-1D, with boss (http://www.jst-mfg.com/product/pdf/eng/eZE.pdf), generated with kicad-footprint-generator
+connector JST ZE side entry boss
+0
+15
+15
+Connector_JST
+JST_ZE_B15B-ZESK-D_1x15_P1.50mm_Vertical
+JST ZE series connector, B15B-ZESK-D (http://www.jst-mfg.com/product/pdf/eng/eZE.pdf), generated with kicad-footprint-generator
+connector JST ZE side entry
+0
+15
+15
+Connector_JST
+JST_ZE_B16B-ZESK-1D_1x16_P1.50mm_Vertical
+JST ZE series connector, B16B-ZESK-1D, with boss (http://www.jst-mfg.com/product/pdf/eng/eZE.pdf), generated with kicad-footprint-generator
+connector JST ZE side entry boss
+0
+16
+16
+Connector_JST
+JST_ZE_B16B-ZESK-D_1x16_P1.50mm_Vertical
+JST ZE series connector, B16B-ZESK-D (http://www.jst-mfg.com/product/pdf/eng/eZE.pdf), generated with kicad-footprint-generator
+connector JST ZE side entry
+0
+16
+16
+Connector_JST
+JST_ZE_BM02B-ZESS-TBT_1x02-1MP_P1.50mm_Vertical
+JST ZE series connector, BM02B-ZESS-TBT (http://www.jst-mfg.com/product/pdf/eng/eZE.pdf), generated with kicad-footprint-generator
+connector JST ZE vertical
+0
+4
+3
+Connector_JST
+JST_ZE_BM03B-ZESS-TBT_1x03-1MP_P1.50mm_Vertical
+JST ZE series connector, BM03B-ZESS-TBT (http://www.jst-mfg.com/product/pdf/eng/eZE.pdf), generated with kicad-footprint-generator
+connector JST ZE vertical
+0
+5
+4
+Connector_JST
+JST_ZE_BM04B-ZESS-TBT_1x04-1MP_P1.50mm_Vertical
+JST ZE series connector, BM04B-ZESS-TBT (http://www.jst-mfg.com/product/pdf/eng/eZE.pdf), generated with kicad-footprint-generator
+connector JST ZE vertical
+0
+6
+5
+Connector_JST
+JST_ZE_BM05B-ZESS-TBT_1x05-1MP_P1.50mm_Vertical
+JST ZE series connector, BM05B-ZESS-TBT (http://www.jst-mfg.com/product/pdf/eng/eZE.pdf), generated with kicad-footprint-generator
+connector JST ZE vertical
+0
+7
+6
+Connector_JST
+JST_ZE_BM06B-ZESS-TBT_1x06-1MP_P1.50mm_Vertical
+JST ZE series connector, BM06B-ZESS-TBT (http://www.jst-mfg.com/product/pdf/eng/eZE.pdf), generated with kicad-footprint-generator
+connector JST ZE vertical
+0
+8
+7
+Connector_JST
+JST_ZE_BM07B-ZESS-TBT_1x07-1MP_P1.50mm_Vertical
+JST ZE series connector, BM07B-ZESS-TBT (http://www.jst-mfg.com/product/pdf/eng/eZE.pdf), generated with kicad-footprint-generator
+connector JST ZE vertical
+0
+9
+8
+Connector_JST
+JST_ZE_BM08B-ZESS-TBT_1x08-1MP_P1.50mm_Vertical
+JST ZE series connector, BM08B-ZESS-TBT (http://www.jst-mfg.com/product/pdf/eng/eZE.pdf), generated with kicad-footprint-generator
+connector JST ZE vertical
+0
+10
+9
+Connector_JST
+JST_ZE_BM09B-ZESS-TBT_1x09-1MP_P1.50mm_Vertical
+JST ZE series connector, BM09B-ZESS-TBT (http://www.jst-mfg.com/product/pdf/eng/eZE.pdf), generated with kicad-footprint-generator
+connector JST ZE vertical
+0
+11
+10
+Connector_JST
+JST_ZE_BM10B-ZESS-TBT_1x10-1MP_P1.50mm_Vertical
+JST ZE series connector, BM10B-ZESS-TBT (http://www.jst-mfg.com/product/pdf/eng/eZE.pdf), generated with kicad-footprint-generator
+connector JST ZE vertical
+0
+12
+11
+Connector_JST
+JST_ZE_BM11B-ZESS-TBT_1x11-1MP_P1.50mm_Vertical
+JST ZE series connector, BM11B-ZESS-TBT (http://www.jst-mfg.com/product/pdf/eng/eZE.pdf), generated with kicad-footprint-generator
+connector JST ZE vertical
+0
+13
+12
+Connector_JST
+JST_ZE_BM12B-ZESS-TBT_1x12-1MP_P1.50mm_Vertical
+JST ZE series connector, BM12B-ZESS-TBT (http://www.jst-mfg.com/product/pdf/eng/eZE.pdf), generated with kicad-footprint-generator
+connector JST ZE vertical
+0
+14
+13
+Connector_JST
+JST_ZE_BM13B-ZESS-TBT_1x13-1MP_P1.50mm_Vertical
+JST ZE series connector, BM13B-ZESS-TBT (http://www.jst-mfg.com/product/pdf/eng/eZE.pdf), generated with kicad-footprint-generator
+connector JST ZE vertical
+0
+15
+14
+Connector_JST
+JST_ZE_BM14B-ZESS-TBT_1x14-1MP_P1.50mm_Vertical
+JST ZE series connector, BM14B-ZESS-TBT (http://www.jst-mfg.com/product/pdf/eng/eZE.pdf), generated with kicad-footprint-generator
+connector JST ZE vertical
+0
+16
+15
+Connector_JST
+JST_ZE_BM15B-ZESS-TBT_1x15-1MP_P1.50mm_Vertical
+JST ZE series connector, BM15B-ZESS-TBT (http://www.jst-mfg.com/product/pdf/eng/eZE.pdf), generated with kicad-footprint-generator
+connector JST ZE vertical
+0
+17
+16
+Connector_JST
+JST_ZE_BM16B-ZESS-TBT_1x16-1MP_P1.50mm_Vertical
+JST ZE series connector, BM16B-ZESS-TBT (http://www.jst-mfg.com/product/pdf/eng/eZE.pdf), generated with kicad-footprint-generator
+connector JST ZE vertical
+0
+18
+17
+Connector_JST
+JST_ZE_S02B-ZESK-2D_1x02_P1.50mm_Horizontal
+JST ZE series connector, S02B-ZESK-2D (http://www.jst-mfg.com/product/pdf/eng/eZE.pdf), generated with kicad-footprint-generator
+connector JST ZE top entry
+0
+2
+2
+Connector_JST
+JST_ZE_S03B-ZESK-2D_1x03_P1.50mm_Horizontal
+JST ZE series connector, S03B-ZESK-2D (http://www.jst-mfg.com/product/pdf/eng/eZE.pdf), generated with kicad-footprint-generator
+connector JST ZE top entry
+0
+3
+3
+Connector_JST
+JST_ZE_S04B-ZESK-2D_1x04_P1.50mm_Horizontal
+JST ZE series connector, S04B-ZESK-2D (http://www.jst-mfg.com/product/pdf/eng/eZE.pdf), generated with kicad-footprint-generator
+connector JST ZE top entry
+0
+4
+4
+Connector_JST
+JST_ZE_S05B-ZESK-2D_1x05_P1.50mm_Horizontal
+JST ZE series connector, S05B-ZESK-2D (http://www.jst-mfg.com/product/pdf/eng/eZE.pdf), generated with kicad-footprint-generator
+connector JST ZE top entry
+0
+5
+5
+Connector_JST
+JST_ZE_S06B-ZESK-2D_1x06_P1.50mm_Horizontal
+JST ZE series connector, S06B-ZESK-2D (http://www.jst-mfg.com/product/pdf/eng/eZE.pdf), generated with kicad-footprint-generator
+connector JST ZE top entry
+0
+6
+6
+Connector_JST
+JST_ZE_S07B-ZESK-2D_1x07_P1.50mm_Horizontal
+JST ZE series connector, S07B-ZESK-2D (http://www.jst-mfg.com/product/pdf/eng/eZE.pdf), generated with kicad-footprint-generator
+connector JST ZE top entry
+0
+7
+7
+Connector_JST
+JST_ZE_S08B-ZESK-2D_1x08_P1.50mm_Horizontal
+JST ZE series connector, S08B-ZESK-2D (http://www.jst-mfg.com/product/pdf/eng/eZE.pdf), generated with kicad-footprint-generator
+connector JST ZE top entry
+0
+8
+8
+Connector_JST
+JST_ZE_S09B-ZESK-2D_1x09_P1.50mm_Horizontal
+JST ZE series connector, S09B-ZESK-2D (http://www.jst-mfg.com/product/pdf/eng/eZE.pdf), generated with kicad-footprint-generator
+connector JST ZE top entry
+0
+9
+9
+Connector_JST
+JST_ZE_S10B-ZESK-2D_1x10_P1.50mm_Horizontal
+JST ZE series connector, S10B-ZESK-2D (http://www.jst-mfg.com/product/pdf/eng/eZE.pdf), generated with kicad-footprint-generator
+connector JST ZE top entry
+0
+10
+10
+Connector_JST
+JST_ZE_S11B-ZESK-2D_1x11_P1.50mm_Horizontal
+JST ZE series connector, S11B-ZESK-2D (http://www.jst-mfg.com/product/pdf/eng/eZE.pdf), generated with kicad-footprint-generator
+connector JST ZE top entry
+0
+11
+11
+Connector_JST
+JST_ZE_S12B-ZESK-2D_1x12_P1.50mm_Horizontal
+JST ZE series connector, S12B-ZESK-2D (http://www.jst-mfg.com/product/pdf/eng/eZE.pdf), generated with kicad-footprint-generator
+connector JST ZE top entry
+0
+12
+12
+Connector_JST
+JST_ZE_S13B-ZESK-2D_1x13_P1.50mm_Horizontal
+JST ZE series connector, S13B-ZESK-2D (http://www.jst-mfg.com/product/pdf/eng/eZE.pdf), generated with kicad-footprint-generator
+connector JST ZE top entry
+0
+13
+13
+Connector_JST
+JST_ZE_S14B-ZESK-2D_1x14_P1.50mm_Horizontal
+JST ZE series connector, S14B-ZESK-2D (http://www.jst-mfg.com/product/pdf/eng/eZE.pdf), generated with kicad-footprint-generator
+connector JST ZE top entry
+0
+14
+14
+Connector_JST
+JST_ZE_S15B-ZESK-2D_1x15_P1.50mm_Horizontal
+JST ZE series connector, S15B-ZESK-2D (http://www.jst-mfg.com/product/pdf/eng/eZE.pdf), generated with kicad-footprint-generator
+connector JST ZE top entry
+0
+15
+15
+Connector_JST
+JST_ZE_S16B-ZESK-2D_1x16_P1.50mm_Horizontal
+JST ZE series connector, S16B-ZESK-2D (http://www.jst-mfg.com/product/pdf/eng/eZE.pdf), generated with kicad-footprint-generator
+connector JST ZE top entry
+0
+16
+16
+Connector_JST
+JST_ZE_SM02B-ZESS-TB_1x02-1MP_P1.50mm_Horizontal
+JST ZE series connector, SM02B-ZESS-TB (http://www.jst-mfg.com/product/pdf/eng/eZE.pdf), generated with kicad-footprint-generator
+connector JST ZE horizontal
+0
+4
+3
+Connector_JST
+JST_ZE_SM03B-ZESS-TB_1x03-1MP_P1.50mm_Horizontal
+JST ZE series connector, SM03B-ZESS-TB (http://www.jst-mfg.com/product/pdf/eng/eZE.pdf), generated with kicad-footprint-generator
+connector JST ZE horizontal
+0
+5
+4
+Connector_JST
+JST_ZE_SM04B-ZESS-TB_1x04-1MP_P1.50mm_Horizontal
+JST ZE series connector, SM04B-ZESS-TB (http://www.jst-mfg.com/product/pdf/eng/eZE.pdf), generated with kicad-footprint-generator
+connector JST ZE horizontal
+0
+6
+5
+Connector_JST
+JST_ZE_SM05B-ZESS-TB_1x05-1MP_P1.50mm_Horizontal
+JST ZE series connector, SM05B-ZESS-TB (http://www.jst-mfg.com/product/pdf/eng/eZE.pdf), generated with kicad-footprint-generator
+connector JST ZE horizontal
+0
+7
+6
+Connector_JST
+JST_ZE_SM06B-ZESS-TB_1x06-1MP_P1.50mm_Horizontal
+JST ZE series connector, SM06B-ZESS-TB (http://www.jst-mfg.com/product/pdf/eng/eZE.pdf), generated with kicad-footprint-generator
+connector JST ZE horizontal
+0
+8
+7
+Connector_JST
+JST_ZE_SM07B-ZESS-TB_1x07-1MP_P1.50mm_Horizontal
+JST ZE series connector, SM07B-ZESS-TB (http://www.jst-mfg.com/product/pdf/eng/eZE.pdf), generated with kicad-footprint-generator
+connector JST ZE horizontal
+0
+9
+8
+Connector_JST
+JST_ZE_SM08B-ZESS-TB_1x08-1MP_P1.50mm_Horizontal
+JST ZE series connector, SM08B-ZESS-TB (http://www.jst-mfg.com/product/pdf/eng/eZE.pdf), generated with kicad-footprint-generator
+connector JST ZE horizontal
+0
+10
+9
+Connector_JST
+JST_ZE_SM09B-ZESS-TB_1x09-1MP_P1.50mm_Horizontal
+JST ZE series connector, SM09B-ZESS-TB (http://www.jst-mfg.com/product/pdf/eng/eZE.pdf), generated with kicad-footprint-generator
+connector JST ZE horizontal
+0
+11
+10
+Connector_JST
+JST_ZE_SM10B-ZESS-TB_1x10-1MP_P1.50mm_Horizontal
+JST ZE series connector, SM10B-ZESS-TB (http://www.jst-mfg.com/product/pdf/eng/eZE.pdf), generated with kicad-footprint-generator
+connector JST ZE horizontal
+0
+12
+11
+Connector_JST
+JST_ZE_SM11B-ZESS-TB_1x11-1MP_P1.50mm_Horizontal
+JST ZE series connector, SM11B-ZESS-TB (http://www.jst-mfg.com/product/pdf/eng/eZE.pdf), generated with kicad-footprint-generator
+connector JST ZE horizontal
+0
+13
+12
+Connector_JST
+JST_ZE_SM12B-ZESS-TB_1x12-1MP_P1.50mm_Horizontal
+JST ZE series connector, SM12B-ZESS-TB (http://www.jst-mfg.com/product/pdf/eng/eZE.pdf), generated with kicad-footprint-generator
+connector JST ZE horizontal
+0
+14
+13
+Connector_JST
+JST_ZE_SM13B-ZESS-TB_1x13-1MP_P1.50mm_Horizontal
+JST ZE series connector, SM13B-ZESS-TB (http://www.jst-mfg.com/product/pdf/eng/eZE.pdf), generated with kicad-footprint-generator
+connector JST ZE horizontal
+0
+15
+14
+Connector_JST
+JST_ZE_SM14B-ZESS-TB_1x14-1MP_P1.50mm_Horizontal
+JST ZE series connector, SM14B-ZESS-TB (http://www.jst-mfg.com/product/pdf/eng/eZE.pdf), generated with kicad-footprint-generator
+connector JST ZE horizontal
+0
+16
+15
+Connector_JST
+JST_ZE_SM15B-ZESS-TB_1x15-1MP_P1.50mm_Horizontal
+JST ZE series connector, SM15B-ZESS-TB (http://www.jst-mfg.com/product/pdf/eng/eZE.pdf), generated with kicad-footprint-generator
+connector JST ZE horizontal
+0
+17
+16
+Connector_JST
+JST_ZE_SM16B-ZESS-TB_1x16-1MP_P1.50mm_Horizontal
+JST ZE series connector, SM16B-ZESS-TB (http://www.jst-mfg.com/product/pdf/eng/eZE.pdf), generated with kicad-footprint-generator
+connector JST ZE horizontal
+0
+18
+17

@@ -1999,7 +1999,7 @@
     (property "Reference" "TP1" (id 0) (at 34.544 135.128 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
-    (property "Value" "5V" (id 1) (at 37.7952 139.7762 0)
+    (property "Value" "5Vusb" (id 1) (at 37.7952 139.7762 0)
       (effects (font (size 1.27 1.27)) (justify left) hide)
     )
     (property "Footprint" "TestPoint:TestPoint_THTPad_1.5x1.5mm_Drill0.7mm" (id 2) (at 41.402 140.462 0)
@@ -2087,9 +2087,6 @@
     (path "/076c38b6-e164-46bb-9d96-26f8bdfeca37/6b218d4c-8f95-4591-b494-6a83ee3edbf4"
       (reference "#PWR03") (unit 1) (value "GND") (footprint "")
     )
-    (path "/076c38b6-e164-46bb-9d96-26f8bdfeca37/99206ade-04b2-46fa-85f1-261359dfd31b"
-      (reference "#PWR04") (unit 1) (value "+3V3") (footprint "")
-    )
     (path "/076c38b6-e164-46bb-9d96-26f8bdfeca37/f5301934-7edc-46db-ae48-58199dc2aa43"
       (reference "#PWR05") (unit 1) (value "GND") (footprint "")
     )
@@ -2101,12 +2098,6 @@
     )
     (path "/076c38b6-e164-46bb-9d96-26f8bdfeca37/1d43d4a7-9dcb-44c3-9bfb-f7ef4273eff3"
       (reference "#PWR08") (unit 1) (value "+3V3") (footprint "")
-    )
-    (path "/076c38b6-e164-46bb-9d96-26f8bdfeca37/2b033d26-211f-47c5-ad30-9cb9aea659a6"
-      (reference "#PWR09") (unit 1) (value "+3V3") (footprint "")
-    )
-    (path "/076c38b6-e164-46bb-9d96-26f8bdfeca37/73b1df7f-a887-48b4-9ce7-3d8db7403e95"
-      (reference "#PWR010") (unit 1) (value "+3V3") (footprint "")
     )
     (path "/076c38b6-e164-46bb-9d96-26f8bdfeca37/4d6a594b-d668-48f8-8d40-146959ef7aa5"
       (reference "#PWR011") (unit 1) (value "GND") (footprint "")
@@ -2201,8 +2192,8 @@
     (path "/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/610893b8-7125-40df-867c-22854f8efd58/f8d2ce40-7c42-41e1-919e-9fe8b6bfe896"
       (reference "#PWR041") (unit 1) (value "GND") (footprint "")
     )
-    (path "/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/610893b8-7125-40df-867c-22854f8efd58/4f508297-4488-4315-85eb-5261f9d02134"
-      (reference "#PWR042") (unit 1) (value "+3.3V") (footprint "")
+    (path "/076c38b6-e164-46bb-9d96-26f8bdfeca37/4354a899-4f12-4b14-9a0f-0357b172479a"
+      (reference "#PWR042") (unit 1) (value "GND") (footprint "")
     )
     (path "/076c38b6-e164-46bb-9d96-26f8bdfeca37/c9d2b617-3560-41ef-a3a7-a6d08311dfc5"
       (reference "#PWR0101") (unit 1) (value "GND") (footprint "")
@@ -2275,9 +2266,6 @@
     )
     (path "/076c38b6-e164-46bb-9d96-26f8bdfeca37/ccb9fe79-5084-46ff-9bd5-5c173914fd5a"
       (reference "#PWR0124") (unit 1) (value "GND") (footprint "")
-    )
-    (path "/076c38b6-e164-46bb-9d96-26f8bdfeca37/b26d12d8-b821-4fbb-bcf0-02f1fc523839"
-      (reference "#PWR0125") (unit 1) (value "+3V3") (footprint "")
     )
     (path "/076c38b6-e164-46bb-9d96-26f8bdfeca37/b728d2bc-216a-439f-be0d-9040aecbd583"
       (reference "C1") (unit 1) (value "12") (footprint "Capacitor_SMD:C_0603_1608Metric_Pad1.08x0.95mm_HandSolder")
@@ -2421,10 +2409,10 @@
       (reference "J1") (unit 1) (value "Prog") (footprint "Connector_PinSocket_1.27mm:PinSocket_1x06_P1.27mm_Vertical")
     )
     (path "/076c38b6-e164-46bb-9d96-26f8bdfeca37/9eb0e3e4-2412-4862-9254-ebfae0e788ab"
-      (reference "J2") (unit 1) (value "buttons_I2C") (footprint "Connector_IDC:IDC-Header_2x05_P2.54mm_Vertical")
+      (reference "J2") (unit 1) (value "Buttons/I2C") (footprint "Connector_IDC:IDC-Header_2x05_P2.54mm_Vertical")
     )
     (path "/076c38b6-e164-46bb-9d96-26f8bdfeca37/3b30193d-b3cb-42a8-a75c-e3cbeadeeead"
-      (reference "J3") (unit 1) (value "screen") (footprint "Connector_IDC:IDC-Header_2x05_P2.54mm_Vertical")
+      (reference "J3") (unit 1) (value "Screen") (footprint "Connector_IDC:IDC-Header_2x05_P2.54mm_Vertical")
     )
     (path "/beac4271-940a-4bcd-9fa5-ece775a07d41/ad1d252e-a412-4fd5-af6f-3bf5db8aac83"
       (reference "J4") (unit 1) (value "ADC2") (footprint "Connector_JST:JST_PH_B4B-PH-K_1x04_P2.00mm_Vertical")
@@ -2436,7 +2424,7 @@
       (reference "J6") (unit 1) (value "MOT_MUL") (footprint "Connector_JST:JST_PH_B5B-PH-K_1x05_P2.00mm_Vertical")
     )
     (path "/076c38b6-e164-46bb-9d96-26f8bdfeca37/23242767-ce55-4623-97c5-9de9c42c2a3f"
-      (reference "J7") (unit 1) (value "ADC2") (footprint "Connector_JST:JST_PH_B4B-PH-K_1x04_P2.00mm_Vertical")
+      (reference "J7") (unit 1) (value "GPO") (footprint "Connector_JST:JST_PH_B4B-PH-K_1x04_P2.00mm_Vertical")
     )
     (path "/0fd87c97-8042-4653-abdd-7019b1430685"
       (reference "J8") (unit 1) (value "USB_B") (footprint "Connector_USB:USB_B_OST_USB-B1HSxx_Horizontal")
@@ -2447,14 +2435,14 @@
     (path "/916f71ef-9b2f-424f-a64d-0b6af99b627f/4969e4cf-43c7-42f7-8f97-88c60e1eba9a"
       (reference "J10") (unit 1) (value "Screw_Terminal_01x02") (footprint "TerminalBlock_Phoenix:TerminalBlock_Phoenix_MKDS-1,5-2_1x02_P5.00mm_Horizontal")
     )
-    (path "/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/610893b8-7125-40df-867c-22854f8efd58/0f165469-1249-4064-aadf-0fc6a85a60f4"
-      (reference "J11") (unit 1) (value "Conn_01x03_Male") (footprint "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical")
-    )
     (path "/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/610893b8-7125-40df-867c-22854f8efd58/0f3f2180-6e00-4de5-8d6d-bb200c241b76"
-      (reference "J12") (unit 1) (value "Conn_01x03_Male") (footprint "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical")
+      (reference "J11") (unit 1) (value "LimS") (footprint "Connector_JST:JST_EH_B4B-EH-A_1x04_P2.50mm_Vertical")
     )
     (path "/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/610893b8-7125-40df-867c-22854f8efd58/e602956b-fb1a-48e1-af9c-9935214ce0ab"
-      (reference "J13") (unit 1) (value "Conn_01x04_Male") (footprint "Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical")
+      (reference "J12") (unit 1) (value "Stepper") (footprint "Connector_JST:JST_EH_B4B-EH-A_1x04_P2.50mm_Vertical")
+    )
+    (path "/076c38b6-e164-46bb-9d96-26f8bdfeca37/8a056ff3-5fc5-445e-813f-5479481ae2be"
+      (reference "J13") (unit 1) (value "UART") (footprint "Connector_JST:JST_PH_B3B-PH-K_1x03_P2.00mm_Vertical")
     )
     (path "/e07df136-9c14-457d-8c74-2e7051ea67ac"
       (reference "JP1") (unit 1) (value "SolderJumper_2_Bridged") (footprint "Jumper:SolderJumper-2_P1.3mm_Open_TrianglePad1.0x1.5mm")
@@ -2500,12 +2488,6 @@
     )
     (path "/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/610893b8-7125-40df-867c-22854f8efd58/269af695-a894-4436-83b9-a395596a6e3e"
       (reference "JP15") (unit 1) (value "SolderJumper_2_Bridged") (footprint "Jumper:SolderJumper-2_P1.3mm_Open_TrianglePad1.0x1.5mm")
-    )
-    (path "/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/610893b8-7125-40df-867c-22854f8efd58/19b709bd-064d-431e-981a-21d8140226f7"
-      (reference "JP16") (unit 1) (value "SolderJumper_2_Bridged") (footprint "Jumper:SolderJumper-2_P1.3mm_Open_TrianglePad1.0x1.5mm")
-    )
-    (path "/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/610893b8-7125-40df-867c-22854f8efd58/9a737b0c-0674-4408-94a4-2d0cb4f1ebe2"
-      (reference "JP17") (unit 1) (value "SolderJumper_2_Bridged") (footprint "Jumper:SolderJumper-2_P1.3mm_Open_TrianglePad1.0x1.5mm")
     )
     (path "/916f71ef-9b2f-424f-a64d-0b6af99b627f/b3fc53d8-12ed-4d5b-adca-e33d10eb8430"
       (reference "L1") (unit 1) (value "100u") (footprint "Inductor_THT:L_Toroid_Horizontal_D6.5mm_P10.00mm_Diameter7-5mm_Amidon-T25")
@@ -2585,6 +2567,12 @@
     (path "/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/610893b8-7125-40df-867c-22854f8efd58/23a0a54f-5dde-4f5b-bb5c-2b097300b395"
       (reference "R23") (unit 1) (value "100") (footprint "Resistor_SMD:R_0603_1608Metric_Pad0.98x0.95mm_HandSolder")
     )
+    (path "/076c38b6-e164-46bb-9d96-26f8bdfeca37/d42c91a2-1307-4ab7-930f-7f9359c5d693"
+      (reference "R24") (unit 1) (value "22") (footprint "Resistor_SMD:R_0603_1608Metric_Pad0.98x0.95mm_HandSolder")
+    )
+    (path "/076c38b6-e164-46bb-9d96-26f8bdfeca37/a8f0ad58-076a-43bc-8bc2-4c8514b9f66a"
+      (reference "R25") (unit 1) (value "22") (footprint "Resistor_SMD:R_0603_1608Metric_Pad0.98x0.95mm_HandSolder")
+    )
     (path "/076c38b6-e164-46bb-9d96-26f8bdfeca37/c2620a21-1c3d-4233-bbce-d374c7c78b67"
       (reference "RN1") (unit 1) (value "330") (footprint "Resistor_SMD:R_Array_Convex_4x0603")
     )
@@ -2610,16 +2598,16 @@
       (reference "RN8") (unit 1) (value "330") (footprint "Resistor_SMD:R_Array_Convex_4x0603")
     )
     (path "/076c38b6-e164-46bb-9d96-26f8bdfeca37/28ab1d00-5dcf-4df3-bb52-f6a6fa59c5a0"
-      (reference "SW1") (unit 1) (value "reset") (footprint "Button_Switch_SMD:SW_SPST_FSMSM")
+      (reference "SW1") (unit 1) (value "Reset") (footprint "Button_Switch_SMD:SW_SPST_FSMSM")
     )
     (path "/076c38b6-e164-46bb-9d96-26f8bdfeca37/7c777c8b-6b38-45e7-b24d-d876b91caf36"
-      (reference "SW2") (unit 1) (value "boot") (footprint "Button_Switch_SMD:SW_SPST_FSMSM")
+      (reference "SW2") (unit 1) (value "Boot") (footprint "Button_Switch_SMD:SW_SPST_FSMSM")
     )
     (path "/b27ea6a0-a572-46ba-ba2a-053475cc4a03"
       (reference "SW3") (unit 1) (value "SW_DIP_x01") (footprint "Button_Switch_THT:SW_DIP_SPSTx01_Slide_6.7x4.1mm_W7.62mm_P2.54mm_LowProfile")
     )
     (path "/fa927120-76d0-4789-86fa-35db42ec6d7f"
-      (reference "TP1") (unit 1) (value "5V") (footprint "TestPoint:TestPoint_THTPad_1.5x1.5mm_Drill0.7mm")
+      (reference "TP1") (unit 1) (value "5Vusb") (footprint "TestPoint:TestPoint_THTPad_1.5x1.5mm_Drill0.7mm")
     )
     (path "/916f71ef-9b2f-424f-a64d-0b6af99b627f/84be84b6-c711-4dd0-ad57-498504d82650"
       (reference "TP2") (unit 1) (value "5V") (footprint "TestPoint:TestPoint_THTPad_1.5x1.5mm_Drill0.7mm")

@@ -383,7 +383,7 @@
       },
       {
         "bus_width": 12.0,
-        "clearance": 0.2,
+        "clearance": 0.1,
         "diff_pair_gap": 0.25,
         "diff_pair_via_gap": 0.25,
         "diff_pair_width": 0.2,
@@ -407,7 +407,7 @@
       },
       {
         "bus_width": 12.0,
-        "clearance": 0.2,
+        "clearance": 0.1,
         "diff_pair_gap": 0.25,
         "diff_pair_via_gap": 0.25,
         "diff_pair_width": 0.2,
@@ -501,7 +501,7 @@
     ],
     [
       "610893b8-7125-40df-867c-22854f8efd58",
-      "stepper_M"
+      "stepper_M1"
     ]
   ],
   "text_variables": {}
