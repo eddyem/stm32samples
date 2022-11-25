@@ -124,7 +124,8 @@
         0.3,
         0.5,
         1.0,
-        2.0
+        2.0,
+        5.0
       ],
       "via_dimensions": [
         {
@@ -502,6 +503,34 @@
     [
       "610893b8-7125-40df-867c-22854f8efd58",
       "stepper_M1"
+    ],
+    [
+      "b972f8ca-7e49-4ce3-95f0-4eb1ac53975d",
+      "stepper_M2"
+    ],
+    [
+      "db69c12d-b6fb-4fe1-9d53-7484d42c675e",
+      "stepper_M3"
+    ],
+    [
+      "b01b77c6-0bd2-4b81-bd36-95ec39c21cb2",
+      "stepper_M4"
+    ],
+    [
+      "f8c6e88c-0183-4d2e-a3ca-39251d1701fb",
+      "stepper_M5"
+    ],
+    [
+      "196d299d-b6ee-4d60-aeee-9540c185cbf4",
+      "stepper_M6"
+    ],
+    [
+      "94a117f3-a8fd-4a4e-9f53-f4f999343994",
+      "stepper_M7"
+    ],
+    [
+      "798c74da-0af9-46c8-8e27-5dd5c3baf2c3",
+      "stepper_M8"
     ]
   ],
   "text_variables": {}
