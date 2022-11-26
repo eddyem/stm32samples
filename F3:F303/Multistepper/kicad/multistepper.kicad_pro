@@ -104,7 +104,7 @@
         "allow_microvias": false,
         "max_error": 0.005,
         "min_clearance": 0.09999999999999999,
-        "min_copper_edge_clearance": 1.0,
+        "min_copper_edge_clearance": 0.25,
         "min_hole_clearance": 0.25,
         "min_hole_to_hole": 0.25,
         "min_microvia_diameter": 0.19999999999999998,
@@ -401,7 +401,7 @@
         ],
         "pcb_color": "rgba(0, 0, 0, 0.000)",
         "schematic_color": "rgba(0, 0, 0, 0.000)",
-        "track_width": 1.0,
+        "track_width": 2.0,
         "via_diameter": 1.0,
         "via_drill": 0.6,
         "wire_width": 6.0
