@@ -2721,7 +2721,7 @@
       (reference "J6") (unit 1) (value "MOT_MUL") (footprint "Connector_JST:JST_PH_B5B-PH-K_1x05_P2.00mm_Vertical")
     )
     (path "/076c38b6-e164-46bb-9d96-26f8bdfeca37/23242767-ce55-4623-97c5-9de9c42c2a3f"
-      (reference "J7") (unit 1) (value "GPO") (footprint "Connector_JST:JST_PH_B4B-PH-K_1x04_P2.00mm_Vertical")
+      (reference "J7") (unit 1) (value "GPIO") (footprint "Connector_JST:JST_PH_B4B-PH-K_1x04_P2.00mm_Vertical")
     )
     (path "/0fd87c97-8042-4653-abdd-7019b1430685"
       (reference "J8") (unit 1) (value "USB_B") (footprint "Connector_USB:USB_B_OST_USB-B1HSxx_Horizontal")

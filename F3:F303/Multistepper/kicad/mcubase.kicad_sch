@@ -3707,7 +3707,7 @@
     (in_bom yes) (on_board yes) (fields_autoplaced)
     (uuid 23242767-ce55-4623-97c5-9de9c42c2a3f)
     (property "Reference" "J7" (id 0) (at 210.439 146.211 0))
-    (property "Value" "GPO" (id 1) (at 210.439 148.7479 0))
+    (property "Value" "GPIO" (id 1) (at 210.439 148.7479 0))
     (property "Footprint" "Connector_JST:JST_PH_B4B-PH-K_1x04_P2.00mm_Vertical" (id 2) (at 211.074 155.448 0)
       (effects (font (size 1.27 1.27)) hide)
     )
