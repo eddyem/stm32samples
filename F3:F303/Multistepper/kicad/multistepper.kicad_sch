@@ -1416,7 +1416,6 @@
     )
   )
 
-
   (junction (at 57.912 188.214) (diameter 0) (color 0 0 0 0)
     (uuid 266af761-524f-4f01-b28a-624d47000b23)
   )
@@ -2523,7 +2522,7 @@
       (reference "#PWR0124") (unit 1) (value "GND") (footprint "")
     )
     (path "/076c38b6-e164-46bb-9d96-26f8bdfeca37/b728d2bc-216a-439f-be0d-9040aecbd583"
-      (reference "C1") (unit 1) (value "12") (footprint "Capacitor_SMD:C_0603_1608Metric_Pad1.08x0.95mm_HandSolder")
+      (reference "C1") (unit 1) (value "6") (footprint "Capacitor_SMD:C_0603_1608Metric_Pad1.08x0.95mm_HandSolder")
     )
     (path "/076c38b6-e164-46bb-9d96-26f8bdfeca37/50e7f85a-114b-4113-a2ea-4ba86ee8a5ed"
       (reference "C2") (unit 1) (value "0.1") (footprint "Capacitor_SMD:C_0603_1608Metric_Pad1.08x0.95mm_HandSolder")
@@ -2532,7 +2531,7 @@
       (reference "C3") (unit 1) (value "0.1") (footprint "Capacitor_SMD:C_0603_1608Metric_Pad1.08x0.95mm_HandSolder")
     )
     (path "/076c38b6-e164-46bb-9d96-26f8bdfeca37/b9286d10-2f97-40a7-8794-520c08e2b4d2"
-      (reference "C4") (unit 1) (value "12") (footprint "Capacitor_SMD:C_0603_1608Metric_Pad1.08x0.95mm_HandSolder")
+      (reference "C4") (unit 1) (value "6") (footprint "Capacitor_SMD:C_0603_1608Metric_Pad1.08x0.95mm_HandSolder")
     )
     (path "/076c38b6-e164-46bb-9d96-26f8bdfeca37/ea8b5774-1ddd-4b9b-b6c1-15584ec4adde"
       (reference "C5") (unit 1) (value "0.1") (footprint "Capacitor_SMD:C_0603_1608Metric_Pad1.08x0.95mm_HandSolder")

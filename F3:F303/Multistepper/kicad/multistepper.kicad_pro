@@ -436,8 +436,8 @@
       "idf": "",
       "netlist": "",
       "specctra_dsn": "",
-      "step": "",
-      "vrml": ""
+      "step": "multistepper.step",
+      "vrml": "multistepper.wrl"
     },
     "page_layout_descr_file": ""
   },
