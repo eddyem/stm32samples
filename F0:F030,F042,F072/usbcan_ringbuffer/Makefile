@@ -8,6 +8,7 @@ FAMILY		?= F0
 MCU			?= F042x6
 # change this linking script depending on particular MCU model,
 LDSCRIPT	?= stm32f042x6.ld
+#DEFS = -DEBUG
 
 # autoincremental version & build date
 VERSION_FILE = version.inc

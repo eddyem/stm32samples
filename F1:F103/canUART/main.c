@@ -30,9 +30,7 @@ void sys_tick_handler(void){
 
 int main(void){
     uint32_t lastT = 0;
-#ifdef BLUEPILL
     uint32_t bplastT = 0;
-#endif
     CAN_message *can_mesg;
     StartHSE();
     SysTick_Config(72000);
@@ -50,12 +48,13 @@ int main(void){
             LED_off(LED0);
             lastT = 0;
         }
-#ifdef BLUEPILL
         if(Tms - bplastT > 499){
+            usart_transmit();
+#ifdef BLUEPILL
             pin_toggle(LEDB_port, LEDB_pin);
+#endif
             bplastT = Tms;
         }
-#endif
         can_proc();
         CAN_status st = CAN_get_status();
         if(st == CAN_FIFO_OVERRUN){
@@ -63,30 +62,34 @@ int main(void){
         }else if(st == CAN_ERR){
             usart_send("Some CAN error occured\n");
         }
+        int errflag = 0;
         while((can_mesg = CAN_messagebuf_pop())){
+            IWDG->KR = IWDG_REFRESH;
             if(can_mesg && isgood(can_mesg->ID)){
                 LED_on(LED0);
                 lastT = Tms;
                 if(!lastT) lastT = 1;
                 if(ShowMsgs){ // new data in buff
-                    IWDG->KR = IWDG_REFRESH;
                     uint8_t len = can_mesg->length;
                     printu(Tms);
-                    usart_send(" #");
+                    if(!usart_send(" #")) errflag = 1;
                     printuhex(can_mesg->ID);
                     for(uint8_t ctr = 0; ctr < len; ++ctr){
-                        usart_putchar(' ');
+                        if(!usart_putchar(' ')) errflag = 1;
                         printuhex(can_mesg->data[ctr]);
                     }
-                    usart_putchar('\n');
+                    if(!usart_putchar('\n')) errflag = 1;
                 }
             }
         }
         char *str;
         int g = usart_getline(&str);
-        if(g < 0) usart_send("USART buffer overflow!\n");
+        if(g < 0) usart_send("USART IN buffer overflow!\n");
         else if(g > 0) cmd_parser(str);
-        usart_transmit();
+        if(errflag){
+            while(!usart_txrdy) IWDG->KR = IWDG_REFRESH;
+            usart_send("USART OUT buffer overflow!\n");
+        }
     }
     return 0;
 }

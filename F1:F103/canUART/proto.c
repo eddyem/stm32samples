@@ -137,6 +137,7 @@ static char *getbin(const char *buf, uint32_t *N){
 char *getnum(const char *txt, uint32_t *N){
     char *nxt = NULL;
     char *s = omit_spaces(txt);
+    if(!*s) return (char*)txt;
     if(*s == '0'){ // hex, oct or 0
         if(s[1] == 'x' || s[1] == 'X'){ // hex
             nxt = gethex(s+2, N);
@@ -166,7 +167,6 @@ static CAN_message *parseCANmsg(char *txt){
     int ctr = -1;
     canmsg.ID = 0xffff;
     do{
-        txt = omit_spaces(txt);
         n = getnum(txt, &N);
         if(txt == n) break;
         txt = n;
@@ -206,14 +206,13 @@ TRUE_INLINE void usart_sendCANcommand(char *txt){
     }
     CAN_message *msg = parseCANmsg(txt);
     if(!msg) return;
-    uint32_t N = 3;
+    uint32_t N = 5;
     while(CAN_BUSY == can_send(msg->data, msg->length, msg->ID)){
         if(--N == 0) break;
     }
 }
 
 TRUE_INLINE void CANini(char *txt){
-    txt = omit_spaces(txt);
     uint32_t N;
     char *n = getnum(txt, &N);
     if(txt == n){
@@ -237,7 +236,6 @@ TRUE_INLINE void addIGN(char *txt){
         usart_send("Ignore buffer is full");
         return;
     }
-    txt = omit_spaces(txt);
     uint32_t N;
     char *n = getnum(txt, &N);
     if(txt == n){
@@ -333,7 +331,6 @@ TRUE_INLINE void list_filters(){
  */
 static void add_filter(char *str){
     uint32_t N;
-    str = omit_spaces(str);
     char *n = getnum(str, &N);
     if(n == str){
         usart_send("No bank# given");
@@ -431,6 +428,7 @@ const char *helpmsg =
     "'P' - pause/resume in packets displaying\n"
     "'R' - software reset\n"
     "'s/S' - usart_send data over CAN: s ID byte0 .. byteN\n"
+    "'t' - change flood period (>=1ms)\n"
     "'T' - get time from start (ms)\n"
 ;
 
@@ -445,39 +443,54 @@ TRUE_INLINE void getcanstat(){
     printuhex(CAN1->RF1R);
 }
 
+TRUE_INLINE void setfloodt(char *s){
+    uint32_t N;
+    char *n = getnum(s, &N);
+    if(s == n || N == 0){
+        usart_send("t="); printu(floodT); usart_putchar('\n');
+        return;
+    }
+    floodT = N - 1;
+}
+
 /**
  * @brief cmd_parser - command parsing
  * @param txt   - buffer with commands & data
  */
 void cmd_parser(char *txt){
     char _1st = txt[0];
+    ++txt;
     /*
      * parse long commands here
      */
     switch(_1st){
         case 'a':
-            addIGN(txt + 1);
+            addIGN(txt);
             goto eof;
         break;
         case 'b':
-            CANini(txt + 1);
+            CANini(txt);
             goto eof;
         break;
         case 'f':
-            add_filter(txt + 1);
+            add_filter(txt);
             goto eof;
         break;
         case 'F':
-            set_flood(parseCANmsg(txt + 1));
+            set_flood(parseCANmsg(txt));
             goto eof;
         break;
         case 's':
         case 'S':
-            usart_sendCANcommand(txt + 1);
+            usart_sendCANcommand(txt);
+            goto eof;
+        break;
+        case 't':
+            setfloodt(txt);
             goto eof;
         break;
     }
-    if(txt[1] != '\n') *txt = '?'; // help for wrong message length
+    if(txt[1] != 0) _1st = '?'; // help for wrong message length
     switch(_1st){
         case 'c':
             getcanstat();

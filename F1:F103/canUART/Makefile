@@ -157,6 +157,6 @@ dfuboot: $(BIN)
 openocd:
 	openocd -f openocd.cfg
 dbg:
-	arm-none-eabi-gdb $(ELF) -ex 'target remote localhost:3333' -ex 'monitor reset halt'
+	arm-none-eabi-gdb $(ELF) -ex 'target extended-remote localhost:3333' -ex 'monitor reset halt'
 
 .PHONY: size clean flash boot dfuboot openocd dbg

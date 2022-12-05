@@ -137,6 +137,7 @@ static char *getbin(const char *buf, uint32_t *N){
 char *getnum(const char *txt, uint32_t *N){
     char *nxt = NULL;
     char *s = omit_spaces(txt);
+    if(!*s) return (char*)txt;
     if(*s == '0'){ // hex, oct or 0
         if(s[1] == 'x' || s[1] == 'X'){ // hex
             nxt = gethex(s+2, N);
@@ -166,7 +167,6 @@ static CAN_message *parseCANmsg(char *txt){
     int ctr = -1;
     canmsg.ID = 0xffff;
     do{
-        txt = omit_spaces(txt);
         n = getnum(txt, &N);
         if(txt == n) break;
         txt = n;
@@ -200,16 +200,19 @@ static CAN_message *parseCANmsg(char *txt){
 
 // USB_sendstr command, format: ID (hex/bin/dec) data bytes (up to 8 bytes, space-delimeted)
 TRUE_INLINE void USB_sendstrCANcommand(char *txt){
+    if(CAN->MSR & CAN_MSR_INAK){
+        USB_sendstr("CAN bus is off, try to restart it\n");
+        return;
+    }
     CAN_message *msg = parseCANmsg(txt);
     if(!msg) return;
-    uint32_t N = 1000000;
+    uint32_t N = 5;
     while(CAN_BUSY == can_send(msg->data, msg->length, msg->ID)){
         if(--N == 0) break;
     }
 }
 
 TRUE_INLINE void CANini(char *txt){
-    txt = omit_spaces(txt);
     uint32_t N;
     char *n = getnum(txt, &N);
     if(txt == n){
@@ -318,6 +321,17 @@ TRUE_INLINE void list_filters(){
     }
 }
 
+TRUE_INLINE void setfloodt(char *s){
+    uint32_t N;
+    s = omit_spaces(s);
+    char *n = getnum(s, &N);
+    if(s == n || N == 0){
+        USB_sendstr("t="); printu(floodT); USB_putbyte('\n');
+        return;
+    }
+    floodT = N - 1;
+}
+
 /**
  * @brief add_filter - add/modify filter
  * @param str - string in format "bank# FIFO# mode num0 .. num3"
@@ -414,10 +428,12 @@ const char *helpmsg =
     "https://github.com/eddyem/stm32samples/tree/master/F0-nolib/usbcan_ringbuffer build#" BUILD_NUMBER " @ " BUILD_DATE "\n"
     "'a' - add ID to ignore list (max 10 IDs)\n"
     "'b' - reinit CAN with given baudrate\n"
+    "'c' - get CAN status\n"
     "'d' - delete ignore list\n"
     "'D' - activate DFU mode\n"
+    "'e' - get CAN errcodes\n"
     "'f' - add/delete filter, format: bank# FIFO# mode(M/I) num0 [num1 [num2 [num3]]]\n"
-    "'F' - USB_sendstr/clear flood message: F ID byte0 ... byteN\n"
+    "'F' - send/clear flood message: F ID byte0 ... byteN\n"
     "'I' - reinit CAN\n"
     "'l' - list all active filters\n"
     "'o' - turn LEDs OFF\n"
@@ -425,9 +441,21 @@ const char *helpmsg =
     "'p' - print ignore buffer\n"
     "'P' - pause/resume in packets displaying\n"
     "'R' - software reset\n"
-    "'s/S' - USB_sendstr data over CAN: s ID byte0 .. byteN\n"
+    "'s/S' - send data over CAN: s ID byte0 .. byteN\n"
+    "'t' - change flood period (>=1ms)\n"
     "'T' - get time from start (ms)\n"
 ;
+
+TRUE_INLINE void getcanstat(){
+    USB_sendstr("CAN_MSR=");
+    printuhex(CAN->MSR);
+    USB_sendstr("\nCAN_TSR=");
+    printuhex(CAN->TSR);
+    USB_sendstr("\nCAN_RF0R=");
+    printuhex(CAN->RF0R);
+    USB_sendstr("\nCAN_RF1R=");
+    printuhex(CAN->RF1R);
+}
 
 /**
  * @brief cmd_parser - command parsing
@@ -436,36 +464,47 @@ const char *helpmsg =
  */
 void cmd_parser(char *txt){
     char _1st = txt[0];
+    ++txt;
     /*
      * parse long commands here
      */
     switch(_1st){
         case 'a':
-            addIGN(txt + 1);
+            addIGN(txt);
             goto eof;
         break;
         case 'b':
-            CANini(txt + 1);
+            CANini(txt);
             goto eof;
         break;
         case 'f':
-            add_filter(txt + 1);
+            add_filter(txt);
             goto eof;
         break;
         case 'F':
-            set_flood(parseCANmsg(txt + 1));
+            set_flood(parseCANmsg(txt));
             goto eof;
         break;
         case 's':
         case 'S':
-            USB_sendstrCANcommand(txt + 1);
+            USB_sendstrCANcommand(txt);
+            goto eof;
+        break;
+        case 't':
+            setfloodt(txt);
             goto eof;
         break;
     }
-    if(txt[1] != '\n') *txt = '?'; // help for wrong message length
+    if(*txt != '\n') _1st = '?'; // help for wrong message length
     switch(_1st){
+        case 'c':
+            getcanstat();
+        break;
         case 'd':
             IgnSz = 0;
+        break;
+        case 'e':
+            printCANerr();
         break;
         case 'D':
             USB_sendstr("Go into DFU mode\n");

@@ -21,17 +21,14 @@
 #include "proto.h"
 #include "usb.h"
 
-#include <string.h> // memcpy
-
 // circular buffer for  received messages
 static CAN_message messages[CAN_INMESSAGE_SIZE];
 static uint8_t first_free_idx = 0;    // index of first empty cell
 static int8_t first_nonfree_idx = -1; // index of first data cell
 static uint16_t oldspeed = 100; // speed of last init
+uint32_t floodT = FLOOD_PERIOD_MS-1; // flood period in ms
 
-#ifdef EBUG
 static uint32_t last_err_code = 0;
-#endif
 static CAN_status can_status = CAN_STOP;
 
 static void can_process_fifo(uint8_t fifo_num);
@@ -65,7 +62,7 @@ static int CAN_messagebuf_push(CAN_message *msg){
         return 1; // no free space
     }
     if(first_nonfree_idx < 0) first_nonfree_idx = 0;  // first message in empty buffer
-    memcpy(&messages[first_free_idx++], msg, sizeof(CAN_message));
+    messages[first_free_idx++] = *msg;
     // need to roll?
     if(first_free_idx == CAN_INMESSAGE_SIZE) first_free_idx = 0;
     return 0;
@@ -146,9 +143,7 @@ void CAN_setup(uint16_t speed){
     /* (13) Set error interrupts enable */
     CAN->MCR |= CAN_MCR_INRQ; /* (1) */
     while((CAN->MSR & CAN_MSR_INAK)!=CAN_MSR_INAK) /* (2) */
-    {
         if(--tmout == 0) break;
-    }
     CAN->MCR &=~ CAN_MCR_SLEEP; /* (3) */
     CAN->MCR |= CAN_MCR_ABOM; /* allow automatically bus-off */
 
@@ -174,6 +169,36 @@ void CAN_setup(uint16_t speed){
     can_status = CAN_READY;
 }
 
+void printCANerr(){
+    if(!last_err_code) last_err_code = CAN->ESR;
+    if(!last_err_code){
+        USB_sendstr("No errors\n");
+        return;
+    }
+    USB_sendstr("Receive error counter: ");
+    printu((last_err_code & CAN_ESR_REC)>>24);
+    USB_sendstr("\nTransmit error counter: ");
+    printu((last_err_code & CAN_ESR_TEC)>>16);
+    USB_sendstr("\nLast error code: ");
+    int lec = (last_err_code & CAN_ESR_LEC) >> 4;
+    const char *errmsg = "No";
+    switch(lec){
+        case 1: errmsg = "Stuff"; break;
+        case 2: errmsg = "Form"; break;
+        case 3: errmsg = "Ack"; break;
+        case 4: errmsg = "Bit recessive"; break;
+        case 5: errmsg = "Bit dominant"; break;
+        case 6: errmsg = "CRC"; break;
+        case 7: errmsg = "(set by software)"; break;
+    }
+    USB_sendstr(errmsg); USB_sendstr(" error\n");
+    if(last_err_code & CAN_ESR_BOFF) USB_sendstr("Bus off ");
+    if(last_err_code & CAN_ESR_EPVF) USB_sendstr("Passive error limit ");
+    if(last_err_code & CAN_ESR_EWGF) USB_sendstr("Error counter limit");
+    last_err_code = 0;
+    USB_putbyte('\n');
+}
+
 void can_proc(){
 #ifdef EBUG
     if(last_err_code){
@@ -193,27 +218,7 @@ void can_proc(){
     IWDG->KR = IWDG_REFRESH;
     if(CAN->ESR & (CAN_ESR_BOFF | CAN_ESR_EPVF | CAN_ESR_EWGF)){ // much errors - restart CAN BUS
         USB_sendstr("\nToo much errors, restarting CAN!\n");
-        USB_sendstr("Receive error counter: ");
-        printu((CAN->ESR & CAN_ESR_REC)>>24);
-        USB_sendstr("\nTransmit error counter: ");
-        printu((CAN->ESR & CAN_ESR_TEC)>>16);
-        USB_sendstr("\nLast error code: ");
-        int lec = (CAN->ESR & CAN_ESR_LEC) >> 4;
-        const char *errmsg = "No";
-        switch(lec){
-            case 1: errmsg = "Stuff"; break;
-            case 2: errmsg = "Form"; break;
-            case 3: errmsg = "Ack"; break;
-            case 4: errmsg = "Bit recessive"; break;
-            case 5: errmsg = "Bit dominant"; break;
-            case 6: errmsg = "CRC"; break;
-            case 7: errmsg = "(set by software)"; break;
-        }
-        USB_sendstr(errmsg); USB_sendstr(" error\n");
-        if(CAN->ESR & CAN_ESR_BOFF) USB_sendstr("Bus off ");
-        if(CAN->ESR & CAN_ESR_EPVF) USB_sendstr("Passive error limit ");
-        if(CAN->ESR & CAN_ESR_EWGF) USB_sendstr("Error counter limit");
-        USB_putbyte('\n');
+        printCANerr();
         // request abort for all mailboxes
         CAN->TSR |= CAN_TSR_ABRQ0 | CAN_TSR_ABRQ1 | CAN_TSR_ABRQ2;
         // reset CAN bus
@@ -222,7 +227,7 @@ void can_proc(){
         CAN_setup(0);
     }
     static uint32_t lastFloodTime = 0;
-    if(flood_msg && (Tms - lastFloodTime) > (FLOOD_PERIOD_MS-1)){ // flood every ~5ms
+    if(flood_msg && (Tms - lastFloodTime) > (floodT)){ // flood every ~5ms
         lastFloodTime = Tms;
         can_send(flood_msg->data, flood_msg->length, flood_msg->ID);
     }
@@ -285,7 +290,21 @@ CAN_status can_send(uint8_t *msg, uint8_t len, uint16_t target_id){
 void set_flood(CAN_message *msg){
     if(!msg) flood_msg = NULL;
     else{
-        memcpy(&loc_flood_msg, msg, sizeof(CAN_message));
+#ifdef EBUG
+        USB_sendstr("flood msg: #");
+        printuhex(msg->ID);
+        for(uint8_t ctr = 0; ctr < msg->length; ++ctr){
+            USB_putbyte(' ');
+            printuhex(msg->data[ctr]);
+        }
+        USB_putbyte('\n');
+#endif
+        // I meet strange problems with `loc_flood_msg = *msg` and system memcpy, so..
+        loc_flood_msg.ID = msg->ID;
+        loc_flood_msg.length = msg->length;
+        *((uint32_t*)loc_flood_msg.data) = *((uint32_t*)msg->data);
+        if(loc_flood_msg.length > 4)
+            *((uint32_t*)&loc_flood_msg.data[4]) = *((uint32_t*)&msg->data[4]);
         flood_msg = &loc_flood_msg;
     }
 }
@@ -364,3 +383,4 @@ void cec_can_isr(){
 #endif
     }
 }
+

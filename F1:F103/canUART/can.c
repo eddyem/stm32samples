@@ -30,6 +30,7 @@ static CAN_message messages[CAN_INMESSAGE_SIZE];
 static uint8_t first_free_idx = 0;    // index of first empty cell
 static int8_t first_nonfree_idx = -1; // index of first data cell
 static uint16_t oldspeed = 100; // speed of last init
+uint32_t floodT = FLOOD_PERIOD_MS-1; // flood period in ms
 
 static uint32_t last_err_code = 0;
 static CAN_status can_status = CAN_STOP;
@@ -229,7 +230,7 @@ void can_proc(){
         CAN_setup(0);
     }
     static uint32_t lastFloodTime = 0;
-    if(flood_msg && (Tms - lastFloodTime) > (FLOOD_PERIOD_MS-1)){ // flood every ~5ms
+    if(flood_msg && (Tms - lastFloodTime) > (floodT)){ // flood every ~5ms
         lastFloodTime = Tms;
         can_send(flood_msg->data, flood_msg->length, flood_msg->ID);
     }

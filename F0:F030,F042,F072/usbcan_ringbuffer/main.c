@@ -68,7 +68,7 @@ int main(void){
                     USB_sendstr(" #");
                     printuhex(can_mesg->ID);
                     for(uint8_t ctr = 0; ctr < len; ++ctr){
-                        USB_putbyte('\n');
+                        USB_putbyte(' ');
                         printuhex(can_mesg->data[ctr]);
                     }
                     USB_putbyte('\n');

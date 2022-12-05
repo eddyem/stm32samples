@@ -27,6 +27,7 @@
 
 // incoming message buffer size
 #define CAN_INMESSAGE_SIZE  (8)
+extern uint32_t floodT;
 
 // CAN message
 typedef struct{

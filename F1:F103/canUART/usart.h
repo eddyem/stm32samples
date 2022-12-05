@@ -19,16 +19,16 @@
 #pragma once
 
 // input and output buffers size
-#define UARTBUFSZI  (128)
-#define UARTBUFSZO  (128)
+#define UARTBUFSZI  (256)
+#define UARTBUFSZO  (1024)
 
 #define usartrx()  (usart_linerdy)
 #define usartovr() (usart_bufovr)
 
 extern volatile int usart_txrdy;
 
-void usart_transmit();
+int usart_transmit();
 void usart_setup();
 int usart_getline(char **line);
-void usart_send(const char *str);
-void usart_putchar(const char ch);
+int usart_send(const char *str);
+int usart_putchar(const char ch);

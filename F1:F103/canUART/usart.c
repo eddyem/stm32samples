@@ -53,11 +53,18 @@ int usart_getline(char **line){
 }
 
 // transmit current tbuf and swap buffers
-void usart_transmit(){
+int usart_transmit(){
     register int l = odatalen[tbufno];
-    if(!l) return;
-    uint32_t tmout = 16000000;
-    while(!usart_txrdy){if(--tmout == 0) return;}; // wait for previos buffer transmission
+    if(!l) return 0;
+    uint32_t tmout = 1600000;
+/*tbuf[tbufno][0] = '*';
+tbuf[tbufno][1] = '0' + tbufno;
+tbuf[tbufno][l-1] = '*';
+tbuf[tbufno][l-2] = '0' + tbufno;*/
+    while(!usart_txrdy){
+        IWDG->KR = IWDG_REFRESH;
+        if(--tmout == 0) return 0;
+    }; // wait for previos buffer transmission
     usart_txrdy = 0;
     odatalen[tbufno] = 0;
     DMA1_Channel4->CCR &= ~DMA_CCR_EN;
@@ -65,18 +72,27 @@ void usart_transmit(){
     DMA1_Channel4->CNDTR = l;
     DMA1_Channel4->CCR |= DMA_CCR_EN;
     tbufno = !tbufno;
+    return l;
 }
 
-void usart_putchar(const char ch){
-    if(odatalen[tbufno] == UARTBUFSZO) usart_transmit();
-    tbuf[tbufno][odatalen[tbufno]++] = ch;
-}
-
-void usart_send(const char *str){
-    while(*str){
-        if(odatalen[tbufno] == UARTBUFSZO) usart_transmit();
-        tbuf[tbufno][odatalen[tbufno]++] = *str++;
+int usart_putchar(const char ch){
+    if(odatalen[tbufno] == UARTBUFSZO){
+        if(!usart_transmit()) return 0;
     }
+    tbuf[tbufno][odatalen[tbufno]++] = ch;
+    return 1;
+}
+
+int usart_send(const char *str){
+    int l = 0;
+    while(*str){
+        if(odatalen[tbufno] == UARTBUFSZO){
+            if(!usart_transmit()) return 0;
+        }
+        tbuf[tbufno][odatalen[tbufno]++] = *str++;
+        ++l;
+    }
+    return l;
 }
 
 /*
@@ -102,7 +118,7 @@ void usart_setup(){
     NVIC_EnableIRQ(DMA1_Channel4_IRQn);
     NVIC_SetPriority(USART1_IRQn, 0);
     // setup usart1
-    USART1->BRR = 72000000 / 115200;
+    USART1->BRR = 72000000 / 921600;
     USART1->CR1 = USART_CR1_TE | USART_CR1_RE | USART_CR1_UE; // 1start,8data,nstop; enable Rx,Tx,USART
     while(!(USART1->SR & USART_SR_TC)){if(--tmout == 0) break;} // polling idle frame Transmission
     USART1->SR = 0; // clear flags
@@ -116,15 +132,15 @@ void usart1_isr(){
     if(USART1->SR & USART_SR_RXNE){ // RX not emty - receive next char
         uint8_t rb = USART1->DR;
         if(idatalen[rbufno] < UARTBUFSZI){ // put next char into buf
-            rbuf[rbufno][idatalen[rbufno]++] = rb;
             if(rb == '\n'){ // got newline - line ready
+                rbuf[rbufno][idatalen[rbufno]] = 0;
                 usart_linerdy = 1;
                 dlen = idatalen[rbufno];
                 recvdata = rbuf[rbufno];
                 // prepare other buffer
                 rbufno = !rbufno;
                 idatalen[rbufno] = 0;
-            }
+            }else rbuf[rbufno][idatalen[rbufno]++] = rb;
         }else{ // buffer overrun
             usart_bufovr = 1;
             idatalen[rbufno] = 0;

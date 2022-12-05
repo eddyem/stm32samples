@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include "hardware.h"
+#include <stdint.h>
 
 // amount of filter banks in STM32F0
 #define STM32F0FBANKNO      28
@@ -27,6 +27,8 @@
 
 // incoming message buffer size
 #define CAN_INMESSAGE_SIZE  (8)
+
+extern uint32_t floodT;
 
 // CAN message
 typedef struct{
@@ -50,6 +52,7 @@ void CAN_setup(uint16_t speed);
 
 CAN_status can_send(uint8_t *msg, uint8_t len, uint16_t target_id);
 void can_proc();
+void printCANerr();
 
 CAN_message *CAN_messagebuf_pop();
 
