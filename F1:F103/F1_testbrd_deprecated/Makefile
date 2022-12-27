@@ -4,11 +4,11 @@ BOOTSPEED	?= 115200
 # MCU FAMILY
 FAMILY		?= F1
 # MCU code
-MCU			?= F103x6
+MCU			?= F103x8
 # density (stm32f10x.h, lines 70-84)
-DENSITY 	?= LD
+DENSITY 	?= MD
 # change this linking script depending on particular MCU model,
-LDSCRIPT	?= stm32f103x6.ld
+LDSCRIPT	?= stm32f103x8.ld
 # debug
 #DEFS		= -DEBUG
 

@@ -24,31 +24,29 @@
 #ifndef __HARDWARE_H__
 #define __HARDWARE_H__
 
-#include <stm32f1.h>
+#include "stm32f1.h"
 
-#if 0
-#ifndef CONCAT
-#define CONCAT(a,b)     a ## b
-#endif
-#ifndef STR_HELPER
-#define STR_HELPER(s)   #s
-#endif
-#ifndef STR
-#define STR(s)          STR_HELPER(s)
-#endif
+// LEDS: 0 - PA0, 1 - PA4
+// LED0 - blinking each second
+#define LED0_port   GPIOA
+#define LED0_pin    (1<<0)
+// LED1 - PWM
+#define LED1_port   GPIOA
+#define LED1_pin    (1<<4)
 
-// PWM LEDS
-#define SET_LED_PWM3(ch, N) do{TIM3->CCR ## ch = (uint32_t)N;}while(0)
-#define GET_LED_PWM3(ch)    (uint8_t)(TIM3->CCR ## ch)
-#define SET_LED_PWM1(N)     do{TIM1->CCR1 = (uint32_t)N;}while(0)
-#define GET_LED_PWM1()      (uint8_t)(TIM1->CCR1)
-#endif
+// Buttons' state: PA14 (1)/PA15 (0)
+#define GET_BTN0()  ((GPIOA->IDR & (1<<15)) ? 0 : 1)
+#define GET_BTN1()  ((GPIOA->IDR & (1<<14)) ? 0 : 1)
 
 // USB pullup (not used in STM32F0x2!) - PA13
 #define USBPU_port  GPIOA
-#define USBPU_pin   (1<<15)
+#define USBPU_pin   (1<<13)
 #define USBPU_ON()  pin_clear(USBPU_port, USBPU_pin)
 #define USBPU_OFF() pin_set(USBPU_port, USBPU_pin)
+
+#define LED_blink(x)    pin_toggle(x ## _port, x ## _pin)
+#define LED_on(x)       pin_clear(x ## _port, x ## _pin)
+#define LED_off(x)      pin_set(x ## _port, x ## _pin)
 
 void hw_setup();
 

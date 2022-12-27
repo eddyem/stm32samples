@@ -20,7 +20,6 @@
  */
 #include "stm32f1.h"
 #include "usart.h"
-#include "usb.h"
 
 extern volatile uint32_t Tms;
 static volatile int idatalen[2] = {0,0}; // received data line length (including '\n')
@@ -53,13 +52,10 @@ int usart_getline(char **line){
 
 // transmit current tbuf and swap buffers
 void transmit_tbuf(){
-    //uint32_t tmout = 72000000;
-    while(!txrdy);
-    //while(!txrdy){if(--tmout == 0) return;}; // wait for previos buffer transmission
+    uint32_t tmout = 72000;
+    while(!txrdy){if(--tmout == 0) return;}; // wait for previos buffer transmission
     register int l = odatalen[tbufno];
     if(!l) return;
-    //USND("\n\nUTX:\n"); USB_send((uint8_t*)tbuf[tbufno], odatalen[tbufno]);
-    //USND("\n\n\n");
     txrdy = 0;
     odatalen[tbufno] = 0;
     DMA1_Channel4->CCR &= ~DMA_CCR_EN;
@@ -70,12 +66,13 @@ void transmit_tbuf(){
 }
 
 void usart_putchar(const char ch){
-    if(odatalen[tbufno] == UARTBUFSZO) transmit_tbuf();
+    for(int i = 0; odatalen[tbufno] == UARTBUFSZO && i < 1024; ++i) transmit_tbuf();
     tbuf[tbufno][odatalen[tbufno]++] = ch;
 }
 
 void usart_send(const char *str){
-    while(*str){
+    uint32_t x = 512;
+    while(*str && --x){
         if(odatalen[tbufno] == UARTBUFSZO){
             transmit_tbuf();
             continue;
@@ -158,6 +155,91 @@ void usart1_isr(){
             tmout = 0;
             #endif
         }
+    }
+}
+
+// return string buffer with val
+char *u2str(uint32_t val){
+    static char bufa[11];
+    char bufb[10];
+    int l = 0, bpos = 0;
+    if(!val){
+        bufa[0] = '0';
+        l = 1;
+    }else{
+        while(val){
+            bufb[l++] = val % 10 + '0';
+            val /= 10;
+        }
+        int i;
+        bpos += l;
+        for(i = 0; i < l; ++i){
+            bufa[--bpos] = bufb[i];
+        }
+    }
+    bufa[l + bpos] = 0;
+    return bufa;
+}
+// print 32bit unsigned int
+void printu(uint32_t val){
+    usart_send(u2str(val));
+}
+
+// print 32bit unsigned int as hex
+void printuhex(uint32_t val){
+    usart_send("0x");
+    uint8_t *ptr = (uint8_t*)&val + 3;
+    int i, j;
+    for(i = 0; i < 4; ++i, --ptr){
+        for(j = 1; j > -1; --j){
+            register uint8_t half = (*ptr >> (4*j)) & 0x0f;
+            if(half < 10) usart_putchar(half + '0');
+            else usart_putchar(half - 10 + 'a');
+        }
+    }
+}
+
+// dump memory buffer
+void hexdump(uint8_t *arr, uint16_t len){
+    for(uint16_t l = 0; l < len; ++l, ++arr){
+        for(int16_t j = 1; j > -1; --j){
+            register uint8_t half = (*arr >> (4*j)) & 0x0f;
+            if(half < 10) usart_putchar(half + '0');
+            else usart_putchar(half - 10 + 'a');
+        }
+        if(l % 16 == 15) usart_putchar('\n');
+        else if((l & 3) == 3) usart_putchar(' ');
+    }
+}
+
+// dump USB memory (uint16_t mapped as uint32_t); len - in uint16_t
+void hexdump16(uint16_t *arr, uint16_t len){
+    for(uint16_t l = 0; l < len; ++l, ++arr){
+        uint16_t x = arr[l];
+        for(int8_t i = 0; i < 2; ++i){
+            for(int16_t j = 1; j > -1; --j){
+                register uint8_t half = (x >> (4*j+8*i)) & 0x0f;
+                if(half < 10) usart_putchar(half + '0');
+                else usart_putchar(half - 10 + 'a');
+            }
+        }
+        if(l % 8 == 7) usart_putchar('\n');
+        else if(l & 1) usart_putchar(' ');
+    }
+}
+
+void hexdump32(uint32_t *arr, uint16_t len){
+    for(uint16_t l = 0; l < len; ++l, ++arr){
+        uint16_t x = (uint16_t)arr[l];
+        for(int8_t i = 0; i < 2; ++i){
+            for(int16_t j = 1; j > -1; --j){
+                register uint8_t half = (x >> (4*j+8*i)) & 0x0f;
+                if(half < 10) usart_putchar(half + '0');
+                else usart_putchar(half - 10 + 'a');
+            }
+        }
+        if(l % 8 == 7) usart_putchar('\n');
+        else if(l & 1) usart_putchar(' ');
     }
 }
 

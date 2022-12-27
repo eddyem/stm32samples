@@ -149,7 +149,7 @@ void WEAK __attribute__ ((naked)) __attribute__ ((noreturn)) reset_handler(void)
   char *src = &_ldata;
 
   // enable 8-byte stack alignment to comply with AAPCS
-  SCB->CCR |= 0x00000200;
+  //SCB->CCR |= 0x00000200;
 
   // copy initialized variables data
   while ( dst < &_edata ) { *dst++ = *src++; }

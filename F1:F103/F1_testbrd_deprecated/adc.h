@@ -19,25 +19,11 @@
 #define ADC_H
 #include "stm32f1.h"
 
-#define NUMBER_OF_ADC_CHANNELS (5)
+#define NUMBER_OF_ADC_CHANNELS (3)
 
-// channels for Tsens and Vref
-#define CHTSENS (3)
-#define CHVREF  (4)
-
-/**
- * @brief ADC_array - array for ADC channels with median filtering:
- * 0 - Rvar
- * 1 - Rvar/2
- * 2 - AIN5
- * 3 - internal Tsens
- * 4 - Vref
- */
 extern uint16_t ADC_array[];
-
 int32_t getMCUtemp();
 uint32_t getVdd();
 uint16_t getADCval(int nch);
-uint32_t getADCvoltage(int nch);
 
 #endif // ADC_H

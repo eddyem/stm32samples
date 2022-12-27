@@ -57,5 +57,11 @@ int usart_getline(char **line);
 void usart_send(const char *str);
 void newline();
 void usart_putchar(const char ch);
+char *u2str(uint32_t val);
+void printu(uint32_t val);
+void printuhex(uint32_t val);
+void hexdump(uint8_t *arr, uint16_t len);
+void hexdump16(uint16_t *arr, uint16_t len);
+void hexdump32(uint32_t *arr, uint16_t len);
 
 #endif // __USART_H__

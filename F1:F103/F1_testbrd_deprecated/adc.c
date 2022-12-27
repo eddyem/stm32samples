@@ -18,6 +18,12 @@
 
 #include "adc.h"
 
+/**
+ * @brief ADC_array - array for ADC channels with median filtering:
+ * 0 - Rvar
+ * 1 - internal Tsens
+ * 2 - Vref
+ */
 uint16_t ADC_array[NUMBER_OF_ADC_CHANNELS*9];
 
 /**
@@ -45,19 +51,11 @@ uint16_t getADCval(int nch){
 #undef PIX_SWAP
 }
 
-// get voltage @input nch (1/100V)
-uint32_t getADCvoltage(int nch){
-    uint32_t v = getADCval(nch);
-    v *= getVdd();
-    v /= 0xfff; // 12bit ADC
-    return v;
-}
-
 // return MCU temperature (degrees of celsius * 10)
 int32_t getMCUtemp(){
     // Temp = (V25 - Vsense)/Avg_Slope + 25
     // V_25 = 1.45V,  Slope = 4.3e-3
-    int32_t Vsense = getVdd() * getADCval(CHTSENS);
+    int32_t Vsense = getVdd() * getADCval(1);
     int32_t temperature = 593920 - Vsense; // 593920 == 145*4096
     temperature /= 172; // == /(4096*10*4.3e-3), 10 - to convert from *100 to *10
     temperature += 250;
@@ -67,6 +65,6 @@ int32_t getMCUtemp(){
 // return Vdd * 100 (V)
 uint32_t getVdd(){
     uint32_t vdd = 120 * 4096; // 1.2V
-    vdd /= getADCval(CHVREF);
+    vdd /= getADCval(2);
     return vdd;
 }

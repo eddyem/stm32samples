@@ -1,6 +1,6 @@
 /*
  *                                                                                                  geany_encoding=koi8-r
- * hardware.h
+ * usb.h
  *
  * Copyright 2018 Edward V. Emelianov <eddy@sao.ru, edward.emelianoff@gmail.com>
  *
@@ -21,35 +21,17 @@
  *
  */
 #pragma once
-#ifndef __HARDWARE_H__
-#define __HARDWARE_H__
+#ifndef __USB_H__
+#define __USB_H__
 
-#include <stm32f1.h>
+#include "hardware.h"
 
-#if 0
-#ifndef CONCAT
-#define CONCAT(a,b)     a ## b
-#endif
-#ifndef STR_HELPER
-#define STR_HELPER(s)   #s
-#endif
-#ifndef STR
-#define STR(s)          STR_HELPER(s)
-#endif
+#define BUFFSIZE   (64)
 
-// PWM LEDS
-#define SET_LED_PWM3(ch, N) do{TIM3->CCR ## ch = (uint32_t)N;}while(0)
-#define GET_LED_PWM3(ch)    (uint8_t)(TIM3->CCR ## ch)
-#define SET_LED_PWM1(N)     do{TIM1->CCR1 = (uint32_t)N;}while(0)
-#define GET_LED_PWM1()      (uint8_t)(TIM1->CCR1)
-#endif
+void USB_setup();
+void usb_proc();
+void USB_send(const uint8_t *buf, uint16_t len);
+void USB_send_blk(const uint8_t *buf, uint16_t len);
+uint8_t USB_receive(uint8_t *buf);
 
-// USB pullup (not used in STM32F0x2!) - PA13
-#define USBPU_port  GPIOA
-#define USBPU_pin   (1<<15)
-#define USBPU_ON()  pin_clear(USBPU_port, USBPU_pin)
-#define USBPU_OFF() pin_set(USBPU_port, USBPU_pin)
-
-void hw_setup();
-
-#endif // __HARDWARE_H__
+#endif // __USB_H__
