@@ -2049,7 +2049,7 @@
     (property "Reference" "R9" (id 0) (at 264.795 31.0423 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
-    (property "Value" "510" (id 1) (at 264.795 33.5792 0)
+    (property "Value" "5k1" (id 1) (at 264.795 33.5792 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
     (property "Footprint" "Resistor_SMD:R_0603_1608Metric_Pad0.98x0.95mm_HandSolder" (id 2) (at 261.239 31.877 90)
@@ -2280,7 +2280,7 @@
     (property "Reference" "R6" (id 0) (at 258.191 33.5823 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
-    (property "Value" "510" (id 1) (at 258.191 36.1192 0)
+    (property "Value" "5k1" (id 1) (at 258.191 36.1192 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
     (property "Footprint" "Resistor_SMD:R_0603_1608Metric_Pad0.98x0.95mm_HandSolder" (id 2) (at 254.635 34.417 90)
@@ -3149,7 +3149,7 @@
       (reference "R5") (unit 1) (value "47") (footprint "Resistor_SMD:R_0603_1608Metric_Pad0.98x0.95mm_HandSolder")
     )
     (path "/2b839956-a8c9-479f-9818-2877dd954a12"
-      (reference "R6") (unit 1) (value "510") (footprint "Resistor_SMD:R_0603_1608Metric_Pad0.98x0.95mm_HandSolder")
+      (reference "R6") (unit 1) (value "5k1") (footprint "Resistor_SMD:R_0603_1608Metric_Pad0.98x0.95mm_HandSolder")
     )
     (path "/85dfcd72-2976-4d87-9959-5aebbe7e8fe1"
       (reference "R7") (unit 1) (value "22") (footprint "Resistor_SMD:R_0603_1608Metric_Pad0.98x0.95mm_HandSolder")
@@ -3158,7 +3158,7 @@
       (reference "R8") (unit 1) (value "22") (footprint "Resistor_SMD:R_0603_1608Metric_Pad0.98x0.95mm_HandSolder")
     )
     (path "/0dfec3b5-9ee1-43b4-8ea0-660a4b8bc85e"
-      (reference "R9") (unit 1) (value "510") (footprint "Resistor_SMD:R_0603_1608Metric_Pad0.98x0.95mm_HandSolder")
+      (reference "R9") (unit 1) (value "5k1") (footprint "Resistor_SMD:R_0603_1608Metric_Pad0.98x0.95mm_HandSolder")
     )
     (path "/a7aad451-d177-4036-941b-7ff8e9fd7d3a"
       (reference "U1") (unit 1) (value "STM32F103C6Tx") (footprint "Package_QFP:LQFP-48_7x7mm_P0.5mm")
