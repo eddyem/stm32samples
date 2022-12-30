@@ -1,0 +1,17 @@
+canon.c
+canon.h
+hardware.c
+hardware.h
+main.c
+proto.c
+proto.h
+ringbuffer.c
+ringbuffer.h
+spi.c
+spi.h
+usb.c
+usb.h
+usb_lib.c
+usb_lib.h
+usbhw.c
+usbhw.h
