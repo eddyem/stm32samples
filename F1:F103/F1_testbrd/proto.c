@@ -1,6 +1,6 @@
 /*
- * This file is part of the F0testbrd project.
- * Copyright 2021 Edward V. Emelianov <edward.emelianoff@gmail.com>.
+ * This file is part of the F1_testbrd project.
+ * Copyright 2022 Edward V. Emelianov <edward.emelianoff@gmail.com>.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,7 +17,7 @@
  */
 
 #include "adc.h"
-//#include "i2c.h"
+#include "i2c.h"
 #include "hardware.h"
 #include "proto.h"
 //#include "spi.h"
@@ -121,21 +121,20 @@ static void hexdump(uint8_t *arr, uint16_t len){
     }
 }
 
-static uint8_t i2cinited = 0;
+static uint8_t i2cinited = 1;
 static inline char *setupI2C(char *buf){
     buf = omit_spaces(buf);
     if(*buf < '0' || *buf > '2') return "Wrong speed";
-    //i2c_setup(*buf - '0');
+    i2c_setup(*buf - '0');
     i2cinited = 1;
     return "OK";
 }
 
-static uint8_t I2Caddress = 0;
 static inline char *saI2C(char *buf){
     uint32_t addr;
     if(!getnum(buf, &addr) || addr > 0x7f) return "Wrong address";
-    I2Caddress = (uint8_t) addr << 1;
     USND("I2Caddr="); USB_sendstr(uhex2str(addr)); USND("\n");
+    i2c_set_addr7(addr);
     return "OK";
 }
 static inline void rdI2C(char *buf){
@@ -151,27 +150,19 @@ static inline void rdI2C(char *buf){
     if(!nxt || buf == nxt || N > LOCBUFFSZ){
         USND("Bad length\n");
         return;
-    }/*
-    if(!read_i2c_reg(I2Caddress, reg, locBuffer, N)){
+    }
+    if(!read_i2c_reg(reg, locBuffer, N)){
         USND("Error reading I2C\n");
         return;
-    }*/
+    }
     if(N == 0){ USND("OK"); return; }
     USND("Register "); USB_sendstr(uhex2str(reg)); USND(":\n");
     hexdump(locBuffer, N);
 }
 static inline char *wrI2C(char *buf){
     uint16_t N = readNnumbers(buf);
-    //if(!write_i2c(I2Caddress, locBuffer, N)) return "Error writing I2C";
+    if(!write_i2c(locBuffer, N)) return "Error writing I2C";
     if(N < 1) return "bad";
-    return "OK";
-}
-
-static inline char *DAC_chval(char *buf){
-    uint32_t D;
-    char *nxt = getnum(buf, &D);
-    if(!nxt || nxt == buf || D > 4095) return "Wrong DAC amplitude\n";
-    DAC->DHR12R1 = D;
     return "OK";
 }
 
@@ -223,7 +214,7 @@ const char *helpstring =
         "A - get ADC values\n"
         "dx - change DAC lowcal to x\n"
         "g - get PWM values\n"
-        "i0..3 - setup I2C with lowest..highest speed (5.8, 10 and 100kHz)\n"
+        "i0..2 - setup I2C with lowest..highest speed (5.8, 10 and 100kHz)\n"
         "Ia addr - set I2C address\n"
         "Iw bytes - send bytes (hex/dec/oct/bin) to I2C\n"
         "Ir reg n - read n bytes from I2C reg\n"
@@ -268,21 +259,18 @@ const char *parse_cmd(char *buf){
             return TIM3pwm(buf);
         break;
         case 'd':
-            return DAC_chval(buf + 1);
+            return "DAC not supported @ F103";
         case 'i':
             return setupI2C(buf + 1);
         break;
         case 'I':
-            return "TODO";
-            /*
             if(!i2cinited) return "Init I2C first";
             buf = omit_spaces(buf + 1);
             if(*buf == 'a') return saI2C(buf + 1);
             else if(*buf == 'r'){ rdI2C(buf + 1); return NULL; }
             else if(*buf == 'w') return wrI2C(buf + 1);
-            else if(*buf == 's') i2c_init_scan_mode();
+            else if(*buf == 's'){ i2c_init_scan_mode(); return "Start scan\n";}
             else return "Command should be 'Ia', 'Iw', 'Ir' or 'Is'\n";
-            */
         break;
         case 'p':
         case 'P':
@@ -320,7 +308,7 @@ const char *parse_cmd(char *buf){
         break;
         case 'R':
             USND("Soft reset\n");
-            //SEND("Soft reset\n");
+            SEND("Soft reset\n");
             NVIC_SystemReset();
         break;
         case 'S':
@@ -345,7 +333,7 @@ const char *parse_cmd(char *buf){
         break;
         case 'W':
             USND("Wait for reboot\n");
-            //SEND("Wait for reboot\n");
+            SEND("Wait for reboot\n");
             while(1){nop();};
         break;
         default: // help

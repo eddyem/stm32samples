@@ -3,6 +3,8 @@ adc.c
 adc.h
 hardware.c
 hardware.h
+i2c.c
+i2c.h
 main.c
 pl2303.bin
 proto.c

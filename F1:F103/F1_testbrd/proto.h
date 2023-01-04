@@ -1,6 +1,6 @@
 /*
- * This file is part of the F0testbrd project.
- * Copyright 2021 Edward V. Emelianov <edward.emelianoff@gmail.com>.
+ * This file is part of the F1_testbrd project.
+ * Copyright 2022 Edward V. Emelianov <edward.emelianoff@gmail.com>.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,10 +15,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#pragma once
-#ifndef PROTO_H__
-#define PROTO_H__
 
+#pragma once
 #include <stm32f1.h>
 
 extern volatile uint8_t ADCmon;
@@ -35,4 +33,3 @@ char *uhex2str(uint32_t val);
 char *getnum(const char *txt, uint32_t *N);
 char *omit_spaces(const char *buf);
 
-#endif // PROTO_H__

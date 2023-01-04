@@ -16,26 +16,30 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#pragma once
 #include <stm32f1.h>
 
-#define NUMBER_OF_ADC_CHANNELS (5)
+#define I2C_ADDREND  (0x80)
 
-// channels for Tsens and Vref
-#define CHTSENS (3)
-#define CHVREF  (4)
+typedef enum{
+    VERYLOW_SPEED,
+    LOW_SPEED,
+    HIGH_SPEED,
+    CURRENT_SPEED
+} I2C_SPEED;
 
-/**
- * @brief ADC_array - array for ADC channels with median filtering:
- * 0 - Rvar
- * 1 - Rvar/2
- * 2 - AIN5
- * 3 - internal Tsens
- * 4 - Vref
- */
-extern uint16_t ADC_array[];
+extern I2C_SPEED curI2Cspeed;
+extern volatile uint8_t I2C_scan_mode;
 
-int32_t getMCUtemp();
-uint32_t getVdd();
-uint16_t getADCval(int nch);
-uint32_t getADCvoltage(int nch);
+// timeout of I2C bus in ms
+#define I2C_TIMEOUT             (100)
+
+void i2c_setup(I2C_SPEED speed);
+void i2c_set_addr7(uint8_t addr);
+uint8_t read_i2c(uint8_t *data, uint8_t nbytes);
+uint8_t read_i2c_reg(uint8_t reg, uint8_t *data, uint8_t nbytes);
+uint8_t write_i2c(uint8_t *data, uint8_t nbytes);
+
+void i2c_init_scan_mode();
+int i2c_scan_next_addr(uint8_t *addr);
 

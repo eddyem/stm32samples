@@ -1,11 +1,10 @@
 /*
- * main.c
+ * This file is part of the F1_testbrd project.
+ * Copyright 2022 Edward V. Emelianov <edward.emelianoff@gmail.com>.
  *
- * Copyright 2017 Edward V. Emelianoff <eddy@sao.ru, edward.emelianoff@gmail.com>
- *
- * This program is free software; you can redistribute it and/or modify
+ * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -14,13 +13,12 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- * MA 02110-1301, USA.
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #include "adc.h"
 #include "hardware.h"
+#include "i2c.h"
 #include "proto.h"
 #include "usart.h"
 #include "usb.h"
@@ -47,8 +45,13 @@ int main(void){
     usart_setup();
     SysTick_Config(72000);
 
-    SEND("Hello! I'm ready.\n");
+    USBPU_OFF();
+    USB_setup();
+    USBPU_ON();
 
+    i2c_setup(LOW_SPEED);
+
+    SEND("Hello! I'm ready.\n");
     if(RCC->CSR & RCC_CSR_IWDGRSTF){ // watchdog reset occured
         SEND("WDGRESET=1\n");
     }
@@ -56,10 +59,6 @@ int main(void){
         SEND("SOFTRESET=1\n");
     }
     RCC->CSR |= RCC_CSR_RMVF; // remove reset flags
-
-    USBPU_OFF();
-    USB_setup();
-    USBPU_ON();
 
     while (1){
         IWDG->KR = IWDG_REFRESH; // refresh watchdog
@@ -81,7 +80,6 @@ int main(void){
             lastT = Tms;
             transmit_tbuf(); // non-blocking transmission of data from UART buffer every 0.5s
         }
-        /*
         if(I2C_scan_mode){
             uint8_t addr;
             int ok = i2c_scan_next_addr(&addr);
@@ -92,7 +90,6 @@ int main(void){
                 USND(") - found device\n");
             }
         }
-        */
         usb_proc();
         int r = 0;
         char *txt, *ans;

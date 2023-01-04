@@ -10,7 +10,7 @@ DENSITY 	?= LD
 # change this linking script depending on particular MCU model,
 LDSCRIPT	?= stm32f103x6.ld
 # debug
-#DEFS		= -DEBUG
+DEFS		= -DEBUG
 
 INDEPENDENT_HEADERS=
 
