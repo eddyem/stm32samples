@@ -1,5 +1,3 @@
-/* Linker script for STM32F030f4, 16K flash, 4K RAM. */
-
 /* Define memory regions. */
 MEMORY
 {

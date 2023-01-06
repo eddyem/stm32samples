@@ -29,8 +29,9 @@
 
 /************************* RCC *************************/
 // reset clocking registers
-TRUE_INLINE void sysreset(void){ // do nothing
+/* TRUE_INLINE void sysreset(void){ // do nothing
 }
+*/
 
 /*
  * R=2..8, Q=2..8, P=2..32; N=8..86, M=1..8
@@ -40,22 +41,57 @@ TRUE_INLINE void sysreset(void){ // do nothing
  * fpllp = fvco/P (<=122MHz) -> P(72)=2
  * fpllq = fvco/Q (<=128MHz) -> Q(48)=3
  * fpllr = fvco/R (<=64MHz)  -> R(48)=3
- * AHB prescaler (72MHz) = 144/72 = 2
- * APB prescaler (72MHz) = 72/72 = 1
+ * AHB prescaler (36MHz) = 72/36 = 2
+ * APB prescaler (36MHz) = 36/36 = 1
+ *
+ * fp=fq=fr=fsys=64MHz => M=1, N=8, P=1, Q=1, R=1
 */
+#ifndef PLLN
+#define PLLN    16
+#endif
+#ifndef PLLM
+#define PLLM    1
+#endif
+#ifndef PLLP
+#define PLLP    2
+#endif
+#ifndef PLLQ
+#define PLLQ    2
+#endif
+#ifndef PLLR
+#define PLLR    2
+#endif
+
 #define WAITWHILE(x)  do{StartUpCounter = 0; while((x) && (++StartUpCounter < 0xffffff)){nop();}}while(0)
-TRUE_INLINE void StartHSE(){
+TRUE_INLINE void StartHSEHSI(int isHSE){
     uint32_t StartUpCounter;
     RCC->CR &= ~RCC_CR_PLLON; // disable PLL
     WAITWHILE(RCC->CR & RCC_CR_PLLRDY); // wait while PLL on
-    RCC->CR |= RCC_CR_HSEON;
-    WAITWHILE(!(RCC->CIFR & RCC_CIFR_HSERDYF)); // wait while HSE isn't on
-    RCC->CICR = RCC_CICR_HSERDYC; // clear rdy flag
+    if(isHSE){
+        RCC->CR |= RCC_CR_HSEON;
+        WAITWHILE(!(RCC->CR & RCC_CR_HSERDY)); // wait while HSE isn't on
+    }else RCC->CR |= RCC_CR_HSION;
+    RCC->APBENR1 |= RCC_APBENR1_PWREN;
+    // Enable high performance mode
+    PWR->CR1 = PWR_CR1_VOS_0;
+    WAITWHILE(PWR->SR2 & PWR_SR2_VOSF);
+    if(isHSE){
+        RCC->PLLCFGR = ((PLLR-1)<<29) | ((PLLQ-1)<<25) | ((PLLP-1)<<17) | (PLLN<<8) | ((PLLM-1)<<4)
+                | RCC_PLLCFGR_PLLREN | RCC_PLLCFGR_PLLPEN /* | RCC_PLLCFGR_PLLQEN */
+                | RCC_PLLCFGR_PLLSRC_HSE;
+    }else{ // 64MHz from HSI16
+        RCC->PLLCFGR = (8<<8) | (1<<4)
+                | RCC_PLLCFGR_PLLREN | RCC_PLLCFGR_PLLPEN /* | RCC_PLLCFGR_PLLQEN */
+                | RCC_PLLCFGR_PLLSRC_HSI;
+    }
     RCC->CR |= RCC_CR_PLLON;
-    RCC->PLLCFGR = (3<<29) | (3<<25) | (2<<17) | (18<<8) | (1<<4) | RCC_PLLCFGR_PLLSRC_HSE;
-    RCC->CFGR = RCC_CFGR_HPRE_3 | RCC_CFGR_SW_1; // set sysclk switch to pll, set prescalers
-    WAITWHILE((RCC->CFGR & RCC_CFGR_SWS) != RCC_CFGR_SWS_1); // wait until status changed
+    WAITWHILE(!(RCC->CR & RCC_CR_PLLRDY));
+    FLASH->ACR |= FLASH_ACR_PRFTEN | FLASH_ACR_ICEN | FLASH_ACR_LATENCY_1;
+    RCC->CFGR = RCC_CFGR_SW_1; // set sysclk switch to pll
 }
+
+#define StartHSE()  do{StartHSEHSI(1);}while(0)
+#define StartHSI()  do{StartHSEHSI(0);}while(0)
 
 /************************* GPIO *************************/
 

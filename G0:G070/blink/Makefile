@@ -5,7 +5,7 @@ BOOTSPEED	?= 115200
 FAMILY		= G0
 # MCU code
 MCU			= G070xx
-DEFS		= -DEBUG -g
+DEFS		= -DEBUG -g3
 # change this linking script depending on particular MCU model,
 # for example, if you have STM32F103VBT6, you should write:
 LDSCRIPT	= stm32g070xb.ld
@@ -134,4 +134,10 @@ boot: $(BIN)
 	@echo "  LOAD $(BIN) through bootloader"
 	$(STBOOT) -b$(BOOTSPEED) $(BOOTPORT) -w $(BIN)
 
-.PHONY: clean flash boot
+openocd:
+	openocd -f openocd.cfg
+dbg:
+	arm-none-eabi-gdb $(ELF) -ex 'target remote localhost:3333' -ex 'monitor reset halt'
+
+
+.PHONY: clean flash boot openocd dbg
