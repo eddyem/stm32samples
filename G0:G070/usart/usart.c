@@ -39,6 +39,8 @@ char *usart3_getline(int *wasbo){
     return rbuf[!rbufno]; // current buffer is in filling stage, return old - filled - buffer
 }
 
+#define USART_BRR(speed)    ((64000000 + speed/2) / speed)
+
 // USART3 @ PD8 (Tx) and PD9 (Rx) - both AF0
 void usart3_setup(){
     RCC->IOPENR |= RCC_IOPENR_GPIODEN; // enable PD
@@ -51,7 +53,7 @@ void usart3_setup(){
     // enable USART3 clocking
     RCC->APBENR1 |= RCC_APBENR1_USART3EN;
     // baudrate 115200
-    USART3->BRR = 640000 / 1152;
+    USART3->BRR = USART_BRR(115200);
     // eol character: '/n'
     USART3->CR2 = USART_CR2_ADD_VAL('\n');
     // enable DMA transmission
