@@ -32,71 +32,43 @@ void null_handler(void);
  * symbols. */
 #if defined STM32G0
 #include "stm32g0xx.h"
-
-#define NVIC_WWDG_IRQ 0
-#define NVIC_RTC_IRQ 2
-#define NVIC_FLASH_IRQ 3
-#define NVIC_RCC_IRQ 4
-#define NVIC_EXTI0_1_IRQ 5
-#define NVIC_EXTI2_3_IRQ 6
-#define NVIC_EXTI4_15_IRQ 7
-#define NVIC_DMA1_CHANNEL1_IRQ 9
-#define NVIC_DMA1_CHANNEL2_3_IRQ 10
-#define NVIC_DMAMUX_IRQ 11
-#define NVIC_ADC_COMP_IRQ 12
-#define NVIC_TIM1_BRK_UP_TRG_COM_IRQ 13
-#define NVIC_TIM1_CC_IRQ 14
-#define NVIC_TIM3_4_IRQ 16
-#define NVIC_TIM6_DAC_IRQ 17
-#define NVIC_TIM7_IRQ 18
-#define NVIC_TIM14_IRQ 19
-#define NVIC_TIM15_IRQ 20
-#define NVIC_TIM16_IRQ 21
-#define NVIC_TIM17_IRQ 22
-#define NVIC_I2C1_IRQ 23
-#define NVIC_I2C2_3_IRQ 24
-#define NVIC_SPI1_IRQ 25
-#define NVIC_SPI2_3_IRQ 26
-#define NVIC_USART1_IRQ 27
-#define NVIC_USART2_IRQ 28
-#define NVIC_USART3_6_IRQ 29
-#define NVIC_CEC_CAN_IRQ 30
-#define NVIC_USB_IRQ 31
+#else
+    #error "Not supported STM32 family"
+#endif
 
 #define NVIC_IRQ_COUNT 32
 
+#if defined STM32G070xx
 #define IRQ_HANDLERS \
-    [NVIC_WWDG_IRQ] = wwdg_isr, \
-    [NVIC_RTC_IRQ] = rtc_isr, \
-    [NVIC_FLASH_IRQ] = flash_isr, \
-    [NVIC_RCC_IRQ] = rcc_isr, \
-    [NVIC_EXTI0_1_IRQ] = exti0_1_isr, \
-    [NVIC_EXTI2_3_IRQ] = exti2_3_isr, \
-    [NVIC_EXTI4_15_IRQ] = exti4_15_isr, \
-    [NVIC_DMA1_CHANNEL1_IRQ] = dma1_channel1_isr, \
-    [NVIC_DMA1_CHANNEL2_3_IRQ] = dma1_channel2_3_isr, \
-    [NVIC_DMAMUX_IRQ] = dmamux_isr, \
-    [NVIC_ADC_COMP_IRQ] = adc_comp_isr, \
-    [NVIC_TIM1_BRK_UP_TRG_COM_IRQ] = tim1_brk_up_trg_com_isr, \
-    [NVIC_TIM1_CC_IRQ] = tim1_cc_isr, \
-    [NVIC_TIM3_4_IRQ] = tim3_4_isr, \
-    [NVIC_TIM6_DAC_IRQ] = tim6_dac_isr, \
-    [NVIC_TIM7_IRQ] = tim7_isr, \
-    [NVIC_TIM14_IRQ] = tim14_isr, \
-    [NVIC_TIM15_IRQ] = tim15_isr, \
-    [NVIC_TIM16_IRQ] = tim16_isr, \
-    [NVIC_TIM17_IRQ] = tim17_isr, \
-    [NVIC_I2C1_IRQ] = i2c1_isr, \
-    [NVIC_I2C2_3_IRQ] = i2c2_3_isr, \
-    [NVIC_SPI1_IRQ] = spi1_isr, \
-    [NVIC_SPI2_3_IRQ] = spi2_3_isr, \
-    [NVIC_USART1_IRQ] = usart1_isr, \
-    [NVIC_USART2_IRQ] = usart2_isr, \
-    [NVIC_USART3_6_IRQ] = usart3_6_isr, \
-    [NVIC_CEC_CAN_IRQ] = cec_can_isr, \
-    [NVIC_USB_IRQ] = usb_isr
+    [WWDG_IRQn] = wwdg_isr, \
+    [RTC_TAMP_IRQn] = rtc_isr, \
+    [FLASH_IRQn] = flash_isr, \
+    [RCC_IRQn] = rcc_isr, \
+    [EXTI0_1_IRQn] = exti0_1_isr, \
+    [EXTI2_3_IRQn] = exti2_3_isr, \
+    [EXTI4_15_IRQn] = exti4_15_isr, \
+    [DMA1_Channel1_IRQn] = dma1_channel1_isr, \
+    [DMA1_Channel2_3_IRQn] = dma1_channel2_3_isr, \
+    [DMA1_Ch4_7_DMAMUX1_OVR_IRQn] = dmamux_isr, \
+    [ADC1_IRQn] = adc_comp_isr, \
+    [TIM1_BRK_UP_TRG_COM_IRQn] = tim1_brk_up_trg_com_isr, \
+    [TIM1_CC_IRQn] = tim1_cc_isr, \
+    [TIM3_IRQn] = tim3_4_isr, \
+    [TIM6_IRQn] = tim6_dac_isr, \
+    [TIM7_IRQn] = tim7_isr, \
+    [TIM14_IRQn] = tim14_isr, \
+    [TIM15_IRQn] = tim15_isr, \
+    [TIM16_IRQn] = tim16_isr, \
+    [TIM17_IRQn] = tim17_isr, \
+    [I2C1_IRQn] = i2c1_isr, \
+    [I2C2_IRQn] = i2c2_3_isr, \
+    [SPI1_IRQn] = spi1_isr, \
+    [SPI2_IRQn] = spi2_3_isr, \
+    [USART1_IRQn] = usart1_isr, \
+    [USART2_IRQn] = usart2_isr, \
+    [USART3_4_IRQn] = usart3_4_isr
 #else
-    #error "Not supported STM32 family"
+    #error "Not supported STM32G0 MCU"
 #endif
 
 
@@ -121,15 +93,6 @@ vector_table_t vector_table __attribute__ ((section(".vector_table"))) = {
     .reset = reset_handler,
     .nmi = nmi_handler,
     .hard_fault = hard_fault_handler,
-
-/* Those are defined only on CM3 or CM4 */
-#if defined(__ARM_ARCH_7M__) || defined(__ARM_ARCH_7EM__)
-    .memory_manage_fault = mem_manage_handler,
-    .bus_fault = bus_fault_handler,
-    .usage_fault = usage_fault_handler,
-    .debug_monitor = debug_monitor_handler,
-#endif
-
     .sv_call = sv_call_handler,
     .pend_sv = pend_sv_handler,
     .systick = sys_tick_handler,
@@ -171,19 +134,11 @@ void null_handler(void)
     /* Do nothing. */
 }
 
-
 #pragma weak nmi_handler = null_handler
 #pragma weak hard_fault_handler = blocking_handler
 #pragma weak sv_call_handler = null_handler
 #pragma weak pend_sv_handler = null_handler
 #pragma weak sys_tick_handler = null_handler
-
-#if defined(__ARM_ARCH_7M__) || defined(__ARM_ARCH_7EM__)
-#pragma weak mem_manage_handler = blocking_handler
-#pragma weak bus_fault_handler = blocking_handler
-#pragma weak usage_fault_handler = blocking_handler
-#pragma weak debug_monitor_handler = null_handler
-#endif
 
 #if defined STM32G0
 #pragma weak wwdg_isr = blocking_handler
@@ -212,7 +167,7 @@ void null_handler(void)
 #pragma weak spi2_3_isr = blocking_handler
 #pragma weak usart1_isr = blocking_handler
 #pragma weak usart2_isr = blocking_handler
-#pragma weak usart3_6_isr = blocking_handler
+#pragma weak usart3_4_isr = blocking_handler
 #pragma weak cec_can_isr = blocking_handler
 #pragma weak usb_isr = blocking_handler
 #endif

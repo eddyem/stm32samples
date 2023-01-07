@@ -81,7 +81,8 @@ TRUE_INLINE void StartHSEHSI(int isHSE){
                 | RCC_PLLCFGR_PLLSRC_HSE;
     }else{ // 64MHz from HSI16
         RCC->PLLCFGR = (8<<8) | (1<<4)
-                | RCC_PLLCFGR_PLLREN | RCC_PLLCFGR_PLLPEN /* | RCC_PLLCFGR_PLLQEN */
+                // enable P and/or Q if need
+                | RCC_PLLCFGR_PLLREN  /* | RCC_PLLCFGR_PLLPEN  | RCC_PLLCFGR_PLLQEN */
                 | RCC_PLLCFGR_PLLSRC_HSI;
     }
     RCC->CR |= RCC_CR_PLLON;

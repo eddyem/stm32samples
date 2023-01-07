@@ -33,13 +33,6 @@ void WEAK sv_call_handler(void);
 void WEAK pend_sv_handler(void);
 void WEAK sys_tick_handler(void);
 
-#if defined(__ARM_ARCH_7M__) || defined(__ARM_ARCH_7EM__)
-void WEAK mem_manage_handler(void);
-void WEAK bus_fault_handler(void);
-void WEAK usage_fault_handler(void);
-void WEAK debug_monitor_handler(void);
-#endif
-
 #if defined STM32G0
 void WEAK wwdg_isr(void);
 void WEAK rtc_isr(void);
@@ -67,7 +60,7 @@ void WEAK spi1_isr(void);
 void WEAK spi2_3_isr(void);
 void WEAK usart1_isr(void);
 void WEAK usart2_isr(void);
-void WEAK usart3_6_isr(void);
+void WEAK usart3_4_isr(void);
 void WEAK cec_can_isr(void);
 void WEAK usb_isr(void);
 #else
