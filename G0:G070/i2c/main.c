@@ -75,5 +75,6 @@ int main(void){
         if(wasbo) usart3_sendstr("Buffer overflow occured @ last message\n");
         if(rcv) rcv = parse_cmd(rcv);
         if(rcv) usart3_sendstr(rcv);
+        i2c_have_DMA_Rx(); // check if there's DMA Rx complete
     }
 }

@@ -22,6 +22,8 @@
 
 #define USND(t)  do{usart3_sendstr(t);}while(0)
 
+extern volatile int u3txrdy, u3rxrdy;
+
 void usart3_setup();
 int usart3_send_blocking(const char *str, int len);
 int usart3_send(const char *str, int len);

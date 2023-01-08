@@ -17,6 +17,7 @@
  */
 
 #pragma once
+#include <stdint.h>
 
 #define I2C_ADDREND  (0x80)
 
@@ -38,6 +39,12 @@ uint8_t read_i2c(uint8_t addr, uint8_t *data, uint8_t nbytes);
 uint8_t read_i2c_reg(uint8_t addr, uint8_t reg, uint8_t *data, uint8_t nbytes);
 uint8_t read_i2c_reg16(uint8_t addr, uint16_t reg16, uint8_t *data, uint8_t nbytes);
 uint8_t write_i2c(uint8_t addr, uint8_t *data, uint8_t nbytes);
+uint8_t write_i2c_dma(uint8_t addr, uint8_t *data, uint8_t nbytes);
+uint8_t read_i2c_dma(uint8_t addr, uint8_t nbytes);
+
+void i2c_bufdudump();
+void i2c_have_DMA_Rx();
+int i2cdma_haderr();
 
 void i2c_init_scan_mode();
 int i2c_scan_next_addr(uint8_t *addr);

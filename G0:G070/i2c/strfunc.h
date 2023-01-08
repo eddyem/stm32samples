@@ -26,3 +26,4 @@ char *i2str(int32_t i);
 char *uhex2str(uint32_t val);
 char *getnum(const char *txt, uint32_t *N);
 char *omit_spaces(const char *buf);
+void mymemcpy(char *dest, const char *src, int len);

@@ -19,13 +19,14 @@
 #include <stm32g0.h>
 #include <string.h>
 
+#include "strfunc.h" // mymemcpy
 #include "usart.h"
 
 // RX/TX DMA->CCR without EN flag
 #define DMARXCCR    (DMA_CCR_MINC | DMA_CCR_TCIE | DMA_CCR_TEIE)
 #define DMATXCCR    (DMA_CCR_MINC | DMA_CCR_DIR | DMA_CCR_TCIE | DMA_CCR_TEIE)
 
-static int txrdy = 1, rxrdy = 0; // transmission done, next line received
+volatile int u3txrdy = 1, u3rxrdy = 0; // transmission done, next line received
 static int bufovr = 0, wasbufovr = 0; // Rx buffer overflow or error flag -> delete next line
 static int rbufno = 0, tbufno = 0; // current buf number
 static char rbuf[2][UARTBUFSZ], tbuf[2][UARTBUFSZ]; // receive & transmit buffers
@@ -34,8 +35,8 @@ static int rxlen[2] = {0}, txlen[2] = {0};
 char *usart3_getline(int *wasbo){
     if(wasbo) *wasbo = wasbufovr;
     wasbufovr = 0;
-    if(!rxrdy) return NULL;
-    rxrdy = 0; // clear ready flag
+    if(!u3rxrdy) return NULL;
+    u3rxrdy = 0; // clear ready flag
     return rbuf[!rbufno]; // current buffer is in filling stage, return old - filled - buffer
 }
 
@@ -79,17 +80,13 @@ void usart3_setup(){
     NVIC_EnableIRQ(DMA1_Channel2_3_IRQn);
 }
 
-static void mymemcpy(char *dest, const char *src, int len){
-    while(len--) *dest++ = *src++;
-}
-
 int usart3_send(const char *str, int len){
     int rest = UARTBUFSZ - txlen[tbufno];
-    if(rest == 0 && !txrdy) return 0; // buffer is full while transmission in process
+    if(rest == 0 && !u3txrdy) return 0; // buffer is full while transmission in process
     if(len < rest) rest = len;
     mymemcpy(tbuf[tbufno] + txlen[tbufno], str, rest);
     txlen[tbufno] += rest;
-    if(!txrdy) return rest;
+    if(!u3txrdy) return rest;
     if(txlen[tbufno] == UARTBUFSZ) usart3_sendbuf();
     if(rest == len) return len;
     len -= rest;
@@ -109,13 +106,13 @@ int usart3_sendstr(const char *str){
  * @brief usart3_sendbuf - send current buffer
  */
 void usart3_sendbuf(){
-    if(!txrdy || txlen[tbufno] == 0) return;
+    if(!u3txrdy || txlen[tbufno] == 0) return;
     // set up DMA
     DMA1_Channel2->CCR = DMATXCCR;
     DMA1_Channel2->CMAR = (uint32_t)&tbuf[tbufno];
     DMA1_Channel2->CNDTR = txlen[tbufno];
     USART3->ICR = USART_ICR_TCCF; // clear TC flag
-    txrdy = 0;
+    u3txrdy = 0;
     // activate DMA
     DMA1_Channel2->CCR = DMATXCCR | DMA_CCR_EN;
     tbufno = !tbufno; // swap buffers
@@ -124,7 +121,7 @@ void usart3_sendbuf(){
 
 // return amount of bytes sents
 int usart3_send_blocking(const char *str, int len){
-    if(!txrdy) return 0;
+    if(!u3txrdy) return 0;
     USART3->CR1 |= USART_CR1_TE;
     for(int i = 0; i < len; ++i){
         while(!(USART3->ISR & USART_ISR_TXE_TXFNF));
@@ -138,7 +135,7 @@ void usart3_4_isr(){
     if(USART3->ISR & USART_ISR_CMF){ // got '\n' @ USART3
         DMA1_Channel3->CCR = DMARXCCR;
         if(!bufovr){ // forget about broken line @ buffer overflow
-            rxrdy = 1;
+            u3rxrdy = 1;
             int l = UARTBUFSZ - DMA1_Channel3->CNDTR - 1; // strlen
             rxlen[rbufno] = l;
             rbuf[rbufno][l] = 0;
@@ -159,7 +156,7 @@ void usart3_4_isr(){
 void dma1_channel2_3_isr(){
     uint32_t isr = DMA1->ISR;
     if(isr & (DMA_ISR_TCIF2 | DMA_ISR_TEIF2)){ // transfer complete or error
-        txrdy = 1;
+        u3txrdy = 1;
         //DMA1_Channel2->CCR = DMATXCCR;
     }
     if(isr & (DMA_ISR_TCIF3 | DMA_ISR_TEIF3)){ // receive complete or error -> buffer overflow
@@ -170,5 +167,5 @@ void dma1_channel2_3_isr(){
             DMA1_Channel3->CCR = DMARXCCR | DMA_CCR_EN;
         }
     }
-    DMA1->IFCR = 0xffffffff; // clear all flags
+    DMA1->IFCR = 0xff0; // clear all flags for 2&3
 }

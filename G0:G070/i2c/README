@@ -1,2 +1,16 @@
-I2C @
+I2C @ PB6/PB7
 Scan available addresses, read/write data directly or over DMA
+
+Proto:
+
+i0..2 - setup I2C with lowest..highest speed (7.7, 10 and 100kHz)
+Ia addr - set I2C address
+Ig - dump content of I2Cbuf
+Iw bytes - send bytes (hex/dec/oct/bin) to I2C
+IW bytes - the same over DMA
+Ir reg n - read n bytes from I2C reg
+I2 reg16 n - read n bytes from 16-bit register
+In n - just read n bytes
+IN n - the same but with DMA
+Is - scan I2C bus
+U - send long buffer over USART
