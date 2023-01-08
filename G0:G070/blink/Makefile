@@ -5,7 +5,7 @@ BOOTSPEED	?= 115200
 FAMILY		= G0
 # MCU code
 MCU			= G070xx
-DEFS		= -DEBUG -g3
+#DEFS		= -DEBUG -g3
 # change this linking script depending on particular MCU model,
 # for example, if you have STM32F103VBT6, you should write:
 LDSCRIPT	= stm32g070xb.ld
@@ -22,6 +22,7 @@ PREFIX		?= /opt/bin/arm-none-eabi
 
 RM			:= rm -f
 RMDIR		:= rmdir
+SIZE        := $(PREFIX)-size
 CC			:= $(PREFIX)-gcc
 LD			:= $(PREFIX)-gcc
 AR			:= $(PREFIX)-ar
@@ -80,7 +81,7 @@ LIST	:= $(OBJDIR)/$(BINARY).list
 BIN		:= $(BINARY).bin
 HEX		:= $(BINARY).hex
 
-all: bin list
+all: bin list size
 
 elf: $(ELF)
 bin: $(BIN)
@@ -125,6 +126,8 @@ clean:
 	$(RM) $(OBJS) $(DEPS) $(ELF) $(HEX) $(LIST) $(OBJDIR)/*.map
 	@rmdir $(OBJDIR) 2>/dev/null || true
 
+size: $(ELF)
+	$(SIZE) $(ELF)
 
 flash: $(BIN)
 	@echo "  FLASH  $(BIN)"
@@ -140,4 +143,4 @@ dbg:
 	arm-none-eabi-gdb $(ELF) -ex 'target remote localhost:3333' -ex 'monitor reset halt'
 
 
-.PHONY: clean flash boot openocd dbg
+.PHONY: clean flash boot size openocd dbg

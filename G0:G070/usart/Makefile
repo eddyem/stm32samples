@@ -5,7 +5,7 @@ BOOTSPEED	?= 115200
 FAMILY		= G0
 # MCU code
 MCU			= G070xx
-DEFS		= -DEBUG -g3
+#DEFS		= -DEBUG -g3
 # change this linking script depending on particular MCU model,
 # for example, if you have STM32F103VBT6, you should write:
 LDSCRIPT	= stm32g070xb.ld
@@ -16,12 +16,23 @@ FP_FLAGS	?= -msoft-float
 ASM_FLAGS	= -mthumb -mcpu=cortex-m0plus -march=armv6-m -mtune=cortex-m0plus
 ARCH_FLAGS	= $(ASM_FLAGS) $(FP_FLAGS)
 
+# autoincremental version & build date
+VERSION_FILE = version.inc
+ifeq ($(shell test -e $(VERSION_FILE) && echo -n yes), yes)
+    NEXTVER := $(shell expr $$(awk '/#define BUILD_NUMBER/' $(VERSION_FILE) | tr -cd "[0-9]") + 1)
+else
+    NEXTVER := "1"
+endif
+
+BUILDDATE := $(shell date +%Y-%m-%d)
+
 ###############################################################################
 # Executables
 PREFIX		?= /opt/bin/arm-none-eabi
 
 RM			:= rm -f
 RMDIR		:= rmdir
+SIZE        := $(PREFIX)-size
 CC			:= $(PREFIX)-gcc
 LD			:= $(PREFIX)-gcc
 AR			:= $(PREFIX)-ar
@@ -80,7 +91,7 @@ LIST	:= $(OBJDIR)/$(BINARY).list
 BIN		:= $(BINARY).bin
 HEX		:= $(BINARY).hex
 
-all: bin list
+all: bin list size
 
 elf: $(ELF)
 bin: $(BIN)
@@ -96,6 +107,15 @@ $(OBJDIR):
 
 $(STARTUP): $(INC_DIR)/startup/vector.c
 	$(CC) $(CFLAGS) $(DEFS) $(INCLUDE) $(ARCH_FLAGS) -o $@ -c $<
+
+$(VERSION_FILE): *.[ch]
+	[ -f $(VERSION_FILE) ] || echo -e "#define BUILD_NUMBER \"0\"\n#define BUILD_DATE \"none\"" > $(VERSION_FILE)
+	@echo "  Generate version: $(NEXTVER) for date $(BUILDDATE)"
+	@sed -i "s/#define BUILD_NUMBER.*/#define BUILD_NUMBER \"$(NEXTVER)\"/" $(VERSION_FILE)
+	@sed -i "s/#define BUILD_DATE.*/#define BUILD_DATE \"$(BUILDDATE)\"/" $(VERSION_FILE)
+
+# Uncomment and rename file, which includes version.inc
+#$(OBJDIR)/proto.o: proto.c $(VERSION_FILE)
 
 $(OBJDIR)/%.o: %.c
 	@echo "  CC      $<"
@@ -125,6 +145,8 @@ clean:
 	$(RM) $(OBJS) $(DEPS) $(ELF) $(HEX) $(LIST) $(OBJDIR)/*.map
 	@rmdir $(OBJDIR) 2>/dev/null || true
 
+size: $(ELF)
+	$(SIZE) $(ELF)
 
 flash: $(BIN)
 	@echo "  FLASH  $(BIN)"
@@ -140,4 +162,4 @@ dbg:
 	arm-none-eabi-gdb $(ELF) -ex 'target remote localhost:3333' -ex 'monitor reset halt'
 
 
-.PHONY: clean flash boot openocd dbg
+.PHONY: clean flash boot size openocd dbg
