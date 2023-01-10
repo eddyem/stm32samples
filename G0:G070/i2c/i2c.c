@@ -59,6 +59,8 @@ void i2c_setup(I2C_SPEED speed){
             6 << (6 * 4) | 6 << (7 * 4);
     GPIOB->MODER = (GPIOB->MODER & ~(GPIO_MODER_MODE6 | GPIO_MODER_MODE7)) |
                     GPIO_MODER_MODER6_AF | GPIO_MODER_MODER7_AF;
+    GPIOB->PUPDR = (GPIOB->PUPDR & !(GPIO_PUPDR_PUPD6 | GPIO_PUPDR_PUPD7)) |
+            GPIO_PUPDR6_PU | GPIO_PUPDR7_PU; // pullup
     GPIOB->OTYPER |= GPIO_OTYPER_OT6 | GPIO_OTYPER_OT7; // both open-drain outputs
     // I2C (default timing from PCLK - 64MHz)
     RCC->APBENR1 |= RCC_APBENR1_I2C1EN; // clocking
@@ -142,7 +144,7 @@ static uint8_t write_i2cs(uint8_t addr, uint8_t *data, uint8_t nbytes, uint8_t s
                 return 0;
             }
             if(Tms - cntr > I2C_TIMEOUT){
-                USND("Timeout\n");
+                //USND("Timeout\n");
                 return 0;
             }
         }
@@ -198,11 +200,11 @@ static uint8_t read_i2cb(uint8_t addr, uint8_t *data, uint8_t nbytes, uint8_t bu
             IWDG->KR = IWDG_REFRESH;
             if(I2C1->ISR & I2C_ISR_NACKF){
                 I2C1->ICR |= I2C_ICR_NACKCF;
-                USND("NAK\n");
+                //USND("NAK\n");
                 return 0;
             }
             if(Tms - cntr > I2C_TIMEOUT){
-                USND("Timeout\n");
+                //USND("Timeout\n");
                 return 0;
             }
         }
@@ -261,7 +263,8 @@ int i2c_scan_next_addr(uint8_t *addr){
     /*while(!u3txrdy);
     USND("Addr: "); USND(uhex2str(i2caddr)); USND("\n");
     usart3_sendbuf();*/
-    if(!read_i2c_reg((i2caddr++)<<1, 0, NULL, 0)) return 0;
+    uint8_t byte;
+    if(!read_i2c((i2caddr++)<<1, &byte, 1)) return 0;
     return 1;
 }
 
