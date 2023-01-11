@@ -247,7 +247,9 @@ char *getnum(const char *txt, uint32_t *N){
     return nxt;
 }
 
+/*
 void mymemcpy(char *dest, const char *src, int len){
     if(len < 1) return;
     while(len--) *dest++ = *src++;
 }
+*/

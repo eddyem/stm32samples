@@ -19,7 +19,6 @@
 #include <stm32g0.h>
 #include <string.h>
 
-#include "strfunc.h" // mymemcpy
 #include "usart.h"
 
 // RX/TX DMA->CCR without EN flag
@@ -84,7 +83,7 @@ int usart3_send(const char *str, int len){
     int rest = UARTBUFSZ - txlen[tbufno];
     if(rest == 0 && !u3txrdy) return 0; // buffer is full while transmission in process
     if(len < rest) rest = len;
-    mymemcpy((char*)(tbuf[tbufno] + txlen[tbufno]), str, rest);
+    memcpy((char*)(tbuf[tbufno] + txlen[tbufno]), str, rest);
     txlen[tbufno] += rest;
     if(!u3txrdy) return rest;
     if(txlen[tbufno] == UARTBUFSZ) usart3_sendbuf();
@@ -92,7 +91,7 @@ int usart3_send(const char *str, int len){
     len -= rest;
     // now fill another - empty - buffer
     if(len > UARTBUFSZ) len = UARTBUFSZ;
-    mymemcpy((char*)tbuf[tbufno], str + rest, len);
+    memcpy((char*)tbuf[tbufno], str + rest, len);
     txlen[tbufno] = len;
     return rest + len;
 }

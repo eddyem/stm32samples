@@ -63,12 +63,12 @@ LIB_DIR		:= $(INC_DIR)/ld
 # C flags
 CFLAGS		+= -O2 -g -D__thumb2__=1 -MD -g -gdwarf-2
 CFLAGS		+= -Wall -Werror -Wextra -Wshadow 
-CFLAGS		+= -fno-common -ffunction-sections -fdata-sections -fno-stack-protector -fshort-enums
+CFLAGS		+= -fno-common -ffunction-sections -fdata-sections -fno-stack-protector -fshort-enums 
 CFLAGS		+=  $(ARCH_FLAGS)
 
 ###############################################################################
 # Linker flags
-LDFLAGS		+= -nostartfiles --static -nostdlibs --gc-sections --print-memory-usage
+LDFLAGS		+= -nostartfiles --static --gc-sections --print-memory-usage -specs=nano.specs 
 LDFLAGS		+= -L$(LIB_DIR) -L$(TOOLCHLIB)
 LDFLAGS		+= -T$(LDSCRIPT)
 

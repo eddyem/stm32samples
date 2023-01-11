@@ -63,12 +63,12 @@ LIB_DIR		:= $(INC_DIR)/ld
 # C flags
 CFLAGS		+= -O2 -g -D__thumb2__=1 -MD
 CFLAGS		+= -Wall -Werror -Wextra -Wshadow 
-CFLAGS		+= -fno-common -ffunction-sections -fdata-sections -fno-stack-protector
+CFLAGS		+= -fno-common -ffunction-sections -fdata-sections -fno-stack-protector 
 CFLAGS		+=  $(ARCH_FLAGS)
 
 ###############################################################################
 # Linker flags
-LDFLAGS		+= -nostartfiles --static -nostdlibs --gc-sections --print-memory-usage
+LDFLAGS		+= -nostartfiles --static -nostdlibs --gc-sections --print-memory-usage 
 LDFLAGS		+= -L$(LIB_DIR) -L$(TOOLCHLIB)
 LDFLAGS		+= -T$(LDSCRIPT)
 

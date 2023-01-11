@@ -70,7 +70,7 @@ LIB_DIR		:= $(INC_DIR)/ld
 CFLAGS		+= -g3 -gdwarf-2
 CFLAGS		+= -O2 -D__thumb2__=1 -MD
 CFLAGS		+= -Wall -Werror -Wextra -Wshadow 
-CFLAGS		+= -fshort-enums -ffunction-sections -fdata-sections
+CFLAGS		+= -fshort-enums -ffunction-sections -fdata-sections -flto
 #CFLAGS		+= -fno-common -ffunction-sections -fdata-sections -fno-stack-protector
 CFLAGS		+=  $(ARCH_FLAGS)
 
@@ -78,7 +78,7 @@ CFLAGS		+=  $(ARCH_FLAGS)
 # Linker flags
 #LDFLAGS		+= -nostartfiles --static -nostdlib  -specs=nosys.specs -specs=nano.specs
 LDFLAGS		+= $(ARCH_FLAGS)
-LDFLAGS		+= -specs=nosys.specs -specs=nano.specs
+LDFLAGS		+= -specs=nano.specs -flto
 LDFLAGS		+= -L$(LIB_DIR)
 #LDFLAGS		+= -L$(TOOLCHLIB)
 LDFLAGS		+= -T$(LDSCRIPT)

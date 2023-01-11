@@ -25,18 +25,18 @@
 #define DMARXCCR    (DMA_CCR_MINC | DMA_CCR_TCIE | DMA_CCR_TEIE)
 #define DMATXCCR    (DMA_CCR_MINC | DMA_CCR_DIR | DMA_CCR_TCIE | DMA_CCR_TEIE)
 
-static int txrdy = 1, rxrdy = 0; // transmission done, next line received
-static int bufovr = 0, wasbufovr = 0; // Rx buffer overflow or error flag -> delete next line
-static int rbufno = 0, tbufno = 0; // current buf number
-static char rbuf[2][UARTBUFSZ], tbuf[2][UARTBUFSZ]; // receive & transmit buffers
-static int rxlen[2] = {0}, txlen[2] = {0};
+static volatile int txrdy = 1, rxrdy = 0; // transmission done, next line received
+static volatile int bufovr = 0, wasbufovr = 0; // Rx buffer overflow or error flag -> delete next line
+static volatile int rbufno = 0, tbufno = 0; // current buf number
+static volatile char rbuf[2][UARTBUFSZ], tbuf[2][UARTBUFSZ]; // receive & transmit buffers
+static volatile int rxlen[2] = {0}, txlen[2] = {0};
 
 char *usart3_getline(int *wasbo){
     if(wasbo) *wasbo = wasbufovr;
     wasbufovr = 0;
     if(!rxrdy) return NULL;
     rxrdy = 0; // clear ready flag
-    return rbuf[!rbufno]; // current buffer is in filling stage, return old - filled - buffer
+    return (char*)rbuf[!rbufno]; // current buffer is in filling stage, return old - filled - buffer
 }
 
 #define USART_BRR(speed)    ((64000000 + speed/2) / speed)
@@ -87,7 +87,7 @@ int usart3_send(const char *str, int len){
     int rest = UARTBUFSZ - txlen[tbufno];
     if(rest == 0 && !txrdy) return 0; // buffer is full while transmission in process
     if(len < rest) rest = len;
-    mymemcpy(tbuf[tbufno] + txlen[tbufno], str, rest);
+    mymemcpy((char*)(tbuf[tbufno] + txlen[tbufno]), str, rest);
     txlen[tbufno] += rest;
     if(!txrdy) return rest;
     if(txlen[tbufno] == UARTBUFSZ) usart3_sendbuf();
@@ -95,7 +95,7 @@ int usart3_send(const char *str, int len){
     len -= rest;
     // now fill another - empty - buffer
     if(len > UARTBUFSZ) len = UARTBUFSZ;
-    mymemcpy(tbuf[tbufno], str + rest, len);
+    mymemcpy((char*)tbuf[tbufno], str + rest, len);
     txlen[tbufno] = len;
     return rest + len;
 }

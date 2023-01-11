@@ -17,6 +17,7 @@
  */
 
 #include <stm32g0.h>
+#include <string.h>
 #include "i2c.h"
 #include "strfunc.h"
 #include "usart.h"
@@ -24,6 +25,7 @@
 #define LOCBUFFSZ       (32)
 // local buffer for I2C data to send
 static uint8_t locBuffer[LOCBUFFSZ];
+extern volatile uint32_t Tms;
 
 const char *helpstring =
         "i0..2 - setup I2C with lowest..highest speed (7.7, 10 and 100kHz)\n"
@@ -36,6 +38,7 @@ const char *helpstring =
         "In n - just read n bytes\n"
         "IN n - the same but with DMA\n"
         "Is - scan I2C bus\n"
+        "T - print current Tms\n"
         "U - send long buffer over USART\n"
 ;
 
@@ -167,6 +170,11 @@ char *parse_cmd(char *buf){
     // "short" commands
     if(buf[1]) return buf; // echo wrong data
     switch(*buf){
+        case 'T':
+            usart3_sendstr("T=");
+            usart3_sendstr(u2str(Tms));
+            usart3_send("\n", 1);
+        break;
         case 'U':
             U3sendlong(longbuff);
         break;

@@ -17,7 +17,8 @@
  */
 
 #include <stm32g0.h>
-#include "strfunc.h" // mymemcpy
+#include <string.h>
+#include "strfunc.h" // hexdump
 #include "usart.h"
 #include "i2c.h"
 
@@ -166,7 +167,7 @@ uint8_t write_i2c(uint8_t addr, uint8_t *data, uint8_t nbytes){
 
 uint8_t write_i2c_dma(uint8_t addr, uint8_t *data, uint8_t nbytes){
     if(!data || nbytes < 1) return 0;
-    mymemcpy((char*)I2Cbuf, (char*)data, nbytes);
+    memcpy((char*)I2Cbuf, (char*)data, nbytes);
     if(isI2Cbusy()) return 0;
     i2cDMAsetup(1, nbytes);
     goterr = 0;

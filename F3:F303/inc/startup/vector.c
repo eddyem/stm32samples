@@ -798,7 +798,7 @@ typedef struct {
 
 extern unsigned _stack;
 
-vector_table_t vector_table __attribute__ ((section(".vector_table"))) = {
+vector_table_t vector_table __attribute__ ((used, section(".vector_table"))) = {
     .initial_sp_value = &_stack,
     .reset = reset_handler,
     .nmi = nmi_handler,
@@ -831,7 +831,7 @@ void WEAK __attribute__ ((naked)) __attribute__ ((noreturn)) reset_handler(void)
   char *src = &_ldata;
 
   // enable 8-byte stack alignment to comply with AAPCS
-  SCB->CCR |= 0x00000200;
+//  SCB->CCR |= 0x00000200;
 
   /* FPU settings ------------------------------------------------------------*/
   #if (__FPU_PRESENT == 1)

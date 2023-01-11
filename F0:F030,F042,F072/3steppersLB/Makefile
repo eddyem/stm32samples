@@ -61,13 +61,12 @@ CFLAGS		+= -O2 -g -MD -D__thumb2__=1
 CFLAGS		+= -Wall -Werror -Wextra -Wshadow -Wimplicit-function-declaration
 CFLAGS		+= -Wredundant-decls $(INCLUDE)
 # -Wmissing-prototypes -Wstrict-prototypes
-CFLAGS		+= -fno-common -ffunction-sections -fdata-sections
+CFLAGS		+= -fno-common -ffunction-sections -fdata-sections -flto
 
 ###############################################################################
 # Linker flags
 LDFLAGS		+= --static -nostartfiles -nostdlib
-LDFLAGS		+= -Wl,--gc-sections -Wl,--print-memory-usage 
-#--specs=nano.specs
+LDFLAGS		+= -Wl,--gc-sections -Wl,--print-memory-usage --specs=nano.specs -flto
 LDFLAGS		+= -L$(LIB_DIR)
 LDFLAGS		+= -T$(LDSCRIPT)
 LDFLAGS		+= -Wl,-Map=$(OBJDIR)/$(BINARY).map

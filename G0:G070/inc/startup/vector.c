@@ -88,7 +88,7 @@ typedef struct {
 
 extern unsigned _stack;
 
-vector_table_t vector_table __attribute__ ((section(".vector_table"))) = {
+vector_table_t vector_table __attribute__ ((used, section(".vector_table"))) = {
     .initial_sp_value = &_stack,
     .reset = reset_handler,
     .nmi = nmi_handler,
