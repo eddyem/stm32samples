@@ -550,11 +550,11 @@
     (uuid a8d88a79-02ba-43c8-9187-90c1c54dbd5f)
   )
 
-  (label "P3" (at 230.759 85.344 0)
+  (label "P3" (at 230.759 87.884 0)
     (effects (font (size 1.27 1.27)) (justify left bottom))
     (uuid 1ca97647-c473-4bdb-b53e-dfa9b5814daf)
   )
-  (label "P2" (at 230.759 87.884 0)
+  (label "P2" (at 230.759 85.344 0)
     (effects (font (size 1.27 1.27)) (justify left bottom))
     (uuid 3897f173-ff48-47dc-a91d-e3ee2c279498)
   )
@@ -1524,7 +1524,7 @@
       (reference "J7") (unit 1) (value "Prog") (footprint "Connector_PinSocket_1.27mm:PinSocket_1x06_P1.27mm_Vertical")
     )
     (path "/6595f7bf-be90-4ec5-9ee8-68919a05962c/8921e3b8-179f-454e-8cfd-6d917224d0b0"
-      (reference "J8") (unit 1) (value "USB_B") (footprint "Connector_USB:USB_B_OST_USB-B1HSxx_Horizontal")
+      (reference "J8") (unit 1) (value "USB_B") (footprint "Connector_USB:USB_B_TE_5787834_Vertical")
     )
     (path "/6595f7bf-be90-4ec5-9ee8-68919a05962c/61aa389c-dca9-4090-8791-3f89cf734c62"
       (reference "J9") (unit 1) (value "485{slash}CAN") (footprint "Connector_JST:JST_EH_B5B-EH-A_1x05_P2.50mm_Vertical")
