@@ -19,7 +19,7 @@
  * MA 02110-1301, USA.
  */
 
-#include "stm32f0.h"
+#include <stm32f0.h>
 
 static volatile uint32_t blink_ctr = 0;
 
