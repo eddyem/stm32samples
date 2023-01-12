@@ -1,0 +1,10 @@
+Simplest work with RTC
+
+Proto:
+
+t - print current Tms
+T - print current Time like 'Mon Jan 1 00:05:19 2001'
+
+
+Button press - print current time @ usart3
+
