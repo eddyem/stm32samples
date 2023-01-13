@@ -2,9 +2,11 @@ Simplest work with RTC
 
 Proto:
 
+C - set/print calibration ticks (-511..+512) to each 2^20 ticks
+Sd - set date (YY MM DD Weekday)
+St - set time (HH MM SS)
 t - print current Tms
-T - print current Time like 'Mon Jan 1 00:05:19 2001'
-
+T - print current Time
 
 Button press - print current time @ usart3
 

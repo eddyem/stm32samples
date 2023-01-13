@@ -24,6 +24,56 @@
 #define WAITWHILE(x)  do{register uint32_t StartUpCounter = 0; while((x) && (++StartUpCounter < 0xffffff)){nop();}}while(0)
 #endif
 
+static const uint8_t maxdays[12] = {31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+
+// i - in, r - rest of divide
+#if 0
+static uint16_t div10s(uint16_t i, uint16_t *r){ // divide by 10
+    uint32_t u = i;
+    u *= 52429;
+    u >>= 19;
+    if(r) *r = i - 10*u;
+    return (uint16_t)u;
+}
+#endif
+static uint8_t div10b(uint8_t i, uint8_t *r){ // divide by 10
+    uint32_t u = i;
+    u *= 52429;
+    u >>= 19;
+    if(r) *r = i - 10*u;
+    return (uint8_t)u;
+}
+
+static uint8_t DEC2BCD(uint8_t x){
+    uint8_t d, r;
+    d = div10b(x, &r);
+    return (d << 4 | r);
+}
+
+int rtc_setdate(rtc_t *d){
+    if(d->year > 99) return FALSE;
+    if(d->month > 12 || d->month == 0) return FALSE;
+    if(d->day > maxdays[d->month - 1] || d->day == 0) return FALSE;
+    if(d->month == 2 && d->day == 29 && (d->year & 4) != 4) return FALSE; // not leap year
+    if(d->weekday > 7 || d->weekday == 0) return FALSE;
+    RTC->ICSR |= RTC_ICSR_INIT;
+    WAITWHILE(!(RTC->ICSR & RTC_ICSR_INITF));
+    RTC->DR = DEC2BCD(d->year) << RTC_DR_YU_Pos | d->weekday << RTC_DR_WDU_Pos | DEC2BCD(d->month) << RTC_DR_MU_Pos | DEC2BCD(d->day) << RTC_DR_DU_Pos;
+    RTC->ICSR &= ~RTC_ICSR_INIT;
+    return TRUE;
+}
+
+int rtc_settime(rtc_t *t){
+    if(t->hour > 23) return FALSE;
+    if(t->minute > 59) return FALSE;
+    if(t->second > 59) return FALSE;
+    RTC->ICSR |= RTC_ICSR_INIT;
+    WAITWHILE(!(RTC->ICSR & RTC_ICSR_INITF));
+    RTC->TR = DEC2BCD(t->hour) << RTC_TR_HU_Pos | DEC2BCD(t->minute) << RTC_TR_MNU_Pos | DEC2BCD(t->second) << RTC_TR_SU_Pos;
+    RTC->ICSR &= ~RTC_ICSR_INIT;
+    return TRUE;
+}
+
 void rtc_setup(){
     PWR->CR1 |= PWR_CR1_DBP; // disable RTC write protection
     // turn on LSE and switch RTC to it
@@ -58,4 +108,26 @@ void get_curtime(rtc_t *t){
     if(r & RTC_DR_MT) t->month += 10;
     t->weekday = (r >> RTC_DR_WDU_Pos) & 0x7;
     t->year = BCDu(RTC_DR_YU_Pos) + 10 * BCDu(RTC_DR_YT_Pos);
+}
+
+// set calibration value
+int rtc_setcalib(int calval){
+    if(calval < -511 || calval > 512) return FALSE;
+    uint32_t calp = 0, calm = 0;
+    if(calval < 0)  calm = -calval;
+    else if(calval > 0){
+        calp = RTC_CALR_CALP;
+        calm = 512 - calval;
+    }
+    // unlock RCC
+    RTC->WPR = 0xCA;
+    RTC->WPR = 0x53;
+    RTC->CALR = calp | calm;
+    return 1;
+}
+
+int rtc_getcalib(){
+    int calval = (RTC->CALR & RTC_CALR_CALP) ? 512 : 0;
+    calval -= RTC->CALR & 0x1ff;
+    return calval;
 }

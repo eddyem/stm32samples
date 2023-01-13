@@ -26,6 +26,9 @@
 extern volatile uint32_t Tms;
 
 const char *helpstring =
+        "C - set/print calibration ticks (-511..+512) to each 2^20 ticks\n"
+        "Sd - set date (YY MM DD Weekday)\n"
+        "St - set time (HH MM SS)\n"
         "t - print current Tms\n"
         "T - print current Time\n"
 ;
@@ -36,6 +39,7 @@ TRUE_INLINE void putch(char x){
 
 static const char *weekdays[] = {"Mon", "Tue", "Wed", "Thur", "Fri", "Sat", "Sun"};
 static const char *months[] = {"Jan", "Feb", "Mar", "Apr", "May", "June", "July", "Aug", "Sept", "Oct", "Nov", "Dec"};
+static const char *OK = "OK\n";
 
 static void prezero(uint8_t x){
     if(x < 10){ putch('0'); putch('0' + x);}
@@ -45,7 +49,7 @@ static void prezero(uint8_t x){
 void print_curtime(){
     rtc_t t;
     get_curtime(&t);
-    USND(weekdays[t.day - 1]);
+    USND(weekdays[t.weekday - 1]);
     putch(' ');
     USND(months[t.month - 1]);
     putch(' ');
@@ -60,13 +64,75 @@ void print_curtime(){
     putch('\n');
 }
 
-char *parse_cmd(char *buf){
-    // "long" commands
-/*    switch(*buf){
-    }*/
-    // "short" commands
-    if(buf[1]) return buf; // echo wrong data
+static int readNu8(const char *buf, uint8_t *arr, int maxlen){
+    uint32_t D;
+    const char *nxt;
+    int N = 0;
+    while((nxt = getnum(buf, &D)) && nxt != buf && N < maxlen){
+        buf = nxt;
+        if(D > 0xff){
+            USND("Value too large\n");
+            return N;
+        }
+        arr[N++] = (uint8_t) D&0xff;
+    }
+    return N;
+}
+
+TRUE_INLINE const char* setdatetime(const char *buf){
+    buf = omit_spaces(buf);
+    uint8_t array[4];
+    rtc_t r;
     switch(*buf){
+        case 'd': // set date
+            if(4 != readNu8(buf+1, array, 4))
+                return "Format: YY MM DD Weekday (monday is 1)\n";
+            r.year = array[0]; 
+            r.month = array[1];
+            r.day = array[2];
+            r.weekday = array[3];
+            if(!rtc_setdate(&r)) return "Wrong date format\n";
+        break;
+        case 't': // set time
+            if(3 != readNu8(buf+1, array, 3))
+                return "Format: HH MM SS\n";
+            r.hour = array[0];
+            r.minute = array[1];
+            r.second = array[2];
+            if(!rtc_settime(&r)) return "Wrong time format\n";
+        break;
+        default:
+            return "Sd -> set date; St -> set time\n";
+    }
+    return OK;
+}
+
+TRUE_INLINE const char *setcal(const char *buf){
+    int32_t v;
+    if(buf == getint(buf, &v)){
+        USND("Calibration value: ");
+        USND(i2str(rtc_getcalib()));
+        putch('\n');
+        return NULL;
+    } 
+    if(!rtc_setcalib(v)) return "Enter value: -511..+512\n";
+    return OK;
+}
+
+const char *parse_cmd(char *buf){
+    const char *x = omit_spaces(buf);
+    // "long" commands
+    switch(*x){
+        case 'S':
+            return setdatetime(x + 1);
+        break;
+        case 'C':
+            return setcal(x + 1);
+        break;
+    }
+    // "short" commands
+    if(x[1]) return x; // echo wrong data
+    switch(*x){
         case 't':
             USND("T=");
             USND(u2str(Tms));

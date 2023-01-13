@@ -34,3 +34,7 @@ typedef struct{
 void rtc_setup();
 
 void get_curtime(rtc_t *t);
+int rtc_setdate(rtc_t *d);
+int rtc_settime(rtc_t *t);
+int rtc_setcalib(int calval);
+int rtc_getcalib();

@@ -60,8 +60,11 @@ static char *_2str(uint32_t  val, uint8_t minus){
         *(--bufptr) = '0';
     }else{
         while(val){
-            *(--bufptr) = val % 10 + '0';
-            val /= 10;
+            uint32_t x = val / 10;
+            *(--bufptr) = (val - 10*x) + '0';
+            val = x;
+            //*(--bufptr) = val % 10 + '0';
+            //val /= 10;
         }
     }
     if(minus) *(--bufptr) = '-';
@@ -113,12 +116,12 @@ char *uhex2str(uint32_t val){
  * @param buf - string
  * @return - pointer to first character in `buf` > ' '
  */
-char *omit_spaces(const char *buf){
+const char *omit_spaces(const char *buf){
     while(*buf){
         if(*buf > ' ') break;
         ++buf;
     }
-    return (char*)buf;
+    return buf;
 }
 
 /**
@@ -127,7 +130,7 @@ char *omit_spaces(const char *buf){
  * @param N - number read
  * @return Next non-number symbol. In case of overflow return `buf` and N==0xffffffff
  */
-static char *getdec(const char *buf, uint32_t *N){
+static const char *getdec(const char *buf, uint32_t *N){
     char *start = (char*)buf;
     uint32_t num = 0;
     while(*buf){
@@ -144,11 +147,11 @@ static char *getdec(const char *buf, uint32_t *N){
         ++buf;
     }
     *N = num;
-    return (char*)buf;
+    return buf;
 }
 // read hexadecimal number (without 0x prefix!)
-static char *gethex(const char *buf, uint32_t *N){
-    char *start = (char*)buf;
+static const char *gethex(const char *buf, uint32_t *N){
+    const char *start = buf;
     uint32_t num = 0;
     while(*buf){
         char c = *buf;
@@ -173,11 +176,11 @@ static char *gethex(const char *buf, uint32_t *N){
         ++buf;
     }
     *N = num;
-    return (char*)buf;
+    return buf;
 }
 // read octal number (without 0 prefix!)
-static char *getoct(const char *buf, uint32_t *N){
-    char *start = (char*)buf;
+static const char *getoct(const char *buf, uint32_t *N){
+    const char *start = (char*)buf;
     uint32_t num = 0;
     while(*buf){
         char c = *buf;
@@ -193,11 +196,11 @@ static char *getoct(const char *buf, uint32_t *N){
         ++buf;
     }
     *N = num;
-    return (char*)buf;
+    return buf;
 }
 // read binary number (without b prefix!)
-static char *getbin(const char *buf, uint32_t *N){
-    char *start = (char*)buf;
+static const char *getbin(const char *buf, uint32_t *N){
+    const char *start = (char*)buf;
     uint32_t num = 0;
     while(*buf){
         char c = *buf;
@@ -213,7 +216,7 @@ static char *getbin(const char *buf, uint32_t *N){
         ++buf;
     }
     *N = num;
-    return (char*)buf;
+    return buf;
 }
 
 /**
@@ -223,9 +226,9 @@ static char *getbin(const char *buf, uint32_t *N){
  * @return pointer to first non-number symbol in buf
  *      (if it is == buf, there's no number or if *N==0xffffffff there was overflow)
  */
-char *getnum(const char *txt, uint32_t *N){
-    char *nxt = NULL;
-    char *s = omit_spaces(txt);
+const char *getnum(const char *txt, uint32_t *N){
+    const char *nxt = NULL;
+    const char *s = omit_spaces(txt);
     if(*s == '0'){ // hex, oct or 0
         if(s[1] == 'x' || s[1] == 'X'){ // hex
             nxt = gethex(s+2, N);
@@ -244,6 +247,22 @@ char *getnum(const char *txt, uint32_t *N){
         nxt = getdec(s, N);
         if(nxt == s) nxt = (char*)txt;
     }
+    return nxt;
+}
+
+// get signed integer
+const char *getint(const char *txt, int32_t *I){
+    const char *s = omit_spaces(txt);
+    int32_t sign = 1;
+    uint32_t U;
+    if(*s == '-'){
+    	sign = -1;
+    	++s;
+    }
+    const char *nxt = getnum(s, &U);
+    if(nxt == s) return txt;
+    if(U & 0x80000000) return txt; // overfull
+    *I = sign * (int32_t)U;
     return nxt;
 }
 

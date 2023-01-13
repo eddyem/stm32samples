@@ -65,7 +65,7 @@ int main(void){
         int wasbo = 0;
         char *rcv = usart3_getline(&wasbo);
         if(wasbo) usart3_sendstr("Buffer overflow occured @ last message\n");
-        if(rcv) rcv = parse_cmd(rcv);
+        if(rcv) rcv = (char*)parse_cmd(rcv);
         if(rcv) usart3_sendstr(rcv);
     }
 }
