@@ -54,7 +54,10 @@ int rtc_setdate(rtc_t *d){
     if(d->year > 99) return FALSE;
     if(d->month > 12 || d->month == 0) return FALSE;
     if(d->day > maxdays[d->month - 1] || d->day == 0) return FALSE;
-    if(d->month == 2 && d->day == 29 && (d->year & 4) != 4) return FALSE; // not leap year
+    if(d->month == 2 && d->day == 29){
+        uint8_t test = (d->year >> 2) << 2;
+        if(d->year != test) return FALSE; // not leap year
+    }
     if(d->weekday > 7 || d->weekday == 0) return FALSE;
     RTC->ICSR |= RTC_ICSR_INIT;
     WAITWHILE(!(RTC->ICSR & RTC_ICSR_INITF));
