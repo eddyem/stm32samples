@@ -1,0 +1,3 @@
+(sym_lib_table
+  (lib (name "stepper_module")(type "KiCad")(uri "${KIPRJMOD}/stepper_module.kicad_sym")(options "")(descr ""))
+)
