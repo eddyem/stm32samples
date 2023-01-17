@@ -1,4 +1,4 @@
-BINARY		= usart1
+BINARY		= float
 BOOTPORT	?= /dev/ttyUSB0
 BOOTSPEED	?= 115200
 # MCU FAMILY
@@ -9,12 +9,10 @@ MCU			?= F303xb
 ARMARCH = __ARM_ARCH_7M__
 # change this linking script depending on particular MCU model,
 LDSCRIPT	?= stm32f303xB.ld
-# debug
-#DEFS		= -DEBUG
 
 INDEPENDENT_HEADERS=
 
-FP_FLAGS	?= -mfpu=fpv4-sp-d16 -mfloat-abi=softfp -fsingle-precision-constant -mlittle-endian -DARM_MATH_CM4
+FP_FLAGS	?= -mfpu=fpv4-sp-d16 -mfloat-abi=hard -fsingle-precision-constant -mlittle-endian -DARM_MATH_CM4
 ASM_FLAGS	?= -mthumb -mcpu=cortex-m4
 ARCH_FLAGS	= $(ASM_FLAGS) $(FP_FLAGS) -D $(ARMARCH)
 
@@ -42,6 +40,8 @@ DFUUTIL		:= $(shell which dfu-util)
 ###############################################################################
 # Source files
 OBJDIR 		:= mk
+# target (debug/release)
+TARGFILE := $(OBJDIR)/TARGET
 SRC			:= $(wildcard *.c)
 OBJS		:= $(addprefix $(OBJDIR)/, $(SRC:%.c=%.o))
 STARTUP		:= $(OBJDIR)/startup.o
@@ -59,16 +59,15 @@ LIB_DIR		:= $(INC_DIR)/ld
 # C flags
 CFLAGS		+= -g -gdwarf-2   # debuggin symbols in listing
 CFLAGS		+= -O2 -D__thumb2__=1 -MD
-CFLAGS		+= -Wall -Werror -Wextra -Wshadow 
-CFLAGS		+= -fshort-enums -ffunction-sections -fdata-sections -flto
-#CFLAGS		+= -fno-common -ffunction-sections -fdata-sections -fno-stack-protector
+CFLAGS		+= -Wall -Wextra -Wshadow 
+CFLAGS		+= -fshort-enums -ffunction-sections -fdata-sections
+#CFLAGS		+= -fno-common -fno-stack-protector
 CFLAGS		+=  $(ARCH_FLAGS)
 
 ###############################################################################
 # Linker flags
-#LDFLAGS		+= -nostartfiles --static -nostdlib  -specs=nosys.specs -specs=nano.specs
+LDFLAGS		+= -nostartfiles --static -specs=nosys.specs -specs=nano.specs
 LDFLAGS		+= $(ARCH_FLAGS)
-LDFLAGS		+= -specs=nano.specs -flto
 LDFLAGS		+= -L$(LIB_DIR) 
 #-L$(TOOLCHLIB)
 LDFLAGS		+= -T$(LDSCRIPT)
@@ -76,7 +75,7 @@ LDFLAGS		+= -Wl,-Map=$(MAP),--cref -Wl,--gc-sections -Wl,--print-memory-usage
 
 ###############################################################################
 # Used libraries
-#LDLIBS		+=  -lc $(shell $(CC) $(CFLAGS) -print-libgcc-file-name)
+LDLIBS		+= -lm -lc $(shell $(CC) $(CFLAGS) -print-libgcc-file-name)
 
 DEFS		+= -DSTM32$(FAMILY) -DSTM32$(MCU)
 
@@ -85,7 +84,29 @@ LIST	:= $(OBJDIR)/$(BINARY).list
 BIN		:= $(BINARY).bin
 HEX		:= $(BINARY).hex
 
-all: bin list size
+ifeq ($(shell test -e $(TARGFILE) && echo -n yes),yes)
+	TARGET := $(file < $(TARGFILE))
+else
+	TARGET := RELEASE
+endif
+
+ifeq ($(TARGET), DEBUG)
+	.DEFAULT_GOAL := debug
+endif
+
+# release: add LTO
+release: CFLAGS += -flto
+release: LDFLAGS += -flto
+release: $(TARGFILE) bin list size
+
+#debug: add debug flags
+debug: CFLAGS += -DEBUG -Werror -g3
+debug: TARGET := DEBUG
+debug: $(TARGFILE) bin list size
+
+$(TARGFILE): $(OBJDIR)
+	@echo -e "\t\tTARGET: $(TARGET)"
+	@echo "$(TARGET)" > $(TARGFILE)
 
 elf: $(ELF)
 bin: $(BIN)
@@ -127,8 +148,7 @@ size: $(ELF)
 
 clean:
 	@echo "  CLEAN"
-	$(RM) $(OBJS) $(DEPS) $(ELF) $(HEX) $(LIST) $(MAP)
-	@rmdir $(OBJDIR) 2>/dev/null || true
+	@rm -rf $(OBJDIR) 2>/dev/null || true
 
 
 flash: $(BIN)
@@ -143,4 +163,10 @@ dfuboot: $(BIN)
 	@echo "  LOAD  $(BIN) THROUGH DFU"
 	$(DFUUTIL) -a0 -D $(BIN) -s 0x08000000
 
-.PHONY: clean flash boot
+openocd:
+	openocd -f openocd.cfg
+
+dbg:
+	arm-none-eabi-gdb $(ELF) -ex 'target remote localhost:3333' -ex 'monitor reset halt'
+
+.PHONY: size clean flash boot dfuboot openocd dbg

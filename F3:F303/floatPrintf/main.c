@@ -15,8 +15,10 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#include <math.h>
+#include <stm32f3.h>
+#include <string.h>
 
-#include "stm32f3.h"
 #include "hardware.h"
 #include "usart.h"
 
@@ -27,12 +29,17 @@ void sys_tick_handler(void){
 }
 
 // be careful: if pow10 would be bigger you should change str[] size!
-static const float pwr10[] = {1., 10., 100., 1000., 10000.};
-static const float rounds[] = {0.5, 0.05, 0.005, 0.0005, 0.00005};
+static const float pwr10[] = {1.f, 10.f, 100.f, 1000.f, 10000.f};
+static const float rounds[] = {0.5f, 0.05f, 0.005f, 0.0005f, 0.00005f};
 #define P10L  (sizeof(pwr10)/sizeof(uint32_t) - 1)
 static char * float2str(float x, uint8_t prec){
-    if(prec > P10L) prec = P10L;
     static char str[16] = {0}; // -117.5494E-36\0 - 14 symbols max!
+    if(prec > P10L) prec = P10L;
+    if(isnan(x)){ memcpy(str, "NAN", 4); return str;}
+    else{
+        int i = isinf(x);
+        if(i){memcpy(str, "-INF", 5); if(i == 1) return str+1; else return str;}
+    }
     char *s = str + 14; // go to end of buffer
     uint8_t minus = 0;
     if(x < 0){
@@ -89,8 +96,9 @@ static char * float2str(float x, uint8_t prec){
     return s+1;
 }
 
-static const float tests[] = {-1.23456789e-37, -3.14159265e-2, -1234.56789, -1.2345678, 0., 1e-40, 0.1234567, 123.456789, 2.473829e31};
-#define TESTN 9
+static const float tests[] = {-1.23456789e-37f, -3.14159265e-2f, -1234.56789f, -1.2345678f, 0.f, 1e-40f, 0.1234567f, 123.456789f, 2.473829e31f, 
+NAN, INFINITY, -INFINITY};
+#define TESTN 12
 
 int main(void){
     sysreset();
@@ -100,15 +108,14 @@ int main(void){
     usart_setup();
     usart_send("Start\n");
     uint32_t ctr = Tms;
-    float x = 0.519, more = 5.123;
+    float more = 5.123f, ang = 0.f;
     while(1){
         if(Tms - ctr > 499){
             ctr = Tms;
             pin_toggle(GPIOB, 1 << 1 | 1 << 0); // toggle LED @ PB0
             /**/
-            if((x += 0.519) > more){
-                more += 5.123;
-            }
+            more += 0.1234567f;
+            ang += 0.5f;
         }
         if(bufovr){
             bufovr = 0;
@@ -121,6 +128,16 @@ int main(void){
                     usart_send(float2str(tests[i], j));
                     usart_putchar('\n');
                 }
+                usart_send("\nValue of 'more': ");
+                usart_send(float2str(more, 4));
+                usart_send(", sqrt of 'more': ");
+                usart_send(float2str(sqrtf(more), 4));
+                usart_send("\nValue of 'ang': ");
+                usart_send(float2str(ang, 4));
+                usart_send(", tan of 'ang' degr: ");
+                usart_send(float2str(tan(ang/180.f*M_PI), 4));
+                usart_send("\ninf and nan: "); usart_send(float2str(ang/0.f, 4)); usart_putchar(' '); usart_send(float2str(sqrtf(-ang), 4));
+                usart_putchar('\n');
             }else{
                 usart_send("Get by USART1: ");
                 usart_send(txt);
