@@ -62,9 +62,8 @@
 #define PLLR    2
 #endif
 
-#define WAITWHILE(x)  do{StartUpCounter = 0; while((x) && (++StartUpCounter < 0xffffff)){nop();}}while(0)
+#define WAITWHILE(x)  do{register uint32_t StartUpCounter = 0; while((x) && (++StartUpCounter < 0xffffff)){nop();}}while(0)
 TRUE_INLINE void StartHSEHSI(int isHSE){
-    uint32_t StartUpCounter;
     RCC->CR &= ~RCC_CR_PLLON; // disable PLL
     WAITWHILE(RCC->CR & RCC_CR_PLLRDY); // wait while PLL on
     if(isHSE){

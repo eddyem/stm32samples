@@ -1,0 +1,5 @@
+# common include for all F0 series
+# MCU FAMILY
+FAMILY		?= G0
+FP_FLAGS	?= -msoft-float -fsingle-precision-constant -mlittle-endian
+ASM_FLAGS	?= -mthumb -mcpu=cortex-m0plus -march=armv6-m -mtune=cortex-m0plus
