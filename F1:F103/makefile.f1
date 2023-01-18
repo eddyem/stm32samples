@@ -1,0 +1,7 @@
+# common include for all F3 series
+# MCU FAMILY
+FAMILY		?= F1
+
+FP_FLAGS	?= -msoft-float -fsingle-precision-constant -mlittle-endian
+ASM_FLAGS	?= -mthumb -mcpu=cortex-m3 -mfix-cortex-m3-ldrd
+

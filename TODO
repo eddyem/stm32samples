@@ -1,1 +1,1 @@
-add -flto
+Move everything to new Makefile structure!
