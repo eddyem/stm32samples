@@ -21,7 +21,7 @@
 #include "usart.h"
 #include "usb.h"
 
-#define USBBUFSZ    127
+#define MAXSTRLEN    RBINSZ
 
 const char *test = "123456789A123456789B123456789C123456789D123456789E123456789F123456789G123456789H123456789I123456789J123456789K123456789L123456789M123456789N123456789O123456789P123456789Q123456789R123456789S123456789T123456789U123456789V123456789W123456789X123456789Y\n"
         "123456789A123456789B123456789C123456789D123456789E123456789F123456789G123456789H123456789I123456789J123456789K123456789L123456789M123456789N123456789O123456789P123456789Q123456789R123456789S123456789T123456789U123456789V123456789W123456789X123456789Y\n";
@@ -32,28 +32,8 @@ void sys_tick_handler(void){
     ++Tms;
 }
 
-// usb getline
-char *get_USB(){
-    static char tmpbuf[USBBUFSZ+1], *curptr = tmpbuf;
-    static int rest = USBBUFSZ;
-    uint8_t x = USB_receive(curptr);
-    if(!x) return NULL;
-    curptr[x] = 0;
-    if(curptr[x-1] == '\n'){
-        curptr = tmpbuf;
-        rest = USBBUFSZ;
-        return tmpbuf;
-    }
-    curptr += x; rest -= x;
-    if(rest <= 0){ // buffer overflow
-        curptr = tmpbuf;
-        rest = USBBUFSZ;
-        USB_send("USB buffer overflow\n");
-    }
-    return NULL;
-}
-
 int main(void){
+    char inbuff[MAXSTRLEN+1];
     int hse = 0;
     if(StartHSE()){
         hse = 1;
@@ -85,20 +65,24 @@ int main(void){
             const char *ans = parse_cmd(txt);
             if(ans) usart_send(ans);
         }
-        usb_proc();
-        if((txt = get_USB())){
-            usart_send("Get by USB: ");
-            usart_send(txt); usart_putchar('\n');
-            const char *ans = parse_cmd(txt);
-            if(ans) USB_send(ans);
-        }
-        if(Tlast){
-            usart_send("Tlast="); usart_send(u2str(Tlast)); usart_putchar('\n');
-            Tlast = 0;
+        USB_proc();
+        int l = USB_receivestr(inbuff, MAXSTRLEN);
+        if(l < 0) USB_sendstr("ERROR: USB buffer overflow or string was too long\n");
+        else if(l){
+            usart_send("Get by USB ");
+            usart_send(u2str(l)); usart_send(" bytes:");
+            usart_send(inbuff); usart_putchar('\n');
+            const char *ans = parse_cmd(inbuff);
+            if(ans) USB_sendstr(ans);
         }
         if(starttest){
-            --starttest;
-            USB_send(test);
+            USB_sendstr(test);
+            if(0 == --starttest){
+#define SENDBOTH(x) do{char *_ = x; usart_send(_); USB_sendstr(_);}while(0)
+                SENDBOTH("ENDT=");
+                SENDBOTH(u2str(Tms));
+                usart_putchar('\n'); USB_putbyte('\n');
+            }
         }
     }
 }

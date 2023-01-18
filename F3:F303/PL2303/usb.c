@@ -23,32 +23,105 @@
 #include "usb.h"
 #include "usb_lib.h"
 
-static char usbbuff[USB_TXBUFSZ]; // temporary buffer for sending data
-static volatile uint8_t tx_succesfull = 1;
-static volatile uint8_t rxNE = 0;
+static uint8_t usbbuff[USB_TXBUFSZ]; // temporary buffer for sending data
+// ring buffers for incoming and outgoing data
+static uint8_t obuf[RBOUTSZ], ibuf[RBINSZ];
+static ringbuffer out = {.data = obuf, .length = RBOUTSZ, .head = 0, .tail = 0};
+static ringbuffer in = {.data = ibuf, .length = RBINSZ, .head = 0, .tail = 0};
+// transmission is succesfull
+static volatile uint8_t bufisempty = 1;
+static volatile uint8_t bufovrfl = 0;
 
-volatile uint32_t Tlast = 0;
-
-void send_next(){
+static void send_next(){
+    if(bufisempty) return;
     static int lastdsz = 0;
-    if(!tx_succesfull) return;
-    int buflen = RB_read(usbbuff);
+    int buflen = RB_read(&out, usbbuff, USB_TXBUFSZ);
     if(!buflen){
-        if(lastdsz) Tlast = Tms;
         if(lastdsz == 64) EP_Write(3, NULL, 0); // send ZLP after 64 bits packet when nothing more to send
         lastdsz = 0;
+        bufisempty = 1;
         return;
     }
-    tx_succesfull = 0;
-    EP_Write(3, (uint8_t*)usbbuff, buflen);
+    EP_Write(3, usbbuff, buflen);
     lastdsz = buflen;
 }
 
+// blocking send full content of ring buffer
+int USB_sendall(){
+    while(!bufisempty){
+        if(!usbON) return 0;
+    }
+    return 1;
+}
+
 // put `buf` into queue to send
-void USB_send(const char *buf){
-    int len = strlen(buf);
-    if(!usbON || !len) return;
-    RB_write(buf, len); // this is a blocking procedure if there's too little free memory in buffer
+int USB_send(const uint8_t *buf, int len){
+    if(!buf || !usbON || !len) return 0;
+    while(len){
+        int a = RB_write(&out, buf, len);
+        len -= a;
+        buf += a;
+        if(bufisempty){
+            bufisempty = 0;
+            send_next();
+        }
+    }
+    return 1;
+}
+
+int USB_putbyte(uint8_t byte){
+    if(!usbON) return 0;
+    while(0 == RB_write(&out, &byte, 1)){
+        if(bufisempty){
+            bufisempty = 0;
+            send_next();
+        }
+    }
+    return 1;
+}
+
+int USB_sendstr(const char *string){
+    if(!string || !usbON) return 0;
+    int len = 0;
+    const char *b = string;
+    while(*b++) ++len;
+    if(!len) return 0;
+    return USB_send((const uint8_t*)string, len);
+}
+
+/**
+ * @brief USB_receive - get binary data from receiving ring-buffer
+ * @param buf (i) - buffer for received data
+ * @param len - length of `buf`
+ * @return amount of received bytes (negative, if overfull happened)
+ */
+int USB_receive(uint8_t *buf, int len){
+    int sz = RB_read(&in, buf, len);
+    if(bufovrfl){
+        RB_clearbuf(&in);
+        if(!sz) sz = -1;
+        else sz = -sz;
+        bufovrfl = 0;
+    }
+    return sz;
+}
+
+/**
+ * @brief USB_receivestr - get string up to '\n' and replace '\n' with 0
+ * @param buf - receiving buffer
+ * @param len - its length
+ * @return strlen or negative value indicating overflow (if so, string won't be ends with 0 and buffer should be cleared)
+ */
+int USB_receivestr(char *buf, int len){
+    int l = RB_readto(&in, '\n', (uint8_t*)buf, len);
+    if(l < 0 || bufovrfl) RB_clearbuf(&in);
+    else buf[l] = 0; // replace '\n' with strend
+    if(bufovrfl){
+        if(l > 0) l = -l;
+        else l = -1;
+        bufovrfl = 0;
+    }
+    return l;
 }
 
 // interrupt IN handler (never used?)
@@ -63,7 +136,6 @@ static void EP1_Handler(){
 
 // data IN/OUT handlers
 static void transmit_Handler(){ // EP3IN
-    tx_succesfull = 1;
     uint16_t epstatus = KEEP_DTOG_STAT(USB->EPnR[3]);
     // clear CTR keep DTOGs & STATs
     USB->EPnR[3] = (epstatus & ~(USB_EPnR_CTR_TX)); // clear TX ctr
@@ -71,12 +143,17 @@ static void transmit_Handler(){ // EP3IN
 }
 
 static void receive_Handler(){ // EP2OUT
-    rxNE = 1;
-    uint16_t epstatus = KEEP_DTOG_STAT(USB->EPnR[2]);
-    USB->EPnR[2] = (epstatus & ~(USB_EPnR_CTR_RX)); // clear RX ctr
+    uint8_t buf[USB_RXBUFSZ];
+    uint16_t epstatus = KEEP_DTOG(USB->EPnR[2]);
+    uint8_t sz = EP_Read(2, (uint16_t*)buf);
+    if(sz){
+        if(RB_write(&in, buf, sz) != sz) bufovrfl = 1;
+    }
+    // keep stat_tx & set ACK rx, clear RX ctr
+    USB->EPnR[2] = (epstatus & ~USB_EPnR_CTR_RX) ^ USB_EPnR_STAT_RX;
 }
 
-void usb_proc(){
+void USB_proc(){
     switch(USB_Dev.USB_Status){
         case USB_STATE_CONFIGURED:
             // make new BULK endpoint
@@ -94,21 +171,5 @@ void usb_proc(){
         break;
         default: // USB_STATE_CONNECTED - send next data portion
             if(!usbON) return;
-            send_next();
     }
-}
-
-/**
- * @brief USB_receive
- * @param buf (i) - buffer[64] for received data
- * @return amount of received bytes
- */
-int USB_receive(char *buf){
-    if(!usbON || !rxNE) return 0;
-    int sz = EP_Read(2, (uint16_t*)buf);
-    uint16_t epstatus = KEEP_DTOG(USB->EPnR[2]);
-    // keep stat_tx & set ACK rx
-    USB->EPnR[2] = (epstatus & ~(USB_EPnR_STAT_TX)) ^ USB_EPnR_STAT_RX;
-    rxNE = 0;
-    return sz;
 }

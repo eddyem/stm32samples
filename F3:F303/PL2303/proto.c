@@ -19,6 +19,7 @@
 #include "proto.h"
 #include "usart.h"
 #include "usb.h"
+#include "version.inc"
 
 uint8_t starttest = 50;
 
@@ -153,6 +154,7 @@ char *getnum(const char *txt, uint32_t *N){
 }
 
 const char* helpmsg =
+    "https://github.com/eddyem/stm32samples/tree/master/F3:F303/PL2303 build#" BUILD_NUMBER " @ " BUILD_DATE "\n"
     "'i' - print USB->ISTR state\n"
     "'p' - toggle USB pullup\n"
     "'N' - read number (dec, 0xhex, 0oct, bbin) and show it in decimal\n"
@@ -192,7 +194,7 @@ const char *parse_cmd(const char *buf){
                 else add2buf("on\n");
             break;
             case 'R':
-                USB_send("Soft reset\n");
+                USB_sendstr("Soft reset\n");
                 usart_send("Soft reset\n");
                 NVIC_SystemReset();
             break;
@@ -208,7 +210,7 @@ const char *parse_cmd(const char *buf){
                 add2buf("\n");
             break;
             case 'W':
-                USB_send("Wait for reboot\n");
+                USB_sendstr("Wait for reboot\n");
                 usart_send("Wait for reboot\n");
                 while(1){nop();};
             break;

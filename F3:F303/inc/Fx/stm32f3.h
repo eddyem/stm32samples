@@ -32,15 +32,7 @@
 
 #define VECT_TAB_OFFSET  0x0 /*!< Vector Table base offset field.
                                   This value must be a multiple of 0x200. */
-/*
-TRUE_INLINE void enable_FPU(){
-    SCB->CPACR |= ((3UL << 10*2)|(3UL << 11*2));  // set CP10 and CP11 Full Access
-}*/
-
-//extern uint32_t SystemCoreClock;          /*!< System Clock Frequency (Core Clock) */
-//extern const uint8_t AHBPrescTable[16];   /*!< AHB prescalers table values */
-//extern const uint8_t APBPrescTable[8];    /*!< APB prescalers table values */
-
+#if 0
 /**
   * @brief  Setup the microcontroller system
   *         Initialize the FPU setting, vector table location and the PLL configuration is reset.
@@ -80,52 +72,57 @@ TRUE_INLINE void sysreset(void) // not usable
   SCB->VTOR = FLASH_BASE | VECT_TAB_OFFSET; /* Vector Table Relocation in Internal FLASH */
 #endif
 }
+#endif
 
-TRUE_INLINE void StartHSI(){ // system bus 48MHz from PLL, USBPPRE=1
+#define WAITWHILE(x)  do{StartUpCounter = 0; while((x) && (++StartUpCounter < 3600000)){nop();}}while(0)
+TRUE_INLINE void StartHSI(){ // system bus 48MHz from PLL
     __IO uint32_t StartUpCounter = 0;
-#define WAITWHILE(x)  do{StartUpCounter = 0; while((x) && (++StartUpCounter < 0xffffff)){nop();}}while(0)
-    RCC->CR = (RCC->CR & ~RCC_CR_PLLON) | RCC_CR_HSION;
+    RCC->CR |= RCC_CR_HSION;
     // To adjust HSI set value of HSITRIM here
     WAITWHILE(!(RCC->CR & RCC_CR_HSIRDY));
+    RCC->CFGR &= ~RCC_CFGR_SW; // set sysclock to HSI
+    WAITWHILE(RCC->CFGR & RCC_CFGR_SWS);
+    RCC->CR &= ~(RCC_CR_PLLON | RCC_CR_HSEON);
+    WAITWHILE(RCC->CR & RCC_CR_PLLRDY); // wait while PLL will be off
     FLASH->ACR = (FLASH->ACR & ~(FLASH_ACR_LATENCY)) |
-            FLASH_ACR_LATENCY_0 | FLASH_ACR_PRFTBE;
-    RCC->CFGR = (RCC->CFGR & ~(RCC_CFGR_HPRE | RCC_CFGR_PPRE1 | RCC_CFGR_PPRE2 |
-                               RCC_CFGR_PLLSRC | RCC_CFGR_PLLXTPRE | RCC_CFGR_PLLMUL | RCC_CFGR_USBPRE)
-                 ) | RCC_CFGR_PLLSRC_HSI_DIV2 | RCC_CFGR_PLLMUL12 | RCC_CFGR_USBPRE_DIV1;
+            FLASH_ACR_LATENCY_1 | FLASH_ACR_PRFTBE;
+    RCC->CFGR = RCC_CFGR_PLLSRC_HSI_DIV2 | RCC_CFGR_PLLMUL12 | RCC_CFGR_USBPRE_DIV1 | RCC_CFGR_PPRE1_DIV2;
     RCC->CR |= RCC_CR_PLLON; // Enable PLL
     // Wait till PLL is ready
     WAITWHILE(!(RCC->CR & RCC_CR_PLLRDY));
     // Select PLL as system clock source
     RCC->CFGR = (RCC->CFGR & ~RCC_CFGR_SW) | RCC_CFGR_SW_PLL;
     // Wait till PLL is used as system clock source
-    WAITWHILE((RCC->CFGR & RCC_CFGR_SWS) != RCC_CFGR_SWS_1);
-#undef WAITWHILE
+    WAITWHILE((RCC->CFGR & RCC_CFGR_SWS) != RCC_CFGR_SWS_PLL);
+    SysFreq = 48000000;
 }
 
 // @return 1 if OK, 0 if failed
 TRUE_INLINE int StartHSE(){ // system bus 72MHz from PLL
     __IO uint32_t StartUpCounter = 0;
-#define WAITWHILE(x)  do{StartUpCounter = 0; while((x) && (++StartUpCounter < 0xffffff)){nop();}; if(x) return 0;}while(0)
-    RCC->CR = (RCC->CR & ~RCC_CR_PLLON) | RCC_CR_HSEON; // disable PLL to reconfigure, enable HSE
+    RCC->CFGR &= ~RCC_CFGR_SW; // set sysclock to HSI
+    WAITWHILE(RCC->CFGR & RCC_CFGR_SWS);
+    RCC->CR &= ~RCC_CR_PLLON;
+    WAITWHILE(RCC->CR & RCC_CR_PLLRDY); // wait while PLL will be off
+    RCC->CR |= RCC_CR_HSEON; // disable PLL to reconfigure, enable HSE
     WAITWHILE(!(RCC->CR & RCC_CR_HSERDY));
     // Enable Prefetch Buffer. Flash 4 wait states for 48..72MHz
     FLASH->ACR = (FLASH->ACR & ~(FLASH_ACR_LATENCY)) |
             FLASH_ACR_LATENCY_2 | FLASH_ACR_PRFTBE;
-    // HCLK = SYSCLK (AHB prescaler = 1), PCLK1 = HCLK (APB1 prescaler = 1), PCLK2 = HCLK (APB2 prescaler = 1)
-    // PLLCLK = HSE * 9 = 72MHz
-    RCC->CFGR = (RCC->CFGR & ~(RCC_CFGR_HPRE | RCC_CFGR_PPRE1 | RCC_CFGR_PPRE2 |
-                               RCC_CFGR_PLLSRC | RCC_CFGR_PLLXTPRE | RCC_CFGR_PLLMUL | RCC_CFGR_USBPRE)
-                 ) | RCC_CFGR_PLLSRC_HSE_PREDIV | RCC_CFGR_PLLMUL9 | RCC_CFGR_USBPRE_DIV1_5;
+    // HCLK = SYSCLK (AHB prescaler = 1), PCLK1 = HCLK/2 (APB1 prescaler = 2, max freq = 36MHz),
+    // PCLK2 = HCLK (APB2 prescaler = 1), PLLCLK = HSE * 9 = 72MHz
+    RCC->CFGR = RCC_CFGR_PLLSRC_HSE_PREDIV | RCC_CFGR_PLLMUL9 | RCC_CFGR_PPRE1_DIV2;
     RCC->CR |= RCC_CR_PLLON; // Enable PLL
     // Wait till PLL is ready
     WAITWHILE(!(RCC->CR & RCC_CR_PLLRDY));
     // Select PLL as system clock source
     RCC->CFGR = (RCC->CFGR & ~RCC_CFGR_SW) | RCC_CFGR_SW_PLL;
     // Wait till PLL is used as system clock source
-    WAITWHILE((RCC->CFGR & RCC_CFGR_SWS) != RCC_CFGR_SWS_1);
-#undef WAITWHILE
+    WAITWHILE((RCC->CFGR & RCC_CFGR_SWS) != RCC_CFGR_SWS_PLL);
+    SysFreq = 72000000;
     return 1;
 }
+#undef WAITWHILE
 
 /*******************  Bit definition for GPIO_MODER register  *****************/
 // _AI - analog inpt, _O - general output, _AF - alternate function
@@ -251,6 +248,20 @@ TRUE_INLINE int StartHSE(){ // system bus 72MHz from PLL
 #define GPIO_OSPEEDR15_MED          ((uint32_t)(1<<30))
 #define GPIO_OSPEEDR15_HIGH         ((uint32_t)(3<<30))
 
+// clear MODER: ~GPIO_MODER_MODERXX_Msk, you should AND these
+#define MODER_CLR(n)    (~(3<<(n*2)))
+// _AI - analog inpt, _O - general output, _AF - alternate function
+// these should be OR'ed
+#define MODER_I(n)      (0)
+#define MODER_O(n)      (1<<(n*2))
+#define MODER_AF(n)     (2<<(n*2))
+#define MODER_AI(n)     (3<<(n*2))
+
+// AFR field: afr - AFR number, pin - pin (0..15)
+TRUE_INLINE uint32_t AFRf(uint8_t afr, uint8_t pin){
+    if(pin > 7) pin -= 8;
+    return (afr << (pin * 4));
+}
 
 /************************* ADC *************************/
 /* inner termometer calibration values

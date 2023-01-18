@@ -16,71 +16,109 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <string.h>
-#include <stm32f3.h>
-
 #include "ringbuffer.h"
-#include "usb.h"
-#include "usb_lib.h"
 
-// ring buffer
-static char ringbuffer[RBSIZE];
-// head - position of first data byte
-// tail - position of last data byte + 1
-// head == tail - empty! So, buffer can't store more than RBSIZE-1 bytes of data!
-static volatile int head = 0, tail = 0;
-
-static int datalen(){
-    if(tail >= head) return (tail - head);
-    else return (RBSIZE - head + tail);
-}
-static int restlen(){
-    return (RBSIZE - 1 - datalen());
+// stored data length
+int RB_datalen(ringbuffer *b){
+    if(b->tail >= b->head) return (b->tail - b->head);
+    else return (b->length - b->head + b->tail);
 }
 
-TRUE_INLINE void incr(volatile int *what, int n){
+/**
+ * @brief RB_hasbyte - check if buffer has given byte stored
+ * @param b - buffer
+ * @param byte - byte to find
+ * @return index if found, -1 if none
+ */
+int RB_hasbyte(ringbuffer *b, uint8_t byte){
+    if(b->head == b->tail) return -1; // no data in buffer
+    int startidx = b->head;
+    if(b->head > b->tail){ //
+        for(int found = b->head; found < b->length; ++found)
+            if(b->data[found] == byte) return found;
+        startidx = 0;
+    }
+    for(int found = startidx; found < b->tail; ++found)
+        if(b->data[found] == byte) return found;
+    return -1;
+}
+
+// poor memcpy
+static void mcpy(uint8_t *targ, const uint8_t *src, int l){
+    while(l--) *targ++ = *src++;
+}
+
+// increment head or tail
+TRUE_INLINE void incr(ringbuffer *b, volatile int *what, int n){
     *what += n;
-    if(*what >= RBSIZE) *what -= RBSIZE;
+    if(*what >= b->length) *what -= b->length;
 }
 
-int RB_read(char s[BLOCKSIZE]){
-    int l = datalen();
+/**
+ * @brief RB_read - read data from ringbuffer
+ * @param b - buffer
+ * @param s - array to write data
+ * @param len - max len of `s`
+ * @return bytes read
+ */
+int RB_read(ringbuffer *b, uint8_t *s, int len){
+    int l = RB_datalen(b);
     if(!l) return 0;
-    if(l > BLOCKSIZE) l = BLOCKSIZE;
-    int _1st = RBSIZE - head;
+    if(l > len) l = len;
+    int _1st = b->length - b->head;
     if(_1st > l) _1st = l;
-    if(_1st > BLOCKSIZE) _1st = BLOCKSIZE;
-    memcpy(s, ringbuffer+head, _1st);
-    if(_1st < BLOCKSIZE && l > _1st){
-        memcpy(s+_1st, ringbuffer, l-_1st);
-        incr(&head, l);
+    if(_1st > len) _1st = len;
+    mcpy(s, b->data + b->head, _1st);
+    if(_1st < len && l > _1st){
+        mcpy(s+_1st, b->data, l - _1st);
+        incr(b, &b->head, l);
         return l;
     }
-    incr(&head ,_1st);
+    incr(b, &b->head, _1st);
     return _1st;
 }
 
-static int addportion(const char *str, int l){
-    int r = restlen();
+/**
+ * @brief RB_readto fill array `s` with data until byte `byte` (with it)
+ * @param b - ringbuffer
+ * @param byte - check byte
+ * @param s - buffer to write data
+ * @param len - length of `s`
+ * @return amount of bytes written (negative, if len<data in buffer)
+ */
+int RB_readto(ringbuffer *b, uint8_t byte, uint8_t *s, int len){
+    int idx = RB_hasbyte(b, byte);
+    if(idx < 0) return 0;
+    int partlen = idx + 1 - b->head;
+    // now calculate length of new data portion
+    if(idx < b->head) partlen += b->length;
+    if(partlen > len) return -RB_read(b, s, len);
+    return RB_read(b, s, partlen);
+}
+
+/**
+ * @brief RB_write - write some data to ringbuffer
+ * @param b - buffer
+ * @param str - data
+ * @param l - length
+ * @return amount of bytes written
+ */
+int RB_write(ringbuffer *b, const uint8_t *str, int l){
+    int r = b->length - 1 - RB_datalen(b); // rest length
     if(l > r) l = r;
     if(!l) return 0;
-    int _1st = RBSIZE - tail;
+    int _1st = b->length - b->tail;
     if(_1st > l) _1st = l;
-    memcpy(ringbuffer+tail, str, _1st);
+    mcpy(b->data + b->tail, str, _1st);
     if(_1st < l){ // add another piece from start
-        memcpy(ringbuffer, str+_1st, l-_1st);
+        mcpy(b->data, str+_1st, l-_1st);
     }
-    incr(&tail, l);
+    incr(b, &b->tail, l);
     return l;
 }
 
-void RB_write(const char *str, int l){
-    if(!str || !*str) return;
-    if(!usbON) return;
-    while(l){
-        send_next();
-        int a = addportion(str, l);
-        l -= a;
-        str += a;
-    }
+// just delete all information in buffer `b`
+void RB_clearbuf(ringbuffer *b){
+    b->head = 0;
+    b->tail = 0;
 }

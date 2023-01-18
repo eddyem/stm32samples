@@ -22,13 +22,17 @@
 
 #include "usbhw.h"
 
-#define BUFFSIZE   (64)
+// sizes of ringbuffers for outgoing and incoming data
+#define RBOUTSZ     (512)
+#define RBINSZ      (512)
 
-extern volatile uint32_t Tlast;
+void USB_proc();
+int USB_sendall();
+int USB_send(const uint8_t *buf, int len);
+int USB_putbyte(uint8_t byte);
+int USB_sendstr(const char *string);
+int USB_receive(uint8_t *buf, int len);
+int USB_receivestr(char *buf, int len);
 
-void usb_proc();
-void send_next();
-void USB_send(const char *buf);
-int USB_receive(char *buf);
 
 #endif // __USB_H__

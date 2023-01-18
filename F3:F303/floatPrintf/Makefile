@@ -10,8 +10,6 @@ ARMARCH = __ARM_ARCH_7M__
 # change this linking script depending on particular MCU model,
 LDSCRIPT	?= stm32f303xB.ld
 
-INDEPENDENT_HEADERS=
-
 FP_FLAGS	?= -mfpu=fpv4-sp-d16 -mfloat-abi=hard -fsingle-precision-constant -mlittle-endian -DARM_MATH_CM4
 ASM_FLAGS	?= -mthumb -mcpu=cortex-m4
 ARCH_FLAGS	= $(ASM_FLAGS) $(FP_FLAGS) -D $(ARMARCH)
@@ -42,6 +40,8 @@ DFUUTIL		:= $(shell which dfu-util)
 OBJDIR 		:= mk
 # target (debug/release)
 TARGFILE := $(OBJDIR)/TARGET
+# autoincremental version & build date
+VERSION_FILE = version.inc
 SRC			:= $(wildcard *.c)
 OBJS		:= $(addprefix $(OBJDIR)/, $(SRC:%.c=%.o))
 STARTUP		:= $(OBJDIR)/startup.o
@@ -94,6 +94,13 @@ ifeq ($(TARGET), DEBUG)
 	.DEFAULT_GOAL := debug
 endif
 
+ifeq ($(shell test -e $(VERSION_FILE) && echo -n yes), yes)
+    NEXTVER := $(shell expr $$(awk '/#define BUILD_NUMBER/' $(VERSION_FILE) | tr -cd "[0-9]") + 1)
+else
+    NEXTVER := "1"
+endif
+BUILDDATE := $(shell date +%Y-%m-%d)
+
 # release: add LTO
 release: CFLAGS += -flto
 release: LDFLAGS += -flto
@@ -122,6 +129,14 @@ $(OBJDIR):
 
 $(STARTUP): $(INC_DIR)/startup/vector.c
 	$(CC) $(CFLAGS) $(DEFS) $(INCLUDE) -o $@ -c $<
+
+$(VERSION_FILE): *.[ch]
+	@[ -f $(VERSION_FILE) ] || echo -e "#define BUILD_NUMBER \"0\"\n#define BUILD_DATE \"none\"" > $(VERSION_FILE)
+	@echo "  Generate version: $(NEXTVER) for date $(BUILDDATE)"
+	@sed -i "s/#define BUILD_NUMBER.*/#define BUILD_NUMBER \"$(NEXTVER)\"/" $(VERSION_FILE)
+	@sed -i "s/#define BUILD_DATE.*/#define BUILD_DATE \"$(BUILDDATE)\"/" $(VERSION_FILE)
+
+#$(OBJDIR)/proto.o: proto.c $(VERSION_FILE)
 
 $(OBJDIR)/%.o: %.c
 	@echo "  CC      $<"

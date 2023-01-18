@@ -19,6 +19,8 @@
  */
 #include "vector.h"
 
+uint32_t SysFreq = 0;
+
 typedef void (*vector_table_entry_t)(void);
 typedef void (*funcp_t) (void);
 

@@ -101,7 +101,7 @@ NAN, INFINITY, -INFINITY};
 #define TESTN 12
 
 int main(void){
-    sysreset();
+//    sysreset();
     if(!StartHSE()) StartHSI();
     SysTick_Config((uint32_t)72000); // 1ms
     hw_setup();
