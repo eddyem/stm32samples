@@ -1,6 +1,6 @@
 /*
- * This file is part of the pl2303 project.
- * Copyright 2022 Edward V. Emelianov <edward.emelianoff@gmail.com>.
+ * This file is part of the i2cscan project.
+ * Copyright 2023 Edward V. Emelianov <edward.emelianoff@gmail.com>.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
