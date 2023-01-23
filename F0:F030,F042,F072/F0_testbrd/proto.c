@@ -23,6 +23,7 @@
 #include "usart.h"
 #include "usb.h"
 #include "usb_lib.h"
+#include <stdint.h>
 
 #define LOCBUFFSZ       (32)
 // local buffer for I2C and SPI data to send
