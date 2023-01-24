@@ -1,5 +1,5 @@
 BINARY		:= adc
-PREFIX=/opt/ARM10/bin/arm-none-eabi
+#PREFIX=/opt/ARM10/bin/arm-none-eabi
 # MCU code
 MCU			:= F303xb
 # change this linking script depending on particular MCU model,

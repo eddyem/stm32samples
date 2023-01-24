@@ -103,6 +103,11 @@ void adc_setup(){
            enable the DAC ch1, disable buffer on ch1,
            and select TIM6 as trigger by keeping 000 in TSEL1 */
     RCC->APB1ENR |= RCC_APB1ENR_DAC1EN; /* (1) */
+    // DAC simple throw out constant value: output buffer disable, DAC ch1 enable
+    DAC->CR = DAC_CR_BOFF1 | DAC_CR_EN1;
+    // starting value: 1v
+    DAC1->DHR12R1 = 1241;
+#if 0
     DAC->CR |= DAC_CR_WAVE1_1
              | DAC_CR_MAMP1_3 | DAC_CR_MAMP1_1 | DAC_CR_MAMP1_0
              | DAC_CR_BOFF1 | DAC_CR_TEN1 | DAC_CR_EN1; /* (2) */
@@ -117,6 +122,7 @@ void adc_setup(){
     TIM6->PSC = 1; /* (3) */
     TIM6->ARR = (uint16_t)24; /* (4) */
     TIM6->CR1 |= TIM_CR1_CEN; /* (5) */
+#endif
 }
 
 /**
@@ -125,12 +131,12 @@ void adc_setup(){
  * @return
  */
 uint16_t getADCval(int nch){
-    int addr = nch;
     register uint16_t temp;
 #define PIX_SORT(a,b) { if ((a)>(b)) PIX_SWAP((a),(b)); }
 #define PIX_SWAP(a,b) { temp=(a);(a)=(b);(b)=temp; }
     uint16_t p[9];
     int adval = (nch >= NUMBER_OF_ADC1_CHANNELS) ? NUMBER_OF_ADC2_CHANNELS : NUMBER_OF_ADC1_CHANNELS;
+    int addr = (nch >= NUMBER_OF_ADC1_CHANNELS) ? nch - NUMBER_OF_ADC2_CHANNELS + ADC2START: nch;
     for(int i = 0; i < 9; ++i, addr += adval) // first we should prepare array for optmed
         p[i] = ADC_array[addr];
     PIX_SORT(p[1], p[2]) ; PIX_SORT(p[4], p[5]) ; PIX_SORT(p[7], p[8]) ;
