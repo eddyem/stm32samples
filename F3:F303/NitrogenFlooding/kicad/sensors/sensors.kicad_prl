@@ -1,8 +1,8 @@
 {
   "board": {
-    "active_layer": 40,
-    "active_layer_preset": "",
-    "auto_track_width": false,
+    "active_layer": 37,
+    "active_layer_preset": "All Layers",
+    "auto_track_width": true,
     "hidden_nets": [],
     "high_contrast_mode": 0,
     "net_color_mode": 1,
@@ -62,11 +62,11 @@
       35,
       36
     ],
-    "visible_layers": "ffbfeff_ffffffff",
-    "zone_display_mode": 1
+    "visible_layers": "fffffff_ffffffff",
+    "zone_display_mode": 0
   },
   "meta": {
-    "filename": "nitrogen.kicad_prl",
+    "filename": "sensors.kicad_prl",
     "version": 3
   },
   "project": {
