@@ -63,7 +63,7 @@ int main(void){
                 LED_on(LED0);
                 lastT = Tms;
                 if(!lastT) lastT = 1;
-                if(ShowMsgs){ // new data in buff
+                if(ShowMsgs){ // display message content
                     IWDG->KR = IWDG_REFRESH;
                     uint8_t len = can_mesg->length;
                     printu(Tms);
