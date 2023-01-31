@@ -56,4 +56,4 @@ void printCANerr();
 
 CAN_message *CAN_messagebuf_pop();
 
-void set_flood(CAN_message *msg);
+void set_flood(CAN_message *msg, int incr);

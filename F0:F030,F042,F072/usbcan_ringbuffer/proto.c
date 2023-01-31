@@ -24,7 +24,7 @@
 
 extern volatile uint8_t canerror;
 
-uint8_t ShowMsgs = 0;
+uint8_t ShowMsgs = 1;
 uint16_t Ignore_IDs[IGN_SIZE];
 uint8_t IgnSz = 0;
 
@@ -325,11 +325,11 @@ TRUE_INLINE void setfloodt(char *s){
     uint32_t N;
     s = omit_spaces(s);
     char *n = getnum(s, &N);
-    if(s == n || N == 0){
+    if(s == n){
         USB_sendstr("t="); printu(floodT); USB_putbyte('\n');
         return;
     }
-    floodT = N - 1;
+    floodT = N;
 }
 
 /**
@@ -434,6 +434,7 @@ const char *helpmsg =
     "'e' - get CAN errcodes\n"
     "'f' - add/delete filter, format: bank# FIFO# mode(M/I) num0 [num1 [num2 [num3]]]\n"
     "'F' - send/clear flood message: F ID byte0 ... byteN\n"
+    "'i' - send incremental flood message (ID == ID for `F`)\n"
     "'I' - reinit CAN\n"
     "'l' - list all active filters\n"
     "'o' - turn LEDs OFF\n"
@@ -442,7 +443,7 @@ const char *helpmsg =
     "'P' - pause/resume in packets displaying\n"
     "'R' - software reset\n"
     "'s/S' - send data over CAN: s ID byte0 .. byteN\n"
-    "'t' - change flood period (>=1ms)\n"
+    "'t' - change flood period (>=0ms)\n"
     "'T' - get time from start (ms)\n"
 ;
 
@@ -482,7 +483,7 @@ void cmd_parser(char *txt){
             goto eof;
         break;
         case 'F':
-            set_flood(parseCANmsg(txt));
+            set_flood(parseCANmsg(txt), 0);
             goto eof;
         break;
         case 's':
@@ -510,6 +511,10 @@ void cmd_parser(char *txt){
             USB_sendstr("Go into DFU mode\n");
             USB_sendall();
             Jump2Boot();
+        break;
+        case 'i':
+            set_flood(NULL, 1);
+            USB_sendstr("Incremental flooding is ON ('F' to off)\n");
         break;
         case 'I':
             CAN_reinit(0);

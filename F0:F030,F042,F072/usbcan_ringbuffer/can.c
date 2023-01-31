@@ -26,7 +26,8 @@ static CAN_message messages[CAN_INMESSAGE_SIZE];
 static uint8_t first_free_idx = 0;    // index of first empty cell
 static int8_t first_nonfree_idx = -1; // index of first data cell
 static uint16_t oldspeed = 100; // speed of last init
-uint32_t floodT = FLOOD_PERIOD_MS-1; // flood period in ms
+uint32_t floodT = FLOOD_PERIOD_MS; // flood period in ms
+static uint8_t incrflood = 0; // ==1 for incremental flooding
 
 static uint32_t last_err_code = 0;
 static CAN_status can_status = CAN_STOP;
@@ -227,9 +228,13 @@ void can_proc(){
         CAN_setup(0);
     }
     static uint32_t lastFloodTime = 0;
-    if(flood_msg && (Tms - lastFloodTime) > (floodT)){ // flood every ~5ms
+    static uint32_t incrmessagectr = 0;
+    if(flood_msg && (Tms - lastFloodTime) >= (floodT)){ // send message every floodT ms
         lastFloodTime = Tms;
         can_send(flood_msg->data, flood_msg->length, flood_msg->ID);
+    }else if(incrflood && (Tms - lastFloodTime) >= floodT){ // incremental flood message
+        lastFloodTime = Tms;
+        if(CAN_OK == can_send((uint8_t*)&incrmessagectr, 4, flood_msg->ID)) ++incrmessagectr;
     }
 }
 
@@ -287,7 +292,9 @@ CAN_status can_send(uint8_t *msg, uint8_t len, uint16_t target_id){
     return CAN_OK;
 }
 
-void set_flood(CAN_message *msg){
+void set_flood(CAN_message *msg, int incr){
+    if(incr){ incrflood = 1; return; }
+    incrflood = 0;
     if(!msg) flood_msg = NULL;
     else{
 #ifdef EBUG
