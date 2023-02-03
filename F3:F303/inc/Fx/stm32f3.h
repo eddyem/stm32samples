@@ -23,10 +23,12 @@
 #define __STM32F3_H__
 
 #include "vector.h"
-#ifdef STM32F303xb
+#if defined STM32F303xb || defined STM32F303xc
 #include "stm32f303xc.h"
+#elif defined STM32F303xd || defined STM32F303xe
+#include "stm32f303xe.h"
 #else
-#error "Define STM32F303xb"
+#error "Define STM32F303xX"
 #endif
 #include "common_macros.h"
 
@@ -256,6 +258,18 @@ TRUE_INLINE int StartHSE(){ // system bus 72MHz from PLL
 #define MODER_O(n)      (1<<(n*2))
 #define MODER_AF(n)     (2<<(n*2))
 #define MODER_AI(n)     (3<<(n*2))
+// OSPEED: low, medium, high
+#define OSPEED_CLR(n)   (~(3<<(n*2)))
+#define OSPEED_LO(n)    (0)
+#define OSPEED_MED(n)   (1<<(n*2))
+#define OSPEED_HI(n)    (3<<(n*2))
+// PUPD: pull up/down
+#define PUPD_CLR(n)     (~(3<<(n*2)))
+#define PUPD_PU(n)      (1<<(n*2))
+#define PUPD_PD(n)      (2<<(n*2))
+// OTYPER: bit==1 for OD
+#define OTYPER_PP(n)    0
+#define OTYPER_OD(n)    (1<<n)
 
 // AFR field: afr - AFR number, pin - pin (0..15)
 TRUE_INLINE uint32_t AFRf(uint8_t afr, uint8_t pin){
