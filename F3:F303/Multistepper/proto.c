@@ -21,6 +21,7 @@
 
 #include "can.h"
 #include "hardware.h"
+#include "hdr.h"
 #include "proto.h"
 #include "version.inc"
 
@@ -72,79 +73,66 @@ static CAN_message *parseCANmsg(const char *txt){
     return &canmsg;
 }
 
-// USB_sendstr command, format: ID (hex/bin/dec) data bytes (up to 8 bytes, space-delimeted)
-TRUE_INLINE void USB_sendstrCANcommand(char *txt){
-    if(CAN->MSR & CAN_MSR_INAK){
-        USB_sendstr("CAN bus is off, try to restart it\n");
-        return;
-    }
-    CAN_message *msg = parseCANmsg(txt);
-    if(!msg) return;
-    uint32_t N = 5;
-    while(CAN_BUSY == can_send(msg->data, msg->length, msg->ID)){
-        if(--N == 0) break;
-    }
-}
-
-TRUE_INLINE void CANini(const char *txt){
-    uint32_t N;
-    const char *n = getnum(txt, &N);
-    if(txt == n){
-        USB_sendstr("No speed given");
-        return;
-    }
-    if(N < 50){
-        USB_sendstr("Lowest speed is 50kbps");
-        return;
-    }else if(N > 3000){
-        USB_sendstr("Highest speed is 3000kbps");
-        return;
-    }
-    CAN_reinit((uint16_t)N);
-    USB_sendstr("Reinit CAN bus with speed ");
-    printu(N); USB_sendstr("kbps");
-}
-
-TRUE_INLINE void addIGN(const char *txt){
-    if(IgnSz == IGN_SIZE){
-        USB_sendstr("Ignore buffer is full");
-        return;
-    }
-    txt = omit_spaces(txt);
-    uint32_t N;
-    const char *n = getnum(txt, &N);
-    if(txt == n){
-        USB_sendstr("No ID given");
-        return;
-    }
-    if(N > 0x7ff){
-        USB_sendstr("ID should be 11-bit number!");
-        return;
-    }
-    Ignore_IDs[IgnSz++] = (uint16_t)(N & 0x7ff);
-    USB_sendstr("Added ID "); printu(N);
-    USB_sendstr("\nIgn buffer size: "); printu(IgnSz);
-}
-
-TRUE_INLINE void print_ign_buf(){
-    if(IgnSz == 0){
-        USB_sendstr("Ignore buffer is empty");
-        return;
-    }
-    USB_sendstr("Ignored IDs:\n");
-    for(int i = 0; i < IgnSz; ++i){
-        printu(i);
-        USB_sendstr(": ");
-        printuhex(Ignore_IDs[i]);
-        USB_putbyte('\n');
-    }
-}
-
 // print ID/mask of CAN->sFilterRegister[x] half
 static void printID(uint16_t FRn){
     if(FRn & 0x1f) return; // trash
     printuhex(FRn >> 5);
 }
+
+const char *helpstring =
+    "https://github.com/eddyem/stm32samples/tree/master/F3:F303/Multistepper build#" BUILD_NUMBER " @ " BUILD_DATE "\n"
+    "Format: cmd [N] - getter, cmd [N] = val - setter; N - optional index\n"
+    "* - command not supported yet, G - getter, S - setter\n\n"
+#include "hashgen/helpcmds.in"
+;
+
+int fn_canignore(_U_ uint32_t hash,  char *args){
+    if(!*args){
+        if(IgnSz == 0){
+            USND("Ignore buffer is empty");
+            return RET_GOOD;
+        }
+        USND("Ignored IDs:");
+        for(int i = 0; i < IgnSz; ++i){
+            printu(i);
+            USB_sendstr(": ");
+            printuhex(Ignore_IDs[i]);
+            USB_putbyte('\n');
+        }
+        return RET_GOOD;
+    }
+    if(IgnSz == IGN_SIZE){
+        USND("Ignore buffer is full");
+        return RET_GOOD;
+    }
+    int32_t N;
+    const char *n = getint(args, &N);
+    if(args == n){
+        USND("No ID given");
+        return RET_GOOD;
+    }
+    if(N < 0){
+         IgnSz = 0;
+         USND("Ignore list cleared");
+         return RET_GOOD;
+    }
+    if(N > 0x7ff){
+        USND("ID should be 11-bit number!");
+        return RET_GOOD;
+    }
+    Ignore_IDs[IgnSz++] = (uint16_t)(N & 0x7ff);
+    USB_sendstr("Added ID "); printu(N);
+    USB_sendstr("\nIgn buffer size: "); printu(IgnSz);
+    newline();
+    return RET_GOOD;
+}
+
+int fn_canreinit(_U_ uint32_t hash, _U_ char *args){
+    CAN_reinit(0);
+    USND("OK");
+    return RET_GOOD;
+}
+
 /*
 Can filtering: FSCx=0 (CAN->FS1R) -> 16-bit identifiers
 CAN->FMR = (sb)<<8 | FINIT - init filter in starting bank sb
@@ -193,17 +181,6 @@ TRUE_INLINE void list_filters(){
         ++ctr;
         mask <<= 1;
     }
-}
-
-TRUE_INLINE void setfloodt(const char *s){
-    uint32_t N;
-    s = omit_spaces(s);
-    const char *n = getnum(s, &N);
-    if(s == n){
-        USB_sendstr("t="); printu(floodT); USB_putbyte('\n');
-        return;
-    }
-    floodT = N;
 }
 
 /**
@@ -298,28 +275,44 @@ static void add_filter(const char *str){
     printu(nfilt); USB_sendstr(" parameters");
 }
 
-const char *helpstring =
-    "https://github.com/eddyem/stm32samples/tree/master/F3:F303/CANusb build#" BUILD_NUMBER " @ " BUILD_DATE "\n"
-    "'a' - add ID to ignore list (max 10 IDs)\n"
-    "'b' - reinit CAN with given baudrate\n"
-    "'c' - get CAN status\n"
-    "'d' - delete ignore list\n"
-    "'e' - get CAN errcodes\n"
-    "'f' - add/delete filter, format: bank# FIFO# mode(M/I) num0 [num1 [num2 [num3]]]\n"
-    "'F' - send/clear flood message: F ID byte0 ... byteN\n"
-    "'i' - send incremental flood message (ID == ID for `F`)\n"
-    "'I' - reinit CAN\n"
-    "'l' - list all active filters\n"
-    "'p' - print ignore buffer\n"
-    "'P' - pause/resume in packets displaying\n"
-    "'R' - software reset\n"
-    "'s/S' - send data over CAN: s ID byte0 .. byteN\n"
-    "'t' - change flood period (>=0ms)\n"
-    "'T' - get time from start (ms)\n"
-;
+int fn_canfilter(_U_ uint32_t hash,  char *args){
+    if(*args) add_filter(args);
+    else list_filters();
+    return RET_GOOD;
+}
 
+int fn_canflood(_U_ uint32_t hash,  char *args){
+    set_flood(parseCANmsg(args), 0);
+    return RET_GOOD;
+}
 
-TRUE_INLINE void getcanstat(){
+int fn_cansend(_U_ uint32_t hash, char *args){
+    if(CAN->MSR & CAN_MSR_INAK){
+        USB_sendstr("CAN bus is off, try to restart it\n");
+        return RET_GOOD;
+    }
+    CAN_message *msg = parseCANmsg(args);
+    if(!msg) return RET_WRONGCMD;
+    uint32_t N = 5;
+    while(CAN_BUSY == can_send(msg->data, msg->length, msg->ID)){
+        if(--N == 0) break;
+    }
+    if(N == 0) return RET_BAD;
+    return RET_GOOD;
+}
+
+int fn_canfloodt(_U_ uint32_t hash, char *args){
+    uint32_t N;
+    const char *n = getnum(args, &N);
+    if(args == n){
+        USB_sendstr("floodT="); printu(floodT); USB_putbyte('\n');
+        return RET_GOOD;
+    }
+    floodT = N;
+    return RET_GOOD;
+}
+
+int fn_canstat(_U_ uint32_t hash,  _U_ char *args){
     USB_sendstr("CAN_MSR=");
     printuhex(CAN->MSR);
     USB_sendstr("\nCAN_TSR=");
@@ -328,91 +321,80 @@ TRUE_INLINE void getcanstat(){
     printuhex(CAN->RF0R);
     USB_sendstr("\nCAN_RF1R=");
     printuhex(CAN->RF1R);
+    newline();
+    return RET_GOOD;
+}
+
+int fn_canerrcodes(_U_ uint32_t hash,  _U_ char *args){
+    printCANerr();
+    return RET_GOOD;
+}
+
+int fn_canincrflood(_U_ uint32_t hash,  _U_ char *args){
+    set_flood(NULL, 1);
+    USB_sendstr("Incremental flooding is ON ('F' to off)\n");
+    return RET_GOOD;
+}
+
+int fn_canspeed(_U_ uint32_t hash,  _U_ char *args){
+    uint32_t N;
+    const char *n = getnum(args, &N);
+    if(args == n){
+        USB_sendstr("No speed given");
+        return RET_GOOD;
+    }
+    if(N < 50){
+        USB_sendstr("Lowest speed is 50kbps");
+        return RET_GOOD;
+    }else if(N > 3000){
+        USB_sendstr("Highest speed is 3000kbps");
+        return RET_GOOD;
+    }
+    CAN_reinit((uint16_t)N);
+    // theconf.canspeed = N;
+    USB_sendstr("Reinit CAN bus with speed ");
+    printu(N); USB_sendstr("kbps"); newline();
+    return RET_GOOD;
+}
+
+int fn_canpause(_U_ uint32_t hash,  _U_ char *args){
+    ShowMsgs = TRUE;
+    USND("Pause CAN messages");
+    return RET_GOOD;
+}
+
+int fn_canresume(_U_ uint32_t hash,  _U_ char *args){
+    ShowMsgs = FALSE;
+    USND("RESUME CAN messages");
+    return RET_GOOD;
+}
+
+int fn_reset(_U_ uint32_t hash,  _U_ char *args){
+    USB_sendstr("Soft reset\n");
+    USB_sendall(); // wait until everything will gone
+    NVIC_SystemReset();
+    return RET_GOOD;
+}
+
+int fn_time(_U_ uint32_t hash,  _U_ char *args){
+    USB_sendstr("Time (ms): ");
+    printu(Tms);
+    USB_putbyte('\n');
+    return RET_GOOD;
 }
 
 /**
  * @brief cmd_parser - command parsing
  * @param txt   - buffer with commands & data
- * @param isUSB - == 1 if data got from USB
  */
-void cmd_parser(char *txt){
-    char _1st = txt[0];
-    ++txt;
-    /*
-     * parse long commands here
-     */
-    switch(_1st){
-        case 'a':
-            addIGN(txt);
-            goto eof;
-        break;
-        case 'b':
-            CANini(txt);
-            goto eof;
-        break;
-        case 'f':
-            add_filter(txt);
-            goto eof;
-        break;
-        case 'F':
-            set_flood(parseCANmsg(txt), 0);
-            goto eof;
-        break;
-        case 's':
-        case 'S':
-            USB_sendstrCANcommand(txt);
-            goto eof;
-        break;
-        case 't':
-            setfloodt(txt);
-            goto eof;
-        break;
+const char *cmd_parser(const char *txt){
+    int ret = parsecmd(txt);
+    switch(ret){
+        case RET_CMDNOTFOUND: return helpstring; break;
+        case RET_WRONGCMD: return "Wrong command parameters\n"; break;
+        case RET_GOOD: return NULL; break;
+        default: return "FAIL\n"; break;
     }
-    if(*txt) _1st = '?'; // help for wrong message length
-    switch(_1st){
-        case 'c':
-            getcanstat();
-        break;
-        case 'd':
-            IgnSz = 0;
-        break;
-        case 'e':
-            printCANerr();
-        break;
-        case 'i':
-            set_flood(NULL, 1);
-            USB_sendstr("Incremental flooding is ON ('F' to off)\n");
-        break;
-        case 'I':
-            CAN_reinit(0);
-        break;
-        case 'l':
-            list_filters();
-        break;
-        case 'p':
-            print_ign_buf();
-        break;
-        case 'P':
-            ShowMsgs = !ShowMsgs;
-            if(ShowMsgs) USB_sendstr("Resume\n");
-            else USB_sendstr("Pause\n");
-        break;
-        case 'R':
-            USB_sendstr("Soft reset\n");
-            USB_sendall(); // wait until everything will gone
-            NVIC_SystemReset();
-        break;
-        case 'T':
-            USB_sendstr("Time (ms): ");
-            printu(Tms);
-            USB_putbyte('\n');
-        break;
-        default: // help
-            USB_sendstr(helpstring);
-        break;
-    }
-eof:
-    USB_putbyte('\n');
 }
 
 // check Ignore_IDs & return 1 if ID isn't in list

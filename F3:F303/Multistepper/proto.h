@@ -28,5 +28,5 @@
 
 extern uint8_t ShowMsgs; // show CAN messages flag
 
-void cmd_parser(char *txt);
+const char *cmd_parser(const char *txt);
 uint8_t isgood(uint16_t ID);

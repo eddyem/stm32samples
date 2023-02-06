@@ -398,7 +398,7 @@
   (symbol (lib_id "power:+3.3VADC") (at 64.008 48.514 0) (unit 1)
     (in_bom yes) (on_board yes) (fields_autoplaced)
     (uuid 13cf6375-898d-4635-8ef8-cb8b9e301a19)
-    (property "Reference" "#PWR?" (id 0) (at 67.818 49.784 0)
+    (property "Reference" "#PWR065" (id 0) (at 67.818 49.784 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "+3.3VADC" (id 1) (at 64.008 44.9382 0))

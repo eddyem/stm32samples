@@ -1,0 +1,4 @@
+#!/bin/bash
+
+awk '{print $1}' helpcmds.in |sed -e 's/"//' -e 's/\*//' -e 's/\[.*//' -e 's/N//' > testdic
+./hashgen -d testdic -H hdr.h -S hdr.c -F

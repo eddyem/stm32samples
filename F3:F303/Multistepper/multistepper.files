@@ -2,6 +2,10 @@ can.c
 can.h
 hardware.c
 hardware.h
+hashgen/hashgen.c
+hashgen/hdr.c
+hashgen/hdr.h
+hashgen/test.c
 main.c
 proto.c
 proto.h

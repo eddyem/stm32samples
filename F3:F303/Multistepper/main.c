@@ -76,6 +76,9 @@ int main(void){
         }
         int l = USB_receivestr(inbuff, MAXSTRLEN);
         if(l < 0) USB_sendstr("ERROR: USB buffer overflow or string was too long\n");
-        else if(l) cmd_parser(inbuff);
+        else if(l){
+            const char *ans = cmd_parser(inbuff);
+            if(ans) USB_sendstr(ans);
+        }
     }
 }

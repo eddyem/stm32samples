@@ -1,0 +1,10 @@
+#!/bin/bash
+
+gcc hashgen.c -o hashgen -lusefull_macros
+./hashgen -d testdic -H hdr.h -S hdr.c -F
+gcc hdr.c test.c strfunc.c  -o test
+./test "time 54 =    some"
+./test "voltage12 more"
+./test "esw45 =   some text"
+./test "goto 55 = "
+./test "stop 3256"

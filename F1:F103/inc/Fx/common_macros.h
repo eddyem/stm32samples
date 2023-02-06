@@ -22,9 +22,7 @@
 #ifndef __COMMON_MACROS_H__
 #define __COMMON_MACROS_H__
 
-#ifndef TRUE_INLINE
-#define TRUE_INLINE  __attribute__((always_inline)) static inline
-#endif
+#include <stdint.h>
 
 #ifndef TRUE
 #define TRUE 1
@@ -32,6 +30,10 @@
 
 #ifndef FALSE
 #define FALSE 0
+#endif
+
+#ifndef TRUE_INLINE
+#define TRUE_INLINE  __attribute__((always_inline)) static inline
 #endif
 
 #ifndef NULL
@@ -43,7 +45,7 @@
 
 #define pin_toggle(gpioport, gpios)  do{  \
     register uint32_t __port = gpioport->ODR;  \
-    gpioport->BSRR = ((__port & gpios) << 16) | (~__port & gpios);}while(0)
+    gpioport->BSRR = ((__port & (gpios)) << 16) | (~__port & (gpios));}while(0)
 
 #define pin_set(gpioport, gpios)  do{gpioport->BSRR = gpios;}while(0)
 #define pin_clear(gpioport, gpios) do{gpioport->BSRR = ((gpios) << 16);}while(0)

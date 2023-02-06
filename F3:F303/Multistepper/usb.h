@@ -24,7 +24,8 @@
 #define RBOUTSZ     (512)
 #define RBINSZ      (512)
 
-#define newline() USB_putbyte('\n')
+#define newline()   USB_putbyte('\n')
+#define USND(s)     do{USB_sendstr(s); USB_putbyte('\n');}while(0)
 
 #ifdef EBUG
 #define DBG(str)  do{USB_sendstr(__FILE__ " (L" STR(__LINE__) "): " str);}while(0)
