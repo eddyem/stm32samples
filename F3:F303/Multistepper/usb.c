@@ -146,7 +146,7 @@ static void transmit_Handler(){ // EP3IN
 static void receive_Handler(){ // EP2OUT
     uint8_t buf[USB_RXBUFSZ];
     uint16_t epstatus = KEEP_DTOG(USB->EPnR[2]);
-    uint8_t sz = EP_Read(2, (uint16_t*)buf);
+    uint8_t sz = EP_Read(2, (uint8_t*)buf);
     if(sz){
         if(RB_write((ringbuffer*)&in, buf, sz) != sz) bufovrfl = 1;
     }

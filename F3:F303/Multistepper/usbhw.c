@@ -61,12 +61,12 @@ int EP_Init(uint8_t number, uint8_t type, uint16_t txsz, uint16_t rxsz, void (*f
         countrx = 31 + rxsz / 32;
     }
     USB_BTABLE->EP[number].USB_ADDR_TX = lastaddr;
-    endpoints[number].tx_buf = (uint16_t *)(USB_BTABLE_BASE + lastaddr*2);
+    endpoints[number].tx_buf = (uint16_t *)(USB_BTABLE_BASE + lastaddr * ACCESSZ);
     endpoints[number].txbufsz = txsz;
     lastaddr += txsz;
     USB_BTABLE->EP[number].USB_COUNT_TX = 0;
     USB_BTABLE->EP[number].USB_ADDR_RX = lastaddr;
-    endpoints[number].rx_buf = (uint16_t *)(USB_BTABLE_BASE + lastaddr*2);
+    endpoints[number].rx_buf = (uint8_t *)(USB_BTABLE_BASE + lastaddr * ACCESSZ);
     lastaddr += rxsz;
     USB_BTABLE->EP[number].USB_COUNT_RX = countrx << 10;
     endpoints[number].func = func;
@@ -101,12 +101,10 @@ void usb_lp_isr(){
         if(USB->ISTR & USB_ISTR_DIR){ // OUT interrupt - receive data, CTR_RX==1 (if CTR_TX == 1 - two pending transactions: receive following by transmit)
             if(n == 0){ // control endpoint
                 if(epstatus & USB_EPnR_SETUP){ // setup packet -> copy data to conf_pack
-                    EP_Read(0, (uint16_t*)&setup_packet);
-                    ep0dbuflen = 0;
+                    EP_Read(0, (uint8_t*)&setup_packet);
                     // interrupt handler will be called later
                 }else if(epstatus & USB_EPnR_CTR_RX){ // data packet -> push received data to ep0databuf
-                    ep0dbuflen = endpoints[0].rx_cnt;
-                    EP_Read(0, (uint16_t*)&ep0databuf);
+                    EP_Read(0, (uint8_t*)&ep0databuf);
                 }
             }
         }

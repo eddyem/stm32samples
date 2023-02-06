@@ -38,13 +38,9 @@ int main(void){
         SysTick_Config((uint32_t)48000); // 1ms
     }
     hw_setup();
-    // here we should check the debug mode and turn off SWD if no
-    if(BTN_state(0) && BTN_state(1)){ // NO debug - turn ON SWDIO (AF0)
-        GPIOA->MODER = (GPIOA->MODER & ~MODER_CLR(13)) | MODER_AF(13);
-    }else{
-        USB_setup();
-        USBPU_ON();
-    }
+    USBPU_OFF(); // make a reconnection
+    USB_setup();
+    USBPU_ON();
     CAN_setup(100);
     uint32_t ctr = 0;
     CAN_message *can_mesg;
@@ -52,8 +48,9 @@ int main(void){
         IWDG->KR = IWDG_REFRESH;
         if(Tms - ctr > 499){
             ctr = Tms;
+            LED_blink();
         }
-        can_proc();
+        CAN_proc();
         USB_proc();
         if(CAN_get_status() == CAN_FIFO_OVERRUN){
             USB_sendstr("CAN bus fifo overrun occured!\n");

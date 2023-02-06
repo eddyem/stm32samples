@@ -20,13 +20,17 @@
 
 #include <stm32f3.h>
 
+// USB pullup: PA8
 #define USBPU_port  GPIOA
-#define USBPU_pin   (1<<13)
-#define USBPU_ON()  pin_set(USBPU_port, USBPU_pin)
-#define USBPU_OFF() pin_clear(USBPU_port, USBPU_pin)
+#define USBPU_pin   (1<<8)
+#define USBPU_ON()  pin_clear(USBPU_port, USBPU_pin)
+#define USBPU_OFF() pin_set(USBPU_port, USBPU_pin)
+
+// temporary LED: PD9
+#define LED_blink() pin_toggle(GPIOD, 1<<9)
 
 // Buttons amount
-#define BTNSNO      (7)
+#define BTNSNO      (6)
 // Buttons ports & pins
 extern volatile GPIO_TypeDef* const BTNports[BTNSNO];
 extern const uint32_t BTNpins[BTNSNO];

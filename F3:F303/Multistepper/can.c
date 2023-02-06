@@ -116,7 +116,7 @@ void CAN_setup(uint16_t speed){
     else if(speed < 50) speed = 50;
     else if(speed > 3000) speed = 3000;
     oldspeed = speed;
-    uint32_t tmout = 16000000;
+    uint32_t tmout = 10000;
     /* Enable the peripheral clock CAN */
     RCC->APB1ENR |= RCC_APB1ENR_CANEN;
     /* Configure CAN */
@@ -135,14 +135,16 @@ void CAN_setup(uint16_t speed){
     CAN->MCR |= CAN_MCR_INRQ; /* (1) */
     while((CAN->MSR & CAN_MSR_INAK) != CAN_MSR_INAK) /* (2) */
         if(--tmout == 0) break;
+    if(tmout==0){ DBG("timeout!\n");}
     CAN->MCR &=~ CAN_MCR_SLEEP; /* (3) */
     CAN->MCR |= CAN_MCR_ABOM; /* allow automatically bus-off */
 
     CAN->BTR =  2 << 20 | 3 << 16 | (4500/speed - 1); //| CAN_BTR_SILM | CAN_BTR_LBKM; /* (4) */
     CAN->MCR &= ~CAN_MCR_INRQ; /* (5) */
-    tmout = 16000000;
+    tmout = 10000;
     while((CAN->MSR & CAN_MSR_INAK) == CAN_MSR_INAK) /* (6) */
         if(--tmout == 0) break;
+    if(tmout==0){ DBG("timeout!\n");}
     // accept ALL
     CAN->FMR = CAN_FMR_FINIT; /* (7) */
     CAN->FA1R = CAN_FA1R_FACT0 | CAN_FA1R_FACT1; /* (8) */
@@ -164,7 +166,7 @@ void CAN_setup(uint16_t speed){
     can_status = CAN_READY;
 }
 
-void printCANerr(){
+void CAN_printerr(){
     if(!last_err_code) last_err_code = CAN->ESR;
     if(!last_err_code){
         USB_sendstr("No errors\n");
@@ -194,7 +196,7 @@ void printCANerr(){
     USB_putbyte('\n');
 }
 
-void can_proc(){
+void CAN_proc(){
 #ifdef EBUG
     if(last_err_code){
         USB_sendstr("Error, ESR=");
@@ -213,7 +215,7 @@ void can_proc(){
     IWDG->KR = IWDG_REFRESH;
     if(CAN->ESR & (CAN_ESR_BOFF | CAN_ESR_EPVF | CAN_ESR_EWGF)){ // much errors - restart CAN BUS
         USB_sendstr("\nToo much errors, restarting CAN!\n");
-        printCANerr();
+        CAN_printerr();
         // request abort for all mailboxes
         CAN->TSR |= CAN_TSR_ABRQ0 | CAN_TSR_ABRQ1 | CAN_TSR_ABRQ2;
         // reset CAN bus
@@ -225,14 +227,14 @@ void can_proc(){
     static uint32_t incrmessagectr = 0;
     if(flood_msg && (Tms - lastFloodTime) >= floodT){ // flood every ~5ms
         lastFloodTime = Tms;
-        can_send(flood_msg->data, flood_msg->length, flood_msg->ID);
+        CAN_send(flood_msg->data, flood_msg->length, flood_msg->ID);
     }else if(incrflood && (Tms - lastFloodTime) >= floodT){
         lastFloodTime = Tms;
-        if(CAN_OK == can_send((uint8_t*)&incrmessagectr, 4, flood_msg->ID)) ++incrmessagectr;
+        if(CAN_OK == CAN_send((uint8_t*)&incrmessagectr, 4, flood_msg->ID)) ++incrmessagectr;
     }
 }
 
-CAN_status can_send(uint8_t *msg, uint8_t len, uint16_t target_id){
+CAN_status CAN_send(uint8_t *msg, uint8_t len, uint16_t target_id){
     uint8_t mailbox = 0;
     // check first free mailbox
     if(CAN->TSR & (CAN_TSR_TME)){
@@ -286,7 +288,7 @@ CAN_status can_send(uint8_t *msg, uint8_t len, uint16_t target_id){
     return CAN_OK;
 }
 
-void set_flood(CAN_message *msg, int incr){
+void CAN_flood(CAN_message *msg, int incr){
     if(incr){ incrflood = 1; return; }
     incrflood = 0;
     if(!msg) flood_msg = NULL;
@@ -294,6 +296,10 @@ void set_flood(CAN_message *msg, int incr){
         memcpy(&loc_flood_msg, msg, sizeof(CAN_message));
         flood_msg = &loc_flood_msg;
     }
+}
+
+uint32_t CAN_speed(){
+    return oldspeed;
 }
 
 static void can_process_fifo(uint8_t fifo_num){

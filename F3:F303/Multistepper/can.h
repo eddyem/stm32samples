@@ -50,10 +50,11 @@ CAN_status CAN_get_status();
 void CAN_reinit(uint16_t speed);
 void CAN_setup(uint16_t speed);
 
-CAN_status can_send(uint8_t *msg, uint8_t len, uint16_t target_id);
-void can_proc();
-void printCANerr();
+CAN_status CAN_send(uint8_t *msg, uint8_t len, uint16_t target_id);
+void CAN_proc();
+void CAN_printerr();
 
 CAN_message *CAN_messagebuf_pop();
 
-void set_flood(CAN_message *msg, int incr);
+void CAN_flood(CAN_message *msg, int incr);
+uint32_t CAN_speed();

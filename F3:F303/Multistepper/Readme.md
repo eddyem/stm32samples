@@ -77,12 +77,12 @@ Eighth stepper could be changed to 8 dependent multiplexed. Based on STM32F303VD
 |  64     | PC7         | M4 L0       | slow in PU    |                     |
 |  65     | PC8         | M4 DIR      | slow out      |                     |
 |  66     | PC9         | M4 EN       | slow out      |                     |
-|  67     | PA8         | BTN0        | slow in PU    | Buttons/joystick    |
-|  68     | PA9         | BTN1        | slow in PU    |  to operate with    |
-|  69     | PA10        | BTN2 (SDA)  | slow in PU/AF |  screen             |
+|  67     | PA8         | USBpu       | slow out PP   |  USB DP pullup      |
+|  68     | PA9         | BTN1        | slow in PU    |  buttons to operate |
+|  69     | PA10        | BTN2 (SDA)  | slow in PU/AF |  with screen        |
 |  70     | PA11        | USB DM      | AF            | USB                 |
 |  71     | PA12        | USB DP      | AF            |                     |
-|  72     | PA13        | SWDIO/USBpu | dflt/slow out | USB pullup or dbg   |
+|  72     | PA13        | SWDIO       | dflt          | dbg/flash           |
 |  73     | PF6         | BTN3 (SCL)  | slow in PU/AF | (possible I2C2)     |
 |  74     | (VSS)       |             |               |                     |
 |  75     | (VDD)       |             |               |                     |

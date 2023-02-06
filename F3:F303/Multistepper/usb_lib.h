@@ -128,7 +128,7 @@ typedef struct {
 typedef struct{
     uint16_t *tx_buf;           // transmission buffer address
     uint16_t txbufsz;           // transmission buffer size
-    uint16_t *rx_buf;           // reception buffer address
+    uint8_t *rx_buf;            // reception buffer address
     void (*func)();             // endpoint action function
     unsigned rx_cnt  : 10;      // received data counter
 } ep_t;
@@ -167,13 +167,12 @@ extern usb_dev_t USB_Dev;
 extern volatile uint8_t usbON;
 extern config_pack_t setup_packet;
 extern uint8_t ep0databuf[];
-extern uint8_t ep0dbuflen;
 
 void EP0_Handler();
 
 void EP_WriteIRQ(uint8_t number, const uint8_t *buf, uint16_t size);
 void EP_Write(uint8_t number, const uint8_t *buf, uint16_t size);
-int EP_Read(uint8_t number, uint16_t *buf);
+int EP_Read(uint8_t number, uint8_t *buf);
 usb_LineCoding getLineCoding();
 
 void linecoding_handler(usb_LineCoding *lc);

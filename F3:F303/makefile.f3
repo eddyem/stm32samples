@@ -2,6 +2,6 @@
 # MCU FAMILY
 FAMILY		?= F3
 # or __ARM_ARCH_7EM__
-ARMARCH = -D__ARM_ARCH_7M__
+DEFINES += -D__ARM_ARCH_7M__
 FP_FLAGS	?= -mfpu=fpv4-sp-d16 -mfloat-abi=hard -fsingle-precision-constant -mlittle-endian -DARM_MATH_CM4
 ASM_FLAGS	?= -mthumb -mcpu=cortex-m4 -march=armv7e-m

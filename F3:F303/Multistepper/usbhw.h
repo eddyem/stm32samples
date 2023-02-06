@@ -83,12 +83,27 @@ typedef struct {
     __IO uint32_t BTABLE;
 } USB_TypeDef;
 
+// F303 D/E have 2x16 access scheme
 typedef struct{
+#if defined USB2_16
+    __IO uint16_t USB_ADDR_TX;
+    __IO uint16_t USB_COUNT_TX;
+    __IO uint16_t USB_ADDR_RX;
+    __IO uint16_t USB_COUNT_RX;
+#define ACCESSZ (1)
+#define BUFTYPE uint8_t
+#elif defined USB1_16
     __IO uint32_t USB_ADDR_TX;
     __IO uint32_t USB_COUNT_TX;
     __IO uint32_t USB_ADDR_RX;
     __IO uint32_t USB_COUNT_RX;
+#define ACCESSZ (2)
+#define BUFTYPE uint16_t
+#else
+#error "Define USB1_16 or USB2_16"
+#endif
 } USB_EPDATA_TypeDef;
+
 
 typedef struct{
     __IO USB_EPDATA_TypeDef EP[STM32ENDPOINTS];

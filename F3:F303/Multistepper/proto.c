@@ -282,7 +282,7 @@ int fn_canfilter(_U_ uint32_t hash,  char *args){
 }
 
 int fn_canflood(_U_ uint32_t hash,  char *args){
-    set_flood(parseCANmsg(args), 0);
+    CAN_flood(parseCANmsg(args), 0);
     return RET_GOOD;
 }
 
@@ -294,7 +294,7 @@ int fn_cansend(_U_ uint32_t hash, char *args){
     CAN_message *msg = parseCANmsg(args);
     if(!msg) return RET_WRONGCMD;
     uint32_t N = 5;
-    while(CAN_BUSY == can_send(msg->data, msg->length, msg->ID)){
+    while(CAN_BUSY == CAN_send(msg->data, msg->length, msg->ID)){
         if(--N == 0) break;
     }
     if(N == 0) return RET_BAD;
@@ -326,12 +326,12 @@ int fn_canstat(_U_ uint32_t hash,  _U_ char *args){
 }
 
 int fn_canerrcodes(_U_ uint32_t hash,  _U_ char *args){
-    printCANerr();
+    CAN_printerr();
     return RET_GOOD;
 }
 
 int fn_canincrflood(_U_ uint32_t hash,  _U_ char *args){
-    set_flood(NULL, 1);
+    CAN_flood(NULL, 1);
     USB_sendstr("Incremental flooding is ON ('F' to off)\n");
     return RET_GOOD;
 }
@@ -344,7 +344,9 @@ int fn_canspeed(_U_ uint32_t hash,  _U_ char *args){
         return RET_GOOD;
     }
     if(N < 50){
-        USB_sendstr("Lowest speed is 50kbps");
+        USB_sendstr("canspeed=");
+        USB_sendstr(u2str(CAN_speed()));
+        newline();
         return RET_GOOD;
     }else if(N > 3000){
         USB_sendstr("Highest speed is 3000kbps");

@@ -25,7 +25,6 @@ usb_dev_t USB_Dev;
 static usb_LineCoding lineCoding = {115200, 0, 0, 8};
 config_pack_t setup_packet;
 uint8_t ep0databuf[EP0DATABUF_SIZE];
-uint8_t ep0dbuflen = 0;
 
 usb_LineCoding getLineCoding(){return lineCoding;}
 
@@ -344,15 +343,24 @@ void EP0_Handler(){
  * @param size - its size
  */
 void EP_WriteIRQ(uint8_t number, const uint8_t *buf, uint16_t size){
-    uint8_t i;
     if(size > endpoints[number].txbufsz) size = endpoints[number].txbufsz;
     uint16_t N2 = (size + 1) >> 1;
     // the buffer is 16-bit, so we should copy data as it would be uint16_t
     uint16_t *buf16 = (uint16_t *)buf;
+#if defined USB1_16
+    // very bad: what if `size` is odd?
     uint32_t *out = (uint32_t *)endpoints[number].tx_buf;
-    for(i = 0; i < N2; ++i, ++out){
+    for(int i = 0; i < N2; ++i, ++out){
         *out = buf16[i];
     }
+#elif defined USB2_16
+    // use memcpy instead?
+    for(int i = 0; i < N2; i++){
+        endpoints[number].tx_buf[i] = buf16[i];
+    }
+#else
+#error "Define USB1_16 or USB2_16"
+#endif
     USB_BTABLE->EP[number].USB_COUNT_TX = size;
 }
 
@@ -374,16 +382,23 @@ void EP_Write(uint8_t number, const uint8_t *buf, uint16_t size){
  * @param *buf - user array for data
  * @return amount of data read
  */
-int EP_Read(uint8_t number, uint16_t *buf){
+int EP_Read(uint8_t number, uint8_t *buf){
     int sz = endpoints[number].rx_cnt;
     if(!sz) return 0;
     endpoints[number].rx_cnt = 0;
+#if defined USB1_16
     int n = (sz + 1) >> 1;
-    uint32_t *in = (uint32_t *)endpoints[number].rx_buf;
-    if(n){
-        for(int i = 0; i < n; ++i, ++in)
-            buf[i] = *(uint16_t*)in;
-    }
+    uint32_t *in = (uint32_t*)endpoints[number].rx_buf;
+    uint16_t *out = (uint16_t*)buf;
+    for(int i = 0; i < n; ++i, ++in)
+        out[i] = *(uint16_t*)in;
+#elif defined USB2_16
+    // use memcpy instead?
+    for(int i = 0; i < sz; ++i)
+        buf[i] = endpoints[number].rx_buf[i];
+#else
+#error "Define USB1_16 or USB2_16"
+#endif
     return sz;
 }
 

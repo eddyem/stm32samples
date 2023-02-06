@@ -18,9 +18,9 @@
 
 #include "hardware.h"
 
-// Buttons: PA8, PA9, PA10, PF6, PD3, PD4, PD5, pullup (active - 0)
-volatile GPIO_TypeDef* const BTNports[BTNSNO] = {GPIOA, GPIOA, GPIOA, GPIOF, GPIOD, GPIOD, GPIOD};
-const uint32_t BTNpins[BTNSNO] = {1<<8, 1<<9, 1<<10, 1<<6, 1<<3, 1<<4, 1<<5};
+// Buttons: PA9, PA10, PF6, PD3, PD4, PD5, pullup (active - 0)
+volatile GPIO_TypeDef* const BTNports[BTNSNO] = {GPIOA, GPIOA, GPIOF, GPIOD, GPIOD, GPIOD};
+const uint32_t BTNpins[BTNSNO] = {1<<9, 1<<10, 1<<6, 1<<3, 1<<4, 1<<5};
 
 // setup here ALL GPIO pins (due to table in Readme.md)
 // leave SWD as default AF; high speed for CLK and some other AF; med speed for some another AF
@@ -30,9 +30,9 @@ TRUE_INLINE void gpio_setup(){
     for(int i = 0; i < 10000; ++i) nop();
     GPIOA->ODR = 0;
     GPIOA->AFR[0] = AFRf(5, 5) | AFRf(5, 6) | AFRf(5, 7);
-    GPIOA->AFR[1] = /*AFRf(4, 10) |*/ AFRf(14, 11) | AFRf(14,12) | AFRf(1, 15);
-    GPIOA->MODER = MODER_AF(5) | MODER_AF(6) | MODER_AF(7) | MODER_I(8) | MODER_I(9) | MODER_I(10) /*MODER_AF(10)*/
-                 | MODER_AF(11) | MODER_AF(12) | MODER_O(13) | MODER_AF(14) | MODER_AF(15);
+    GPIOA->AFR[1] = /*AFRf(4, 10) |*/ /*AFRf(14, 11) | AFRf(14,12) |*/ AFRf(1, 15);
+    GPIOA->MODER = MODER_AF(5) | MODER_AF(6) | MODER_AF(7) | MODER_O(8) | MODER_I(9) | MODER_I(10) /*MODER_AF(10)*/
+                 | /*MODER_AF(11) | MODER_AF(12) |*/ MODER_AF(13) | MODER_AF(14) | MODER_AF(15);
     GPIOA->OSPEEDR = OSPEED_MED(5) | OSPEED_MED(6) | OSPEED_MED(7) | OSPEED_HI(11) | OSPEED_HI(12)
                  | OSPEED_HI(13) | OSPEED_HI(15);
     GPIOA->OTYPER = 0;
@@ -84,8 +84,6 @@ TRUE_INLINE void gpio_setup(){
     GPIOF->OSPEEDR = OSPEED_HI(9);
     GPIOF->OTYPER = 0;
     GPIOF->PUPDR =  PUPD_PU(6);
-
-    USBPU_OFF();
 }
 
 #ifndef EBUG
