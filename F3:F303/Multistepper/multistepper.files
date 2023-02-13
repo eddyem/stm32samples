@@ -1,5 +1,9 @@
 can.c
 can.h
+commonproto.c
+commonproto.h
+flash.c
+flash.h
 hardware.c
 hardware.h
 hashgen/hashgen.c
@@ -11,6 +15,7 @@ proto.c
 proto.h
 ringbuffer.c
 ringbuffer.h
+steppers.h
 strfunc.c
 strfunc.h
 usb.c

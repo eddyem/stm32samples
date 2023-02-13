@@ -142,7 +142,7 @@ void CAN_setup(uint16_t speed){
     CAN->BTR =  2 << 20 | 3 << 16 | (4500/speed - 1); //| CAN_BTR_SILM | CAN_BTR_LBKM; /* (4) */
     CAN->MCR &= ~CAN_MCR_INRQ; /* (5) */
     tmout = 10000;
-    while((CAN->MSR & CAN_MSR_INAK) == CAN_MSR_INAK) /* (6) */
+    while(CAN->MSR & CAN_MSR_INAK) /* (6) */
         if(--tmout == 0) break;
     if(tmout==0){ DBG("timeout!\n");}
     // accept ALL
@@ -354,6 +354,8 @@ static void can_process_fifo(uint8_t fifo_num){
     //if(*RFxR & CAN_RF0R_FULL0) *RFxR &= ~CAN_RF0R_FULL0;
     *RFxR = 0; // clear FOVR & FULL
 }
+
+;
 
 void usb_lp_can1_rx0_isr(){ // Rx FIFO0 (overrun)
     if(CAN->RF0R & CAN_RF0R_FOVR0){ // FIFO overrun

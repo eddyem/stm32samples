@@ -37,6 +37,8 @@ extern const uint32_t BTNpins[BTNSNO];
 // state 1 - pressed, 0 - released (pin active is zero)
 #define BTN_state(x)    ((BTNports[x]->IDR & BTNpins[x]) ? 0 : 1)
 
+// motors amount
+#define MOTORSNO    (8)
 
 extern volatile uint32_t Tms;
 

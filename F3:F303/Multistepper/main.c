@@ -17,6 +17,7 @@
  */
 
 #include "can.h"
+#include "flash.h"
 #include "hardware.h"
 #include "proto.h"
 #include "usb.h"
@@ -37,11 +38,12 @@ int main(void){
         StartHSI();
         SysTick_Config((uint32_t)48000); // 1ms
     }
-    hw_setup();
+    flashstorage_init();
+    hw_setup(); // GPIO, ADC, timers, watchdog etc.
     USBPU_OFF(); // make a reconnection
     USB_setup();
     USBPU_ON();
-    CAN_setup(100);
+    CAN_setup(the_conf.CANspeed);
     uint32_t ctr = 0;
     CAN_message *can_mesg;
     while(1){
