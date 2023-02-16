@@ -217,5 +217,8 @@ _SW_ used as debugging/sewing; also (I remember about USB pullup only after end 
 |  11     | PF10        | M0 EN       | slow out      | l-s 0 or CS of SPI  |
 
 
-# Debug with SWD
-Press both _BTN0_ and _BTN1_ and turn on device. In this case the USB won't be activated and you can use SWD. If both these buttons not pressed on poweron, device will use _SWDIO_ as USB pullup, so SWD connection in this mode won't be available.
+## DMA usage
+
+* ADC1 - DMA1_ch1
+* ADC2 - DMA2_ch1
+

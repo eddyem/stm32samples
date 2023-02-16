@@ -1,4 +1,6 @@
 #include <stm32f3.h>
+#include <math.h>
+#include <string.h>
 
 /**
  * @brief hexdump - dump hex array by 16 bytes in string
@@ -247,6 +249,75 @@ const char *getint(const char *txt, int32_t *I){
     *I = sign * (int32_t)U;
     return nxt;
 }
+
+// be careful: if pow10 would be bigger you should change str[] size!
+static const float pwr10[] = {1.f, 10.f, 100.f, 1000.f, 10000.f};
+static const float rounds[] = {0.5f, 0.05f, 0.005f, 0.0005f, 0.00005f};
+#define P10L  (sizeof(pwr10)/sizeof(uint32_t) - 1)
+const char *float2str(float x, uint8_t prec){
+    static char str[16] = {0}; // -117.5494E-36\0 - 14 symbols max!
+    if(prec > P10L) prec = P10L;
+    if(isnan(x)){ memcpy(str, "NAN", 4); return str;}
+    else{
+        int i = isinf(x);
+        if(i){memcpy(str, "-INF", 5); if(i == 1) return str+1; else return str;}
+    }
+    char *s = str + 14; // go to end of buffer
+    uint8_t minus = 0;
+    if(x < 0){
+        x = -x;
+        minus = 1;
+    }
+    int pow = 0; // xxxEpow
+    // now convert float to 1.xxxE3y
+    while(x > 1000.f){
+        x /= 1000.f;
+        pow += 3;
+    }
+    if(x > 0.) while(x < 1.){
+        x *= 1000.f;
+        pow -= 3;
+    }
+    // print Eyy
+    if(pow){
+        uint8_t m = 0;
+        if(pow < 0){pow = -pow; m = 1;}
+        while(pow){
+            register int p10 = pow/10;
+            *s-- = '0' + (pow - 10*p10);
+            pow = p10;
+        }
+        if(m) *s-- = '-';
+        *s-- = 'E';
+    }
+    // now our number is in [1, 1000]
+    uint32_t units;
+    if(prec){
+        units = (uint32_t) x;
+        uint32_t decimals = (uint32_t)((x-units+rounds[prec])*pwr10[prec]);
+        // print decimals
+        while(prec){
+            register int d10 = decimals / 10;
+            *s-- = '0' + (decimals - 10*d10);
+            decimals = d10;
+            --prec;
+        }
+        // decimal point
+        *s-- = '.';
+    }else{ // without decimal part
+        units = (uint32_t) (x + 0.5);
+    }
+    // print main units
+    if(units == 0) *s-- = '0';
+    else while(units){
+        register uint32_t u10 = units / 10;
+        *s-- = '0' + (units - 10*u10);
+        units = u10;
+    }
+    if(minus) *s-- = '-';
+    return s+1;
+}
+
 
 /*
 void mymemcpy(char *dest, const char *src, int len){

@@ -16,17 +16,79 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "flash.h"
 #include "hardware.h"
 
 // Buttons: PA9, PA10, PF6, PD3, PD4, PD5, pullup (active - 0)
 volatile GPIO_TypeDef* const BTNports[BTNSNO] = {GPIOA, GPIOA, GPIOF, GPIOD, GPIOD, GPIOD};
 const uint32_t BTNpins[BTNSNO] = {1<<9, 1<<10, 1<<6, 1<<3, 1<<4, 1<<5};
 
+// Limit switches: 0:PC14/PC13, 1:PB9/PB7, 2:PD7/PD6, 3:PC10/PC11, 4:PC7/PD15,
+//   5:PD11/PD10, 6:PE11/PE10, 7:PE7/PE8
+volatile GPIO_TypeDef *ESWports[MOTORSNO][ESWNO] = {
+    {GPIOC, GPIOC}, // 0
+    {GPIOB, GPIOB},
+    {GPIOD, GPIOD}, // 2
+    {GPIOC, GPIOC},
+    {GPIOC, GPIOD}, // 4
+    {GPIOD, GPIOD},
+    {GPIOE, GPIOE}, // 6
+    {GPIOE, GPIOE},
+};
+const uint32_t ESWpins[MOTORSNO][ESWNO] = {
+    {1<<14, 1<<13},
+    {1<<9, 1<<7}, // 1
+    {1<<7, 1<<6},
+    {1<<10, 1<<11}, // 3
+    {1<<7, 1<<15},
+    {1<<11, 1<<10}, // 5
+    {1<<11, 1<<10},
+    {1<<7, 1<<8}, // 7
+};
+
+// motors: DIR/EN
+// EN: 0:PF10, 1:PE1, 2:PB6, 3:PD2, 4:PC9, 5:PD14, 6:PE13, 7:PB1
+volatile GPIO_TypeDef *ENports[MOTORSNO] = {
+    GPIOF, GPIOE, GPIOB, GPIOD, GPIOC, GPIOD, GPIOE, GPIOB};
+const uint32_t ENpins[MOTORSNO] = {
+    1<<10, 1<<1, 1<<6, 1<<2, 1<<9, 1<<14, 1<<13, 1<<1};
+// DIR: 0:PC15, 1:PE0, 2:PB4, 3:PC12, 4:PC8, 5:PD13, 6:PE12, 7:PB2
+volatile GPIO_TypeDef *DIRports[MOTORSNO] = {
+    GPIOC, GPIOE, GPIOB, GPIOC, GPIOC, GPIOD, GPIOE, GPIOB};
+const uint32_t DIRpins[MOTORSNO] = {
+    1<<15, 1<<0, 1<<4, 1<<12, 1<<8, 1<<13, 1<<12, 1<<2};
+// timers for motors: 0:t15c1, 1:t16c1, 2:t17c1, 3:t2ch1, 4:t8ch1, 5:t4c1, 6:t1c1, 7:t3c3
+volatile TIM_TypeDef *mottimers[MOTORSNO] = {
+    TIM15, TIM16, TIM17, TIM2, TIM8, TIM4, TIM1, TIM3};
+const uint8_t mottchannels[MOTORSNO] = {1,1,1,1,1,1,1,3};
+static IRQn_Type motirqs[MOTORSNO] = {
+    TIM15_IRQn, TIM16_IRQn, TIM17_IRQn, TIM2_IRQn, TIM8_CC_IRQn, TIM4_IRQn, TIM1_CC_IRQn, TIM3_IRQn};
+
+// state 1 - pressed, 0 - released (pin active is zero)
+uint8_t ESW_state(uint8_t MOTno, uint8_t ESWno){
+    uint8_t val = ((ESWports[MOTno][ESWno]->IDR & ESWpins[MOTno][ESWno]) ? 0 : 1);
+    if(the_conf.motflags[ESWno].eswinv) val = !val;
+    return val;
+}
+
+// calculate MSB position of value `val`
+//                             0 1 2 3 4 5 6 7 8 9 a b c d e f
+static const uint8_t bval[] = {0,0,1,1,2,2,2,2,3,3,3,3,3,3,3,3};
+uint8_t MSB(uint16_t val){
+    register uint8_t r = 0;
+    if(val & 0xff00){r += 8; val >>= 8;}
+    if(val & 0x00f0){r += 4; val >>= 4;}
+    return ((uint8_t)r + bval[val]);
+}
+
 // setup here ALL GPIO pins (due to table in Readme.md)
 // leave SWD as default AF; high speed for CLK and some other AF; med speed for some another AF
 TRUE_INLINE void gpio_setup(){
     RCC->AHBENR |= RCC_AHBENR_GPIOAEN | RCC_AHBENR_GPIOBEN | RCC_AHBENR_GPIOCEN | RCC_AHBENR_GPIODEN
                 | RCC_AHBENR_GPIOEEN | RCC_AHBENR_GPIOFEN;
+    // enable timers: 1,2,3,4,8,15,16,17
+    RCC->APB1ENR |= RCC_APB1ENR_TIM2EN | RCC_APB1ENR_TIM3EN | RCC_APB1ENR_TIM4EN;
+    RCC->APB2ENR |= RCC_APB2ENR_TIM1EN | RCC_APB2ENR_TIM8EN | RCC_APB2ENR_TIM15EN | RCC_APB2ENR_TIM16EN | RCC_APB2ENR_TIM17EN;
     for(int i = 0; i < 10000; ++i) nop();
     GPIOA->ODR = 0;
     GPIOA->AFR[0] = AFRf(5, 5) | AFRf(5, 6) | AFRf(5, 7);
@@ -111,10 +173,78 @@ TRUE_INLINE void iwdg_setup(){
 }
 #endif
 
+// motor's PWM
+static void setup_mpwm(int i){
+    volatile TIM_TypeDef *TIM = mottimers[i];
+    TIM->CR1 = TIM_CR1_ARPE; // buffered ARR
+    TIM->PSC = MOTORTIM_PSC; // 16MHz
+    // PWM mode 1 (active -> inactive)
+    uint8_t n = mottchannels[i];
+    switch(n){
+        case 1:
+            TIM->CCMR1 = TIM_CCMR1_OC1M_2 | TIM_CCMR1_OC1M_1;
+        break;
+        case 2:
+            TIM->CCMR1 = TIM_CCMR1_OC2M_2 | TIM_CCMR1_OC2M_1;
+        break;
+        case 3:
+            TIM->CCMR2 = TIM_CCMR2_OC3M_2 | TIM_CCMR2_OC3M_1;
+        break;
+        default:
+            TIM->CCMR2 = TIM_CCMR2_OC4M_2 | TIM_CCMR2_OC4M_1;
+    }
+#if MOTORTIM_ARRMIN < 5
+#error "change the code!"
+#endif
+    TIM->CCR1 = MOTORTIM_ARRMIN - 3; // ~10us for pulse duration
+    TIM->ARR = 0xffff;
+//    TIM->EGR = TIM_EGR_UG; // generate update to refresh ARR
+    TIM->BDTR |= TIM_BDTR_MOE; // enable main output
+    TIM->CCER = 1<<((n-1)*4); // turn it on, active high
+    TIM->DIER = 1<<n; // allow CC interrupt (we should count steps)
+    NVIC_EnableIRQ(motirqs[i]);
+}
+
+
 void hw_setup(){
     gpio_setup();
+    for(int i = 0; i < MOTORSNO; ++i) setup_mpwm(i);
 #ifndef EBUG
     iwdg_setup();
 #endif
 }
 
+
+// timers for motors: 0:t15c1, 1:t16c1, 2:t17c1, 3:t2ch1, 4:t8ch1, 5:t4c1, 6:t1c1, 7:t3c3
+void tim1_cc_isr(){
+    // addmicrostep(6);
+    TIM1->SR = 0;
+}
+void tim2_isr(){
+    // addmicrostep(3);
+    TIM2->SR = 0;
+}
+void tim3_isr(){
+    // addmicrostep(7);
+    TIM3->SR = 0;
+}
+void tim4_isr(){
+    // addmicrostep(5);
+    TIM4->SR = 0;
+}
+void tim8_cc_isr(){
+    // addmicrostep(4);
+    TIM8->SR = 0;
+}
+void tim1_brk_tim15_isr(){
+    // addmicrostep(0);
+    TIM15->SR = 0;
+}
+void tim1_up_tim16_isr(){
+    // addmicrostep(1);
+    TIM16->SR = 0;
+}
+void tim1_trg_com_tim17_isr(){
+    // addmicrostep(2);
+    TIM17->SR = 0;
+}

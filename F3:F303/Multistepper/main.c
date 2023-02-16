@@ -16,6 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "adc.h"
+#include "buttons.h"
 #include "can.h"
 #include "flash.h"
 #include "hardware.h"
@@ -42,8 +44,9 @@ int main(void){
     hw_setup(); // GPIO, ADC, timers, watchdog etc.
     USBPU_OFF(); // make a reconnection
     USB_setup();
-    USBPU_ON();
     CAN_setup(the_conf.CANspeed);
+    adc_setup();
+    USBPU_ON();
     uint32_t ctr = 0;
     CAN_message *can_mesg;
     while(1){
@@ -79,5 +82,6 @@ int main(void){
             const char *ans = cmd_parser(inbuff);
             if(ans) USB_sendstr(ans);
         }
+        process_keys();
     }
 }

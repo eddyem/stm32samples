@@ -20,6 +20,11 @@
 
 #include <stm32f3.h>
 
+// motors' timer PSC = PCLK/Tfreq - 1, Tfreq=16MHz
+#define MOTORTIM_PSC    (2)
+// minimal ARR value - 99 for 5000 steps per second @ 32 microsteps/step
+#define MOTORTIM_ARRMIN (99)
+
 // USB pullup: PA8
 #define USBPU_port  GPIOA
 #define USBPU_pin   (1<<8)
@@ -40,7 +45,16 @@ extern const uint32_t BTNpins[BTNSNO];
 // motors amount
 #define MOTORSNO    (8)
 
+// Limit switches: 2 for each motor
+#define ESWNO       (2)
+// ESW ports & pins
+extern volatile GPIO_TypeDef *ESWports[MOTORSNO][ESWNO];
+extern const uint32_t ESWpins[MOTORSNO][ESWNO];
+
+
 extern volatile uint32_t Tms;
 
+uint8_t ESW_state(uint8_t MOTno, uint8_t ESWno);
+uint8_t MSB(uint16_t val);
 void hw_setup();
 

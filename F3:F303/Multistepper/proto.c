@@ -19,6 +19,8 @@
 #include <stm32f3.h>
 #include <string.h>
 
+#include "adc.h"
+#include "buttons.h"
 #include "can.h"
 #include "flash.h"
 #include "hardware.h"
@@ -417,11 +419,29 @@ int fn_dumperr(_U_ uint32_t hash,  _U_ char *args){ // "dumperr" (1223989764)
     return RET_GOOD;
 }
 
+int fn_canid(_U_ uint32_t hash, char *args){ // "canid" (2040257924)
+    if(args && *args){
+        int good = FALSE;
+        uint32_t N;
+        const char *eq = getnum(args, &N);
+        if(eq != args && N < 0xfff){
+            the_conf.CANID = (uint16_t)N;
+            CAN_reinit(the_conf.CANspeed);
+            good = TRUE;
+        }
+        if(!good) USB_sendstr("CANID setter format: `canid=ID`, ID is 11bit\n");
+    }
+    USB_sendstr("canid="); USB_sendstr(uhex2str(the_conf.CANID));
+    newline();
+    return RET_GOOD;
+}
+
 static int canusb_function(uint32_t hash, char *args){
     errcodes e = ERR_BADCMD;
     uint32_t N;
     int32_t val = 0;
     uint8_t par = CANMESG_NOPAR;
+    float f;
     if(*args){
         const char *n = getnum(args, &N);
         if(n != args){ // get parameter
@@ -444,6 +464,63 @@ static int canusb_function(uint32_t hash, char *args){
         case CMD_PING:
             e = cu_ping(par, &val);
         break;
+        case CMD_MCUT:
+            f = getMCUtemp();
+            USB_sendstr("T=");
+            USB_sendstr(float2str(f, 1));
+            newline();
+            return RET_GOOD;
+        break;
+        case CMD_MCUVDD:
+            f = getVdd();
+            USB_sendstr("VDD=");
+            USB_sendstr(float2str(f, 1));
+            newline();
+            return RET_GOOD;
+        break;
+        case CMD_ADC:
+            par = PARBASE(par);
+            if(par >= NUMBER_OF_ADC_CHANNELS){
+                USB_sendstr("Wrong channel number\n");
+                return RET_BAD;
+            }
+            USB_sendstr("ADC"); USB_putbyte('0'+par);
+            USB_putbyte('='); USB_sendstr(u2str(getADCval(par)));
+            f = getADCvoltage(par);
+            USB_sendstr("\nADCv");USB_putbyte('0'+par);
+            USB_putbyte('='); USB_sendstr(float2str(f, 1));
+            newline();
+            return RET_GOOD;
+        break;
+        case CMD_BUTTON:
+            e = cu_button(par, &val);
+            if(val == CANMESG_NOPAR){
+                USB_sendstr("Wrong button number\n");
+                return RET_BAD;
+            }
+            const char *kstate = "none";
+            switch(e){
+                case EVT_PRESS:
+                    kstate = "press";
+                break;
+                case EVT_HOLD:
+                    kstate = "hold";
+                break;
+                case EVT_RELEASE:
+                    kstate = "release";
+                break;
+                default:
+                break;
+            }
+            USB_sendstr("KEY"); USB_putbyte('0'+PARBASE(par));
+            USB_putbyte('='); USB_sendstr(kstate);
+            USB_sendstr("KEYTIME="); USB_sendstr(u2str(val));
+            newline();
+            return RET_GOOD;
+        break;
+        case CMD_ESW:
+            e = cu_esw(par, &val);
+        break;
         default:
             break;
     }
@@ -464,41 +541,40 @@ static int canusb_function(uint32_t hash, char *args){
 #define AL __attribute__ ((alias ("canusb_function")))
 
 // COMMON with CAN
-int fn_ping(_U_ uint32_t hash,  _U_ char *args) AL; //* "ping" (10561715)
+int fn_ping(_U_ uint32_t hash,  _U_ char *args) AL; // "ping" (10561715)
 // not realized yet
 int fn_abspos(_U_ uint32_t hash,  _U_ char *args) AL; //* "abspos" (3056382221)
 int fn_accel(_U_ uint32_t hash,  _U_ char *args) AL; //* "accel" (1490521981)
-int fn_adc(_U_ uint32_t hash,  _U_ char *args) AL; //* "adc" (2963026093)
-int fn_button(_U_ uint32_t hash,  _U_ char *args) AL; //* "button" (1093508897)
-int fn_canid(_U_ uint32_t hash,  _U_ char *args) AL; // "canid" (2040257924)
-int fn_diagn(_U_ uint32_t hash,  _U_ char *args) AL; // "diagn" (2334137736)
+int fn_adc(_U_ uint32_t hash,  _U_ char *args) AL; // "adc" (2963026093)
+int fn_button(_U_ uint32_t hash,  _U_ char *args) AL; // "button" (1093508897)
+int fn_diagn(_U_ uint32_t hash,  _U_ char *args) AL; //* "diagn" (2334137736)
 int fn_emstop(_U_ uint32_t hash,  _U_ char *args) AL; //* "emstop" (2965919005)
-int fn_eraseflash(_U_ uint32_t hash,  _U_ char *args) AL; // "eraseflash" (3177247267)
-int fn_esw(_U_ uint32_t hash,  _U_ char *args) AL; //* "esw" (2963094612)
+int fn_eraseflash(_U_ uint32_t hash,  _U_ char *args) AL; //* "eraseflash" (3177247267)
+int fn_esw(_U_ uint32_t hash,  _U_ char *args) AL; // "esw" (2963094612)
 int fn_eswreact(_U_ uint32_t hash,  _U_ char *args) AL; //* "eswreact" (1614224995)
-int fn_goto(_U_ uint32_t hash,  _U_ char *args) AL; // "goto" (4286309438)
+int fn_goto(_U_ uint32_t hash,  _U_ char *args) AL; //* "goto" (4286309438)
 int fn_gotoz(_U_ uint32_t hash,  _U_ char *args) AL; //* "gotoz" (3178103736)
 int fn_gpio(_U_ uint32_t hash,  _U_ char *args) AL; //* "gpio" (4286324660)
-int fn_gpioconf(_U_ uint32_t hash,  _U_ char *args) AL; // "gpioconf" (1309721562)
+int fn_gpioconf(_U_ uint32_t hash,  _U_ char *args) AL; //* "gpioconf" (1309721562)
 int fn_maxspeed(_U_ uint32_t hash,  _U_ char *args) AL; //* "maxspeed" (1498078812)
 int fn_maxsteps(_U_ uint32_t hash,  _U_ char *args) AL; //* "maxsteps" (1506667002)
-int fn_mcut(_U_ uint32_t hash,  _U_ char *args) AL; //* "mcut" (4022718)
-int fn_mcuvdd(_U_ uint32_t hash,  _U_ char *args) AL; //* "mcuvdd" (2517587080)
+int fn_mcut(_U_ uint32_t hash,  _U_ char *args) AL; // "mcut" (4022718)
+int fn_mcuvdd(_U_ uint32_t hash,  _U_ char *args) AL; // "mcuvdd" (2517587080)
 int fn_microsteps(_U_ uint32_t hash,  _U_ char *args) AL; //* "microsteps" (3974395854)
 int fn_minspeed(_U_ uint32_t hash,  _U_ char *args) AL; //* "minspeed" (3234848090)
 int fn_motflags(_U_ uint32_t hash,  _U_ char *args) AL; //* "motflags" (2153634658)
-int fn_motmul(_U_ uint32_t hash,  _U_ char *args) AL; // "motmul" (1543400099)
+int fn_motmul(_U_ uint32_t hash,  _U_ char *args) AL; //* "motmul" (1543400099)
 int fn_motreinit(_U_ uint32_t hash,  _U_ char *args) AL; //* "motreinit" (199682784)
 int fn_relpos(_U_ uint32_t hash,  _U_ char *args) AL; //* "relpos" (1278646042)
 int fn_relslow(_U_ uint32_t hash,  _U_ char *args) AL; //* "relslow" (1742971917)
 int fn_saveconf(_U_ uint32_t hash,  _U_ char *args) AL; //* "saveconf" (141102426)
-int fn_screen(_U_ uint32_t hash,  _U_ char *args) AL; // "screen" (2100809349)
+int fn_screen(_U_ uint32_t hash,  _U_ char *args) AL; //* "screen" (2100809349)
 int fn_speedlimit(_U_ uint32_t hash,  _U_ char *args) AL; //* "speedlimit" (1654184245)
 int fn_state(_U_ uint32_t hash,  _U_ char *args) AL; //* "state" (2216628902)
 int fn_stop(_U_ uint32_t hash,  _U_ char *args) AL; //* "stop" (17184971)
-int fn_tmcbus(_U_ uint32_t hash,  _U_ char *args) AL; // "tmcbus" (1906135955)
-int fn_udata(_U_ uint32_t hash,  _U_ char *args) AL; // "udata" (2736127636)
-int fn_usartstatus(_U_ uint32_t hash,  _U_ char *args) AL; // "usartstatus" (4007098968)
+int fn_tmcbus(_U_ uint32_t hash,  _U_ char *args) AL; //* "tmcbus" (1906135955)
+int fn_udata(_U_ uint32_t hash,  _U_ char *args) AL; //* "udata" (2736127636)
+int fn_usartstatus(_U_ uint32_t hash,  _U_ char *args) AL; //* "usartstatus" (4007098968)
 
 
 /**

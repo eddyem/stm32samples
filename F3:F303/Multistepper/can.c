@@ -17,6 +17,8 @@
  */
 
 #include "can.h"
+#include "commonproto.h"
+#include "flash.h"
 #include "hardware.h"
 #include "strfunc.h"
 #include "usb.h"
@@ -302,6 +304,66 @@ uint32_t CAN_speed(){
     return oldspeed;
 }
 
+static void formerr(CAN_message *msg, errcodes err){
+    if(msg->length < 4) msg->length = 4;
+    msg->data[3] = (uint8_t)err;
+}
+
+/**
+ * @brief parseCANcommand - parser
+ * @param msg - incoming message @ my CANID
+ * FORMAT:
+ *  0 1   2      3    4 5 6 7
+ * [CMD][PAR][errcode][VALUE]
+ * CMD - uint16_t, PAR - uint8_t, errcode - one of CAN_errcodes, VALUE - int32_t
+ * `errcode` of  incoming message doesn't matter
+ */
+TRUE_INLINE void parseCANcommand(CAN_message *msg){
+    int N = 1000;
+    // we don't check msg here as it cannot be NULL
+#ifdef EBUG
+    DBG("Get data");
+    for(int i = 0; i < msg->length; ++i){
+        USB_sendstr(uhex2str(msg->data[i])); USB_putbyte(' ');
+    }
+    newline();
+#endif
+    if(msg->length == 0) goto sendmessage; // PING
+    uint16_t Index = *(uint16_t*)msg->data;
+#ifdef EBUG
+    USB_sendstr("Index = "); USB_sendstr(u2str(Index)); newline();
+#endif
+    if(Index >= CCMD_AMOUNT){
+        formerr(msg, ERR_BADCMD);
+        goto sendmessage;
+    }
+    msg->data[3] = ERR_OK;
+    uint8_t par = msg->data[2];
+    if(par & 0x80){
+        formerr(msg, ERR_BADPAR);
+        goto sendmessage;
+    }
+    int32_t *val = (int32_t *)(&msg->data[4]);
+    if(msg->length == 8) par |= 0x80;
+    else if(msg->length == 2) par = CANMESG_NOPAR; // no parameter
+    else if(msg->length != 3){ // wrong length
+        formerr(msg, ERR_WRONGLEN);
+        goto sendmessage;
+    }
+#ifdef EBUG
+    USB_sendstr("Run command\n");
+#endif
+    errcodes ec = cancmdlist[Index](par, val);
+    if(ec != ERR_OK){
+        formerr(msg, ec);
+    }else{
+        msg->length = 8;
+    }
+sendmessage:
+    while(CAN_BUSY == CAN_send(msg->data, msg->length, the_conf.CANID))
+        if(--N == 0) break;
+}
+
 static void can_process_fifo(uint8_t fifo_num){
     if(fifo_num > 1) return;
     CAN_FIFOMailBox_TypeDef *box = &CAN->sFIFOMailBox[fifo_num];
@@ -348,6 +410,7 @@ static void can_process_fifo(uint8_t fifo_num){
                     dat[0] = lb & 0xff;
             }
         }
+        if(msg.ID == the_conf.CANID) parseCANcommand(&msg);
         if(CAN_messagebuf_push(&msg)) return; // error: buffer is full, try later
         *RFxR |= CAN_RF0R_RFOM0; // release fifo for access to next message
     }

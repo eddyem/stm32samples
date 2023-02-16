@@ -16,7 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "adc.h"
+#include "buttons.h"
 #include "commonproto.h"
+#include "hardware.h"
 #include "hdr.h"
 #include "proto.h"
 #include "usb.h"
@@ -45,16 +48,51 @@ static errcodes cu_time(uint8_t par, int32_t *val){
     return ERR_OK;
 }
 
+errcodes cu_mcut(uint8_t par, int32_t *val){
+    NOPARCHK(par);
+    float f = getMCUtemp();
+    *val = (uint32_t)(f*10.f);
+    return ERR_OK;
+}
+errcodes cu_mcuvdd(uint8_t par, int32_t *val){
+    NOPARCHK(par);
+    float f = getVdd();
+    *val = (uint32_t)(f*10.f);
+    return ERR_OK;
+}
+errcodes cu_adc(uint8_t par, int32_t *val){
+    uint8_t n = PARBASE(par);
+    if(n > NUMBER_OF_ADC_CHANNELS-1) return ERR_BADPAR;
+    *val = getADCval(n);
+    return ERR_OK;
+}
+// NON-STANDARD COMMAND!!!!!!!
+// errcode == keystate, value = last time!!!!
+errcodes cu_button(uint8_t par, int32_t *val){
+    uint8_t n = PARBASE(par);
+    if(n > BTNSNO-1){
+        *val = CANMESG_NOPAR; // the only chance to understand error
+        return ERR_BADPAR;
+    }
+    return (uint8_t) keystate(n, (uint32_t*)val);
+}
+
+// par - motor number, val - 0/1 for ESW0/1
+errcodes cu_esw(uint8_t par, int32_t *val){
+    uint8_t n = PARBASE(par), l = *val;
+    if(n >= MOTORSNO || l > 1){
+        *val = CANMESG_NOPAR; // the only chance to understand error
+        return ERR_BADPAR;
+    }
+    *val = ESW_state(n, l);
+    return ERR_OK;
+}
 
 errcodes cu_abspos(_U_ uint8_t par, _U_ int32_t *val){return ERR_BADCMD;}
 errcodes cu_accel(_U_ uint8_t par, _U_ int32_t *val){return ERR_BADCMD;}
-errcodes cu_adc(_U_ uint8_t par, _U_ int32_t *val){return ERR_BADCMD;}
-errcodes cu_button(_U_ uint8_t par, _U_ int32_t *val){return ERR_BADCMD;}
-errcodes cu_canid(_U_ uint8_t par, _U_ int32_t *val){return ERR_BADCMD;}
 errcodes cu_diagn(_U_ uint8_t par, _U_ int32_t *val){return ERR_BADCMD;}
 errcodes cu_emstop(_U_ uint8_t par, _U_ int32_t *val){return ERR_BADCMD;}
 errcodes cu_eraseflash(_U_ uint8_t par, _U_ int32_t *val){return ERR_BADCMD;}
-errcodes cu_esw(_U_ uint8_t par, _U_ int32_t *val){return ERR_BADCMD;}
 errcodes cu_eswreact(_U_ uint8_t par, _U_ int32_t *val){return ERR_BADCMD;}
 errcodes cu_goto(_U_ uint8_t par, _U_ int32_t *val){return ERR_BADCMD;}
 errcodes cu_gotoz(_U_ uint8_t par, _U_ int32_t *val){return ERR_BADCMD;}
@@ -62,8 +100,6 @@ errcodes cu_gpio(_U_ uint8_t par, _U_ int32_t *val){return ERR_BADCMD;}
 errcodes cu_gpioconf(_U_ uint8_t par, _U_ int32_t *val){return ERR_BADCMD;}
 errcodes cu_maxspeed(_U_ uint8_t par, _U_ int32_t *val){return ERR_BADCMD;}
 errcodes cu_maxsteps(_U_ uint8_t par, _U_ int32_t *val){return ERR_BADCMD;}
-errcodes cu_mcut(_U_ uint8_t par, _U_ int32_t *val){return ERR_BADCMD;}
-errcodes cu_mcuvdd(_U_ uint8_t par, _U_ int32_t *val){return ERR_BADCMD;}
 errcodes cu_microsteps(_U_ uint8_t par, _U_ int32_t *val){return ERR_BADCMD;}
 errcodes cu_minspeed(_U_ uint8_t par, _U_ int32_t *val){return ERR_BADCMD;}
 errcodes cu_motflags(_U_ uint8_t par, _U_ int32_t *val){return ERR_BADCMD;}
@@ -81,7 +117,7 @@ errcodes cu_udata(_U_ uint8_t par, _U_ int32_t *val){return ERR_BADCMD;}
 errcodes cu_usartstatus(_U_ uint8_t par, _U_ int32_t *val){return ERR_BADCMD;}
 
 
-const fpointer cmdlist[CCMD_AMOUNT] = {
+const fpointer cancmdlist[CCMD_AMOUNT] = {
     // different commands
     [CCMD_PING] = cu_ping,
     [CCMD_RELAY] = cu_nosuchfn,
