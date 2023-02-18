@@ -1,0 +1,2 @@
+USART3 @ PD8/PD9 (115200, 8N1)
+EEPROM in Flash emulation
