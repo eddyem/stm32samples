@@ -128,9 +128,9 @@ static int write2flash(const void *start, const void *wrdata, uint32_t stor_size
         if(FLASH->SR &  FLASH_SR_PGSERR){
             ret = 1; // program error - meet not 0xffff
             break;
-        }else{
+        }/*else{
             for(int _ = 0; _ < 9999 && (!(FLASH->SR & FLASH_SR_EOP)); ++_);
-        }
+        }*/
         FLASH->SR = 0xffff;
     }
     FLASH->CR &= ~(FLASH_CR_PG); // 7: clear PG bit at end of process
