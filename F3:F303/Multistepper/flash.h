@@ -38,14 +38,15 @@
 
 #define FLASH_SIZE          *((uint16_t*)FLASH_SIZE_REG)
 
+#define MOTFLAGS_AMOUNT     6
 // motor flags
 typedef struct{
     uint8_t reverse : 1;        // bit0 - reversing motor rotation
-    uint8_t encreverse : 1;     // bit1 - reversing encoder rotation TODO: configure encoder's timer to downcounting
-    uint8_t haveencoder : 1;    // bit2 - have encoder
+    uint8_t encreverse : 1;     // bit1 - reversing encoder rotation - NOT USED HERE!!!
+    uint8_t haveencoder : 1;    // bit2 - have encoder - NOT USED HERE!!!
     uint8_t donthold : 1;       // bit3 - clear power @ stop (don't hold motor when stopped)
     uint8_t eswinv : 1;         // bit4 - inverse end-switches
-    uint8_t keeppos : 1;        // bit5 - keep current position (as servo motor)
+    uint8_t keeppos : 1;        // bit5 - keep current position (as servo motor) - NOT USED HERE!!!
 } motflags_t;
 
 /*
@@ -60,11 +61,9 @@ typedef struct __attribute__((packed, aligned(4))){
     uint16_t maxspd[MOTORSNO];      // max motor speed (steps per second)
     uint16_t minspd[MOTORSNO];      // min motor speed (steps per second)
     uint32_t maxsteps[MOTORSNO];    // maximal amount of steps
-    uint16_t encrev[MOTORSNO];      // encoders' counts per revolution
-    uint16_t encperstepmin[MOTORSNO]; // min amount of encoder ticks per one step
-    uint16_t encperstepmax[MOTORSNO]; // max amount of encoder ticks per one step
     motflags_t motflags[MOTORSNO];  // motor's flags
     uint8_t ESW_reaction[MOTORSNO]; // end-switches reaction (esw_react)
+    uint8_t isSPI;                  // ==1 if there's SPI drivers instead of UART
 } user_conf;
 
 extern user_conf the_conf; // global user config (read from FLASH to RAM)

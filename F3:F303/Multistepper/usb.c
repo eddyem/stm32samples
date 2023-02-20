@@ -171,6 +171,7 @@ void USB_proc(){
             }
         break;
         default: // USB_STATE_CONNECTED - send next data portion
-            if(!usbON) return;
+            // if(!usbON) return; // WTF?
+        break;
     }
 }

@@ -32,22 +32,19 @@ static const uint32_t FLASH_blocksize = (uint32_t)&_BLOCKSIZE;
 // max amount of Config records stored (will be recalculate in flashstorage_init()
 static uint32_t maxCnum = 1024 / sizeof(user_conf); // can't use blocksize here
 
-#define DEFMF   {.haveencoder = 1, .donthold = 1, .eswinv = 1, .keeppos = 1}
+#define DEFMF   {.donthold = 1}
 
 #define USERCONF_INITIALIZER  {             \
      .userconf_sz = sizeof(user_conf)       \
     ,.CANspeed = 100                        \
     ,.CANID = 0xaa                          \
-    ,.microsteps = {32, 32, 32}             \
-    ,.accel = {500, 500, 500}               \
-    ,.maxspd = {2000, 2000, 2000}           \
-    ,.minspd = {20, 20, 20}                 \
-    ,.maxsteps = {500000, 500000, 500000}   \
-    ,.encrev = {4000,4000,4000}             \
-    ,.encperstepmin = {17,17,17}            \
-    ,.encperstepmax = {23,23,23}            \
-    ,.motflags = {DEFMF,DEFMF,DEFMF}        \
-    ,.ESW_reaction = {ESW_IGNORE, ESW_IGNORE, ESW_IGNORE} \
+    ,.microsteps = {32,32,32,32,32,32,32,32}\
+    ,.accel = {500,500,500,500,500,500,500,500} \
+    ,.maxspd = {2000,2000,2000,2000,2000,2000,2000,2000} \
+    ,.minspd = {20,20,20,20,20,20,20,20} \
+    ,.maxsteps = {500000,500000,500000,500000,500000,500000,500000,500000}\
+    ,.motflags = {DEFMF,DEFMF,DEFMF,DEFMF,DEFMF,DEFMF,DEFMF,DEFMF} \
+    ,.ESW_reaction = {ESW_IGNORE,ESW_IGNORE,ESW_IGNORE,ESW_IGNORE,ESW_IGNORE,ESW_IGNORE,ESW_IGNORE,ESW_IGNORE} \
     }
 static int erase_flash(const void*, const void*);
 static int write2flash(const void*, const void*, uint32_t);
@@ -121,7 +118,7 @@ static int write2flash(const void *start, const void *wrdata, uint32_t stor_size
         FLASH->KEYR = FLASH_KEY1;
         FLASH->KEYR = FLASH_KEY2;
     }
-    while (FLASH->SR & FLASH_SR_BSY);
+    while(FLASH->SR & FLASH_SR_BSY);
     if(FLASH->SR & FLASH_SR_WRPERR){
         return 1; // write protection
     }
@@ -130,14 +127,14 @@ static int write2flash(const void *start, const void *wrdata, uint32_t stor_size
     const uint16_t *data = (const uint16_t*) wrdata;
     volatile uint16_t *address = (volatile uint16_t*) start;
     uint32_t i, count = (stor_size + 1) / 2;
-    for (i = 0; i < count; ++i){
+    for(i = 0; i < count; ++i){
         IWDG->KR = IWDG_REFRESH;
         *(volatile uint16_t*)(address + i) = data[i];
         while (FLASH->SR & FLASH_SR_BSY);
-        if(FLASH->SR &  FLASH_SR_PGERR){
+        if(FLASH->SR & FLASH_SR_PGERR){
             ret = 1; // program error - meet not 0xffff
             break;
-        }else while (!(FLASH->SR & FLASH_SR_EOP));
+        }
         FLASH->SR = FLASH_SR_EOP | FLASH_SR_PGERR | FLASH_SR_WRPERR;
     }
     FLASH->CR |= FLASH_CR_LOCK; // lock it back
@@ -162,41 +159,28 @@ static int erase_flash(const void *start, const void *end){
     }else{ // erase a part
         flsz = (uint32_t)end - (uint32_t)start;
     }
+    if((FLASH->CR & FLASH_CR_LOCK) != 0){
+        FLASH->KEYR = FLASH_KEY1;
+        FLASH->KEYR = FLASH_KEY2;
+    }
     nblocks = flsz / FLASH_blocksize;
     if(nblocks == 0 || nblocks >= FLASH_SIZE) return 1;
     for(uint32_t i = 0; i < nblocks; ++i){
         IWDG->KR = IWDG_REFRESH;
-        /* (1) Wait till no operation is on going */
-        /* (2) Clear error & EOP bits */
-        /* (3) Check that the Flash is unlocked */
-        /* (4) Perform unlock sequence */
-        while ((FLASH->SR & FLASH_SR_BSY) != 0){} /* (1) */
-        FLASH->SR = FLASH_SR_EOP | FLASH_SR_PGERR | FLASH_SR_WRPERR;  /* (2) */
-      /*  if (FLASH->SR & FLASH_SR_EOP){
-            FLASH->SR |= FLASH_SR_EOP;
-        }*/
-        if ((FLASH->CR & FLASH_CR_LOCK) != 0){ /* (3) */
-            FLASH->KEYR = FLASH_KEY1; /* (4) */
-            FLASH->KEYR = FLASH_KEY2;
-        }
-        /* (1) Set the PER bit in the FLASH_CR register to enable page erasing */
-        /* (2) Program the FLASH_AR register to select a page to erase */
-        /* (3) Set the STRT bit in the FLASH_CR register to start the erasing */
-        /* (4) Wait until the  EOP flag in the FLASH_SR register set */
-        /* (5) Clear EOP flag by software by writing EOP at 1 */
-        /* (6) Reset the PER Bit to disable the page erase */
-        FLASH->CR |= FLASH_CR_PER; /* (1) */
-        FLASH->AR = (uint32_t)Flash_Data + i*FLASH_blocksize; /* (2) */
-        FLASH->CR |= FLASH_CR_STRT; /* (3) */
-        while(!(FLASH->SR & FLASH_SR_EOP));
-        FLASH->SR |= FLASH_SR_EOP; /* (5)*/
+        while(FLASH->SR & FLASH_SR_BSY);
+        FLASH->SR = FLASH_SR_EOP | FLASH_SR_PGERR | FLASH_SR_WRPERR;
+        FLASH->CR |= FLASH_CR_PER;
+        FLASH->AR = (uint32_t)Flash_Data + i*FLASH_blocksize;
+        FLASH->CR |= FLASH_CR_STRT;
+        while(FLASH->SR & FLASH_SR_BSY);
+        FLASH->SR = FLASH_SR_EOP;
         if(FLASH->SR & FLASH_SR_WRPERR){ /* Check Write protection error */
             ret = 1;
             FLASH->SR |= FLASH_SR_WRPERR; /* Clear the flag by software by writing it at 1*/
             break;
         }
-        FLASH->CR &= ~FLASH_CR_PER; /* (6) */
     }
+    FLASH->CR &= ~FLASH_CR_PER;
     return ret;
 }
 
@@ -204,7 +188,7 @@ int erase_storage(){
     return erase_flash(Flash_Data, NULL);
 }
 
-int fn_dumpconf(_U_ uint32_t hash,  _U_ char *args){ // "dumpconf" (3271513185)
+int fn_dumpconf(uint32_t _U_ hash, char _U_ *args){ // "dumpconf" (3271513185)
 #ifdef EBUG
     USB_sendstr("flashsize="); printu(FLASH_SIZE); USB_putbyte('*');
     printu(FLASH_blocksize); USB_putbyte('='); printu(FLASH_SIZE*FLASH_blocksize);
@@ -229,12 +213,6 @@ int fn_dumpconf(_U_ uint32_t hash,  _U_ char *args){ // "dumpconf" (3271513185)
         printu(the_conf.minspd[i]);
         PROPNAME("maxsteps");
         printu(the_conf.maxsteps[i]);
-        PROPNAME("encperrev");
-        printu(the_conf.encrev[i]);
-        PROPNAME("encperstepmin");
-        printu(the_conf.encperstepmin[i]);
-        PROPNAME("encperstepmax");
-        printu(the_conf.encperstepmax[i]);
         PROPNAME("motflags");
         printuhex(*((uint8_t*)&the_conf.motflags[i]));
         PROPNAME("eswreaction");

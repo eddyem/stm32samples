@@ -46,6 +46,14 @@ const uint32_t ESWpins[MOTORSNO][ESWNO] = {
     {1<<7, 1<<8}, // 7
 };
 
+// GPIO pins: PB11, PE15, PE14
+volatile GPIO_TypeDef *EXTports[EXTNO] = {
+    GPIOB, GPIOE, GPIOE
+};
+const uint32_t EXTpins[EXTNO] = {
+    1<<11, 1<<15, 1<<14
+};
+
 // motors: DIR/EN
 // EN: 0:PF10, 1:PE1, 2:PB6, 3:PD2, 4:PC9, 5:PD14, 6:PE13, 7:PB1
 volatile GPIO_TypeDef *ENports[MOTORSNO] = {
@@ -64,10 +72,17 @@ const uint8_t mottchannels[MOTORSNO] = {1,1,1,1,1,1,1,3};
 static IRQn_Type motirqs[MOTORSNO] = {
     TIM15_IRQn, TIM16_IRQn, TIM17_IRQn, TIM2_IRQn, TIM8_CC_IRQn, TIM4_IRQn, TIM1_CC_IRQn, TIM3_IRQn};
 
-// state 1 - pressed, 0 - released (pin active is zero)
-uint8_t ESW_state(uint8_t MOTno, uint8_t ESWno){
-    uint8_t val = ((ESWports[MOTno][ESWno]->IDR & ESWpins[MOTno][ESWno]) ? 0 : 1);
-    if(the_conf.motflags[ESWno].eswinv) val = !val;
+// return two bits: 0 - ESW0, 1 - ESW1 (if inactive -> 1; if active -> 0)
+uint8_t ESW_state(uint8_t MOTno){
+    uint8_t val = 0;
+    if(the_conf.isSPI){ // only ESW0 used
+        val = ((ESWports[MOTno][0]->IDR & ESWpins[MOTno][0]) ? 0 : 1);
+        if(the_conf.motflags[MOTno].eswinv) val ^= 1;
+        return val;
+    }else for(int i = 0; i < 2; ++i){
+        val |= ((ESWports[MOTno][i]->IDR & ESWpins[MOTno][i]) ? 0 : 1) << i;
+    }
+    if(the_conf.motflags[MOTno].eswinv) val ^= 3;
     return val;
 }
 

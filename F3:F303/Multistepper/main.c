@@ -40,7 +40,7 @@ int main(void){
         StartHSI();
         SysTick_Config((uint32_t)48000); // 1ms
     }
-    flashstorage_init();
+    //flashstorage_init();
     hw_setup(); // GPIO, ADC, timers, watchdog etc.
     USBPU_OFF(); // make a reconnection
     USB_setup();

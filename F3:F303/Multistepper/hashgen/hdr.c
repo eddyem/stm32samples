@@ -44,8 +44,6 @@ int fn_canspeed(_U_ uint32_t hash,  _U_ char *args) WAL; // "canspeed" (54926599
 
 int fn_canstat(_U_ uint32_t hash,  _U_ char *args) WAL; // "canstat" (237384179)
 
-int fn_delignlist(_U_ uint32_t hash,  _U_ char *args) WAL; // "delignlist" (2235834164)
-
 int fn_diagn(_U_ uint32_t hash,  _U_ char *args) WAL; // "diagn" (2334137736)
 
 int fn_dumpcmd(_U_ uint32_t hash,  _U_ char *args) WAL; // "dumpcmd" (1223955823)
@@ -54,15 +52,9 @@ int fn_dumpconf(_U_ uint32_t hash,  _U_ char *args) WAL; // "dumpconf" (32715131
 
 int fn_dumperr(_U_ uint32_t hash,  _U_ char *args) WAL; // "dumperr" (1223989764)
 
+int fn_dumpmotflags(_U_ uint32_t hash,  _U_ char *args) WAL; // "dumpmotflags" (36159640)
+
 int fn_emstop(_U_ uint32_t hash,  _U_ char *args) WAL; // "emstop" (2965919005)
-
-int fn_encpos(_U_ uint32_t hash,  _U_ char *args) WAL; // "encpos" (3208428301)
-
-int fn_encrev(_U_ uint32_t hash,  _U_ char *args) WAL; // "encrev" (3208460296)
-
-int fn_encstepmax(_U_ uint32_t hash,  _U_ char *args) WAL; // "encstepmax" (1022989757)
-
-int fn_encstepmin(_U_ uint32_t hash,  _U_ char *args) WAL; // "encstepmin" (1022990779)
 
 int fn_eraseflash(_U_ uint32_t hash,  _U_ char *args) WAL; // "eraseflash" (3177247267)
 
@@ -194,9 +186,6 @@ int parsecmd(const char *str){
         case CMD_CANSTAT:
             return fn_canstat(h, args);
         break;
-        case CMD_DELIGNLIST:
-            return fn_delignlist(h, args);
-        break;
         case CMD_DIAGN:
             return fn_diagn(h, args);
         break;
@@ -209,20 +198,11 @@ int parsecmd(const char *str){
         case CMD_DUMPERR:
             return fn_dumperr(h, args);
         break;
+        case CMD_DUMPMOTFLAGS:
+            return fn_dumpmotflags(h, args);
+        break;
         case CMD_EMSTOP:
             return fn_emstop(h, args);
-        break;
-        case CMD_ENCPOS:
-            return fn_encpos(h, args);
-        break;
-        case CMD_ENCREV:
-            return fn_encrev(h, args);
-        break;
-        case CMD_ENCSTEPMAX:
-            return fn_encstepmax(h, args);
-        break;
-        case CMD_ENCSTEPMIN:
-            return fn_encstepmin(h, args);
         break;
         case CMD_ERASEFLASH:
             return fn_eraseflash(h, args);

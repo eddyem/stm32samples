@@ -19,53 +19,50 @@
 #include "adc.h"
 #include "buttons.h"
 #include "commonproto.h"
+#include "flash.h"
 #include "hardware.h"
 #include "hdr.h"
 #include "proto.h"
+#include "steppers.h"
 #include "usb.h"
 
 
 #define NOPARCHK(par) do{if(PARBASE(par) != CANMESG_NOPAR) return ERR_BADPAR;}while(0)
 
+#define CHECKN(val, par) do{val = PARBASE(par); \
+    if(val > MOTORSNO-1) return ERR_BADPAR;}while(0)
+
 extern volatile uint32_t Tms;
 
 // common functions for CAN and USB (or CAN only functions)
 
-static errcodes cu_nosuchfn(_U_ uint8_t par, _U_ int32_t *val){ return ERR_BADCMD; }
-
-errcodes cu_ping(_U_ uint8_t par, _U_ int32_t *val){
-    return ERR_OK;
+static errcodes cu_nosuchfn(uint8_t _U_ par, int32_t _U_ *val){
+    return ERR_BADCMD;
 }
 
-static errcodes cu_reset(uint8_t par, _U_ int32_t *val){
-    NOPARCHK(par);
-    NVIC_SystemReset();
-    return ERR_OK;
-}
-static errcodes cu_time(uint8_t par, int32_t *val){
-    NOPARCHK(par);
-    *val = Tms;
+errcodes cu_abspos(uint8_t _U_ par, int32_t _U_ *val){
+    uint8_t n; CHECKN(n, par);
+    stopmotor(n);
     return ERR_OK;
 }
 
-errcodes cu_mcut(uint8_t par, int32_t *val){
-    NOPARCHK(par);
-    float f = getMCUtemp();
-    *val = (uint32_t)(f*10.f);
+errcodes cu_accel(uint8_t _U_ par, int32_t _U_ *val){
+    uint8_t n; CHECKN(n, par);
+    if(ISSETTER(par)){
+        if(*val/the_conf.microsteps[n] > ACCELMAXSTEPS || *val < 1) return ERR_BADVAL;
+        the_conf.accel[n] = *val;
+    }
+    *val = the_conf.accel[n];
     return ERR_OK;
 }
-errcodes cu_mcuvdd(uint8_t par, int32_t *val){
-    NOPARCHK(par);
-    float f = getVdd();
-    *val = (uint32_t)(f*10.f);
-    return ERR_OK;
-}
+
 errcodes cu_adc(uint8_t par, int32_t *val){
     uint8_t n = PARBASE(par);
     if(n > NUMBER_OF_ADC_CHANNELS-1) return ERR_BADPAR;
     *val = getADCval(n);
     return ERR_OK;
 }
+
 // NON-STANDARD COMMAND!!!!!!!
 // errcode == keystate, value = last time!!!!
 errcodes cu_button(uint8_t par, int32_t *val){
@@ -77,44 +74,259 @@ errcodes cu_button(uint8_t par, int32_t *val){
     return (uint8_t) keystate(n, (uint32_t*)val);
 }
 
-// par - motor number, val - 0/1 for ESW0/1
-errcodes cu_esw(uint8_t par, int32_t *val){
-    uint8_t n = PARBASE(par), l = *val;
-    if(n >= MOTORSNO || l > 1){
-        *val = CANMESG_NOPAR; // the only chance to understand error
-        return ERR_BADPAR;
-    }
-    *val = ESW_state(n, l);
+errcodes cu_diagn(uint8_t _U_ par, int32_t _U_ *val){
+    return ERR_BADCMD;
+}
+
+errcodes cu_emstop(uint8_t _U_ par, int32_t _U_ *val){
+    uint8_t n; CHECKN(n, par);
+    emstopmotor(n);
     return ERR_OK;
 }
 
-errcodes cu_abspos(_U_ uint8_t par, _U_ int32_t *val){return ERR_BADCMD;}
-errcodes cu_accel(_U_ uint8_t par, _U_ int32_t *val){return ERR_BADCMD;}
-errcodes cu_diagn(_U_ uint8_t par, _U_ int32_t *val){return ERR_BADCMD;}
-errcodes cu_emstop(_U_ uint8_t par, _U_ int32_t *val){return ERR_BADCMD;}
-errcodes cu_eraseflash(_U_ uint8_t par, _U_ int32_t *val){return ERR_BADCMD;}
-errcodes cu_eswreact(_U_ uint8_t par, _U_ int32_t *val){return ERR_BADCMD;}
-errcodes cu_goto(_U_ uint8_t par, _U_ int32_t *val){return ERR_BADCMD;}
-errcodes cu_gotoz(_U_ uint8_t par, _U_ int32_t *val){return ERR_BADCMD;}
-errcodes cu_gpio(_U_ uint8_t par, _U_ int32_t *val){return ERR_BADCMD;}
-errcodes cu_gpioconf(_U_ uint8_t par, _U_ int32_t *val){return ERR_BADCMD;}
-errcodes cu_maxspeed(_U_ uint8_t par, _U_ int32_t *val){return ERR_BADCMD;}
-errcodes cu_maxsteps(_U_ uint8_t par, _U_ int32_t *val){return ERR_BADCMD;}
-errcodes cu_microsteps(_U_ uint8_t par, _U_ int32_t *val){return ERR_BADCMD;}
-errcodes cu_minspeed(_U_ uint8_t par, _U_ int32_t *val){return ERR_BADCMD;}
-errcodes cu_motflags(_U_ uint8_t par, _U_ int32_t *val){return ERR_BADCMD;}
-errcodes cu_motmul(_U_ uint8_t par, _U_ int32_t *val){return ERR_BADCMD;}
-errcodes cu_motreinit(_U_ uint8_t par, _U_ int32_t *val){return ERR_BADCMD;}
-errcodes cu_relpos(_U_ uint8_t par, _U_ int32_t *val){return ERR_BADCMD;}
-errcodes cu_relslow(_U_ uint8_t par, _U_ int32_t *val){return ERR_BADCMD;}
-errcodes cu_saveconf(_U_ uint8_t par, _U_ int32_t *val){return ERR_BADCMD;}
-errcodes cu_screen(_U_ uint8_t par, _U_ int32_t *val){return ERR_BADCMD;}
-errcodes cu_speedlimit(_U_ uint8_t par, _U_ int32_t *val){return ERR_BADCMD;}
-errcodes cu_state(_U_ uint8_t par, _U_ int32_t *val){return ERR_BADCMD;}
-errcodes cu_stop(_U_ uint8_t par, _U_ int32_t *val){return ERR_BADCMD;}
-errcodes cu_tmcbus(_U_ uint8_t par, _U_ int32_t *val){return ERR_BADCMD;}
-errcodes cu_udata(_U_ uint8_t par, _U_ int32_t *val){return ERR_BADCMD;}
-errcodes cu_usartstatus(_U_ uint8_t par, _U_ int32_t *val){return ERR_BADCMD;}
+errcodes cu_eraseflash(uint8_t _U_ par, int32_t _U_ *val){
+    NOPARCHK(par);
+    if(erase_storage()) return ERR_CANTRUN;
+    return ERR_OK;
+}
+
+// par - motor number
+errcodes cu_esw(uint8_t par, int32_t *val){
+    uint8_t n; CHECKN(n, par);
+    *val = ESW_state(n);
+    return ERR_OK;
+}
+
+errcodes cu_eswreact(uint8_t _U_ par, int32_t _U_ *val){
+    uint8_t n; CHECKN(n, par);
+    if(ISSETTER(par)){
+        if(*val < 0 || *val > ESW_AMOUNT-1) return ERR_BADVAL;
+        the_conf.ESW_reaction[n] = *val;
+    }
+    *val = geteswreact(n);
+    return ERR_OK;
+}
+
+errcodes cu_goto(uint8_t _U_ par, int32_t _U_ *val){
+    uint8_t n; CHECKN(n, par);
+    errcodes ret = ERR_OK;
+    if(ISSETTER(par)){
+        ret = setmotpos(n, *val);
+    }
+    getpos(n, val);
+    return ret;
+}
+
+errcodes cu_gotoz(uint8_t _U_ par, int32_t _U_ *val){
+    uint8_t n; CHECKN(n, par);
+    return motor_goto0(n);
+}
+
+TRUE_INLINE void setextpar(uint8_t val, uint8_t i){
+    switch(val){
+        case 0:
+            EXT_CLEAR(i);
+        break;
+        case 1:
+            EXT_SET(i);
+        break;
+        default:
+            EXT_TOGGLE(i);
+    }
+}
+
+// TODO: do it right
+errcodes cu_gpio(uint8_t _U_ par, int32_t _U_ *val){
+#if EXTNO > 4
+#error "change the code!!!"
+#endif
+    uint8_t n = PARBASE(par);
+#ifdef EBUG
+    USND("par="); printu(par);
+    USND(", n="); USB_putbyte('0'+n); newline();
+#endif
+    if(n == CANMESG_NOPAR){ // all
+#ifdef EBUG
+        USND("ALL\n");
+#endif
+        uint8_t *arr = (uint8_t*)val;
+        if(ISSETTER(par)){
+            for(int i = 0; i < EXTNO; ++i)
+                setextpar(arr[i], i);
+        }
+        for(int i = 0; i < EXTNO; ++i){
+            arr[i] = EXT_CHK(i);
+        }
+        return ERR_OK;
+    }else if(n > EXTNO-1) return ERR_BADPAR;
+    if(ISSETTER(par))
+        setextpar((uint8_t)*val, n);
+    *val = (int32_t) EXT_CHK(n);
+    return ERR_OK;
+}
+
+// TODO: configure PU/PD, IN/OUT
+errcodes cu_gpioconf(uint8_t _U_ par, int32_t _U_ *val){
+    return ERR_BADCMD;
+}
+
+// calculate ARR value for given speed, return nearest possible speed
+static uint16_t getSPD(uint8_t n, int32_t speed){
+    uint32_t ARR = PCLK/(MOTORTIM_PSC+1) / the_conf.microsteps[n] / speed - 1;
+    if(ARR < MOTORTIM_ARRMIN) ARR = MOTORTIM_ARRMIN;
+    else if(ARR > 0xffff) ARR = 0xffff;
+    speed = PCLK/(MOTORTIM_PSC+1) / the_conf.microsteps[n] / (ARR + 1);
+    if(speed > 0xffff) speed = 0xffff;
+    return (uint16_t)speed;
+}
+
+errcodes cu_maxspeed(uint8_t _U_ par, int32_t _U_ *val){
+    uint8_t n; CHECKN(n, par);
+    if(ISSETTER(par)){
+        if(*val <= the_conf.minspd[n]) return ERR_BADVAL;
+        the_conf.maxspd[n] = getSPD(n, *val);
+    }
+    *val = the_conf.maxspd[n];
+    return ERR_OK;
+}
+
+errcodes cu_maxsteps(uint8_t _U_ par, int32_t _U_ *val){
+    uint8_t n; CHECKN(n, par);
+    if(ISSETTER(par)){
+        if(*val < 1) return ERR_BADVAL;
+        the_conf.maxsteps[n] = *val;
+    }
+    *val = the_conf.maxsteps[n];
+    return ERR_OK;
+}
+
+errcodes cu_mcut(uint8_t par, int32_t *val){
+    NOPARCHK(par);
+    float f = getMCUtemp();
+    *val = (uint32_t)(f*10.f);
+    return ERR_OK;
+}
+
+errcodes cu_mcuvdd(uint8_t par, int32_t *val){
+    NOPARCHK(par);
+    float f = getVdd();
+    *val = (uint32_t)(f*10.f);
+    return ERR_OK;
+}
+
+errcodes cu_microsteps(uint8_t _U_ par, int32_t _U_ *val){
+    uint8_t n; CHECKN(n, par);
+    if(ISSETTER(par)){
+#if MICROSTEPSMAX > 512
+#error "Change the code anywhere!"
+#endif
+        uint16_t m = (uint16_t)*val;
+        if(m < 1 || m > MICROSTEPSMAX) return ERR_BADVAL;
+        // find most significant bit
+        if(m != 1<<MSB(m)) return ERR_BADVAL;
+        if(the_conf.maxspd[n] * m > PCLK/(MOTORTIM_PSC+1)/(MOTORTIM_ARRMIN+1)) return ERR_BADVAL;
+        the_conf.microsteps[n] = m;
+    }
+    *val = the_conf.microsteps[n];
+    return ERR_OK;
+}
+
+errcodes cu_minspeed(uint8_t _U_ par, int32_t _U_ *val){
+    uint8_t n; CHECKN(n, par);
+    if(ISSETTER(par)){
+        if(*val >= the_conf.maxspd[n]) return ERR_BADVAL;
+        the_conf.minspd[n] = getSPD(n, *val);
+    }
+    *val = the_conf.minspd[n];
+    return ERR_OK;
+}
+
+errcodes cu_motflags(uint8_t _U_ par, int32_t _U_ *val){
+    uint8_t n; CHECKN(n, par);
+    if(ISSETTER(par)){
+        the_conf.motflags[n] = *((motflags_t*)val);
+    }
+    *(motflags_t*)val = the_conf.motflags[n];
+    return ERR_OK;
+}
+
+errcodes cu_motmul(uint8_t _U_ par, int32_t _U_ *val){
+    return ERR_BADCMD;
+}
+
+errcodes cu_motreinit(uint8_t _U_ par, int32_t _U_ *val){
+    NOPARCHK(par);
+    init_steppers();
+    return ERR_OK;
+}
+
+errcodes cu_ping(uint8_t _U_ par, int32_t _U_ *val){
+    return ERR_OK;
+}
+
+errcodes cu_relpos(uint8_t _U_ par, int32_t _U_ *val){
+    uint8_t n; CHECKN(n, par);
+    if(ISSETTER(par)) return motor_relmove(n, *val);
+    return getremainsteps(n, val);
+}
+
+errcodes cu_relslow(uint8_t _U_ par, int32_t _U_ *val){
+    uint8_t n; CHECKN(n, par);
+    if(ISSETTER(par)) return motor_relslow(n, *val);
+    return getremainsteps(n, val);
+}
+
+static errcodes cu_reset(uint8_t par, int32_t _U_ *val){
+    NOPARCHK(par);
+    NVIC_SystemReset();
+    return ERR_OK;
+}
+
+errcodes cu_saveconf(uint8_t _U_ par, int32_t _U_ *val){
+    NOPARCHK(par);
+    if(store_userconf()) return ERR_CANTRUN;
+    return ERR_OK;
+}
+
+errcodes cu_screen(uint8_t _U_ par, int32_t _U_ *val){
+    return ERR_BADCMD;
+}
+
+errcodes cu_speedlimit(uint8_t _U_ par, int32_t _U_ *val){
+    uint8_t n; CHECKN(n, par);
+    *val = getSPD(n, 0xffff);
+    return ERR_OK;
+}
+
+errcodes cu_state(uint8_t _U_ par, int32_t _U_ *val){
+    uint8_t n; CHECKN(n, par);
+    *val = getmotstate(n);
+    return ERR_OK;
+}
+
+errcodes cu_stop(uint8_t _U_ par, int32_t _U_ *val){
+    uint8_t n; CHECKN(n, par);
+    stopmotor(n);
+    return ERR_OK;
+}
+
+static errcodes cu_time(uint8_t par, int32_t *val){
+    NOPARCHK(par);
+    *val = Tms;
+    return ERR_OK;
+}
+
+errcodes cu_tmcbus(uint8_t _U_ par, int32_t _U_ *val){
+    return ERR_BADCMD;
+}
+
+errcodes cu_udata(uint8_t _U_ par, int32_t _U_ *val){
+    return ERR_BADCMD;
+}
+
+errcodes cu_usartstatus(uint8_t _U_ par, int32_t _U_ *val){
+    return ERR_BADCMD;
+}
 
 
 const fpointer cancmdlist[CCMD_AMOUNT] = {

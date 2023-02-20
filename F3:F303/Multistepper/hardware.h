@@ -20,6 +20,11 @@
 
 #include <stm32f3.h>
 
+// PCLK frequency
+#ifndef PCLK
+#define PCLK    (48000000)
+#endif
+
 // motors' timer PSC = PCLK/Tfreq - 1, Tfreq=16MHz
 #define MOTORTIM_PSC    (2)
 // minimal ARR value - 99 for 5000 steps per second @ 32 microsteps/step
@@ -42,8 +47,22 @@ extern const uint32_t BTNpins[BTNSNO];
 // state 1 - pressed, 0 - released (pin active is zero)
 #define BTN_state(x)    ((BTNports[x]->IDR & BTNpins[x]) ? 0 : 1)
 
-// motors amount
+// motors:
 #define MOTORSNO    (8)
+extern volatile GPIO_TypeDef *ENports[MOTORSNO];
+extern const uint32_t ENpins[MOTORSNO];
+#define MOTOR_EN(x)  do{ pin_clear(ENports[x], ENpins[x]); }while(0)
+#define MOTOR_DIS(x) do{ pin_set(ENports[x], ENpins[x]); }while(0)
+extern volatile GPIO_TypeDef *DIRports[MOTORSNO];
+extern const uint32_t DIRpins[MOTORSNO];
+#define MOTOR_CW(x)  do{ pin_set(DIRports[x], DIRpins[x]); }while(0)
+#define MOTOR_CCW(x) do{ pin_clear(DIRports[x], DIRpins[x]); }while(0)
+// interval of velocity checking (10ms)
+#define MOTCHKINTERVAL  (10)
+// maximal ticks of encoder per step
+#define MAXENCTICKSPERSTEP  (100)
+// amount of full steps per revolution
+#define STEPSPERREV         (200)
 
 // Limit switches: 2 for each motor
 #define ESWNO       (2)
@@ -51,10 +70,20 @@ extern const uint32_t BTNpins[BTNSNO];
 extern volatile GPIO_TypeDef *ESWports[MOTORSNO][ESWNO];
 extern const uint32_t ESWpins[MOTORSNO][ESWNO];
 
+// extpins amount
+#define EXTNO       (3)
+extern volatile GPIO_TypeDef *EXTports[EXTNO];
+extern const uint32_t   EXTpins[EXTNO];
+#define EXT_SET(x)      do{ pin_set(EXTports[x], EXTpins[x]); }while(0)
+#define EXT_CLEAR(x)    do{ pin_clear(EXTports[x], EXTpins[x]); }while(0)
+#define EXT_TOGGLE(x)   do{ pin_toggle(EXTports[x], EXTpins[x]); }while(0)
+#define EXT_CHK(x)      (pin_read(EXTports[x], EXTpins[x]))
+
+extern volatile TIM_TypeDef *mottimers[MOTORSNO];
 
 extern volatile uint32_t Tms;
 
-uint8_t ESW_state(uint8_t MOTno, uint8_t ESWno);
+uint8_t ESW_state(uint8_t MOTno);
 uint8_t MSB(uint16_t val);
 void hw_setup();
 

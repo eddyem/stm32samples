@@ -35,7 +35,7 @@ typedef enum{
     STP_MOVE,       // 2 - moving with constant speed
     STP_MVSLOW,     // 3 - moving with slowest constant speed (end of moving)
     STP_DECEL,      // 4 - moving with deceleration
-    STP_STALL,      // 5 - stalled
+    STP_STALL,      // 5 - stalled (UNUSED)
     STP_ERR         // 6 - wrong/error state
 } stp_state;
 
@@ -43,18 +43,15 @@ typedef enum{
 enum{
     ESW_IGNORE,     // don't stop @ end-switch
     ESW_ANYSTOP,    // stop @ esw in any moving direction
-    ESW_STOPMINUS,  // stop only in negative moving
+    ESW_STOPMINUS,  // stop only when moving in given direction (e.g. to minus @ESW0)
     ESW_AMOUNT      // number of records
 };
 
 // find zero stages: fast -> 0, slow -> +, slow -> 0
 
 void addmicrostep(uint8_t i);
-void encoders_UPD(uint8_t i);
 
 void init_steppers();
-int32_t encoder_position(uint8_t i);
-int setencpos(uint8_t i, int32_t position);
 errcodes setmotpos(uint8_t i, int32_t position);
 
 errcodes getpos(uint8_t i, int32_t *position);

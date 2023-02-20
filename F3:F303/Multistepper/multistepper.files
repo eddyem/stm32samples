@@ -19,6 +19,7 @@ proto.c
 proto.h
 ringbuffer.c
 ringbuffer.h
+steppers.c
 steppers.h
 strfunc.c
 strfunc.h
