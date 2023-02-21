@@ -25,7 +25,6 @@
 #include "steppers.h"
 #include "strfunct.h"
 #include "usb.h"
-#include "usb_lib.h"
 
 volatile uint32_t Tms = 0;
 

@@ -22,11 +22,11 @@
 ep_t endpoints[STM32ENDPOINTS];
 
 usb_dev_t USB_Dev;
-uint8_t usbON = 0;
+volatile uint8_t usbON = 0;
 static usb_LineCoding lineCoding = {115200, 0, 0, 8};
 static config_pack_t setup_packet;
 static uint8_t ep0databuf[EP0DATABUF_SIZE];
-static uint8_t ep0dbuflen = 0;
+static volatile uint8_t ep0dbuflen = 0;
 
 usb_LineCoding getLineCoding(){return lineCoding;}
 

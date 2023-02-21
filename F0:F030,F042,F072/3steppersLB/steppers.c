@@ -92,6 +92,16 @@ TRUE_INLINE void recalcARR(int i){
     curspeed[i] = (((PCLK/(MOTORTIM_PSC+1)) / (ARR+1)) >> ustepsshift[i]); // recalculate speed due to new val
 }
 
+// update stepper's settings
+void update_stepper(uint8_t i){
+    if(i >= MOTORSNO) return;
+    accdecsteps[i] = (the_conf.maxspd[i] * the_conf.maxspd[i]) / the_conf.accel[i] / 2;
+    ustepsshift[i] = MSB(the_conf.microsteps[i]);
+    encperstep[i] = the_conf.encrev[i] / STEPSPERREV;
+    enctimers[i]->ARR = the_conf.encrev[i];
+    ESW_reaction[i] = the_conf.ESW_reaction[i];
+}
+
 // run this function after each steppers parameters changing
 void init_steppers(){
     timers_setup(); // reinit timers & stop them
@@ -101,13 +111,10 @@ void init_steppers(){
         stopflag[i] = 0;
         motdir[i] = 0;
         curspeed[i] = 0;
-        accdecsteps[i] = (the_conf.maxspd[i] * the_conf.maxspd[i]) / the_conf.accel[i] / 2;
         state[i] = STP_RELAX;
-        ustepsshift[i] = MSB(the_conf.microsteps[i]);
-        encperstep[i] = the_conf.encrev[i] / STEPSPERREV;
         if(!the_conf.motflags[i].donthold) MOTOR_EN(i);
         else MOTOR_DIS(i);
-        ESW_reaction[i] = the_conf.ESW_reaction[i];
+        update_stepper(i);
     }
 }
 

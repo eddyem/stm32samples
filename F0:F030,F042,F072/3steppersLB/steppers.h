@@ -23,6 +23,14 @@
 #include <stm32f0.h>
 #include "commonproto.h"
 
+#ifndef FALSE
+#define FALSE (0)
+#endif
+
+#ifndef TRUE
+#define TRUE (1)
+#endif
+
 // amount of tries to detect motor stall
 #define NSTALLEDMAX     (5)
 // amount of steps to detect stalled state
@@ -55,6 +63,7 @@ void addmicrostep(uint8_t i);
 void encoders_UPD(uint8_t i);
 
 void init_steppers();
+void update_stepper(uint8_t i);
 int32_t encoder_position(uint8_t i);
 int setencpos(uint8_t i, int32_t position);
 errcodes setmotpos(uint8_t i, int32_t position);

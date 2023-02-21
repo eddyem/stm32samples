@@ -24,7 +24,7 @@
 // Buttons: PA10, PA13, PA14, PA15, pullup (0 active)
 volatile GPIO_TypeDef *BTNports[BTNSNO] = {GPIOA, GPIOA, GPIOA, GPIOA};
 const uint32_t BTNpins[BTNSNO] = {1<<10, 1<<13, 1<<14, 1<<15};
-// Limit switches: PC13, PC14, PC15, pulldown (0 active)
+// Limit switches: PC13, PC14, PC15, pullup (0 active)
 volatile GPIO_TypeDef *ESWports[ESWNO] = {GPIOC, GPIOC, GPIOC};
 const uint32_t ESWpins[ESWNO] = {1<<13, 1<<14, 1<<15};
 // external GPIO
@@ -55,7 +55,7 @@ void gpio_setup(void){
                    GPIO_MODER_MODER10_O | GPIO_MODER_MODER11_O | GPIO_MODER_MODER12_O | GPIO_MODER_MODER13_O |
                    GPIO_MODER_MODER14_O | GPIO_MODER_MODER15_O ;
     GPIOB->AFR[0] = (1 << (4*4)) | (1 << (5*4)) | (1 << (6*4)) | (1 << (7*4));
-    GPIOC->PUPDR = GPIO_PUPDR13_PD | GPIO_PUPDR14_PD | GPIO_PUPDR15_PD;
+    GPIOC->PUPDR = GPIO_PUPDR13_PU | GPIO_PUPDR14_PU | GPIO_PUPDR15_PU;
     GPIOF->MODER = GPIO_MODER_MODER0_O;
 }
 

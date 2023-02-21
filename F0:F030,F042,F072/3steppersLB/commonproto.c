@@ -188,6 +188,7 @@ static errcodes ustepsparser(uint8_t par, int32_t *val){
         if(m != 1<<MSB(m)) return ERR_BADVAL;
         if(the_conf.maxspd[n] * m > PCLK/(MOTORTIM_PSC+1)/(MOTORTIM_ARRMIN+1)) return ERR_BADVAL;
         the_conf.microsteps[n] = m;
+        update_stepper(n);
     }
     *val = the_conf.microsteps[n];
     return ERR_OK;
@@ -218,6 +219,7 @@ static errcodes accparser(uint8_t par, int32_t *val){
     if(ISSETTER(par)){
         if(*val/the_conf.microsteps[n] > ACCELMAXSTEPS || *val < 1) return ERR_BADVAL;
         the_conf.accel[n] = *val;
+        update_stepper(n);
     }
     *val = the_conf.accel[n];
     return ERR_OK;
@@ -238,6 +240,7 @@ static errcodes maxspdparser(uint8_t par, int32_t *val){
     if(ISSETTER(par)){
         if(*val <= the_conf.minspd[n]) return ERR_BADVAL;
         the_conf.maxspd[n] = getSPD(n, *val);
+        update_stepper(n);
     }
     *val = the_conf.maxspd[n];
     return ERR_OK;
@@ -248,6 +251,7 @@ static errcodes minspdparser(uint8_t par, int32_t *val){
     if(ISSETTER(par)){
         if(*val >= the_conf.maxspd[n]) return ERR_BADVAL;
         the_conf.minspd[n] = getSPD(n, *val);
+        update_stepper(n);
     }
     *val = the_conf.minspd[n];
     return ERR_OK;
@@ -274,7 +278,7 @@ static errcodes encrevparser(uint8_t par, int32_t *val){
     if(ISSETTER(par)){
         if(*val < 1 || *val > MAXENCREV) return ERR_BADVAL;
         the_conf.encrev[n] = *val;
-        enctimers[n]->ARR = *val;
+        update_stepper(n);
     }
     *val = the_conf.encrev[n];
     return ERR_OK;
@@ -284,6 +288,7 @@ static errcodes motflagsparser(uint8_t par, int32_t *val){
     uint8_t n; CHECKN(n, par);
     if(ISSETTER(par)){
         the_conf.motflags[n] = *((motflags_t*)val);
+        update_stepper(n);
     }
     *(motflags_t*)val = the_conf.motflags[n];
     return ERR_OK;
@@ -295,6 +300,7 @@ static errcodes eswreactparser(uint8_t par, int32_t *val){
     if(ISSETTER(par)){
         if(*val < 0 || *val > ESW_AMOUNT-1) return ERR_BADVAL;
         the_conf.ESW_reaction[n] = *val;
+        update_stepper(n);
     }
     // *val = the_conf.ESW_reaction[n];
     *val = geteswreact(n);

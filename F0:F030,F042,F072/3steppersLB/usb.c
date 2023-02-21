@@ -84,7 +84,7 @@ static int usbwr(const uint8_t *buf, uint16_t l){
 }
 
 static uint8_t usbbuff[USB_TXBUFSZ-1]; // temporary buffer (63 - to prevent need of ZLP)
-static uint8_t buflen = 0; // amount of symbols in usbbuff
+static volatile uint8_t buflen = 0; // amount of symbols in usbbuff
 
 // send next up to 63 bytes of data in usbbuff
 static void send_next(){
@@ -172,4 +172,3 @@ uint8_t USB_receive(uint8_t *buf){
     rxNE = 0;
     return sz;
 }
-

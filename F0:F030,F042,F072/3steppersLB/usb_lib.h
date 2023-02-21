@@ -166,7 +166,7 @@ typedef struct {
 
 extern ep_t endpoints[];
 extern usb_dev_t USB_Dev;
-extern uint8_t usbON;
+extern volatile uint8_t usbON;
 
 void USB_Init();
 uint8_t USB_GetState();

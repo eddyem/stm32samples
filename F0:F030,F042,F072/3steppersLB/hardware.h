@@ -22,6 +22,14 @@
 
 #include <stm32f0.h>
 
+#ifndef FALSE
+#define FALSE (0)
+#endif
+
+#ifndef TRUE
+#define TRUE (1)
+#endif
+
 // PCLK frequency
 #ifndef PCLK
 #define PCLK    (48000000)

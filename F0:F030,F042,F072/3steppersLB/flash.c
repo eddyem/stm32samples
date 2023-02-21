@@ -123,10 +123,7 @@ static int write2flash(const void *start, const void *wrdata, uint32_t stor_size
         FLASH->KEYR = FLASH_KEY1;
         FLASH->KEYR = FLASH_KEY2;
     }
-    while (FLASH->SR & FLASH_SR_BSY);
-    if(FLASH->SR & FLASH_SR_WRPRTERR){
-        return 1; // write protection
-    }
+    while (FLASH->SR & FLASH_SR_BSY) IWDG->KR = IWDG_REFRESH;
     FLASH->SR = FLASH_SR_EOP | FLASH_SR_PGERR | FLASH_SR_WRPRTERR; // clear all flags
     FLASH->CR |= FLASH_CR_PG;
     const uint16_t *data = (const uint16_t*) wrdata;
@@ -135,14 +132,14 @@ static int write2flash(const void *start, const void *wrdata, uint32_t stor_size
     for (i = 0; i < count; ++i){
         IWDG->KR = IWDG_REFRESH;
         *(volatile uint16_t*)(address + i) = data[i];
-        while (FLASH->SR & FLASH_SR_BSY);
-        if(FLASH->SR &  FLASH_SR_PGERR){
+        while (FLASH->SR & FLASH_SR_BSY) IWDG->KR = IWDG_REFRESH;
+        if(FLASH->SR & FLASH_SR_PGERR){
+            SEND("Prog err\n");
             ret = 1; // program error - meet not 0xffff
             break;
-        }else while (!(FLASH->SR & FLASH_SR_EOP));
+        }
         FLASH->SR = FLASH_SR_EOP | FLASH_SR_PGERR | FLASH_SR_WRPRTERR;
     }
-    FLASH->CR |= FLASH_CR_LOCK; // lock it back
     FLASH->CR &= ~(FLASH_CR_PG);
     return ret;
 }
@@ -166,39 +163,26 @@ static int erase_flash(const void *start, const void *end){
     }
     nblocks = flsz / blocksize;
     if(nblocks == 0 || nblocks >= FLASH_SIZE) return 1;
+    if((FLASH->CR & FLASH_CR_LOCK) != 0){
+        FLASH->KEYR = FLASH_KEY1;
+        FLASH->KEYR = FLASH_KEY2;
+    }
+    while(FLASH->SR & FLASH_SR_BSY) IWDG->KR = IWDG_REFRESH;
+    FLASH->SR = FLASH_SR_EOP | FLASH_SR_PGERR | FLASH_SR_WRPRTERR;
+    FLASH->CR |= FLASH_CR_PER;
     for(uint32_t i = 0; i < nblocks; ++i){
-        IWDG->KR = IWDG_REFRESH;
-        /* (1) Wait till no operation is on going */
-        /* (2) Clear error & EOP bits */
-        /* (3) Check that the Flash is unlocked */
-        /* (4) Perform unlock sequence */
-        while ((FLASH->SR & FLASH_SR_BSY) != 0){} /* (1) */
-        FLASH->SR = FLASH_SR_EOP | FLASH_SR_PGERR | FLASH_SR_WRPRTERR;  /* (2) */
-      /*  if (FLASH->SR & FLASH_SR_EOP){
-            FLASH->SR |= FLASH_SR_EOP;
-        }*/
-        if ((FLASH->CR & FLASH_CR_LOCK) != 0){ /* (3) */
-            FLASH->KEYR = FLASH_KEY1; /* (4) */
-            FLASH->KEYR = FLASH_KEY2;
-        }
-        /* (1) Set the PER bit in the FLASH_CR register to enable page erasing */
-        /* (2) Program the FLASH_AR register to select a page to erase */
-        /* (3) Set the STRT bit in the FLASH_CR register to start the erasing */
-        /* (4) Wait until the  EOP flag in the FLASH_SR register set */
-        /* (5) Clear EOP flag by software by writing EOP at 1 */
-        /* (6) Reset the PER Bit to disable the page erase */
-        FLASH->CR |= FLASH_CR_PER; /* (1) */
-        FLASH->AR = (uint32_t)Flash_Data + i*blocksize; /* (2) */
-        FLASH->CR |= FLASH_CR_STRT; /* (3) */
-        while(!(FLASH->SR & FLASH_SR_EOP));
-        FLASH->SR |= FLASH_SR_EOP; /* (5)*/
-        if(FLASH->SR & FLASH_SR_WRPRTERR){ /* Check Write protection error */
+        SEND("Erase block #"); printu(i); newline();
+        FLASH->AR = (uint32_t)Flash_Data + i * blocksize;
+        FLASH->CR |= FLASH_CR_STRT;
+        while(FLASH->SR & FLASH_SR_BSY) IWDG->KR = IWDG_REFRESH;
+        FLASH->SR |= FLASH_SR_EOP;
+        if(FLASH->SR & FLASH_SR_WRPRTERR){
             ret = 1;
-            FLASH->SR |= FLASH_SR_WRPRTERR; /* Clear the flag by software by writing it at 1*/
+            FLASH->SR |= FLASH_SR_WRPRTERR;
             break;
         }
-        FLASH->CR &= ~FLASH_CR_PER; /* (6) */
     }
+    FLASH->CR &= ~FLASH_CR_PER;
     return ret;
 }
 
