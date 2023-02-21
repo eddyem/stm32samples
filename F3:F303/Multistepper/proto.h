@@ -26,6 +26,7 @@
 #define printu(x)       do{USB_sendstr(u2str(x));}while(0)
 #define printi(x)       do{USB_sendstr(i2str(x));}while(0)
 #define printuhex(x)    do{USB_sendstr(uhex2str(x));}while(0)
+#define printf(x)       do{USB_sendstr(float2str(x, 2));}while(0)
 
 extern uint8_t ShowMsgs; // show CAN messages flag
 

@@ -15,16 +15,12 @@ canresume
 cansend
 canspeed
 canstat
-delignlist
 diagn
 dumperr
 dumpcmd
 dumpconf
+dumpmotflags
 emstop
-encpos
-encrev
-encstepmax
-encstepmin
 eraseflash
 esw
 eswreact
@@ -54,3 +50,5 @@ time
 tmcbus
 udata
 usartstatus
+vdrive
+vfive

@@ -86,6 +86,13 @@ enum{
     ,CCMD_MOTORSTATE         // motor state
     ,CCMD_ENCPOS             // position of encoder (independing on settings)
     ,CCMD_SETPOS             // set motor position
+    ,CCMD_MOTMUL
+    ,CCMD_DIAGN
+    ,CCMD_ERASEFLASH
+    ,CCMD_UDATA
+    ,CCMD_USARTSTATUS
+    ,CCMD_VDRIVE
+    ,CCMD_VFIVE
     // should be the last:
     ,CCMD_AMOUNT             // amount of common commands
 };
@@ -129,3 +136,5 @@ errcodes cu_stop(uint8_t par, int32_t *val);
 errcodes cu_tmcbus(uint8_t par, int32_t *val);
 errcodes cu_udata(uint8_t par, int32_t *val);
 errcodes cu_usartstatus(uint8_t par, int32_t *val);
+errcodes cu_vdrive(uint8_t par, int32_t *val);
+errcodes cu_vfive(uint8_t par, int32_t *val);

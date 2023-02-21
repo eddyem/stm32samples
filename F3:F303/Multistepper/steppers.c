@@ -110,7 +110,7 @@ errcodes setmotpos(uint8_t i, int32_t position){
     if(state[i] != STP_RELAX) return ERR_CANTRUN;
     if(position > (int32_t)the_conf.maxsteps[i] || position < -(int32_t)the_conf.maxsteps[i])
         return ERR_BADVAL; // too big position or zero
-    if(position == stppos[i]) return ERR_OK;
+    stppos[i] = position;
     return ERR_OK;
 }
 

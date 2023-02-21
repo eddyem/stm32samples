@@ -65,3 +65,5 @@ int parsecmd(const char *cmdwargs);
 #define CMD_TMCBUS          (1906135955)
 #define CMD_UDATA           (2736127636)
 #define CMD_USARTSTATUS     (4007098968)
+#define CMD_VDRIVE          (2172773525)
+#define CMD_VFIVE           (3017477285)

@@ -19,8 +19,12 @@
 #pragma once
 #include <stm32f3.h>
 
-#define NUMBER_OF_ADC1_CHANNELS (6)
-#define NUMBER_OF_ADC2_CHANNELS (2)
+// ADC1 channels
+#define NUMBER_OF_ADC1_CHANNELS     (6)
+// ext ADC channels (ADC_AINx)
+#define NUMBER_OF_EXT_ADC_CHANNELS  (4)
+// ADC2 channels
+#define NUMBER_OF_ADC2_CHANNELS     (2)
 // total number of channels - for array
 #define NUMBER_OF_ADC_CHANNELS ((NUMBER_OF_ADC1_CHANNELS+NUMBER_OF_ADC2_CHANNELS))
 
@@ -33,8 +37,8 @@
 #define ADC_AIN3    (3)
 #define ADC_TS      (4)
 #define ADC_VREF    (5)
-#define ADC_AIN4    (6)
-#define ADC_AIN5    (7)
+#define ADC_VDRIVE  (6)
+#define ADC_VFIVE   (7)
 // starting index of ADC2
 #define ADC2START   (9*NUMBER_OF_ADC1_CHANNELS)
 

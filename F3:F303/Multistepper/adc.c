@@ -17,6 +17,9 @@
  */
 
 #include "adc.h"
+#ifdef EBUG
+#include "proto.h"
+#endif
 
 /**
  * @brief ADCx_array - arrays for ADC channels with median filtering:
@@ -25,8 +28,8 @@
  * 4 - internal Tsens - ADC1_IN16
  * 5 - Vref - ADC1_IN18
  * ADC2:
- * 6 - AIN4 (ADC2_IN1)
- * 7 - AIN5 (ADC2_IN10)
+ * 6 - AIN4 - vdrive/10 (ADC2_IN1)
+ * 7 - AIN5 - 5v/2 (ADC2_IN10)
  */
 static uint16_t ADC_array[NUMBER_OF_ADC_CHANNELS*9];
 
@@ -76,7 +79,7 @@ void adc_setup(){
     ADC1->SMPR2 = ADC_SMPR2_SMP16 | ADC_SMPR2_SMP18;
     // 4 conversions in group: 1->2->3->4->16->18
     ADC1->SQR1 = (1<<6) | (2<<12) | (3<<18) | (4<<24) | (NUMBER_OF_ADC1_CHANNELS-1);
-    ADC1->SQR2 = (16<<6) | (18<<12);
+    ADC1->SQR2 = (16<<0) | (18<<6);
     ADC2->SMPR1 = ADC_SMPR1_SMP1;
     ADC2->SMPR2 = ADC_SMPR2_SMP10;
     ADC2->SQR1 = (1<<6) | (10<<12) | (NUMBER_OF_ADC2_CHANNELS-1);
@@ -121,9 +124,12 @@ uint16_t getADCval(int nch){
     PIX_SORT(p[3], p[6]) ; PIX_SORT(p[1], p[4]) ; PIX_SORT(p[2], p[5]) ;
     PIX_SORT(p[4], p[7]) ; PIX_SORT(p[4], p[2]) ; PIX_SORT(p[6], p[4]) ;
     PIX_SORT(p[4], p[2]) ;
-    return p[4];
 #undef PIX_SORT
 #undef PIX_SWAP
+#ifdef EBUG
+    DBG("val: "); printu(p[4]); newline();
+#endif
+    return p[4];
 }
 
 // get voltage @input nch (V)
@@ -131,6 +137,9 @@ float getADCvoltage(int nch){
     float v = getADCval(nch);
     v *= getVdd();
     v /= 4096.f; // 12bit ADC
+#ifdef EBUG
+    DBG("v="); printf(v); newline();
+#endif
     return v;
 }
 
@@ -142,6 +151,9 @@ float getMCUtemp(){
     temperature *= (110.f - 30.f);
     temperature /= (float)(*TEMP30_CAL_ADDR - *TEMP110_CAL_ADDR);
     temperature += 30.f;
+#ifdef EBUG
+    DBG("t="); printf(temperature); newline();
+#endif
     return(temperature);
 }
 
@@ -149,5 +161,8 @@ float getMCUtemp(){
 float getVdd(){
     float vdd = ((float) *VREFINT_CAL_ADDR) * 3.3f; // 3.3V
     vdd /= getADCval(ADC_VREF);
+#ifdef EBUG
+    DBG("vdd="); printf(vdd); newline();
+#endif
     return vdd;
 }

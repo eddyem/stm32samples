@@ -22,6 +22,9 @@
 #include "hardware.h"
 #include "strfunc.h"
 #include "usb.h"
+#ifdef EBUG
+#include "proto.h"
+#endif
 
 // PD1 - Tx, PD0 - Rx !!!
 
@@ -53,7 +56,11 @@ CAN_status CAN_get_status(){
 static int CAN_messagebuf_push(CAN_message *msg){
     //MSG("Try to push\n");
 #ifdef EBUG
-        USB_sendstr("push\n");
+        USB_sendstr("push: ");
+        for(int i = 0; i < msg->length; ++i){
+            printuhex(msg->data[i]); USB_putbyte(' ');
+        }
+        newline();
 #endif
     if(first_free_idx == first_nonfree_idx){
 #ifdef EBUG
@@ -80,6 +87,13 @@ CAN_message *CAN_messagebuf_pop(){
         first_nonfree_idx = -1;
         first_free_idx = 0;
     }
+#ifdef EBUG
+        USB_sendstr("pop: ");
+        for(int i = 0; i < msg->length; ++i){
+            printuhex(msg->data[i]); USB_putbyte(' ');
+        }
+        newline();
+#endif
     return msg;
 }
 
@@ -304,8 +318,7 @@ uint32_t CAN_speed(){
     return oldspeed;
 }
 
-static void formerr(CAN_message *msg, errcodes err){
-    if(msg->length < 4) msg->length = 4;
+TRUE_INLINE void formerr(CAN_message *msg, errcodes err){
     msg->data[3] = (uint8_t)err;
 }
 
@@ -317,15 +330,16 @@ static void formerr(CAN_message *msg, errcodes err){
  * [CMD][PAR][errcode][VALUE]
  * CMD - uint16_t, PAR - uint8_t, errcode - one of CAN_errcodes, VALUE - int32_t
  * `errcode` of  incoming message doesn't matter
+ * all answers have 8 bytes length; incoming data may have variable length
  */
 TRUE_INLINE void parseCANcommand(CAN_message *msg){
-    int N = 1000;
     // we don't check msg here as it cannot be NULL
 #ifdef EBUG
-    DBG("Get data");
+    DBG("Get data: ");
     for(int i = 0; i < msg->length; ++i){
         USB_sendstr(uhex2str(msg->data[i])); USB_putbyte(' ');
     }
+    for(int i = msg->length-1; i < 8; ++i) msg->data[i] = 0;
     newline();
 #endif
     if(msg->length == 0) goto sendmessage; // PING
@@ -356,10 +370,10 @@ TRUE_INLINE void parseCANcommand(CAN_message *msg){
     errcodes ec = cancmdlist[Index](par, val);
     if(ec != ERR_OK){
         formerr(msg, ec);
-    }else{
-        msg->length = 8;
     }
 sendmessage:
+    msg->length = 8;
+    int N = 1000;
     while(CAN_BUSY == CAN_send(msg->data, msg->length, the_conf.CANID))
         if(--N == 0) break;
 }
@@ -369,7 +383,8 @@ static void can_process_fifo(uint8_t fifo_num){
     CAN_FIFOMailBox_TypeDef *box = &CAN->sFIFOMailBox[fifo_num];
     volatile uint32_t *RFxR = (fifo_num) ? &CAN->RF1R : &CAN->RF0R;
 #ifdef EBUG
-        USB_sendstr(u2str(*RFxR & CAN_RF0R_FMP0)); USB_sendstr(" messages in FIFO\n");
+        USB_sendstr(u2str(*RFxR & CAN_RF0R_FMP0)); USB_sendstr(" messages in FIFO #");
+        USB_sendstr(u2str(fifo_num)); newline();
 #endif
     // read all
     while(*RFxR & CAN_RF0R_FMP0){ // amount of messages pending

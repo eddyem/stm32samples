@@ -547,7 +547,7 @@ static int canusb_function(uint32_t hash, char *args){
             }
             USB_sendstr("KEY"); USB_putbyte('0'+PARBASE(par));
             USB_putbyte('='); USB_sendstr(kstate);
-            USB_sendstr("KEYTIME="); USB_sendstr(u2str(val));
+            USB_sendstr("\nKEYTIME="); USB_sendstr(u2str(val));
             newline();
             return RET_GOOD;
         break;
@@ -635,6 +635,12 @@ static int canusb_function(uint32_t hash, char *args){
         case CMD_USARTSTATUS:
             e = cu_usartstatus(par, &val);
         break;
+        case CMD_VDRIVE:
+            e = cu_vdrive(par, &val);
+        break;
+        case CMD_VFIVE:
+            e = cu_vfive(par, &val);
+        break;
         default:
             e = ERR_BADCMD;
             break;
@@ -690,6 +696,8 @@ int fn_stop(uint32_t _U_ hash,  char _U_ *args) AL; //* "stop" (17184971)
 int fn_tmcbus(uint32_t _U_ hash,  char _U_ *args) AL; //* "tmcbus" (1906135955)
 int fn_udata(uint32_t _U_ hash,  char _U_ *args) AL; //* "udata" (2736127636)
 int fn_usartstatus(uint32_t _U_ hash,  char _U_ *args) AL; //* "usartstatus" (4007098968)
+int fn_vdrive(uint32_t _U_ hash, char _U_ *args) AL; // "vdrive" (2172773525)
+int fn_vfive(uint32_t _U_ hash, char _U_ *args) AL; // "vfive" (3017477285)
 
 
 /**

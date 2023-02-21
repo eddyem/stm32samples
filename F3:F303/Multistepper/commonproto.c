@@ -42,8 +42,12 @@ static errcodes cu_nosuchfn(uint8_t _U_ par, int32_t _U_ *val){
 
 errcodes cu_abspos(uint8_t _U_ par, int32_t _U_ *val){
     uint8_t n; CHECKN(n, par);
-    stopmotor(n);
-    return ERR_OK;
+    errcodes ret = ERR_OK;
+    if(ISSETTER(par)){
+        ret = setmotpos(n, *val);
+    }
+    getpos(n, val);
+    return ret;
 }
 
 errcodes cu_accel(uint8_t _U_ par, int32_t _U_ *val){
@@ -56,10 +60,13 @@ errcodes cu_accel(uint8_t _U_ par, int32_t _U_ *val){
     return ERR_OK;
 }
 
+static const uint8_t extADCchnl[NUMBER_OF_EXT_ADC_CHANNELS] = {ADC_AIN0, ADC_AIN1, ADC_AIN2, ADC_AIN3};
+// V*10
 errcodes cu_adc(uint8_t par, int32_t *val){
     uint8_t n = PARBASE(par);
-    if(n > NUMBER_OF_ADC_CHANNELS-1) return ERR_BADPAR;
-    *val = getADCval(n);
+    if(n > NUMBER_OF_EXT_ADC_CHANNELS - 1) return ERR_BADPAR;
+    float v = getADCvoltage(extADCchnl[n])*10.f;
+    *val = (int32_t)v;
     return ERR_OK;
 }
 
@@ -109,12 +116,8 @@ errcodes cu_eswreact(uint8_t _U_ par, int32_t _U_ *val){
 
 errcodes cu_goto(uint8_t _U_ par, int32_t _U_ *val){
     uint8_t n; CHECKN(n, par);
-    errcodes ret = ERR_OK;
-    if(ISSETTER(par)){
-        ret = setmotpos(n, *val);
-    }
-    getpos(n, val);
-    return ret;
+    if(ISSETTER(par)) return motor_absmove(n, *val);
+    return getpos(n, val);
 }
 
 errcodes cu_gotoz(uint8_t _U_ par, int32_t _U_ *val){
@@ -328,6 +331,20 @@ errcodes cu_usartstatus(uint8_t _U_ par, int32_t _U_ *val){
     return ERR_BADCMD;
 }
 
+// V*10
+errcodes cu_vdrive(uint8_t par, int32_t _U_ *val){
+    NOPARCHK(par);
+    float v = getADCvoltage(ADC_VDRIVE)*100.f;
+    *val = (int32_t)v;
+    return ERR_OK;
+}
+
+errcodes cu_vfive(uint8_t par, int32_t *val){
+    NOPARCHK(par);
+    float v = getADCvoltage(ADC_VFIVE)*20.f;
+    *val = (int32_t)v;
+    return ERR_OK;
+}
 
 const fpointer cancmdlist[CCMD_AMOUNT] = {
     // different commands
@@ -368,6 +385,13 @@ const fpointer cancmdlist[CCMD_AMOUNT] = {
     [CCMD_ENCPOS] = cu_nosuchfn,
     [CCMD_SETPOS] = cu_abspos,
     [CCMD_GOTOZERO] = cu_gotoz,
+    [CCMD_MOTMUL] = cu_motmul,
+    [CCMD_DIAGN] = cu_diagn,
+    [CCMD_ERASEFLASH] = cu_eraseflash,
+    [CCMD_UDATA] = cu_udata,
+    [CCMD_USARTSTATUS] = cu_usartstatus,
+    [CCMD_VDRIVE] = cu_vdrive,
+    [CCMD_VFIVE] = cu_vfive
     // Leave all commands upper for back-compatability with 3steppers
 };
 
@@ -399,5 +423,12 @@ const char* cancmds[CCMD_AMOUNT] = {
     [CCMD_REINITMOTORS] = "motreinit",
     [CCMD_MOTORSTATE] = "state",
     [CCMD_SETPOS] = "abspos",
-    [CCMD_GOTOZERO] = "gotoz"
+    [CCMD_GOTOZERO] = "gotoz",
+    [CCMD_MOTMUL] = "motmul",
+    [CCMD_DIAGN] = "diagn",
+    [CCMD_ERASEFLASH] = "eraseflash",
+    [CCMD_UDATA] = "udata",
+    [CCMD_USARTSTATUS] = "usartstatus",
+    [CCMD_VDRIVE] = "vdrive",
+    [CCMD_VFIVE] = "vfive"
 };

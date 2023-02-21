@@ -114,6 +114,10 @@ int fn_udata(_U_ uint32_t hash,  _U_ char *args) WAL; // "udata" (2736127636)
 
 int fn_usartstatus(_U_ uint32_t hash,  _U_ char *args) WAL; // "usartstatus" (4007098968)
 
+int fn_vdrive(_U_ uint32_t hash,  _U_ char *args) WAL; // "vdrive" (2172773525)
+
+int fn_vfive(_U_ uint32_t hash,  _U_ char *args) WAL; // "vfive" (3017477285)
+
 static uint32_t hashf(const char *str){
     uint32_t hash = 5381;
     uint32_t c;
@@ -290,6 +294,12 @@ int parsecmd(const char *str){
         break;
         case CMD_USARTSTATUS:
             return fn_usartstatus(h, args);
+        break;
+        case CMD_VDRIVE:
+            return fn_vdrive(h, args);
+        break;
+        case CMD_VFIVE:
+            return fn_vfive(h, args);
         break;
         default: break;
     }
