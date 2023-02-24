@@ -55,17 +55,18 @@ errcodes cu_accel(uint8_t _U_ par, int32_t _U_ *val){
     if(ISSETTER(par)){
         if(*val/the_conf.microsteps[n] > ACCELMAXSTEPS || *val < 1) return ERR_BADVAL;
         the_conf.accel[n] = *val;
+        update_stepper(n);
     }
     *val = the_conf.accel[n];
     return ERR_OK;
 }
 
 static const uint8_t extADCchnl[NUMBER_OF_EXT_ADC_CHANNELS] = {ADC_AIN0, ADC_AIN1, ADC_AIN2, ADC_AIN3};
-// V*10
+// V*100
 errcodes cu_adc(uint8_t par, int32_t *val){
     uint8_t n = PARBASE(par);
     if(n > NUMBER_OF_EXT_ADC_CHANNELS - 1) return ERR_BADPAR;
-    float v = getADCvoltage(extADCchnl[n])*10.f;
+    float v = getADCvoltage(extADCchnl[n])*100.f;
     *val = (int32_t)v;
     return ERR_OK;
 }
@@ -93,7 +94,9 @@ errcodes cu_emstop(uint8_t _U_ par, int32_t _U_ *val){
 
 errcodes cu_eraseflash(uint8_t _U_ par, int32_t _U_ *val){
     NOPARCHK(par);
-    if(erase_storage()) return ERR_CANTRUN;
+    if(ISSETTER(par)){
+        if(erase_storage(*val)) return ERR_BADVAL;
+    }else if(erase_storage(-1)) return ERR_CANTRUN;
     return ERR_OK;
 }
 
@@ -109,6 +112,7 @@ errcodes cu_eswreact(uint8_t _U_ par, int32_t _U_ *val){
     if(ISSETTER(par)){
         if(*val < 0 || *val > ESW_AMOUNT-1) return ERR_BADVAL;
         the_conf.ESW_reaction[n] = *val;
+        update_stepper(n);
     }
     *val = geteswreact(n);
     return ERR_OK;
@@ -188,6 +192,7 @@ errcodes cu_maxspeed(uint8_t _U_ par, int32_t _U_ *val){
     if(ISSETTER(par)){
         if(*val <= the_conf.minspd[n]) return ERR_BADVAL;
         the_conf.maxspd[n] = getSPD(n, *val);
+        update_stepper(n);
     }
     *val = the_conf.maxspd[n];
     return ERR_OK;
@@ -229,6 +234,7 @@ errcodes cu_microsteps(uint8_t _U_ par, int32_t _U_ *val){
         if(m != 1<<MSB(m)) return ERR_BADVAL;
         if(the_conf.maxspd[n] * m > PCLK/(MOTORTIM_PSC+1)/(MOTORTIM_ARRMIN+1)) return ERR_BADVAL;
         the_conf.microsteps[n] = m;
+        update_stepper(n);
     }
     *val = the_conf.microsteps[n];
     return ERR_OK;
@@ -239,6 +245,7 @@ errcodes cu_minspeed(uint8_t _U_ par, int32_t _U_ *val){
     if(ISSETTER(par)){
         if(*val >= the_conf.maxspd[n]) return ERR_BADVAL;
         the_conf.minspd[n] = getSPD(n, *val);
+        update_stepper(n);
     }
     *val = the_conf.minspd[n];
     return ERR_OK;
@@ -248,6 +255,7 @@ errcodes cu_motflags(uint8_t _U_ par, int32_t _U_ *val){
     uint8_t n; CHECKN(n, par);
     if(ISSETTER(par)){
         the_conf.motflags[n] = *((motflags_t*)val);
+        update_stepper(n);
     }
     *(motflags_t*)val = the_conf.motflags[n];
     return ERR_OK;
@@ -334,14 +342,14 @@ errcodes cu_usartstatus(uint8_t _U_ par, int32_t _U_ *val){
 // V*10
 errcodes cu_vdrive(uint8_t par, int32_t _U_ *val){
     NOPARCHK(par);
-    float v = getADCvoltage(ADC_VDRIVE)*100.f;
+    float v = getADCvoltage(ADC_VDRIVE)*1000.f;
     *val = (int32_t)v;
     return ERR_OK;
 }
 
 errcodes cu_vfive(uint8_t par, int32_t *val){
     NOPARCHK(par);
-    float v = getADCvoltage(ADC_VFIVE)*20.f;
+    float v = getADCvoltage(ADC_VFIVE)*200.f;
     *val = (int32_t)v;
     return ERR_OK;
 }

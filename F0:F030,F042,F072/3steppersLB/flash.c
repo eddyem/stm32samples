@@ -175,10 +175,10 @@ static int erase_flash(const void *start, const void *end){
         FLASH->AR = (uint32_t)Flash_Data + i * blocksize;
         FLASH->CR |= FLASH_CR_STRT;
         while(FLASH->SR & FLASH_SR_BSY) IWDG->KR = IWDG_REFRESH;
-        FLASH->SR |= FLASH_SR_EOP;
+        FLASH->SR = FLASH_SR_EOP;
         if(FLASH->SR & FLASH_SR_WRPRTERR){
             ret = 1;
-            FLASH->SR |= FLASH_SR_WRPRTERR;
+            FLASH->SR = FLASH_SR_WRPRTERR;
             break;
         }
     }

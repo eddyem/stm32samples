@@ -20,9 +20,10 @@
 
 #include <stm32f3.h>
 
-// PCLK frequency
+// "PCLK" frequency
+// really APB1=36M -> TIM2/3/4/6/7 f=72M, APB2=72M -> TIM1/8/15/16/17/20 f=72M
 #ifndef PCLK
-#define PCLK    (48000000)
+#define PCLK    (72000000)
 #endif
 
 // motors' timer PSC = PCLK/Tfreq - 1, Tfreq=16MHz
@@ -33,8 +34,10 @@
 // USB pullup: PA8
 #define USBPU_port  GPIOA
 #define USBPU_pin   (1<<8)
-#define USBPU_ON()  pin_clear(USBPU_port, USBPU_pin)
-#define USBPU_OFF() pin_set(USBPU_port, USBPU_pin)
+//#define USBPU_ON()  pin_clear(USBPU_port, USBPU_pin)
+//#define USBPU_OFF() pin_set(USBPU_port, USBPU_pin)
+#define USBPU_ON()  pin_set(USBPU_port, USBPU_pin)
+#define USBPU_OFF() pin_clear(USBPU_port, USBPU_pin)
 
 // temporary LED: PD9
 #define LED_blink() pin_toggle(GPIOD, 1<<9)
@@ -86,4 +89,4 @@ extern volatile uint32_t Tms;
 uint8_t ESW_state(uint8_t MOTno);
 uint8_t MSB(uint16_t val);
 void hw_setup();
-
+void mottimers_setup();

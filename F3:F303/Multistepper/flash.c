@@ -46,7 +46,7 @@ static uint32_t maxCnum = 1024 / sizeof(user_conf); // can't use blocksize here
     ,.motflags = {DEFMF,DEFMF,DEFMF,DEFMF,DEFMF,DEFMF,DEFMF,DEFMF} \
     ,.ESW_reaction = {ESW_IGNORE,ESW_IGNORE,ESW_IGNORE,ESW_IGNORE,ESW_IGNORE,ESW_IGNORE,ESW_IGNORE,ESW_IGNORE} \
     }
-static int erase_flash(const void*, const void*);
+
 static int write2flash(const void*, const void*, uint32_t);
 // don't write `static` here, or get error:
 //      'memcpy' forming offset 8 is out of the bounds [0, 4] of object '__varsstart' with type 'uint32_t'
@@ -89,7 +89,7 @@ static int binarySearch(int r, const uint8_t *start, int stor_size){
  */
 void flashstorage_init(){
     if(FLASH_SIZE > 0 && FLASH_SIZE < 20000){
-        uint32_t flsz = FLASH_SIZE * FLASH_blocksize; // size in bytes
+        uint32_t flsz = FLASH_SIZE * 1024; // size in bytes
         flsz -= (uint32_t)(&__varsstart) - FLASH_BASE;
         maxCnum = flsz / sizeof(user_conf);
     }
@@ -107,7 +107,7 @@ int store_userconf(){
     // for binarySearch() checking that there's nothing more after it!
     if(currentconfidx > (int)maxCnum - 3){ // there's no more place
         currentconfidx = 0;
-        if(erase_flash(Flash_Data, NULL)) return 1;
+        if(erase_storage(-1)) return 1;
     }else ++currentconfidx; // take next data position (0 - within first run after firmware flashing)
     return write2flash((const void*)&Flash_Data[currentconfidx], &the_conf, sizeof(the_conf));
 }
@@ -118,65 +118,81 @@ static int write2flash(const void *start, const void *wrdata, uint32_t stor_size
         FLASH->KEYR = FLASH_KEY1;
         FLASH->KEYR = FLASH_KEY2;
     }
-    while(FLASH->SR & FLASH_SR_BSY);
-    if(FLASH->SR & FLASH_SR_WRPERR){
-        return 1; // write protection
-    }
+    while(FLASH->SR & FLASH_SR_BSY) IWDG->KR = IWDG_REFRESH;
     FLASH->SR = FLASH_SR_EOP | FLASH_SR_PGERR | FLASH_SR_WRPERR; // clear all flags
     FLASH->CR |= FLASH_CR_PG;
     const uint16_t *data = (const uint16_t*) wrdata;
     volatile uint16_t *address = (volatile uint16_t*) start;
+    USB_sendstr("Start address="); printuhex((uint32_t)start); newline();
     uint32_t i, count = (stor_size + 1) / 2;
     for(i = 0; i < count; ++i){
         IWDG->KR = IWDG_REFRESH;
         *(volatile uint16_t*)(address + i) = data[i];
-        while (FLASH->SR & FLASH_SR_BSY);
+        while (FLASH->SR & FLASH_SR_BSY) IWDG->KR = IWDG_REFRESH;
+        if(*(volatile uint16_t*)(address + i) != data[i]){
+            USB_sendstr("DON'T MATCH!\n");
+            ret = 1;
+            break;
+        }
+#ifdef EBUG
+        else{ USB_sendstr("Written "); printuhex(data[i]); newline();}
+#endif
         if(FLASH->SR & FLASH_SR_PGERR){
+            USB_sendstr("Prog err\n");
             ret = 1; // program error - meet not 0xffff
             break;
         }
         FLASH->SR = FLASH_SR_EOP | FLASH_SR_PGERR | FLASH_SR_WRPERR;
     }
-    FLASH->CR |= FLASH_CR_LOCK; // lock it back
     FLASH->CR &= ~(FLASH_CR_PG);
     return ret;
 }
 
-/**
- * @brief erase_flash - erase N pages of flash memory
- * @param start  - first address
- * @param end    - last address (or NULL if need to erase all flash remaining)
- * @return 0 if succeed
- */
-static int erase_flash(const void *start, const void *end){
+// erase Nth page of flash storage (flash should be prepared!)
+static int erase_pageN(int N){
     int ret = 0;
-    uint32_t nblocks = 1, flsz = 0;
-    if(!end){ // erase all remaining
-        if(FLASH_SIZE > 0 && FLASH_SIZE < 20000){
-            flsz = FLASH_SIZE * FLASH_blocksize; // size in bytes
-            flsz -= (uint32_t)start - FLASH_BASE;
-        }
-    }else{ // erase a part
-        flsz = (uint32_t)end - (uint32_t)start;
+#ifdef EBUG
+    USB_sendstr("Erase block #"); printu(N); newline();
+#endif
+    FLASH->AR = (uint32_t)Flash_Data + N*FLASH_blocksize;
+    FLASH->CR |= FLASH_CR_STRT;
+    while(FLASH->SR & FLASH_SR_BSY) IWDG->KR = IWDG_REFRESH;
+    FLASH->SR = FLASH_SR_EOP;
+    if(FLASH->SR & FLASH_SR_WRPERR){ /* Check Write protection error */
+        ret = 1;
+        FLASH->SR = FLASH_SR_WRPERR; /* Clear the flag by software by writing it at 1*/
+    }
+    return ret;
+}
+
+// erase full storage (npage < 0) or its nth page; @return 0 if all OK
+int erase_storage(int npage){
+    int ret = 0;
+    uint32_t end = 1, start = 0, flsz = 0;
+    if(FLASH_SIZE > 0 && FLASH_SIZE < 20000){
+        flsz = FLASH_SIZE * 1024; // size in bytes
+        flsz -= (uint32_t)Flash_Data - FLASH_BASE;
+    }
+    end = flsz / FLASH_blocksize;
+    if(end == 0 || end >= FLASH_SIZE) return 1;
+    if(npage > -1){ // erase only one page
+        if((uint32_t)npage >= end) return 1;
+        start = npage;
+        end = start + 1;
     }
     if((FLASH->CR & FLASH_CR_LOCK) != 0){
         FLASH->KEYR = FLASH_KEY1;
         FLASH->KEYR = FLASH_KEY2;
     }
-    nblocks = flsz / FLASH_blocksize;
-    if(nblocks == 0 || nblocks >= FLASH_SIZE) return 1;
-    for(uint32_t i = 0; i < nblocks; ++i){
-        IWDG->KR = IWDG_REFRESH;
-        while(FLASH->SR & FLASH_SR_BSY);
-        FLASH->SR = FLASH_SR_EOP | FLASH_SR_PGERR | FLASH_SR_WRPERR;
-        FLASH->CR |= FLASH_CR_PER;
-        FLASH->AR = (uint32_t)Flash_Data + i*FLASH_blocksize;
-        FLASH->CR |= FLASH_CR_STRT;
-        while(FLASH->SR & FLASH_SR_BSY);
-        FLASH->SR = FLASH_SR_EOP;
-        if(FLASH->SR & FLASH_SR_WRPERR){ /* Check Write protection error */
+    /*USB_sendstr("size/block size/nblocks/FLASH_SIZE: "); printu(flsz);
+    USB_putbyte('/'); printu(FLASH_blocksize); USB_putbyte('/');
+    printu(nblocks); USB_putbyte('/'); printu(FLASH_SIZE); newline(); USB_sendall();*/
+    while(FLASH->SR & FLASH_SR_BSY) IWDG->KR = IWDG_REFRESH;
+    FLASH->SR = FLASH_SR_EOP | FLASH_SR_PGERR | FLASH_SR_WRPERR;
+    FLASH->CR |= FLASH_CR_PER;
+    for(uint32_t i = start; i < end; ++i){
+        if(erase_pageN(i)){
             ret = 1;
-            FLASH->SR |= FLASH_SR_WRPERR; /* Clear the flag by software by writing it at 1*/
             break;
         }
     }
@@ -184,9 +200,6 @@ static int erase_flash(const void *start, const void *end){
     return ret;
 }
 
-int erase_storage(){
-    return erase_flash(Flash_Data, NULL);
-}
 
 int fn_dumpconf(uint32_t _U_ hash, char _U_ *args){ // "dumpconf" (3271513185)
 #ifdef EBUG

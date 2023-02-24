@@ -36,7 +36,8 @@ typedef enum{
     STP_MVSLOW,     // 3 - moving with slowest constant speed (end of moving)
     STP_DECEL,      // 4 - moving with deceleration
     STP_STALL,      // 5 - stalled (UNUSED)
-    STP_ERR         // 6 - wrong/error state
+    STP_ERR ,       // 6 - wrong/error state
+    STP_STATE_AMOUNT
 } stp_state;
 
 // end-switches reaction
@@ -52,8 +53,9 @@ enum{
 void addmicrostep(uint8_t i);
 
 void init_steppers();
-errcodes setmotpos(uint8_t i, int32_t position);
+void update_stepper(uint8_t i);
 
+errcodes setmotpos(uint8_t i, int32_t position);
 errcodes getpos(uint8_t i, int32_t *position);
 errcodes getremainsteps(uint8_t i, int32_t *position);
 errcodes motor_absmove(uint8_t i, int32_t abssteps);

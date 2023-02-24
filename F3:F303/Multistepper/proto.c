@@ -448,6 +448,24 @@ int fn_dumperr(uint32_t _U_ hash,  char _U_ *args){ // "dumperr" (1223989764)
     return RET_GOOD;
 }
 
+static const char* motstates[STP_STATE_AMOUNT] = {
+    [STP_RELAX] = "relax",
+    [STP_ACCEL] = "acceleration",
+    [STP_MOVE] = "moving",
+    [STP_MVSLOW] = "moving at lowest speed",
+    [STP_DECEL] = "deceleration",
+    [STP_STALL] = "stalled (not used here!)",
+    [STP_ERR] = "error"
+};
+int fn_dumpstates(uint32_t _U_ hash,  char _U_ *args){ // "dumpstates" (4235564367)
+    USND("Motor's state codes:");
+    for(int i = 0; i < STP_STATE_AMOUNT; ++i){
+        printu(i); USB_sendstr(" - ");
+        USB_sendstr(motstates[i]); newline();
+    }
+    return RET_GOOD;
+}
+
 int fn_canid(uint32_t _U_ hash, char *args){ // "canid" (2040257924)
     if(args && *args){
         int good = FALSE;
@@ -481,13 +499,13 @@ static int canusb_function(uint32_t hash, char *args){
                 return RET_GOOD;
             }
             par = (uint8_t) N;
-            n = strchr(n, '=');
-            if(n){
-                const char *nxt = getnum(n+1, &N);
-                if(nxt != n){ // give flag issetter
-                    val = (int32_t) N;
-                    par |= SETTERFLAG;
-                }
+        }
+        n = strchr(n, '=');
+        if(n){
+            ++n;
+            const char *nxt = getint(n, &val);
+            if(nxt != n){ // set setter flag
+                par |= SETTERFLAG;
             }
         }
     }
@@ -521,7 +539,7 @@ static int canusb_function(uint32_t hash, char *args){
             USB_putbyte('='); USB_sendstr(u2str(getADCval(par)));
             f = getADCvoltage(par);
             USB_sendstr("\nADCv");USB_putbyte('0'+par);
-            USB_putbyte('='); USB_sendstr(float2str(f, 1));
+            USB_putbyte('='); USB_sendstr(float2str(f, 2));
             newline();
             return RET_GOOD;
         break;

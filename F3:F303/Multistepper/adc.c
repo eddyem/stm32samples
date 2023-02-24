@@ -77,7 +77,7 @@ void adc_setup(){
     // ADC1: channels 1,2,3,4,16,18; ADC2: channels 1,10
     ADC1->SMPR1 = ADC_SMPR1_SMP1 | ADC_SMPR1_SMP2 | ADC_SMPR1_SMP3 | ADC_SMPR1_SMP4;
     ADC1->SMPR2 = ADC_SMPR2_SMP16 | ADC_SMPR2_SMP18;
-    // 4 conversions in group: 1->2->3->4->16->18
+    // 6 conversions in group: 1->2->3->4->16->18
     ADC1->SQR1 = (1<<6) | (2<<12) | (3<<18) | (4<<24) | (NUMBER_OF_ADC1_CHANNELS-1);
     ADC1->SQR2 = (16<<0) | (18<<6);
     ADC2->SMPR1 = ADC_SMPR1_SMP1;
@@ -134,8 +134,7 @@ uint16_t getADCval(int nch){
 
 // get voltage @input nch (V)
 float getADCvoltage(int nch){
-    float v = getADCval(nch);
-    v *= getVdd();
+    float v = getADCval(nch) * 3.3;
     v /= 4096.f; // 12bit ADC
 #ifdef EBUG
     DBG("v="); printf(v); newline();
@@ -157,7 +156,7 @@ float getMCUtemp(){
     return(temperature);
 }
 
-// return Vdd (V)
+// return ADC Vref (V)
 float getVdd(){
     float vdd = ((float) *VREFINT_CAL_ADDR) * 3.3f; // 3.3V
     vdd /= getADCval(ADC_VREF);

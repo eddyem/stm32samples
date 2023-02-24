@@ -30,22 +30,12 @@ typedef enum{
     M0SLOW          // slowest move from ESW
 } mvto0state;
 
-typedef enum{
-    STALL_NO,       // moving OK
-    STALL_ONCE,     // Nstalled < limit
-    STALL_STOP      // Nstalled >= limit
-} t_stalled;
-
 #ifdef EBUG
 static uint8_t stp[MOTORSNO] = {0};
 #endif
 
-static t_stalled stallflags[MOTORSNO];
-
 // motors' direction: 1 for positive, -1 for negative (we need it as could be reverse)
 static int8_t motdir[MOTORSNO];
-// direction of moving when stalled (forbid moving in that direction before go out of position)
-static int8_t stalleddir[MOTORSNO] = {0};
 // current position (in steps) by STP counter
 static volatile int32_t stppos[MOTORSNO] = {0};
 // previous position when check (set to current in start of moving)
@@ -67,8 +57,6 @@ static stp_state state[MOTORSNO];
 // move to zero state
 static mvto0state mvzerostate[MOTORSNO];
 
-static int8_t Nstalled[MOTORSNO] = {0}; // counter of STALL
-
 // lowest ARR value (highest speed), highest (lowest speed)
 //static uint16_t stphighARR[MOTORSNO];
 // microsteps=1<<ustepsshift
@@ -88,20 +76,26 @@ TRUE_INLINE void recalcARR(int i){
     curspeed[i] = (((PCLK/(MOTORTIM_PSC+1)) / (ARR+1)) >> ustepsshift[i]); // recalculate speed due to new val
 }
 
+// update stepper's settings
+void update_stepper(uint8_t i){
+    if(i >= MOTORSNO) return;
+    accdecsteps[i] = (the_conf.maxspd[i] * the_conf.maxspd[i]) / the_conf.accel[i] / 2;
+    ustepsshift[i] = MSB(the_conf.microsteps[i]);
+    ESW_reaction[i] = the_conf.ESW_reaction[i];
+}
+
 // run this function after each steppers parameters changing
 void init_steppers(){
+    mottimers_setup(); // reinit timers
     // init variables
     for(int i = 0; i < MOTORSNO; ++i){
-        stalleddir[i] = 0; // clear old stall direction
         stopflag[i] = 0;
         motdir[i] = 0;
         curspeed[i] = 0;
-        accdecsteps[i] = (the_conf.maxspd[i] * the_conf.maxspd[i]) / the_conf.accel[i] / 2;
         state[i] = STP_RELAX;
-        ustepsshift[i] = MSB(the_conf.microsteps[i]);
         if(!the_conf.motflags[i].donthold) MOTOR_EN(i);
         else MOTOR_DIS(i);
-        ESW_reaction[i] = the_conf.ESW_reaction[i];
+        update_stepper(i);
     }
 }
 
@@ -176,7 +170,7 @@ static int esw_block(uint8_t i){
             break;
             case ESW_STOPMINUS: // stop only @ given direction
                 if(motdir[i] == -1 && (s & 1)) ret = TRUE; // stop @ESW0
-                if(motdir[i] == 1 && (s & 3)) ret = TRUE; // stop @ESW1
+                if(motdir[i] == 1 && (s & 2)) ret = TRUE; // stop @ESW1
             break;
             default: // ESW_IGNORE
             break;
@@ -194,11 +188,6 @@ errcodes motor_absmove(uint8_t i, int32_t newpos){
         case STP_RELAX:
         break;
         case STP_STALL:
-            DBG("Move from STALL");
-            if(dir == stalleddir[i]){
-                DBG("Move to stalled direction!");
-                return ERR_CANTRUN; // can't run into stalled direction
-            }
         break;
         default: // moving state
             DBG("Is moving");
@@ -213,7 +202,6 @@ errcodes motor_absmove(uint8_t i, int32_t newpos){
         DBG("Block by ESW");
         return ERR_CANTRUN; // on end-switch
     }
-    Nstalled[i] = (state[i] == STP_STALL) ? -(NSTALLEDMAX*4) : 0; // give some more chances to go out of stall state
     stopflag[i] = 0;
     targstppos[i] = newpos;
     prevstppos[i] = stppos[i];
@@ -221,10 +209,10 @@ errcodes motor_absmove(uint8_t i, int32_t newpos){
     state[i] = STP_ACCEL;
     calcacceleration(i);
 #ifdef EBUG
-    USND("MOTOR"); USB_putbyte('0'+i);
-    USND(" targstppos="); printi(targstppos[i]);
-    USND(", decelstart="); printi(decelstartpos[i]);
-    USND(", accdecsteps="); printu(accdecsteps[i]); newline();
+    USB_sendstr("MOTOR"); USB_putbyte('0'+i);
+    USB_sendstr(" targstppos="); printi(targstppos[i]);
+    USB_sendstr(", decelstart="); printi(decelstartpos[i]);
+    USB_sendstr(", accdecsteps="); printu(accdecsteps[i]); newline();
 #endif
     MOTOR_EN(i);
     mottimers[i]->CR1 |= TIM_CR1_CEN; // start timer
@@ -288,12 +276,7 @@ void addmicrostep(uint8_t i){
             stopflag[i] = 0;
             if(the_conf.motflags[i].donthold)
                 MOTOR_DIS(i); // turn off power
-            if(stallflags[i] == STALL_STOP){
-                stallflags[i] = STALL_NO;
-                state[i] = STP_STALL;
-            }else{
-                state[i] = STP_RELAX;
-            }
+            state[i] = STP_RELAX;
 #ifdef EBUG
             stp[i] = 1;
 #endif
@@ -305,8 +288,8 @@ void addmicrostep(uint8_t i){
 #define TODECEL() do{state[i] = STP_DECEL;  \
         startspeed[i] = curspeed[i];        \
         Taccel[i] = Tms;                    \
-        USND("MOTOR"); USB_putbyte('0'+i);   \
-        USND("  -> DECEL@"); printi(stppos[i]); USND(", V="); printu(curspeed[i]); newline(); \
+        USB_sendstr("MOTOR"); USB_putbyte('0'+i);   \
+        USB_sendstr("  -> DECEL@"); printi(stppos[i]); USB_sendstr(", V="); printu(curspeed[i]); newline(); \
         }while(0)
 #else
 #define TODECEL() do{state[i] = STP_DECEL;  \
@@ -322,22 +305,22 @@ static void chkstepper(int i){
 #ifdef EBUG
     if(stp[i]){
         stp[i] = 0;
-        // motor state could be changed outside of interrupt, so return it to relax or leave in STALL
+        // motor state could be changed outside of interrupt, so return it to relax
         state[i] = STP_RELAX;
-        USND("MOTOR"); USB_putbyte('0'+i); USND(" stop @"); printi(stppos[i]);
-        USND(", curstate="); printu(state[i]); newline();
+        USB_sendstr("MOTOR"); USB_putbyte('0'+i); USB_sendstr(" stop @"); printi(stppos[i]);
+        USB_sendstr(", V="); printu(curspeed[i]);
+        USB_sendstr(", curstate="); printu(state[i]); newline();
     }
 #endif
     switch(state[i]){
         case STP_ACCEL: // acceleration to max speed
-            //newspeed = curspeed[i] + dV[i];
             i32 = the_conf.minspd[i] + (the_conf.accel[i] * (Tms - Taccel[i])) / 1000;
             if(i32 >= the_conf.maxspd[i]){ // max speed reached -> move with it
                 curspeed[i] = the_conf.maxspd[i];
                 state[i] = STP_MOVE;
 #ifdef EBUG
-                USND("MOTOR"); USB_putbyte('0'+i);
-                USND("  -> MOVE@"); printi(stppos[i]); USND(", V="); printu(curspeed[i]); newline();
+                USB_sendstr("MOTOR"); USB_putbyte('0'+i);
+                USB_sendstr("  -> MOVE@"); printi(stppos[i]); USB_sendstr(", V="); printu(curspeed[i]); newline();
 #endif
             }else{ // increase speed
                 curspeed[i] = i32;
@@ -375,8 +358,8 @@ static void chkstepper(int i){
                 curspeed[i] = the_conf.minspd[i];
                 state[i] = STP_MVSLOW;
 #ifdef EBUG
-                USND("MOTOR"); USB_putbyte('0'+i);
-                USND("  -> MVSLOW@"); printi(stppos[i]); newline();
+                USB_sendstr("MOTOR"); USB_putbyte('0'+i);
+                USB_sendstr("  -> MVSLOW@"); printi(stppos[i]); newline();
 #endif
             }
             recalcARR(i);
@@ -388,11 +371,11 @@ static void chkstepper(int i){
         case M0FAST:
             if(state[i] == STP_RELAX || state[i] == STP_STALL){ // stopped -> move to +
 #ifdef EBUG
-                USB_putbyte('M'); USB_putbyte('0'+i); USND("FAST: motor stopped\n");
+                USB_putbyte('M'); USB_putbyte('0'+i); USB_sendstr("FAST: motor stopped\n");
 #endif
                 if(ERR_OK != motor_relslow(i, 1000)){
 #ifdef EBUG
-                    USND("Can't move\n");
+                    USND("Can't move");
 #endif
                     DBG("->ERR");
                     state[i] = STP_ERR;
@@ -410,7 +393,7 @@ static void chkstepper(int i){
             }
             if((state[i] == STP_RELAX || state[i] == STP_STALL) && ++stopctr[i] > 5){ // wait at least 50ms
 #ifdef EBUG
-                USB_putbyte('M'); USB_putbyte('0'+i); USND("SLOW: motor stopped\n");
+                USB_putbyte('M'); USB_putbyte('0'+i); USND("SLOW: motor stopped");
 #endif
                 ESW_reaction[i] = the_conf.ESW_reaction[i];
                 prevstppos[i] = targstppos[i] = stppos[i] = 0;

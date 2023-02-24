@@ -18,6 +18,7 @@
 
 #include "flash.h"
 #include "hardware.h"
+#include "steppers.h"
 
 // Buttons: PA9, PA10, PF6, PD3, PD4, PD5, pullup (active - 0)
 volatile GPIO_TypeDef* const BTNports[BTNSNO] = {GPIOA, GPIOA, GPIOF, GPIOD, GPIOD, GPIOD};
@@ -76,11 +77,11 @@ static IRQn_Type motirqs[MOTORSNO] = {
 uint8_t ESW_state(uint8_t MOTno){
     uint8_t val = 0;
     if(the_conf.isSPI){ // only ESW0 used
-        val = ((ESWports[MOTno][0]->IDR & ESWpins[MOTno][0]) ? 0 : 1);
+        val = ((ESWports[MOTno][0]->IDR & ESWpins[MOTno][0]) ? 1 : 0);
         if(the_conf.motflags[MOTno].eswinv) val ^= 1;
         return val;
     }else for(int i = 0; i < 2; ++i){
-        val |= ((ESWports[MOTno][i]->IDR & ESWpins[MOTno][i]) ? 0 : 1) << i;
+        val |= ((ESWports[MOTno][i]->IDR & ESWpins[MOTno][i]) ? 1 : 0) << i;
     }
     if(the_conf.motflags[MOTno].eswinv) val ^= 3;
     return val;
@@ -221,9 +222,13 @@ static void setup_mpwm(int i){
 }
 
 
+void mottimers_setup(){
+    for(int i = 0; i < MOTORSNO; ++i) setup_mpwm(i);
+}
+
 void hw_setup(){
     gpio_setup();
-    for(int i = 0; i < MOTORSNO; ++i) setup_mpwm(i);
+    mottimers_setup();
 #ifndef EBUG
     iwdg_setup();
 #endif
@@ -232,34 +237,34 @@ void hw_setup(){
 
 // timers for motors: 0:t15c1, 1:t16c1, 2:t17c1, 3:t2ch1, 4:t8ch1, 5:t4c1, 6:t1c1, 7:t3c3
 void tim1_cc_isr(){
-    // addmicrostep(6);
+    addmicrostep(6);
     TIM1->SR = 0;
 }
 void tim2_isr(){
-    // addmicrostep(3);
+    addmicrostep(3);
     TIM2->SR = 0;
 }
 void tim3_isr(){
-    // addmicrostep(7);
+    addmicrostep(7);
     TIM3->SR = 0;
 }
 void tim4_isr(){
-    // addmicrostep(5);
+    addmicrostep(5);
     TIM4->SR = 0;
 }
 void tim8_cc_isr(){
-    // addmicrostep(4);
+    addmicrostep(4);
     TIM8->SR = 0;
 }
 void tim1_brk_tim15_isr(){
-    // addmicrostep(0);
+    addmicrostep(0);
     TIM15->SR = 0;
 }
 void tim1_up_tim16_isr(){
-    // addmicrostep(1);
+    addmicrostep(1);
     TIM16->SR = 0;
 }
 void tim1_trg_com_tim17_isr(){
-    // addmicrostep(2);
+    addmicrostep(2);
     TIM17->SR = 0;
 }

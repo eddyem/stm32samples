@@ -22,6 +22,7 @@
 #include "flash.h"
 #include "hardware.h"
 #include "proto.h"
+#include "steppers.h"
 #include "usb.h"
 
 #define MAXSTRLEN    RBINSZ
@@ -40,9 +41,10 @@ int main(void){
         StartHSI();
         SysTick_Config((uint32_t)48000); // 1ms
     }
-    //flashstorage_init();
-    hw_setup(); // GPIO, ADC, timers, watchdog etc.
     USBPU_OFF(); // make a reconnection
+    flashstorage_init();
+    hw_setup(); // GPIO, ADC, timers, watchdog etc.
+    init_steppers();
     USB_setup();
     CAN_setup(the_conf.CANspeed);
     adc_setup();
@@ -57,6 +59,7 @@ int main(void){
         }
         CAN_proc();
         USB_proc();
+        process_steppers();
         if(CAN_get_status() == CAN_FIFO_OVERRUN){
             USB_sendstr("CAN bus fifo overrun occured!\n");
         }

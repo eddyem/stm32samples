@@ -35,6 +35,7 @@ int parsecmd(const char *cmdwargs);
 #define CMD_DUMPCONF        (3271513185)
 #define CMD_DUMPERR         (1223989764)
 #define CMD_DUMPMOTFLAGS    (36159640)
+#define CMD_DUMPSTATES      (4235564367)
 #define CMD_EMSTOP          (2965919005)
 #define CMD_ERASEFLASH      (3177247267)
 #define CMD_ESW             (2963094612)

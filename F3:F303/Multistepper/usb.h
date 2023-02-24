@@ -31,7 +31,7 @@
 #define STR(s)          STR_HELPER(s)
 
 #ifdef EBUG
-#define DBG(str)  do{USB_sendstr(__FILE__ " (L" STR(__LINE__) "): " str);}while(0)
+#define DBG(str)  do{USB_sendstr(__FILE__ " (L" STR(__LINE__) "): " str); newline();}while(0)
 #else
 #define DBG(str)
 #endif
