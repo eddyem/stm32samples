@@ -221,4 +221,13 @@ _SW_ used as debugging/sewing; also (I remember about USB pullup only after end 
 
 * ADC1 - DMA1_ch1
 * ADC2 - DMA2_ch1
+* USART2 (PDN-UART for drivers 0..3) - DMA1_ch6 (Rx), DMA1_ch7 (Tx)
+* USART3 (PDN-UART for drivers 4..7) - DMA1_ch3 (Rx), DMA1_ch2 (Tx)
+* SPI2 (screen) - DMA1_ch4 (Rx), DMA1_ch5 (Tx) [or may be dedicated to USART1]
 
+# Other stepper drivers connection
+
+## DRV8825
+Solder jumpers E2, B and A to connect ~RST and ~SLP to 3.3V.
+
+Microstepping selection produced by soldering H2 (bit0), G2 (bit1) and/or C (bit2).

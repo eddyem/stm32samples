@@ -21,6 +21,7 @@
 #include "can.h"
 #include "flash.h"
 #include "hardware.h"
+#include "pdnuart.h"
 #include "proto.h"
 #include "steppers.h"
 #include "usb.h"
@@ -86,5 +87,6 @@ int main(void){
             if(ans) USB_sendstr(ans);
         }
         process_keys();
+        pdnuart_poll();
     }
 }

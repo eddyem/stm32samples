@@ -15,6 +15,8 @@ hashgen/hdr.c
 hashgen/hdr.h
 hashgen/test.c
 main.c
+pdnuart.c
+pdnuart.h
 proto.c
 proto.h
 ringbuffer.c

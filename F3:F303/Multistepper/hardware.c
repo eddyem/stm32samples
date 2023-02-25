@@ -124,7 +124,8 @@ TRUE_INLINE void gpio_setup(){
                  | MODER_AF(14) | MODER_AF(15);
     GPIOB->OSPEEDR = OSPEED_HI(0) | OSPEED_HI(5) | OSPEED_HI(8) | OSPEED_MED(13) | OSPEED_MED(14) | OSPEED_MED(15);
     GPIOB->OTYPER = 0;
-    GPIOB->PUPDR = PUPD_PU(7) | PUPD_PU(9) | PUPD_PU(11);
+    // USART2_Tx (PB3) and USART3_Tx (PB10) are also pullup
+    GPIOB->PUPDR = PUPD_PU(3) | PUPD_PU(7) | PUPD_PU(9) | PUPD_PU(7) | PUPD_PU(11);
 
     GPIOC->ODR = 0;
     GPIOC->AFR[0] = AFRf(7, 4) | AFRf(7, 5) | AFRf(4, 6);
