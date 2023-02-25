@@ -20,7 +20,6 @@
 
 #include <stdint.h>
 
-void pdnuart_poll();
 void pdnuart_setup();
 int pdnuart_writereg(uint8_t motorno, uint8_t reg, uint32_t data);
-int pdnuart_readreg(uint8_t motorno, uint8_t reg);
+int pdnuart_readreg(uint8_t motorno, uint8_t reg, uint32_t *data);

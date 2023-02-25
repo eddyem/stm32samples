@@ -483,6 +483,7 @@ int fn_canid(uint32_t _U_ hash, char *args){ // "canid" (2040257924)
     return RET_GOOD;
 }
 
+
 static int canusb_function(uint32_t hash, char *args){
     errcodes e = ERR_BADCMD;
     uint32_t N;
@@ -512,23 +513,6 @@ static int canusb_function(uint32_t hash, char *args){
     USB_sendstr("par="); printuhex(par);
     USB_sendstr(", val="); printi(val); newline();
     switch(hash){
-        case CMD_PING:
-            e = cu_ping(par, &val);
-        break;
-        case CMD_MCUT:
-            f = getMCUtemp();
-            USB_sendstr("T=");
-            USB_sendstr(float2str(f, 1));
-            newline();
-            return RET_GOOD;
-        break;
-        case CMD_MCUVDD:
-            f = getVdd();
-            USB_sendstr("VDD=");
-            USB_sendstr(float2str(f, 1));
-            newline();
-            return RET_GOOD;
-        break;
         case CMD_ADC:
             par = PARBASE(par);
             if(par >= NUMBER_OF_ADC_CHANNELS){
@@ -608,6 +592,20 @@ static int canusb_function(uint32_t hash, char *args){
         case CMD_MAXSTEPS:
             e = cu_maxsteps(par, &val);
         break;
+        case CMD_MCUT:
+            f = getMCUtemp();
+            USB_sendstr("T=");
+            USB_sendstr(float2str(f, 1));
+            newline();
+            return RET_GOOD;
+        break;
+        case CMD_MCUVDD:
+            f = getVdd();
+            USB_sendstr("VDD=");
+            USB_sendstr(float2str(f, 1));
+            newline();
+            return RET_GOOD;
+        break;
         case CMD_MICROSTEPS:
             e = cu_microsteps(par, &val);
         break;
@@ -622,6 +620,12 @@ static int canusb_function(uint32_t hash, char *args){
         break;
         case CMD_MOTREINIT:
             e = cu_motreinit(par, &val);
+        break;
+        case CMD_PDN:
+            e = cu_pdn(par, &val);
+        break;
+        case CMD_PING:
+            e = cu_ping(par, &val);
         break;
         case CMD_RELPOS:
             e = cu_relpos(par, &val);
@@ -680,8 +684,6 @@ static int canusb_function(uint32_t hash, char *args){
 #define AL __attribute__ ((alias ("canusb_function")))
 
 // COMMON with CAN
-int fn_ping(uint32_t _U_ hash,  char _U_ *args) AL; // "ping" (10561715)
-// not realized yet
 int fn_abspos(uint32_t _U_ hash,  char _U_ *args) AL; //* "abspos" (3056382221)
 int fn_accel(uint32_t _U_ hash,  char _U_ *args) AL; //* "accel" (1490521981)
 int fn_adc(uint32_t _U_ hash,  char _U_ *args) AL; // "adc" (2963026093)
@@ -704,6 +706,8 @@ int fn_minspeed(uint32_t _U_ hash,  char _U_ *args) AL; //* "minspeed" (32348480
 int fn_motflags(uint32_t _U_ hash,  char _U_ *args) AL; //* "motflags" (2153634658)
 int fn_motmul(uint32_t _U_ hash,  char _U_ *args) AL; //* "motmul" (1543400099)
 int fn_motreinit(uint32_t _U_ hash,  char _U_ *args) AL; //* "motreinit" (199682784)
+int fn_pdn(uint32_t _U_ hash, char _U_ *args) AL; // "pdn" (2963275719)
+int fn_ping(uint32_t _U_ hash,  char _U_ *args) AL; // "ping" (10561715)
 int fn_relpos(uint32_t _U_ hash,  char _U_ *args) AL; //* "relpos" (1278646042)
 int fn_relslow(uint32_t _U_ hash,  char _U_ *args) AL; //* "relslow" (1742971917)
 int fn_saveconf(uint32_t _U_ hash,  char _U_ *args) AL; //* "saveconf" (141102426)

@@ -189,7 +189,7 @@ static const char *ffooter =
 }\n\n"
 ;
 static const char *fns =
-"int fn_%s(_U_ uint32_t hash,  _U_ char *args) WAL; // \"%s\" (%u)\n\n"
+"int fn_%s(uint32_t _U_ hash, char _U_ *args) WAL; // \"%s\" (%u)\n\n"
 ;
 static const char *headercontent =
 "#ifndef _U_\n\
@@ -215,7 +215,7 @@ static const char *srchdr =
 #include \"%s\"\n\n\
 #ifndef WAL\n\
 #define WAL __attribute__ ((weak, alias (\"__f1\")))\n\
-#endif\n\nstatic int __f1(_U_ uint32_t h, _U_ char *a){return 1;}\n\n"
+#endif\n\nstatic int __f1(uint32_t _U_ h, char _U_ *a){return 1;}\n\n"
 ;
 
 static void build(strhash *H, int hno, int hlen){

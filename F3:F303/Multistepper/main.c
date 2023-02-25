@@ -49,6 +49,7 @@ int main(void){
     USB_setup();
     CAN_setup(the_conf.CANspeed);
     adc_setup();
+    pdnuart_setup();
     USBPU_ON();
     uint32_t ctr = 0;
     CAN_message *can_mesg;
@@ -87,6 +88,5 @@ int main(void){
             if(ans) USB_sendstr(ans);
         }
         process_keys();
-        pdnuart_poll();
     }
 }

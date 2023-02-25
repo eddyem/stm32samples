@@ -8,117 +8,119 @@
 #define WAL __attribute__ ((weak, alias ("__f1")))
 #endif
 
-static int __f1(_U_ uint32_t h, _U_ char *a){return 1;}
+static int __f1(uint32_t _U_ h, char _U_ *a){return 1;}
 
-int fn_abspos(_U_ uint32_t hash,  _U_ char *args) WAL; // "abspos" (3056382221)
+int fn_abspos(uint32_t _U_ hash, char _U_ *args) WAL; // "abspos" (3056382221)
 
-int fn_accel(_U_ uint32_t hash,  _U_ char *args) WAL; // "accel" (1490521981)
+int fn_accel(uint32_t _U_ hash, char _U_ *args) WAL; // "accel" (1490521981)
 
-int fn_adc(_U_ uint32_t hash,  _U_ char *args) WAL; // "adc" (2963026093)
+int fn_adc(uint32_t _U_ hash, char _U_ *args) WAL; // "adc" (2963026093)
 
-int fn_button(_U_ uint32_t hash,  _U_ char *args) WAL; // "button" (1093508897)
+int fn_button(uint32_t _U_ hash, char _U_ *args) WAL; // "button" (1093508897)
 
-int fn_canerrcodes(_U_ uint32_t hash,  _U_ char *args) WAL; // "canerrcodes" (1736697870)
+int fn_canerrcodes(uint32_t _U_ hash, char _U_ *args) WAL; // "canerrcodes" (1736697870)
 
-int fn_canfilter(_U_ uint32_t hash,  _U_ char *args) WAL; // "canfilter" (3964416573)
+int fn_canfilter(uint32_t _U_ hash, char _U_ *args) WAL; // "canfilter" (3964416573)
 
-int fn_canflood(_U_ uint32_t hash,  _U_ char *args) WAL; // "canflood" (1235816779)
+int fn_canflood(uint32_t _U_ hash, char _U_ *args) WAL; // "canflood" (1235816779)
 
-int fn_canfloodt(_U_ uint32_t hash,  _U_ char *args) WAL; // "canfloodT" (506574623)
+int fn_canfloodt(uint32_t _U_ hash, char _U_ *args) WAL; // "canfloodT" (506574623)
 
-int fn_canid(_U_ uint32_t hash,  _U_ char *args) WAL; // "canid" (2040257924)
+int fn_canid(uint32_t _U_ hash, char _U_ *args) WAL; // "canid" (2040257924)
 
-int fn_canignore(_U_ uint32_t hash,  _U_ char *args) WAL; // "canignore" (3209755195)
+int fn_canignore(uint32_t _U_ hash, char _U_ *args) WAL; // "canignore" (3209755195)
 
-int fn_canincrflood(_U_ uint32_t hash,  _U_ char *args) WAL; // "canincrflood" (3987155959)
+int fn_canincrflood(uint32_t _U_ hash, char _U_ *args) WAL; // "canincrflood" (3987155959)
 
-int fn_canpause(_U_ uint32_t hash,  _U_ char *args) WAL; // "canpause" (3981532373)
+int fn_canpause(uint32_t _U_ hash, char _U_ *args) WAL; // "canpause" (3981532373)
 
-int fn_canreinit(_U_ uint32_t hash,  _U_ char *args) WAL; // "canreinit" (2030075842)
+int fn_canreinit(uint32_t _U_ hash, char _U_ *args) WAL; // "canreinit" (2030075842)
 
-int fn_canresume(_U_ uint32_t hash,  _U_ char *args) WAL; // "canresume" (2051659720)
+int fn_canresume(uint32_t _U_ hash, char _U_ *args) WAL; // "canresume" (2051659720)
 
-int fn_cansend(_U_ uint32_t hash,  _U_ char *args) WAL; // "cansend" (237136225)
+int fn_cansend(uint32_t _U_ hash, char _U_ *args) WAL; // "cansend" (237136225)
 
-int fn_canspeed(_U_ uint32_t hash,  _U_ char *args) WAL; // "canspeed" (549265992)
+int fn_canspeed(uint32_t _U_ hash, char _U_ *args) WAL; // "canspeed" (549265992)
 
-int fn_canstat(_U_ uint32_t hash,  _U_ char *args) WAL; // "canstat" (237384179)
+int fn_canstat(uint32_t _U_ hash, char _U_ *args) WAL; // "canstat" (237384179)
 
-int fn_diagn(_U_ uint32_t hash,  _U_ char *args) WAL; // "diagn" (2334137736)
+int fn_diagn(uint32_t _U_ hash, char _U_ *args) WAL; // "diagn" (2334137736)
 
-int fn_dumpcmd(_U_ uint32_t hash,  _U_ char *args) WAL; // "dumpcmd" (1223955823)
+int fn_dumpcmd(uint32_t _U_ hash, char _U_ *args) WAL; // "dumpcmd" (1223955823)
 
-int fn_dumpconf(_U_ uint32_t hash,  _U_ char *args) WAL; // "dumpconf" (3271513185)
+int fn_dumpconf(uint32_t _U_ hash, char _U_ *args) WAL; // "dumpconf" (3271513185)
 
-int fn_dumperr(_U_ uint32_t hash,  _U_ char *args) WAL; // "dumperr" (1223989764)
+int fn_dumperr(uint32_t _U_ hash, char _U_ *args) WAL; // "dumperr" (1223989764)
 
-int fn_dumpmotflags(_U_ uint32_t hash,  _U_ char *args) WAL; // "dumpmotflags" (36159640)
+int fn_dumpmotflags(uint32_t _U_ hash, char _U_ *args) WAL; // "dumpmotflags" (36159640)
 
-int fn_dumpstates(_U_ uint32_t hash,  _U_ char *args) WAL; // "dumpstates" (4235564367)
+int fn_dumpstates(uint32_t _U_ hash, char _U_ *args) WAL; // "dumpstates" (4235564367)
 
-int fn_emstop(_U_ uint32_t hash,  _U_ char *args) WAL; // "emstop" (2965919005)
+int fn_emstop(uint32_t _U_ hash, char _U_ *args) WAL; // "emstop" (2965919005)
 
-int fn_eraseflash(_U_ uint32_t hash,  _U_ char *args) WAL; // "eraseflash" (3177247267)
+int fn_eraseflash(uint32_t _U_ hash, char _U_ *args) WAL; // "eraseflash" (3177247267)
 
-int fn_esw(_U_ uint32_t hash,  _U_ char *args) WAL; // "esw" (2963094612)
+int fn_esw(uint32_t _U_ hash, char _U_ *args) WAL; // "esw" (2963094612)
 
-int fn_eswreact(_U_ uint32_t hash,  _U_ char *args) WAL; // "eswreact" (1614224995)
+int fn_eswreact(uint32_t _U_ hash, char _U_ *args) WAL; // "eswreact" (1614224995)
 
-int fn_goto(_U_ uint32_t hash,  _U_ char *args) WAL; // "goto" (4286309438)
+int fn_goto(uint32_t _U_ hash, char _U_ *args) WAL; // "goto" (4286309438)
 
-int fn_gotoz(_U_ uint32_t hash,  _U_ char *args) WAL; // "gotoz" (3178103736)
+int fn_gotoz(uint32_t _U_ hash, char _U_ *args) WAL; // "gotoz" (3178103736)
 
-int fn_gpio(_U_ uint32_t hash,  _U_ char *args) WAL; // "gpio" (4286324660)
+int fn_gpio(uint32_t _U_ hash, char _U_ *args) WAL; // "gpio" (4286324660)
 
-int fn_gpioconf(_U_ uint32_t hash,  _U_ char *args) WAL; // "gpioconf" (1309721562)
+int fn_gpioconf(uint32_t _U_ hash, char _U_ *args) WAL; // "gpioconf" (1309721562)
 
-int fn_maxspeed(_U_ uint32_t hash,  _U_ char *args) WAL; // "maxspeed" (1498078812)
+int fn_maxspeed(uint32_t _U_ hash, char _U_ *args) WAL; // "maxspeed" (1498078812)
 
-int fn_maxsteps(_U_ uint32_t hash,  _U_ char *args) WAL; // "maxsteps" (1506667002)
+int fn_maxsteps(uint32_t _U_ hash, char _U_ *args) WAL; // "maxsteps" (1506667002)
 
-int fn_mcut(_U_ uint32_t hash,  _U_ char *args) WAL; // "mcut" (4022718)
+int fn_mcut(uint32_t _U_ hash, char _U_ *args) WAL; // "mcut" (4022718)
 
-int fn_mcuvdd(_U_ uint32_t hash,  _U_ char *args) WAL; // "mcuvdd" (2517587080)
+int fn_mcuvdd(uint32_t _U_ hash, char _U_ *args) WAL; // "mcuvdd" (2517587080)
 
-int fn_microsteps(_U_ uint32_t hash,  _U_ char *args) WAL; // "microsteps" (3974395854)
+int fn_microsteps(uint32_t _U_ hash, char _U_ *args) WAL; // "microsteps" (3974395854)
 
-int fn_minspeed(_U_ uint32_t hash,  _U_ char *args) WAL; // "minspeed" (3234848090)
+int fn_minspeed(uint32_t _U_ hash, char _U_ *args) WAL; // "minspeed" (3234848090)
 
-int fn_motflags(_U_ uint32_t hash,  _U_ char *args) WAL; // "motflags" (2153634658)
+int fn_motflags(uint32_t _U_ hash, char _U_ *args) WAL; // "motflags" (2153634658)
 
-int fn_motmul(_U_ uint32_t hash,  _U_ char *args) WAL; // "motmul" (1543400099)
+int fn_motmul(uint32_t _U_ hash, char _U_ *args) WAL; // "motmul" (1543400099)
 
-int fn_motreinit(_U_ uint32_t hash,  _U_ char *args) WAL; // "motreinit" (199682784)
+int fn_motreinit(uint32_t _U_ hash, char _U_ *args) WAL; // "motreinit" (199682784)
 
-int fn_ping(_U_ uint32_t hash,  _U_ char *args) WAL; // "ping" (10561715)
+int fn_pdn(uint32_t _U_ hash, char _U_ *args) WAL; // "pdn" (2963275719)
 
-int fn_relpos(_U_ uint32_t hash,  _U_ char *args) WAL; // "relpos" (1278646042)
+int fn_ping(uint32_t _U_ hash, char _U_ *args) WAL; // "ping" (10561715)
 
-int fn_relslow(_U_ uint32_t hash,  _U_ char *args) WAL; // "relslow" (1742971917)
+int fn_relpos(uint32_t _U_ hash, char _U_ *args) WAL; // "relpos" (1278646042)
 
-int fn_reset(_U_ uint32_t hash,  _U_ char *args) WAL; // "reset" (1907803304)
+int fn_relslow(uint32_t _U_ hash, char _U_ *args) WAL; // "relslow" (1742971917)
 
-int fn_saveconf(_U_ uint32_t hash,  _U_ char *args) WAL; // "saveconf" (141102426)
+int fn_reset(uint32_t _U_ hash, char _U_ *args) WAL; // "reset" (1907803304)
 
-int fn_screen(_U_ uint32_t hash,  _U_ char *args) WAL; // "screen" (2100809349)
+int fn_saveconf(uint32_t _U_ hash, char _U_ *args) WAL; // "saveconf" (141102426)
 
-int fn_speedlimit(_U_ uint32_t hash,  _U_ char *args) WAL; // "speedlimit" (1654184245)
+int fn_screen(uint32_t _U_ hash, char _U_ *args) WAL; // "screen" (2100809349)
 
-int fn_state(_U_ uint32_t hash,  _U_ char *args) WAL; // "state" (2216628902)
+int fn_speedlimit(uint32_t _U_ hash, char _U_ *args) WAL; // "speedlimit" (1654184245)
 
-int fn_stop(_U_ uint32_t hash,  _U_ char *args) WAL; // "stop" (17184971)
+int fn_state(uint32_t _U_ hash, char _U_ *args) WAL; // "state" (2216628902)
 
-int fn_time(_U_ uint32_t hash,  _U_ char *args) WAL; // "time" (19148340)
+int fn_stop(uint32_t _U_ hash, char _U_ *args) WAL; // "stop" (17184971)
 
-int fn_tmcbus(_U_ uint32_t hash,  _U_ char *args) WAL; // "tmcbus" (1906135955)
+int fn_time(uint32_t _U_ hash, char _U_ *args) WAL; // "time" (19148340)
 
-int fn_udata(_U_ uint32_t hash,  _U_ char *args) WAL; // "udata" (2736127636)
+int fn_tmcbus(uint32_t _U_ hash, char _U_ *args) WAL; // "tmcbus" (1906135955)
 
-int fn_usartstatus(_U_ uint32_t hash,  _U_ char *args) WAL; // "usartstatus" (4007098968)
+int fn_udata(uint32_t _U_ hash, char _U_ *args) WAL; // "udata" (2736127636)
 
-int fn_vdrive(_U_ uint32_t hash,  _U_ char *args) WAL; // "vdrive" (2172773525)
+int fn_usartstatus(uint32_t _U_ hash, char _U_ *args) WAL; // "usartstatus" (4007098968)
 
-int fn_vfive(_U_ uint32_t hash,  _U_ char *args) WAL; // "vfive" (3017477285)
+int fn_vdrive(uint32_t _U_ hash, char _U_ *args) WAL; // "vdrive" (2172773525)
+
+int fn_vfive(uint32_t _U_ hash, char _U_ *args) WAL; // "vfive" (3017477285)
 
 static uint32_t hashf(const char *str){
     uint32_t hash = 5381;
@@ -260,6 +262,9 @@ int parsecmd(const char *str){
         break;
         case CMD_MOTREINIT:
             return fn_motreinit(h, args);
+        break;
+        case CMD_PDN:
+            return fn_pdn(h, args);
         break;
         case CMD_PING:
             return fn_ping(h, args);

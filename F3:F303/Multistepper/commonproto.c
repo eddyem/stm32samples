@@ -22,6 +22,7 @@
 #include "flash.h"
 #include "hardware.h"
 #include "hdr.h"
+#include "pdnuart.h"
 #include "proto.h"
 #include "steppers.h"
 #include "usb.h"
@@ -271,6 +272,15 @@ errcodes cu_motreinit(uint8_t _U_ par, int32_t _U_ *val){
     return ERR_OK;
 }
 
+errcodes cu_pdn(uint8_t par, int32_t *val){
+    uint8_t n = PARBASE(par);
+    if(ISSETTER(par)){
+        if(!pdnuart_writereg(0, n, *val)) return ERR_CANTRUN;
+    }
+    if(!pdnuart_readreg(0, n, (uint32_t*)val)) return ERR_CANTRUN;
+    return ERR_OK;
+}
+
 errcodes cu_ping(uint8_t _U_ par, int32_t _U_ *val){
     return ERR_OK;
 }
@@ -438,5 +448,6 @@ const char* cancmds[CCMD_AMOUNT] = {
     [CCMD_UDATA] = "udata",
     [CCMD_USARTSTATUS] = "usartstatus",
     [CCMD_VDRIVE] = "vdrive",
-    [CCMD_VFIVE] = "vfive"
+    [CCMD_VFIVE] = "vfive",
+    [CCMD_PDN] = "pdn"
 };

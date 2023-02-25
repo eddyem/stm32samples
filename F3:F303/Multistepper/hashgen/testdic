@@ -38,6 +38,7 @@ minspeed
 motflags
 motmul
 motreinit
+pdn
 ping
 relpos
 relslow

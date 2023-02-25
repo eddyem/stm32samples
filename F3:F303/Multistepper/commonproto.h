@@ -93,6 +93,7 @@ enum{
     ,CCMD_USARTSTATUS
     ,CCMD_VDRIVE
     ,CCMD_VFIVE
+    ,CCMD_PDN
     // should be the last:
     ,CCMD_AMOUNT             // amount of common commands
 };
@@ -101,8 +102,6 @@ extern const fpointer cancmdlist[CCMD_AMOUNT];
 extern const char* cancmds[CCMD_AMOUNT];
 
 // all common functions
-errcodes cu_ping(uint8_t par, int32_t *val);
-// not realized yet
 errcodes cu_abspos(uint8_t par, int32_t *val);
 errcodes cu_accel(uint8_t par, int32_t *val);
 errcodes cu_adc(uint8_t par, int32_t *val);
@@ -126,6 +125,8 @@ errcodes cu_minspeed(uint8_t par, int32_t *val);
 errcodes cu_motflags(uint8_t par, int32_t *val);
 errcodes cu_motmul(uint8_t par, int32_t *val);
 errcodes cu_motreinit(uint8_t par, int32_t *val);
+errcodes cu_pdn(uint8_t par, int32_t *val);
+errcodes cu_ping(uint8_t par, int32_t *val);
 errcodes cu_relpos(uint8_t par, int32_t *val);
 errcodes cu_relslow(uint8_t par, int32_t *val);
 errcodes cu_saveconf(uint8_t par, int32_t *val);

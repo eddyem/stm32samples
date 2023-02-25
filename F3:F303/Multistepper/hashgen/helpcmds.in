@@ -38,6 +38,7 @@
     "motflagsN - motorN flags\n"
     "motmul* - GS external multiplexer status (<0 - disable, 0..7 - enable and set address)\n"
     "motreinit - re-init motors after configuration changed\n"
+    "pdnN - GS read/write TMC2209 registers over uart @ motor0\n"
     "ping - echo given command back\n"
     "relposN - GS relative move (get remaining)\n"
     "relslowN - GS like 'relpos' but with slowest speed\n"

@@ -53,6 +53,7 @@ int parsecmd(const char *cmdwargs);
 #define CMD_MOTFLAGS        (2153634658)
 #define CMD_MOTMUL          (1543400099)
 #define CMD_MOTREINIT       (199682784)
+#define CMD_PDN             (2963275719)
 #define CMD_PING            (10561715)
 #define CMD_RELPOS          (1278646042)
 #define CMD_RELSLOW         (1742971917)

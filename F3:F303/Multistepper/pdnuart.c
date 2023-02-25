@@ -24,101 +24,70 @@
 extern volatile uint32_t Tms;
 
 #define MAXBUFLEN           (8)
-// Rx timeout, ms
-#define PDNUART_TIMEOUT     (20)
+// timeout, milliseconds
+#define PDNU_TMOUT          (5)
 
 // buffers format: 0 - sync+reserved, 1 - address (0..3 - slave, 0xff - master)
 //      2 - register<<1 | RW, 3 - CRC (r) or [ 3..6 - MSB data, 7 - CRC ]
 // buf[0] - USART2, buf[1] - USART3
-static uint8_t inbuf[2][MAXBUFLEN], outbuf[2][MAXBUFLEN];
-static uint8_t Taccess[2] = {0}; // last access time
-static int curslaveaddr[2] = {-1, -1}; // current slave address for each USART (0..3)
-static uint8_t notfound = 0; // not found mask (LSB - 0, MSB - 7)
-static uint8_t readrq[2] = {0}; // ==1 for read request (after send wait to read)
-
-// UART states
-typedef enum{
-    PDU_IDLE,
-    PDU_TX,
-    PDU_TXREADY,
-    PDU_RX,
-    PDU_RXREADY
-} pdnuart_state;
-static pdnuart_state state[2] = {PDU_IDLE, PDU_IDLE};
+//static uint8_t notfound = 0; // not found mask (LSB - 0, MSB - 7)
 
 // datalen == 3 for read request or 7 for writing
-static void calcCRC(int no, int datalen){
+static void calcCRC(uint8_t *outbuf, int datalen){
     uint8_t crc = 0;
     for(int i = 0; i < datalen; ++i){
-        uint8_t currentByte = outbuf[no][i];
+        uint8_t currentByte = outbuf[i];
         for(int j = 0; j < 8; ++j){
             if((crc >> 7) ^ (currentByte & 0x01)) crc = (crc << 1) ^ 0x07;
             else crc <<= 1;
             currentByte = currentByte >> 1;
         }
     }
-    outbuf[no][datalen] = crc;
+    outbuf[datalen] = crc;
 }
 
-static volatile DMA_Channel_TypeDef *TxDMA[2] = {DMA1_Channel7, DMA1_Channel2};
-static volatile DMA_Channel_TypeDef *RxDMA[2] = {DMA1_Channel6, DMA1_Channel3};
 static volatile USART_TypeDef *USART[2] = {USART2, USART3};
 
 static void setup_usart(int no){
     USART[no]->ICR = 0xffffffff; // clear all flags
-    TxDMA[no]->CCR = 0;
-    TxDMA[no]->CPAR = (uint32_t) &USART[no]->TDR; // periph
-    TxDMA[no]->CCR |= DMA_CCR_MINC | DMA_CCR_DIR | DMA_CCR_TCIE; // 8bit, mem++, mem->per, transcompl irq
-    RxDMA[no]->CCR = 0;
-    RxDMA[no]->CPAR = (uint32_t) &USART[no]->RDR; // periph
-    RxDMA[no]->CCR |= DMA_CCR_MINC | DMA_CCR_TCIE; // 8bit, mem++, per->mem, transcompl irq
     USART[no]->BRR = 72000000 / 256000; // 256 kbaud
-    USART[no]->CR3 = USART_CR3_DMAT | USART_CR3_DMAR; // enable DMA Tx/Rx
+    USART[no]->CR3 = USART_CR3_HDSEL; // enable DMA Tx/Rx, single wire
     USART[no]->CR1 = USART_CR1_TE | USART_CR1_RE | USART_CR1_UE; // 1start,8data,nstop; enable Rx,Tx,USART
     uint32_t tmout = 16000000;
     while(!(USART[no]->ISR & USART_ISR_TC)){if(--tmout == 0) break;} // polling idle frame Transmission
     USART[no]->ICR = 0xffffffff; // clear all flags again
 }
 
-// USART2 (ch0..3): DMA1ch6 (Rx), DMA1_ch7 (Tx)
-// USART3 (ch4..7): DMA1ch3 (Rx), DMA1_ch2 (Tx)
+// USART2 (ch0..3), USART3 (ch4..7)
 // pins are setting up in `hardware.c`
 void pdnuart_setup(){
     RCC->APB1ENR |= RCC_APB1ENR_USART2EN | RCC_APB1ENR_USART3EN;
-    RCC->AHBENR |= RCC_AHBENR_DMA1EN;
     setup_usart(0);
     setup_usart(1);
-    NVIC_EnableIRQ(DMA1_Channel2_IRQn);
-    NVIC_EnableIRQ(DMA1_Channel3_IRQn);
-    NVIC_EnableIRQ(DMA1_Channel6_IRQn);
-    NVIC_EnableIRQ(DMA1_Channel7_IRQn);
 }
 
 static int rwreg(uint8_t motorno, uint8_t reg, uint32_t data, int w){
     if(motorno >= MOTORSNO || reg & 0x80) return FALSE;
     int no = motorno >> 2;
-    if(state[no] != PDU_IDLE) return FALSE;
-    outbuf[no][0] = 0xa0;
-    outbuf[no][1] = curslaveaddr[no] = motorno - (no << 2);
-    outbuf[no][2] = reg << 1;
+    uint8_t outbuf[MAXBUFLEN];
+    outbuf[0] = 0xa0;
+    outbuf[1] = motorno - (no << 2);
+    outbuf[2] = reg << 1;
     int nbytes = 3;
     if(w){
-        outbuf[no][2] |= 1;
+        outbuf[2] |= 1;
         for(int i = 6; i > 2; --i){
-            outbuf[no][i] = data & 0xff;
+            outbuf[i] = data & 0xff;
             data >>= 8;
         }
         nbytes = 7;
-        readrq[no] = 0;
-    }else{
-        readrq[no] = 1;
     }
-    calcCRC(no, nbytes);
-    TxDMA[no]->CMAR = (uint32_t) outbuf[no];
-    TxDMA[no]->CNDTR = nbytes + 1;
-    TxDMA[no]->CCR |= DMA_CCR_EN; // start transmission
-    state[no] = PDU_TX;
-    Taccess[no] = Tms;
+    calcCRC(outbuf, nbytes);
+    ++nbytes;
+    for(int i = 0; i < nbytes; ++i){
+        USART[no]->TDR = outbuf[i]; // transmit
+        while(!(USART[no]->ISR & USART_ISR_TXE));
+    }
     return TRUE;
 }
 
@@ -128,17 +97,27 @@ int pdnuart_writereg(uint8_t motorno, uint8_t reg, uint32_t data){
 }
 
 // return FALSE if failed
-int pdnuart_readreg(uint8_t motorno, uint8_t reg){
-    return rwreg(motorno, reg, 0, 0);
+int pdnuart_readreg(uint8_t motorno, uint8_t reg, uint32_t *data){
+    if(!rwreg(motorno, reg, 0, 0)) return FALSE;
+    uint32_t Tstart = Tms;
+    uint8_t buf[8];
+    int no = motorno >> 2;
+    for(int i = 0; i < 8; ++i){
+        while(!(USART[no]->ISR & USART_ISR_RXNE))
+            if(Tms - Tstart > PDNU_TMOUT) return FALSE;
+        buf[i] = USART[no]->RDR;
+        USB_sendstr("byte: "); printuhex(buf[i]); newline();
+    }
+    uint32_t o = 0;
+    for(int i = 3; i < 7; ++i){
+        o |= buf[i];
+        o <<= 8;
+    }
+    *data = o;
+    return TRUE;
 }
 
-static void disableDMA(int no){
-    TxDMA[no]->CCR &= ~DMA_CCR_EN;
-    RxDMA[no]->CCR &= ~DMA_CCR_EN;
-    readrq[no] = 0;
-    state[no] = PDU_IDLE;
-}
-
+/*
 static void parseRx(int no){
     USB_sendstr("Got from ");
     USB_putbyte('#'); printu(curslaveaddr[no] + no*4); USB_sendstr(": ");
@@ -147,84 +126,4 @@ static void parseRx(int no){
     }
     newline();
 }
-
-void pdnuart_poll(){
-    for(int i = 0; i < 2; ++i){
-        int showno = 0;
-        uint32_t time = Tms - Taccess[i];
-        switch(state[i]){
-            case PDU_TX:
-                if(time > PDNUART_TIMEOUT){
-                    USB_sendstr("PDN/UART timeout: Tx problem ");
-                    showno = 1;
-                    disableDMA(i);
-                }
-            break;
-            case PDU_TXREADY:
-                USB_sendstr("Tx ready ");
-                showno = 1;
-            break;
-            case PDU_RX:
-                if(time > PDNUART_TIMEOUT){
-                    USB_sendstr("PDN/UART timeout: no answer ");
-                    notfound |= 1 << (curslaveaddr[i] + 4*i);
-                    showno = 1;
-                    disableDMA(i);
-                }
-            break;
-            case PDU_RXREADY:
-                parseRx(i);
-                state[i] = PDU_IDLE; // DMA already turned off
-            break;
-            default: // IDLE
-            return;
-        }
-        if(showno){
-            USB_putbyte('#'); printu(curslaveaddr[i] + 4*i); newline();
-        }
-    }
-}
-
-// USART2 Tx complete -> prepare Rx
-void dma1_channel7_isr(){
-    DMA1_Channel7->CCR &= ~DMA_CCR_EN;
-    DMA1->IFCR |= DMA_IFCR_CTCIF7;
-    if(!readrq[0]){ // there was a setter
-        state[0] = PDU_TXREADY;
-        return;
-    }
-    DMA1_Channel6->CMAR = (uint32_t) inbuf[0];
-    DMA1_Channel6->CCR |= DMA_CCR_EN;
-    DMA1_Channel6->CNDTR = MAXBUFLEN;
-    state[0] = PDU_RX;
-    Taccess[0] = Tms;
-}
-
-// USART3 Tx complete -> prepare Rx
-void dma1_channel2_isr(){
-    DMA1_Channel2->CCR &= ~DMA_CCR_EN;
-    DMA1->IFCR |= DMA_IFCR_CTCIF2;
-    if(!readrq[1]){ // there was a setter
-        state[1] = PDU_TXREADY;
-        return;
-    }
-    DMA1_Channel3->CMAR = (uint32_t) inbuf[1];
-    DMA1_Channel3->CCR |= DMA_CCR_EN;
-    DMA1_Channel3->CNDTR = MAXBUFLEN;
-    state[1] = PDU_RX;
-    Taccess[1] = Tms;
-}
-
-// USART2 Rx complete -> set flag
-void dma1_channel6_isr(){
-    DMA1_Channel6->CCR &= ~DMA_CCR_EN;
-    DMA1->IFCR |= DMA_IFCR_CTCIF6;
-    state[0] = PDU_RXREADY;
-}
-
-// USART3 Rx complete -> set flag
-void dma1_channel3_isr(){
-    DMA1_Channel3->CCR &= ~DMA_CCR_EN;
-    DMA1->IFCR |= DMA_IFCR_CTCIF3;
-    state[1] = PDU_RXREADY;
-}
+*/

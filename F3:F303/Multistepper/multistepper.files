@@ -25,6 +25,7 @@ steppers.c
 steppers.h
 strfunc.c
 strfunc.h
+tmc2209.h
 usb.c
 usb.h
 usb_lib.c
