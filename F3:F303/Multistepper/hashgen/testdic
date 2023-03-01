@@ -16,6 +16,7 @@ cansend
 canspeed
 canstat
 diagn
+drvtype
 dumperr
 dumpcmd
 dumpconf
@@ -35,8 +36,10 @@ mcut
 mcuvdd
 microsteps
 minspeed
+motcurrent
 motflags
 motmul
+motno
 motreinit
 pdn
 ping

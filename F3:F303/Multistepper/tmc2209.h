@@ -707,7 +707,7 @@ typedef struct {
 
     TMC2209_status_t driver_status;
 
-    trinamic_config_t config;
+//    trinamic_config_t config;
 } TMC2209_t;
 
 #pragma pack(pop)

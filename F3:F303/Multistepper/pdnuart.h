@@ -21,5 +21,10 @@
 #include <stdint.h>
 
 void pdnuart_setup();
-int pdnuart_writereg(uint8_t motorno, uint8_t reg, uint32_t data);
-int pdnuart_readreg(uint8_t motorno, uint8_t reg, uint32_t *data);
+int pdnuart_writereg(uint8_t reg, uint32_t data);
+int pdnuart_readreg(uint8_t reg, uint32_t *data);
+int pdnuart_setmotno(uint8_t no);
+uint8_t pdnuart_getmotno();
+int pdnuart_setcurrent(uint8_t no, uint8_t val);
+int pdnuart_microsteps(uint8_t no, uint32_t val);
+int pdnuart_init(uint8_t no);

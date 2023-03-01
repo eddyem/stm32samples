@@ -46,6 +46,8 @@ int fn_canstat(uint32_t _U_ hash, char _U_ *args) WAL; // "canstat" (237384179)
 
 int fn_diagn(uint32_t _U_ hash, char _U_ *args) WAL; // "diagn" (2334137736)
 
+int fn_drvtype(uint32_t _U_ hash, char _U_ *args) WAL; // "drvtype" (3930242451)
+
 int fn_dumpcmd(uint32_t _U_ hash, char _U_ *args) WAL; // "dumpcmd" (1223955823)
 
 int fn_dumpconf(uint32_t _U_ hash, char _U_ *args) WAL; // "dumpconf" (3271513185)
@@ -84,9 +86,13 @@ int fn_microsteps(uint32_t _U_ hash, char _U_ *args) WAL; // "microsteps" (39743
 
 int fn_minspeed(uint32_t _U_ hash, char _U_ *args) WAL; // "minspeed" (3234848090)
 
+int fn_motcurrent(uint32_t _U_ hash, char _U_ *args) WAL; // "motcurrent" (1926997848)
+
 int fn_motflags(uint32_t _U_ hash, char _U_ *args) WAL; // "motflags" (2153634658)
 
 int fn_motmul(uint32_t _U_ hash, char _U_ *args) WAL; // "motmul" (1543400099)
+
+int fn_motno(uint32_t _U_ hash, char _U_ *args) WAL; // "motno" (544673586)
 
 int fn_motreinit(uint32_t _U_ hash, char _U_ *args) WAL; // "motreinit" (199682784)
 
@@ -197,6 +203,9 @@ int parsecmd(const char *str){
         case CMD_DIAGN:
             return fn_diagn(h, args);
         break;
+        case CMD_DRVTYPE:
+            return fn_drvtype(h, args);
+        break;
         case CMD_DUMPCMD:
             return fn_dumpcmd(h, args);
         break;
@@ -254,11 +263,17 @@ int parsecmd(const char *str){
         case CMD_MINSPEED:
             return fn_minspeed(h, args);
         break;
+        case CMD_MOTCURRENT:
+            return fn_motcurrent(h, args);
+        break;
         case CMD_MOTFLAGS:
             return fn_motflags(h, args);
         break;
         case CMD_MOTMUL:
             return fn_motmul(h, args);
+        break;
+        case CMD_MOTNO:
+            return fn_motno(h, args);
         break;
         case CMD_MOTREINIT:
             return fn_motreinit(h, args);

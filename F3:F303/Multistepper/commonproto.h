@@ -86,14 +86,17 @@ enum{
     ,CCMD_MOTORSTATE         // motor state
     ,CCMD_ENCPOS             // position of encoder (independing on settings)
     ,CCMD_SETPOS             // set motor position
-    ,CCMD_MOTMUL
-    ,CCMD_DIAGN
-    ,CCMD_ERASEFLASH
-    ,CCMD_UDATA
-    ,CCMD_USARTSTATUS
-    ,CCMD_VDRIVE
-    ,CCMD_VFIVE
-    ,CCMD_PDN
+    ,CCMD_MOTMUL             // operations with motor multiplexer
+    ,CCMD_DIAGN              // DIAGN state for all motors
+    ,CCMD_ERASEFLASH         // erase full storage
+    ,CCMD_UDATA              // incoming data by USART1
+    ,CCMD_USARTSTATUS        // current status of USART1
+    ,CCMD_VDRIVE             // Vdrive voltage
+    ,CCMD_VFIVE              // 5V voltage
+    ,CCMD_PDN                // write/read TMC2209 registers over UART
+    ,CCMD_MOTNO              // motor number for next PDN command
+    ,CCMD_DRVTYPE            // driver type (0 - only step/dir, 1 - UART, 2 - SPI, 3 - reserved)
+    ,CCMD_MOTCURRENT         // motor current (1..32 for 1/32..32/32 of max current)
     // should be the last:
     ,CCMD_AMOUNT             // amount of common commands
 };
@@ -108,6 +111,7 @@ errcodes cu_adc(uint8_t par, int32_t *val);
 errcodes cu_button(uint8_t par, int32_t *val);
 errcodes cu_canid(uint8_t par, int32_t *val);
 errcodes cu_diagn(uint8_t par, int32_t *val);
+errcodes cu_drvtype(uint8_t par, int32_t *val);
 errcodes cu_emstop(uint8_t par, int32_t *val);
 errcodes cu_eraseflash(uint8_t par, int32_t *val);
 errcodes cu_esw(uint8_t par, int32_t *val);
@@ -122,7 +126,9 @@ errcodes cu_mcut(uint8_t par, int32_t *val);
 errcodes cu_mcuvdd(uint8_t par, int32_t *val);
 errcodes cu_microsteps(uint8_t par, int32_t *val);
 errcodes cu_minspeed(uint8_t par, int32_t *val);
+errcodes cu_motcurrent(uint8_t par, int32_t *val);
 errcodes cu_motflags(uint8_t par, int32_t *val);
+errcodes cu_motno(uint8_t par, int32_t *val);
 errcodes cu_motmul(uint8_t par, int32_t *val);
 errcodes cu_motreinit(uint8_t par, int32_t *val);
 errcodes cu_pdn(uint8_t par, int32_t *val);

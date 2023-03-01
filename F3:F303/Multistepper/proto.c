@@ -405,12 +405,13 @@ int fn_time(uint32_t _U_ hash,  char _U_ *args){ // "time" (19148340)
 
 
 static const char* motfl[MOTFLAGS_AMOUNT] = {
-    "reverse - invert motor's rotation",
-    "[reserved]",
-    "[reserved]",
-    "donthold - clear motor's power after stop",
-    "eswinv - inverse end-switches (1->0 instead of 0->1)",
-    "[reserved]"
+    "0: reverse - invert motor's rotation",
+    "1: [reserved]",
+    "2: [reserved]",
+    "3: donthold - clear motor's power after stop",
+    "4: eswinv - inverse end-switches (1->0 instead of 0->1)",
+    "5: [reserved]",
+    "6,7: drvtype - driver type (0 - only step/dir, 1 - UART, 2 - SPI, 3 - reserved)"
 };
 static const char *eswfl[ESW_AMOUNT] = {
     [ESW_IGNORE] = "ignore end-switches",
@@ -568,6 +569,9 @@ static int canusb_function(uint32_t hash, char *args){
         case CMD_DIAGN:
             e = cu_diagn(par, &val);
         break;
+        case CMD_DRVTYPE:
+            e = cu_drvtype(par, &val);
+        break;
         case CMD_EMSTOP:
             e = cu_emstop(par, &val);
         break;
@@ -612,11 +616,17 @@ static int canusb_function(uint32_t hash, char *args){
         case CMD_MINSPEED:
             e = cu_minspeed(par, &val);
         break;
+        case CMD_MOTCURRENT:
+            e = cu_motcurrent(par, &val);
+        break;
         case CMD_MOTFLAGS:
             e = cu_motflags(par, &val);
         break;
         case CMD_MOTMUL:
             e = cu_motmul(par, &val);
+        break;
+        case CMD_MOTNO:
+            e = cu_motno(par, &val);
         break;
         case CMD_MOTREINIT:
             e = cu_motreinit(par, &val);
@@ -674,7 +684,7 @@ static int canusb_function(uint32_t hash, char *args){
         USB_sendstr(errtxt[e]); newline();
     }else{
         USB_sendstr("OK par");
-        if(par != CANMESG_NOPAR) printu(PARBASE(par));
+        if(PARBASE(par) != CANMESG_NOPAR) printu(PARBASE(par));
         USB_putbyte('='); printi(val);
         newline();
     }
@@ -689,6 +699,7 @@ int fn_accel(uint32_t _U_ hash,  char _U_ *args) AL; //* "accel" (1490521981)
 int fn_adc(uint32_t _U_ hash,  char _U_ *args) AL; // "adc" (2963026093)
 int fn_button(uint32_t _U_ hash,  char _U_ *args) AL; // "button" (1093508897)
 int fn_diagn(uint32_t _U_ hash,  char _U_ *args) AL; //* "diagn" (2334137736)
+int fn_drvtype(uint32_t _U_ hash, char _U_ *args) AL; // "drvtype" (3930242451)
 int fn_emstop(uint32_t _U_ hash,  char _U_ *args) AL; //* "emstop" (2965919005)
 int fn_eraseflash(uint32_t _U_ hash,  char _U_ *args) AL; //* "eraseflash" (3177247267)
 int fn_esw(uint32_t _U_ hash,  char _U_ *args) AL; // "esw" (2963094612)
@@ -703,8 +714,10 @@ int fn_mcut(uint32_t _U_ hash,  char _U_ *args) AL; // "mcut" (4022718)
 int fn_mcuvdd(uint32_t _U_ hash,  char _U_ *args) AL; // "mcuvdd" (2517587080)
 int fn_microsteps(uint32_t _U_ hash,  char _U_ *args) AL; //* "microsteps" (3974395854)
 int fn_minspeed(uint32_t _U_ hash,  char _U_ *args) AL; //* "minspeed" (3234848090)
+int fn_motcurrent(uint32_t _U_ hash, char _U_ *args) AL; // "motcurrent" (1926997848)
 int fn_motflags(uint32_t _U_ hash,  char _U_ *args) AL; //* "motflags" (2153634658)
 int fn_motmul(uint32_t _U_ hash,  char _U_ *args) AL; //* "motmul" (1543400099)
+int fn_motno(uint32_t _U_ hash, char _U_ *args) AL; // "motno" (544673586)
 int fn_motreinit(uint32_t _U_ hash,  char _U_ *args) AL; //* "motreinit" (199682784)
 int fn_pdn(uint32_t _U_ hash, char _U_ *args) AL; // "pdn" (2963275719)
 int fn_ping(uint32_t _U_ hash,  char _U_ *args) AL; // "ping" (10561715)

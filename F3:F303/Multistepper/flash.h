@@ -38,7 +38,16 @@
 
 #define FLASH_SIZE          *((uint16_t*)FLASH_SIZE_REG)
 
-#define MOTFLAGS_AMOUNT     6
+#define MOTFLAGS_AMOUNT     7
+
+enum{
+    DRVTYPE_SIMPLE,
+    DRVTYPE_UART,
+    DRVTYPE_SPI,
+    DRVTYPE_RESERVED,
+    DRVTYPE_AMOUNT
+};
+
 // motor flags
 typedef struct{
     uint8_t reverse : 1;        // bit0 - reversing motor rotation
@@ -47,6 +56,7 @@ typedef struct{
     uint8_t donthold : 1;       // bit3 - clear power @ stop (don't hold motor when stopped)
     uint8_t eswinv : 1;         // bit4 - inverse end-switches
     uint8_t keeppos : 1;        // bit5 - keep current position (as servo motor) - NOT USED HERE!!!
+    uint8_t drvtype : 2;        // bits 6,7 - driver type (0 - only step/dir, 1 - UART, 2 - SPI, 3 - reserved)
 } motflags_t;
 
 /*
@@ -63,6 +73,7 @@ typedef struct __attribute__((packed, aligned(4))){
     uint32_t maxsteps[MOTORSNO];    // maximal amount of steps
     motflags_t motflags[MOTORSNO];  // motor's flags
     uint8_t ESW_reaction[MOTORSNO]; // end-switches reaction (esw_react)
+    uint8_t motcurrent[MOTORSNO];   // IRUN as fraction of max current (1..32)
     uint8_t isSPI;                  // ==1 if there's SPI drivers instead of UART
 } user_conf;
 

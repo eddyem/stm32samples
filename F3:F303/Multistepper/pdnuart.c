@@ -18,10 +18,13 @@
 
 #include <stm32f3.h>
 
+#include "flash.h"
 #include "hardware.h"
 #include "proto.h"
+#include "tmc2209.h"
 
 extern volatile uint32_t Tms;
+static uint8_t motorno = 0;
 
 #define MAXBUFLEN           (8)
 // timeout, milliseconds
@@ -66,16 +69,18 @@ void pdnuart_setup(){
     setup_usart(1);
 }
 
-static int rwreg(uint8_t motorno, uint8_t reg, uint32_t data, int w){
+static int rwreg(uint8_t reg, uint32_t data, int w){
     if(motorno >= MOTORSNO || reg & 0x80) return FALSE;
+    uint32_t x = Tms;
+    while(Tms - x < 1);
     int no = motorno >> 2;
     uint8_t outbuf[MAXBUFLEN];
-    outbuf[0] = 0xa0;
+    outbuf[0] = 0x05;
     outbuf[1] = motorno - (no << 2);
-    outbuf[2] = reg << 1;
+    outbuf[2] = reg;
     int nbytes = 3;
     if(w){
-        outbuf[2] |= 1;
+        outbuf[2] |= 0x80;
         for(int i = 6; i > 2; --i){
             outbuf[i] = data & 0xff;
             data >>= 8;
@@ -85,20 +90,25 @@ static int rwreg(uint8_t motorno, uint8_t reg, uint32_t data, int w){
     calcCRC(outbuf, nbytes);
     ++nbytes;
     for(int i = 0; i < nbytes; ++i){
+        USB_sendstr("Send byte "); USB_putbyte('0'+i); USB_sendstr(": "); printuhex(outbuf[i]); newline();
         USART[no]->TDR = outbuf[i]; // transmit
         while(!(USART[no]->ISR & USART_ISR_TXE));
+        int l = 0;
+        for(; l < 10000; ++l) if(USART[no]->ISR & USART_ISR_RXNE) break;
+        if(l == 10000) USND("Nothing received");
+        else {USB_sendstr("Rcv: "); printuhex(USART[no]->RDR); newline();}
     }
     return TRUE;
 }
 
 // return FALSE if failed
-int pdnuart_writereg(uint8_t motorno, uint8_t reg, uint32_t data){
-    return rwreg(motorno, reg, data, 1);
+int pdnuart_writereg(uint8_t reg, uint32_t data){
+    return rwreg(reg, data, 1);
 }
 
 // return FALSE if failed
-int pdnuart_readreg(uint8_t motorno, uint8_t reg, uint32_t *data){
-    if(!rwreg(motorno, reg, 0, 0)) return FALSE;
+int pdnuart_readreg(uint8_t reg, uint32_t *data){
+    if(!rwreg(reg, 0, 0)) return FALSE;
     uint32_t Tstart = Tms;
     uint8_t buf[8];
     int no = motorno >> 2;
@@ -114,6 +124,60 @@ int pdnuart_readreg(uint8_t motorno, uint8_t reg, uint32_t *data){
         o <<= 8;
     }
     *data = o;
+    return TRUE;
+}
+
+static int readregister(uint8_t no, uint8_t reg, uint32_t *data){
+    int n = motorno; motorno = no;
+    int r = pdnuart_readreg(reg, data);
+    motorno = n;
+    return r;
+}
+
+static int writeregister(uint8_t no, uint8_t reg, uint32_t data){
+    int n = motorno; motorno = no;
+    int r = pdnuart_writereg(reg, data);
+    motorno = n;
+    return r;
+}
+
+uint8_t pdnuart_getmotno(){
+    return motorno;
+}
+
+int pdnuart_setmotno(uint8_t no){
+    if(no >= MOTORSNO) return FALSE;
+    motorno = no;
+    return TRUE;
+}
+
+// write val into IHOLD_IRUN over UART to n'th motor
+int pdnuart_setcurrent(uint8_t no, uint8_t val){
+    TMC2209_ihold_irun_reg_t regval;
+    if(!readregister(no, TMC2209Reg_IHOLD_IRUN, &regval.value)) return FALSE;
+    regval.irun = val;
+    return writeregister(no, TMC2209Reg_IHOLD_IRUN, regval.value);
+}
+
+// set microsteps over UART
+int pdnuart_microsteps(uint8_t no, uint32_t val){
+    if(val > 256) return FALSE;
+    TMC2209_chopconf_reg_t regval;
+    if(!readregister(no, TMC2209Reg_CHOPCONF, &regval.value)) return FALSE;
+    if(val == 256) regval.mres = 0;
+    else regval.mres = MSB(val) + 1;
+    return writeregister(no, TMC2209Reg_CHOPCONF, regval.value);
+}
+
+// init driver number `no`
+int pdnuart_init(uint8_t no){
+    TMC2209_gconf_reg_t gconf;
+    if(!readregister(no, TMC2209Reg_GCONF, &gconf.value)) return FALSE;
+    gconf.pdn_disable = 1; // PDN now is UART
+    gconf.mstep_reg_select = 1; // microsteps are by MSTEP
+    if(!writeregister(no, TMC2209Reg_GCONF, gconf.value)) return FALSE;
+    if(!pdnuart_microsteps(no, the_conf.microsteps[no])) return FALSE;
+    if(!pdnuart_setcurrent(no, the_conf.motcurrent[no])) return FALSE;
     return TRUE;
 }
 

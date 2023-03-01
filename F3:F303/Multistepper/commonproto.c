@@ -87,6 +87,17 @@ errcodes cu_diagn(uint8_t _U_ par, int32_t _U_ *val){
     return ERR_BADCMD;
 }
 
+errcodes cu_drvtype(uint8_t par, int32_t *val){
+    uint8_t n; CHECKN(n, par);
+    motflags_t *fl = &the_conf.motflags[n];
+    if(ISSETTER(par)){
+        if(*val >= DRVTYPE_AMOUNT) return ERR_BADVAL;
+        fl->drvtype = *val;
+    }
+    *val = fl->drvtype;
+    return ERR_OK;
+}
+
 errcodes cu_emstop(uint8_t _U_ par, int32_t _U_ *val){
     uint8_t n; CHECKN(n, par);
     emstopmotor(n);
@@ -235,6 +246,10 @@ errcodes cu_microsteps(uint8_t _U_ par, int32_t _U_ *val){
         if(m != 1<<MSB(m)) return ERR_BADVAL;
         if(the_conf.maxspd[n] * m > PCLK/(MOTORTIM_PSC+1)/(MOTORTIM_ARRMIN+1)) return ERR_BADVAL;
         the_conf.microsteps[n] = m;
+        motflags_t *f = the_conf.motflags;
+        if(f->drvtype == DRVTYPE_UART){
+            if(!pdnuart_microsteps(n, m)) return ERR_CANTRUN;
+        }
         update_stepper(n);
     }
     *val = the_conf.microsteps[n];
@@ -244,11 +259,25 @@ errcodes cu_microsteps(uint8_t _U_ par, int32_t _U_ *val){
 errcodes cu_minspeed(uint8_t _U_ par, int32_t _U_ *val){
     uint8_t n; CHECKN(n, par);
     if(ISSETTER(par)){
-        if(*val >= the_conf.maxspd[n]) return ERR_BADVAL;
+        if(*val >= the_conf.maxspd[n] || *val < 0) return ERR_BADVAL;
         the_conf.minspd[n] = getSPD(n, *val);
         update_stepper(n);
     }
     *val = the_conf.minspd[n];
+    return ERR_OK;
+}
+
+errcodes cu_motcurrent(uint8_t par, int32_t *val){
+    uint8_t n; CHECKN(n, par);
+    if(ISSETTER(par)){
+        if(*val < 1 || *val > 32) return ERR_BADVAL;
+        the_conf.motcurrent[n] = *val;
+        motflags_t *f = the_conf.motflags;
+        if(f->drvtype == DRVTYPE_UART){
+            if(!pdnuart_setcurrent(n, *val)) return ERR_CANTRUN;
+        }
+    }
+    *val = the_conf.motcurrent[n];
     return ERR_OK;
 }
 
@@ -259,6 +288,15 @@ errcodes cu_motflags(uint8_t _U_ par, int32_t _U_ *val){
         update_stepper(n);
     }
     *(motflags_t*)val = the_conf.motflags[n];
+    return ERR_OK;
+}
+
+errcodes cu_motno(uint8_t _U_ par, int32_t _U_ *val){
+    if(*val < 0 || *val >= MOTORSNO) return ERR_BADVAL;
+    if(ISSETTER(par)){
+        if(!pdnuart_setmotno(*val)) return ERR_CANTRUN;
+    }
+    *val = pdnuart_getmotno();
     return ERR_OK;
 }
 
@@ -275,9 +313,9 @@ errcodes cu_motreinit(uint8_t _U_ par, int32_t _U_ *val){
 errcodes cu_pdn(uint8_t par, int32_t *val){
     uint8_t n = PARBASE(par);
     if(ISSETTER(par)){
-        if(!pdnuart_writereg(0, n, *val)) return ERR_CANTRUN;
+        if(!pdnuart_writereg(n, *val)) return ERR_CANTRUN;
     }
-    if(!pdnuart_readreg(0, n, (uint32_t*)val)) return ERR_CANTRUN;
+    if(!pdnuart_readreg(n, (uint32_t*)val)) return ERR_CANTRUN;
     return ERR_OK;
 }
 
@@ -449,5 +487,8 @@ const char* cancmds[CCMD_AMOUNT] = {
     [CCMD_USARTSTATUS] = "usartstatus",
     [CCMD_VDRIVE] = "vdrive",
     [CCMD_VFIVE] = "vfive",
-    [CCMD_PDN] = "pdn"
+    [CCMD_PDN] = "pdn",
+    [CCMD_MOTNO] = "motno",
+    [CCMD_DRVTYPE] = "drvtype",
+    [CCMD_MOTCURRENT] = "motcurrent",
 };

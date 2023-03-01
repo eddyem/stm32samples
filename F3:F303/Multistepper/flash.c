@@ -32,7 +32,7 @@ static const uint32_t FLASH_blocksize = (uint32_t)&_BLOCKSIZE;
 // max amount of Config records stored (will be recalculate in flashstorage_init()
 static uint32_t maxCnum = 1024 / sizeof(user_conf); // can't use blocksize here
 
-#define DEFMF   {.donthold = 1}
+#define DEFMF   {.donthold = 1, .drvtype = DRVTYPE_UART}
 
 #define USERCONF_INITIALIZER  {             \
      .userconf_sz = sizeof(user_conf)       \
@@ -226,6 +226,8 @@ int fn_dumpconf(uint32_t _U_ hash, char _U_ *args){ // "dumpconf" (3271513185)
         printu(the_conf.minspd[i]);
         PROPNAME("maxsteps");
         printu(the_conf.maxsteps[i]);
+        PROPNAME("motcurrent");
+        printu(the_conf.motcurrent[i]);
         PROPNAME("motflags");
         printuhex(*((uint8_t*)&the_conf.motflags[i]));
         PROPNAME("eswreaction");
