@@ -120,8 +120,8 @@ int pdnuart_readreg(uint8_t reg, uint32_t *data){
     }
     uint32_t o = 0;
     for(int i = 3; i < 7; ++i){
-        o |= buf[i];
         o <<= 8;
+        o |= buf[i];
     }
     *data = o;
     return TRUE;
@@ -165,7 +165,7 @@ int pdnuart_microsteps(uint8_t no, uint32_t val){
     TMC2209_chopconf_reg_t regval;
     if(!readregister(no, TMC2209Reg_CHOPCONF, &regval.value)) return FALSE;
     if(val == 256) regval.mres = 0;
-    else regval.mres = MSB(val) + 1;
+    else regval.mres = 8 - MSB(val);
     return writeregister(no, TMC2209Reg_CHOPCONF, regval.value);
 }
 

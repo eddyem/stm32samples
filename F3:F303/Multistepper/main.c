@@ -51,10 +51,6 @@ int main(void){
     adc_setup();
     pdnuart_setup();
     USBPU_ON();
-    for(int i = 0; i < MOTORSNO; ++i){
-        motflags_t flag = the_conf.motflags[i];
-        if(flag.drvtype == DRVTYPE_UART) pdnuart_init(i);
-    }
     uint32_t ctr = 0;
     CAN_message *can_mesg;
     while(1){

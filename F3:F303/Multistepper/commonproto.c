@@ -236,6 +236,7 @@ errcodes cu_mcuvdd(uint8_t par, int32_t *val){
 
 errcodes cu_microsteps(uint8_t _U_ par, int32_t _U_ *val){
     uint8_t n; CHECKN(n, par);
+    USB_sendstr("===> val="); printi(*val); newline();
     if(ISSETTER(par)){
 #if MICROSTEPSMAX > 512
 #error "Change the code anywhere!"
@@ -270,7 +271,7 @@ errcodes cu_minspeed(uint8_t _U_ par, int32_t _U_ *val){
 errcodes cu_motcurrent(uint8_t par, int32_t *val){
     uint8_t n; CHECKN(n, par);
     if(ISSETTER(par)){
-        if(*val < 1 || *val > 32) return ERR_BADVAL;
+        if(*val < 0 || *val > 31) return ERR_BADVAL;
         the_conf.motcurrent[n] = *val;
         motflags_t *f = the_conf.motflags;
         if(f->drvtype == DRVTYPE_UART){
