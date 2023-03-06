@@ -433,7 +433,7 @@
   "pcbnew": {
     "last_paths": {
       "gencad": "",
-      "idf": "",
+      "idf": "multistepper.emn",
       "netlist": "",
       "specctra_dsn": "",
       "step": "multistepper.step",
