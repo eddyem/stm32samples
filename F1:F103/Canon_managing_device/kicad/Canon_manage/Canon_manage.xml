@@ -2,8 +2,8 @@
 <export version="E">
   <design>
     <source>/home/eddy/Docs/SAO/ELECTRONICS/STM32/F1-srcs/Canon_managing_device/kicad/Canon_manage/Canon_manage.kicad_sch</source>
-    <date>Чт 22 сен 2022 14:54:59</date>
-    <tool>Eeschema 6.0.5</tool>
+    <date>Чт 02 мар 2023 08:54:06</date>
+    <tool>Eeschema 6.0.10</tool>
     <sheet number="1" name="/" tstamps="/">
       <title_block>
         <title/>
@@ -25,22 +25,22 @@
   </design>
   <components>
     <comp ref="C1">
-      <value>12</value>
+      <value>6</value>
       <footprint>Capacitor_SMD:C_0603_1608Metric_Pad1.08x0.95mm_HandSolder</footprint>
       <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
       <property name="Sheetname" value=""/>
       <property name="Sheetfile" value="Canon_manage.kicad_sch"/>
       <sheetpath names="/" tstamps="/"/>
-      <tstamps>78d9bd94-3b9a-4d2a-9c27-c73709b0381f</tstamps>
+      <tstamps>c9998dc1-29eb-42df-aaf6-345834aec83c</tstamps>
     </comp>
     <comp ref="C2">
-      <value>12</value>
+      <value>6</value>
       <footprint>Capacitor_SMD:C_0603_1608Metric_Pad1.08x0.95mm_HandSolder</footprint>
       <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
       <property name="Sheetname" value=""/>
       <property name="Sheetfile" value="Canon_manage.kicad_sch"/>
       <sheetpath names="/" tstamps="/"/>
-      <tstamps>25ca2f10-e30e-4c20-8cbf-700182947489</tstamps>
+      <tstamps>fc664109-f8be-4699-a854-f6b6b84605ed</tstamps>
     </comp>
     <comp ref="C3">
       <value>1u</value>
@@ -117,7 +117,7 @@
     </comp>
     <comp ref="J1">
       <value>SWD</value>
-      <footprint>Connector_PinSocket_2.54mm:PinSocket_1x06_P2.54mm_Vertical</footprint>
+      <footprint>Connector_PinHeader_1.27mm:PinHeader_1x06_P1.27mm_Vertical</footprint>
       <libsource lib="Connector" part="Conn_01x06_Female" description="Generic connector, single row, 01x06, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
       <property name="Sheetname" value=""/>
       <property name="Sheetfile" value="Canon_manage.kicad_sch"/>
@@ -125,220 +125,76 @@
       <tstamps>16579291-b073-4d59-83c6-28649a884cc2</tstamps>
     </comp>
     <comp ref="J2">
-      <value>Conn_01x01_Male</value>
-      <footprint>Connector_PinHeader_1.00mm:PinHeader_1x01_P1.00mm_Vertical</footprint>
+      <value>PV</value>
+      <footprint>pins:Pin1.5x2mm</footprint>
       <libsource lib="Connector" part="Conn_01x01_Male" description="Generic connector, single row, 01x01, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
       <property name="Sheetname" value=""/>
       <property name="Sheetfile" value="Canon_manage.kicad_sch"/>
       <sheetpath names="/" tstamps="/"/>
-      <tstamps>b2b3e55a-ed47-4c0d-a970-11bc136aeedb</tstamps>
+      <tstamps>a5775530-a18e-4f83-8d4f-2a5a128645d7</tstamps>
     </comp>
     <comp ref="J3">
-      <value>Conn_01x01_Male</value>
-      <footprint>Connector_PinHeader_1.00mm:PinHeader_1x01_P1.00mm_Vertical</footprint>
+      <value>Ldet</value>
+      <footprint>pins:Pin1.5x2mm</footprint>
       <libsource lib="Connector" part="Conn_01x01_Male" description="Generic connector, single row, 01x01, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
       <property name="Sheetname" value=""/>
       <property name="Sheetfile" value="Canon_manage.kicad_sch"/>
       <sheetpath names="/" tstamps="/"/>
-      <tstamps>909ca7c1-228b-4712-b5fe-77391c9d70c2</tstamps>
+      <tstamps>32d7a2d1-54ff-4a48-a3d0-faa0089969ed</tstamps>
     </comp>
     <comp ref="J4">
-      <value>Conn_01x01_Male</value>
-      <footprint>Connector_PinHeader_1.00mm:PinHeader_1x01_P1.00mm_Vertical</footprint>
+      <value>PGnd</value>
+      <footprint>pins:Pin1.5x2mm</footprint>
       <libsource lib="Connector" part="Conn_01x01_Male" description="Generic connector, single row, 01x01, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
       <property name="Sheetname" value=""/>
       <property name="Sheetfile" value="Canon_manage.kicad_sch"/>
       <sheetpath names="/" tstamps="/"/>
-      <tstamps>27e02da6-d54d-4d6d-bd6c-008d0590a62c</tstamps>
+      <tstamps>4c06ffc7-8a67-444f-9554-d5e5a37b4824</tstamps>
     </comp>
     <comp ref="J5">
-      <value>Conn_01x01_Male</value>
-      <footprint>Connector_PinHeader_1.00mm:PinHeader_1x01_P1.00mm_Vertical</footprint>
+      <value>LV</value>
+      <footprint>pins:Pin1.5x2mm</footprint>
       <libsource lib="Connector" part="Conn_01x01_Male" description="Generic connector, single row, 01x01, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
       <property name="Sheetname" value=""/>
       <property name="Sheetfile" value="Canon_manage.kicad_sch"/>
       <sheetpath names="/" tstamps="/"/>
-      <tstamps>59350205-af94-4604-bf1f-fff5200b3846</tstamps>
+      <tstamps>b4f88c82-2497-4a01-ba33-1e43542836b5</tstamps>
     </comp>
     <comp ref="J6">
-      <value>Conn_01x01_Male</value>
-      <footprint>Connector_PinHeader_1.00mm:PinHeader_1x01_P1.00mm_Vertical</footprint>
+      <value>MOSI</value>
+      <footprint>pins:Pin1.5x2mm</footprint>
       <libsource lib="Connector" part="Conn_01x01_Male" description="Generic connector, single row, 01x01, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
       <property name="Sheetname" value=""/>
       <property name="Sheetfile" value="Canon_manage.kicad_sch"/>
       <sheetpath names="/" tstamps="/"/>
-      <tstamps>65ab39c0-256c-4a13-a48f-1489a8fdbedc</tstamps>
+      <tstamps>aae008f9-f910-4c20-a329-804cd75c2034</tstamps>
     </comp>
     <comp ref="J7">
-      <value>Conn_01x01_Male</value>
-      <footprint>Connector_PinHeader_1.00mm:PinHeader_1x01_P1.00mm_Vertical</footprint>
+      <value>MISO</value>
+      <footprint>pins:Pin1.5x2mm</footprint>
       <libsource lib="Connector" part="Conn_01x01_Male" description="Generic connector, single row, 01x01, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
       <property name="Sheetname" value=""/>
       <property name="Sheetfile" value="Canon_manage.kicad_sch"/>
       <sheetpath names="/" tstamps="/"/>
-      <tstamps>386c1719-f247-4211-9c1d-b9e1ec7552ec</tstamps>
+      <tstamps>69811119-25b3-423f-abd3-df6254459d41</tstamps>
     </comp>
     <comp ref="J8">
-      <value>Conn_01x01_Male</value>
-      <footprint>Connector_PinHeader_1.00mm:PinHeader_1x01_P1.00mm_Vertical</footprint>
+      <value>SCK</value>
+      <footprint>pins:Pin1.5x2mm</footprint>
       <libsource lib="Connector" part="Conn_01x01_Male" description="Generic connector, single row, 01x01, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
       <property name="Sheetname" value=""/>
       <property name="Sheetfile" value="Canon_manage.kicad_sch"/>
       <sheetpath names="/" tstamps="/"/>
-      <tstamps>f9c69d32-5d3a-4a79-b4db-cee1b1e2651a</tstamps>
+      <tstamps>409c86f7-616a-42f7-8a1a-16e91abd4f8c</tstamps>
     </comp>
     <comp ref="J9">
-      <value>Conn_01x01_Male</value>
-      <footprint>Connector_PinHeader_1.00mm:PinHeader_1x01_P1.00mm_Vertical</footprint>
+      <value>LGnd</value>
+      <footprint>pins:Pin1.5x2mm</footprint>
       <libsource lib="Connector" part="Conn_01x01_Male" description="Generic connector, single row, 01x01, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
       <property name="Sheetname" value=""/>
       <property name="Sheetfile" value="Canon_manage.kicad_sch"/>
       <sheetpath names="/" tstamps="/"/>
-      <tstamps>a3198054-1086-4065-9f4b-0fec58815c8d</tstamps>
-    </comp>
-    <comp ref="J10">
-      <value>Conn_01x01_Male</value>
-      <footprint>Connector_PinHeader_1.00mm:PinHeader_1x01_P1.00mm_Vertical</footprint>
-      <libsource lib="Connector" part="Conn_01x01_Male" description="Generic connector, single row, 01x01, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
-      <property name="Sheetname" value=""/>
-      <property name="Sheetfile" value="Canon_manage.kicad_sch"/>
-      <sheetpath names="/" tstamps="/"/>
-      <tstamps>b5fe2c21-0897-499e-b6b2-7b8d89aa1535</tstamps>
-    </comp>
-    <comp ref="J11">
-      <value>Conn_01x01_Male</value>
-      <footprint>Connector_PinHeader_1.00mm:PinHeader_1x01_P1.00mm_Vertical</footprint>
-      <libsource lib="Connector" part="Conn_01x01_Male" description="Generic connector, single row, 01x01, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
-      <property name="Sheetname" value=""/>
-      <property name="Sheetfile" value="Canon_manage.kicad_sch"/>
-      <sheetpath names="/" tstamps="/"/>
-      <tstamps>4314efe5-e737-4e9b-856c-3f380a0fa85c</tstamps>
-    </comp>
-    <comp ref="J12">
-      <value>Conn_01x01_Male</value>
-      <footprint>Connector_PinHeader_1.00mm:PinHeader_1x01_P1.00mm_Vertical</footprint>
-      <libsource lib="Connector" part="Conn_01x01_Male" description="Generic connector, single row, 01x01, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
-      <property name="Sheetname" value=""/>
-      <property name="Sheetfile" value="Canon_manage.kicad_sch"/>
-      <sheetpath names="/" tstamps="/"/>
-      <tstamps>be257b5c-cc47-4972-aaca-b80d8823e238</tstamps>
-    </comp>
-    <comp ref="J13">
-      <value>Conn_01x01_Male</value>
-      <footprint>Connector_PinHeader_1.00mm:PinHeader_1x01_P1.00mm_Vertical</footprint>
-      <libsource lib="Connector" part="Conn_01x01_Male" description="Generic connector, single row, 01x01, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
-      <property name="Sheetname" value=""/>
-      <property name="Sheetfile" value="Canon_manage.kicad_sch"/>
-      <sheetpath names="/" tstamps="/"/>
-      <tstamps>0347918e-2dc5-43d0-b153-8fdb16bf2cb0</tstamps>
-    </comp>
-    <comp ref="J14">
-      <value>Conn_01x01_Male</value>
-      <footprint>Connector_PinHeader_1.00mm:PinHeader_1x01_P1.00mm_Vertical</footprint>
-      <libsource lib="Connector" part="Conn_01x01_Male" description="Generic connector, single row, 01x01, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
-      <property name="Sheetname" value=""/>
-      <property name="Sheetfile" value="Canon_manage.kicad_sch"/>
-      <sheetpath names="/" tstamps="/"/>
-      <tstamps>1e4421dd-8ed1-4a1b-87da-8b55b0ed32bf</tstamps>
-    </comp>
-    <comp ref="J15">
-      <value>Conn_01x01_Male</value>
-      <footprint>Connector_PinHeader_1.00mm:PinHeader_1x01_P1.00mm_Vertical</footprint>
-      <libsource lib="Connector" part="Conn_01x01_Male" description="Generic connector, single row, 01x01, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
-      <property name="Sheetname" value=""/>
-      <property name="Sheetfile" value="Canon_manage.kicad_sch"/>
-      <sheetpath names="/" tstamps="/"/>
-      <tstamps>b3bc58eb-da5c-4ec0-9c9f-761205ffa6f5</tstamps>
-    </comp>
-    <comp ref="J16">
-      <value>Conn_01x01_Male</value>
-      <footprint>Connector_PinHeader_1.00mm:PinHeader_1x01_P1.00mm_Vertical</footprint>
-      <libsource lib="Connector" part="Conn_01x01_Male" description="Generic connector, single row, 01x01, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
-      <property name="Sheetname" value=""/>
-      <property name="Sheetfile" value="Canon_manage.kicad_sch"/>
-      <sheetpath names="/" tstamps="/"/>
-      <tstamps>3eb12fe9-7189-4ee2-a525-774556361feb</tstamps>
-    </comp>
-    <comp ref="J17">
-      <value>Conn_01x01_Male</value>
-      <footprint>Connector_PinHeader_1.00mm:PinHeader_1x01_P1.00mm_Vertical</footprint>
-      <libsource lib="Connector" part="Conn_01x01_Male" description="Generic connector, single row, 01x01, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
-      <property name="Sheetname" value=""/>
-      <property name="Sheetfile" value="Canon_manage.kicad_sch"/>
-      <sheetpath names="/" tstamps="/"/>
-      <tstamps>e3b406f9-7f0d-48e4-92b6-d1bc83023854</tstamps>
-    </comp>
-    <comp ref="J18">
-      <value>Conn_01x01_Male</value>
-      <footprint>Connector_PinHeader_1.00mm:PinHeader_1x01_P1.00mm_Vertical</footprint>
-      <libsource lib="Connector" part="Conn_01x01_Male" description="Generic connector, single row, 01x01, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
-      <property name="Sheetname" value=""/>
-      <property name="Sheetfile" value="Canon_manage.kicad_sch"/>
-      <sheetpath names="/" tstamps="/"/>
-      <tstamps>0d7fd3e8-6d35-4c38-865b-ff490f2fe043</tstamps>
-    </comp>
-    <comp ref="J19">
-      <value>Conn_01x01_Male</value>
-      <footprint>Connector_PinHeader_1.00mm:PinHeader_1x01_P1.00mm_Vertical</footprint>
-      <libsource lib="Connector" part="Conn_01x01_Male" description="Generic connector, single row, 01x01, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
-      <property name="Sheetname" value=""/>
-      <property name="Sheetfile" value="Canon_manage.kicad_sch"/>
-      <sheetpath names="/" tstamps="/"/>
-      <tstamps>6a0f5a4a-b595-4dcd-9f68-61b56f68c1a8</tstamps>
-    </comp>
-    <comp ref="J20">
-      <value>Conn_01x01_Male</value>
-      <footprint>Connector_PinHeader_1.00mm:PinHeader_1x01_P1.00mm_Vertical</footprint>
-      <libsource lib="Connector" part="Conn_01x01_Male" description="Generic connector, single row, 01x01, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
-      <property name="Sheetname" value=""/>
-      <property name="Sheetfile" value="Canon_manage.kicad_sch"/>
-      <sheetpath names="/" tstamps="/"/>
-      <tstamps>7111ce0b-c1c8-4a05-a4ab-c5379bbb34dd</tstamps>
-    </comp>
-    <comp ref="J21">
-      <value>Conn_01x01_Male</value>
-      <footprint>Connector_PinHeader_1.00mm:PinHeader_1x01_P1.00mm_Vertical</footprint>
-      <libsource lib="Connector" part="Conn_01x01_Male" description="Generic connector, single row, 01x01, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
-      <property name="Sheetname" value=""/>
-      <property name="Sheetfile" value="Canon_manage.kicad_sch"/>
-      <sheetpath names="/" tstamps="/"/>
-      <tstamps>53a791d5-8507-479a-a7d4-db38a0913f4d</tstamps>
-    </comp>
-    <comp ref="J22">
-      <value>Conn_01x01_Male</value>
-      <footprint>Connector_PinHeader_1.00mm:PinHeader_1x01_P1.00mm_Vertical</footprint>
-      <libsource lib="Connector" part="Conn_01x01_Male" description="Generic connector, single row, 01x01, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
-      <property name="Sheetname" value=""/>
-      <property name="Sheetfile" value="Canon_manage.kicad_sch"/>
-      <sheetpath names="/" tstamps="/"/>
-      <tstamps>7abbcf17-2899-403a-b024-0575e9b339ae</tstamps>
-    </comp>
-    <comp ref="J23">
-      <value>Conn_01x01_Male</value>
-      <footprint>Connector_PinHeader_1.00mm:PinHeader_1x01_P1.00mm_Vertical</footprint>
-      <libsource lib="Connector" part="Conn_01x01_Male" description="Generic connector, single row, 01x01, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
-      <property name="Sheetname" value=""/>
-      <property name="Sheetfile" value="Canon_manage.kicad_sch"/>
-      <sheetpath names="/" tstamps="/"/>
-      <tstamps>09d5991e-7855-4409-8539-3f3be62fa13a</tstamps>
-    </comp>
-    <comp ref="J24">
-      <value>Conn_01x01_Male</value>
-      <footprint>Connector_PinHeader_1.00mm:PinHeader_1x01_P1.00mm_Vertical</footprint>
-      <libsource lib="Connector" part="Conn_01x01_Male" description="Generic connector, single row, 01x01, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
-      <property name="Sheetname" value=""/>
-      <property name="Sheetfile" value="Canon_manage.kicad_sch"/>
-      <sheetpath names="/" tstamps="/"/>
-      <tstamps>0eab8972-2cac-4634-9574-23436a1f95ed</tstamps>
-    </comp>
-    <comp ref="J25">
-      <value>Conn_01x01_Male</value>
-      <footprint>Connector_PinHeader_1.00mm:PinHeader_1x01_P1.00mm_Vertical</footprint>
-      <libsource lib="Connector" part="Conn_01x01_Male" description="Generic connector, single row, 01x01, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
-      <property name="Sheetname" value=""/>
-      <property name="Sheetfile" value="Canon_manage.kicad_sch"/>
-      <sheetpath names="/" tstamps="/"/>
-      <tstamps>29c4dd03-ae84-468a-a847-8c53064716c9</tstamps>
+      <tstamps>140fc51e-23e5-45dc-b9e0-9fa28189ba46</tstamps>
     </comp>
     <comp ref="J26">
       <value>5v</value>
@@ -348,78 +204,6 @@
       <property name="Sheetfile" value="Canon_manage.kicad_sch"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamps>6349f82f-82b6-43d6-944a-a7afada78839</tstamps>
-    </comp>
-    <comp ref="J27">
-      <value>Conn_01x01_Male</value>
-      <footprint>Connector_PinHeader_1.00mm:PinHeader_1x01_P1.00mm_Vertical</footprint>
-      <libsource lib="Connector" part="Conn_01x01_Male" description="Generic connector, single row, 01x01, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
-      <property name="Sheetname" value=""/>
-      <property name="Sheetfile" value="Canon_manage.kicad_sch"/>
-      <sheetpath names="/" tstamps="/"/>
-      <tstamps>a5775530-a18e-4f83-8d4f-2a5a128645d7</tstamps>
-    </comp>
-    <comp ref="J28">
-      <value>Conn_01x01_Male</value>
-      <footprint>Connector_PinHeader_1.00mm:PinHeader_1x01_P1.00mm_Vertical</footprint>
-      <libsource lib="Connector" part="Conn_01x01_Male" description="Generic connector, single row, 01x01, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
-      <property name="Sheetname" value=""/>
-      <property name="Sheetfile" value="Canon_manage.kicad_sch"/>
-      <sheetpath names="/" tstamps="/"/>
-      <tstamps>32d7a2d1-54ff-4a48-a3d0-faa0089969ed</tstamps>
-    </comp>
-    <comp ref="J29">
-      <value>Conn_01x01_Male</value>
-      <footprint>Connector_PinHeader_1.00mm:PinHeader_1x01_P1.00mm_Vertical</footprint>
-      <libsource lib="Connector" part="Conn_01x01_Male" description="Generic connector, single row, 01x01, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
-      <property name="Sheetname" value=""/>
-      <property name="Sheetfile" value="Canon_manage.kicad_sch"/>
-      <sheetpath names="/" tstamps="/"/>
-      <tstamps>4c06ffc7-8a67-444f-9554-d5e5a37b4824</tstamps>
-    </comp>
-    <comp ref="J30">
-      <value>Conn_01x01_Male</value>
-      <footprint>Connector_PinHeader_1.00mm:PinHeader_1x01_P1.00mm_Vertical</footprint>
-      <libsource lib="Connector" part="Conn_01x01_Male" description="Generic connector, single row, 01x01, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
-      <property name="Sheetname" value=""/>
-      <property name="Sheetfile" value="Canon_manage.kicad_sch"/>
-      <sheetpath names="/" tstamps="/"/>
-      <tstamps>b4f88c82-2497-4a01-ba33-1e43542836b5</tstamps>
-    </comp>
-    <comp ref="J31">
-      <value>Conn_01x01_Male</value>
-      <footprint>Connector_PinHeader_1.00mm:PinHeader_1x01_P1.00mm_Vertical</footprint>
-      <libsource lib="Connector" part="Conn_01x01_Male" description="Generic connector, single row, 01x01, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
-      <property name="Sheetname" value=""/>
-      <property name="Sheetfile" value="Canon_manage.kicad_sch"/>
-      <sheetpath names="/" tstamps="/"/>
-      <tstamps>aae008f9-f910-4c20-a329-804cd75c2034</tstamps>
-    </comp>
-    <comp ref="J32">
-      <value>Conn_01x01_Male</value>
-      <footprint>Connector_PinHeader_1.00mm:PinHeader_1x01_P1.00mm_Vertical</footprint>
-      <libsource lib="Connector" part="Conn_01x01_Male" description="Generic connector, single row, 01x01, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
-      <property name="Sheetname" value=""/>
-      <property name="Sheetfile" value="Canon_manage.kicad_sch"/>
-      <sheetpath names="/" tstamps="/"/>
-      <tstamps>69811119-25b3-423f-abd3-df6254459d41</tstamps>
-    </comp>
-    <comp ref="J33">
-      <value>Conn_01x01_Male</value>
-      <footprint>Connector_PinHeader_1.00mm:PinHeader_1x01_P1.00mm_Vertical</footprint>
-      <libsource lib="Connector" part="Conn_01x01_Male" description="Generic connector, single row, 01x01, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
-      <property name="Sheetname" value=""/>
-      <property name="Sheetfile" value="Canon_manage.kicad_sch"/>
-      <sheetpath names="/" tstamps="/"/>
-      <tstamps>409c86f7-616a-42f7-8a1a-16e91abd4f8c</tstamps>
-    </comp>
-    <comp ref="J34">
-      <value>Conn_01x01_Male</value>
-      <footprint>Connector_PinHeader_1.00mm:PinHeader_1x01_P1.00mm_Vertical</footprint>
-      <libsource lib="Connector" part="Conn_01x01_Male" description="Generic connector, single row, 01x01, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
-      <property name="Sheetname" value=""/>
-      <property name="Sheetfile" value="Canon_manage.kicad_sch"/>
-      <sheetpath names="/" tstamps="/"/>
-      <tstamps>140fc51e-23e5-45dc-b9e0-9fa28189ba46</tstamps>
     </comp>
     <comp ref="J35">
       <value>GND</value>
@@ -448,6 +232,24 @@
       <property name="Sheetfile" value="Canon_manage.kicad_sch"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamps>21ee908d-fe4a-49dd-81b3-865f8d36c64a</tstamps>
+    </comp>
+    <comp ref="JP1">
+      <value>CANbus</value>
+      <footprint>Jumper:SolderJumper-2_P1.3mm_Open_TrianglePad1.0x1.5mm</footprint>
+      <libsource lib="Jumper" part="SolderJumper_2_Bridged" description="Solder Jumper, 2-pole, closed/bridged"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Canon_manage.kicad_sch"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>ac6de834-95cf-4b2d-9762-a2e846478f18</tstamps>
+    </comp>
+    <comp ref="Q1">
+      <value>DTA114Y</value>
+      <footprint>Package_TO_SOT_SMD:SOT-323_SC-70_Handsoldering</footprint>
+      <libsource lib="Transistor_BJT" part="DTA114Y" description="Digital PNP Transistor, 10k/47k, SOT-23"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Canon_manage.kicad_sch"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>8b4542df-3f54-480b-967b-98e505f600d9</tstamps>
     </comp>
     <comp ref="R1">
       <value>10k</value>
@@ -495,7 +297,7 @@
       <tstamps>a00fd4d5-29d5-49d2-891f-56b660f25b55</tstamps>
     </comp>
     <comp ref="R6">
-      <value>510</value>
+      <value>4k7</value>
       <footprint>Resistor_SMD:R_0603_1608Metric_Pad0.98x0.95mm_HandSolder</footprint>
       <libsource lib="Device" part="R" description="Resistor"/>
       <property name="Sheetname" value=""/>
@@ -522,13 +324,31 @@
       <tstamps>f37e605d-c65e-40ed-8644-00a3f2965639</tstamps>
     </comp>
     <comp ref="R9">
-      <value>510</value>
+      <value>4k7</value>
       <footprint>Resistor_SMD:R_0603_1608Metric_Pad0.98x0.95mm_HandSolder</footprint>
       <libsource lib="Device" part="R" description="Resistor"/>
       <property name="Sheetname" value=""/>
       <property name="Sheetfile" value="Canon_manage.kicad_sch"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamps>0dfec3b5-9ee1-43b4-8ea0-660a4b8bc85e</tstamps>
+    </comp>
+    <comp ref="R10">
+      <value>1k5</value>
+      <footprint>Resistor_SMD:R_0603_1608Metric_Pad0.98x0.95mm_HandSolder</footprint>
+      <libsource lib="Device" part="R" description="Resistor"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Canon_manage.kicad_sch"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>208f1498-8203-4207-83f8-65dd57dcc286</tstamps>
+    </comp>
+    <comp ref="R11">
+      <value>4k7</value>
+      <footprint>Resistor_SMD:R_0603_1608Metric_Pad0.98x0.95mm_HandSolder</footprint>
+      <libsource lib="Device" part="R" description="Resistor"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Canon_manage.kicad_sch"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>794eecad-d01e-422c-8c32-56eec85114f2</tstamps>
     </comp>
     <comp ref="U1">
       <value>STM32F103C6Tx</value>
@@ -560,14 +380,24 @@
       <sheetpath names="/" tstamps="/"/>
       <tstamps>e1306b3c-a04a-4852-b196-c787de28ca15</tstamps>
     </comp>
+    <comp ref="U4">
+      <value>MCP2551-I-SN</value>
+      <footprint>Package_SO:SOIC-8_3.9x4.9mm_P1.27mm</footprint>
+      <datasheet>http://ww1.microchip.com/downloads/en/devicedoc/21667d.pdf</datasheet>
+      <libsource lib="Interface_CAN_LIN" part="MCP2551-I-SN" description="High-Speed CAN Transceiver, 1Mbps, 5V supply, SOIC-8"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Canon_manage.kicad_sch"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>b7f9cd42-41b9-438b-9b3d-456940323433</tstamps>
+    </comp>
     <comp ref="Y1">
-      <value>8MHz</value>
-      <footprint>Crystal:Crystal_HC49-U_Vertical</footprint>
+      <value>NX5032GA-8MHz</value>
+      <footprint>Crystal:Crystal_SMD_5032-2Pin_5.0x3.2mm</footprint>
       <libsource lib="Device" part="Crystal" description="Two pin crystal"/>
       <property name="Sheetname" value=""/>
       <property name="Sheetfile" value="Canon_manage.kicad_sch"/>
       <sheetpath names="/" tstamps="/"/>
-      <tstamps>afdd32fa-80f9-46b7-be8f-c9e80564697b</tstamps>
+      <tstamps>d6f02f97-f238-4835-8a13-9ef3d4894b48</tstamps>
     </comp>
   </components>
   <libparts>
@@ -724,6 +554,45 @@
         <pin num="2" name="" type="passive"/>
       </pins>
     </libpart>
+    <libpart lib="Interface_CAN_LIN" part="MCP2551-I-SN">
+      <description>High-Speed CAN Transceiver, 1Mbps, 5V supply, SOIC-8</description>
+      <docs>http://ww1.microchip.com/downloads/en/devicedoc/21667d.pdf</docs>
+      <footprints>
+        <fp>SOIC*3.9x4.9mm*P1.27mm*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">U</field>
+        <field name="Value">MCP2551-I-SN</field>
+        <field name="Footprint">Package_SO:SOIC-8_3.9x4.9mm_P1.27mm</field>
+        <field name="Datasheet">http://ww1.microchip.com/downloads/en/devicedoc/21667d.pdf</field>
+      </fields>
+      <pins>
+        <pin num="1" name="TXD" type="input"/>
+        <pin num="2" name="VSS" type="power_in"/>
+        <pin num="3" name="VDD" type="power_in"/>
+        <pin num="4" name="RXD" type="output"/>
+        <pin num="5" name="Vref" type="power_out"/>
+        <pin num="6" name="CANL" type="bidirectional"/>
+        <pin num="7" name="CANH" type="bidirectional"/>
+        <pin num="8" name="Rs" type="input"/>
+      </pins>
+    </libpart>
+    <libpart lib="Jumper" part="SolderJumper_2_Bridged">
+      <description>Solder Jumper, 2-pole, closed/bridged</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>SolderJumper*Bridged*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">JP</field>
+        <field name="Value">SolderJumper_2_Bridged</field>
+        <field name="Datasheet">~</field>
+      </fields>
+      <pins>
+        <pin num="1" name="A" type="passive"/>
+        <pin num="2" name="B" type="passive"/>
+      </pins>
+    </libpart>
     <libpart lib="MCU_ST_STM32F1" part="STM32F103C6Tx">
       <description>ARM Cortex-M3 MCU, 32KB flash, 10KB RAM, 72MHz, 2-3.6V, 37 GPIO, LQFP-48</description>
       <docs>http://www.st.com/st-web-ui/static/active/en/resource/technical/document/datasheet/CD00210843.pdf</docs>
@@ -848,6 +717,22 @@
         <pin num="3" name="VI" type="power_in"/>
       </pins>
     </libpart>
+    <libpart lib="Transistor_BJT" part="DTA114Y">
+      <description>Digital PNP Transistor, 10k/47k, SOT-23</description>
+      <footprints>
+        <fp>SOT?23*</fp>
+        <fp>SC?59*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">Q</field>
+        <field name="Value">DTA114Y</field>
+      </fields>
+      <pins>
+        <pin num="1" name="B" type="input"/>
+        <pin num="2" name="E" type="passive"/>
+        <pin num="3" name="C" type="passive"/>
+      </pins>
+    </libpart>
   </libparts>
   <libraries>
     <library logical="Connector">
@@ -859,6 +744,12 @@
     <library logical="Device">
       <uri>/usr/share/kicad/kicad-symbols/Device.kicad_sym</uri>
     </library>
+    <library logical="Interface_CAN_LIN">
+      <uri>/usr/share/kicad/kicad-symbols/Interface_CAN_LIN.kicad_sym</uri>
+    </library>
+    <library logical="Jumper">
+      <uri>/usr/share/kicad/kicad-symbols/Jumper.kicad_sym</uri>
+    </library>
     <library logical="MCU_ST_STM32F1">
       <uri>/usr/share/kicad/kicad-symbols/MCU_ST_STM32F1.kicad_sym</uri>
     </library>
@@ -867,6 +758,9 @@
     </library>
     <library logical="Regulator_Linear">
       <uri>/usr/share/kicad/kicad-symbols/Regulator_Linear.kicad_sym</uri>
+    </library>
+    <library logical="Transistor_BJT">
+      <uri>/usr/share/kicad/kicad-symbols/Transistor_BJT.kicad_sym</uri>
     </library>
   </libraries>
   <nets>
@@ -879,6 +773,7 @@
       <node ref="C9" pin="1" pintype="passive"/>
       <node ref="J1" pin="4" pinfunction="Pin_4" pintype="passive"/>
       <node ref="J36" pin="1" pinfunction="Pin_1" pintype="passive"/>
+      <node ref="Q1" pin="2" pinfunction="E" pintype="passive"/>
       <node ref="U1" pin="1" pinfunction="VBAT" pintype="power_in"/>
       <node ref="U1" pin="24" pinfunction="VDD" pintype="power_in"/>
       <node ref="U1" pin="36" pinfunction="VDD" pintype="power_in"/>
@@ -891,79 +786,105 @@
       <node ref="R1" pin="1" pintype="passive"/>
       <node ref="U1" pin="44" pinfunction="BOOT0" pintype="input"/>
     </net>
-    <net code="3" name="/DM">
+    <net code="3" name="/CANH">
+      <node ref="J37" pin="A8" pinfunction="SBU1" pintype="bidirectional"/>
+      <node ref="J37" pin="B8" pinfunction="SBU2" pintype="bidirectional"/>
+      <node ref="R6" pin="1" pintype="passive"/>
+      <node ref="U4" pin="7" pinfunction="CANH" pintype="bidirectional"/>
+    </net>
+    <net code="4" name="/CANL">
+      <node ref="J37" pin="A5" pinfunction="CC1" pintype="bidirectional"/>
+      <node ref="J37" pin="B5" pinfunction="CC2" pintype="bidirectional"/>
+      <node ref="R9" pin="1" pintype="passive"/>
+      <node ref="U4" pin="6" pinfunction="CANL" pintype="bidirectional"/>
+    </net>
+    <net code="5" name="/CANRX">
+      <node ref="U1" pin="45" pinfunction="PB8" pintype="bidirectional"/>
+      <node ref="U4" pin="4" pinfunction="RXD" pintype="output"/>
+    </net>
+    <net code="6" name="/CANTX">
+      <node ref="U1" pin="46" pinfunction="PB9" pintype="bidirectional"/>
+      <node ref="U4" pin="1" pinfunction="TXD" pintype="input"/>
+    </net>
+    <net code="7" name="/DM">
       <node ref="J37" pin="A7" pinfunction="D-" pintype="bidirectional"/>
       <node ref="J37" pin="B7" pinfunction="D-" pintype="bidirectional"/>
       <node ref="R8" pin="1" pintype="passive"/>
     </net>
-    <net code="4" name="/DP">
+    <net code="8" name="/DP">
       <node ref="J37" pin="A6" pinfunction="D+" pintype="bidirectional"/>
       <node ref="J37" pin="B6" pinfunction="D+" pintype="bidirectional"/>
       <node ref="R7" pin="1" pintype="passive"/>
     </net>
-    <net code="5" name="/L_DETECT">
-      <node ref="D1" pin="1" pinfunction="K" pintype="passive"/>
+    <net code="9" name="/L_DETECT">
+      <node ref="D1" pin="3" pinfunction="K" pintype="passive"/>
       <node ref="R2" pin="1" pintype="passive"/>
       <node ref="U1" pin="14" pinfunction="PA4" pintype="bidirectional"/>
     </net>
-    <net code="6" name="/NRST">
+    <net code="10" name="/NRST">
       <node ref="J1" pin="6" pinfunction="Pin_6" pintype="passive"/>
       <node ref="U1" pin="7" pinfunction="NRST" pintype="input"/>
     </net>
-    <net code="7" name="/OSC_IN">
+    <net code="11" name="/OSC_IN">
       <node ref="C1" pin="1" pintype="passive"/>
       <node ref="U1" pin="5" pinfunction="PD0" pintype="input"/>
       <node ref="Y1" pin="1" pinfunction="1" pintype="passive"/>
     </net>
-    <net code="8" name="/OSC_OUT">
+    <net code="12" name="/OSC_OUT">
       <node ref="C2" pin="1" pintype="passive"/>
       <node ref="U1" pin="6" pinfunction="PD1" pintype="input"/>
       <node ref="Y1" pin="2" pinfunction="2" pintype="passive"/>
     </net>
-    <net code="9" name="/SPI_MISO">
-      <node ref="D1" pin="4" pinfunction="K" pintype="passive"/>
+    <net code="13" name="/SPI_MISO">
+      <node ref="D1" pin="5" pinfunction="K" pintype="passive"/>
       <node ref="R4" pin="1" pintype="passive"/>
       <node ref="U1" pin="16" pinfunction="PA6" pintype="bidirectional"/>
     </net>
-    <net code="10" name="/SPI_MOSI">
-      <node ref="D1" pin="5" pinfunction="K" pintype="passive"/>
+    <net code="14" name="/SPI_MOSI">
+      <node ref="D1" pin="4" pinfunction="K" pintype="passive"/>
       <node ref="R3" pin="1" pintype="passive"/>
       <node ref="U1" pin="17" pinfunction="PA7" pintype="bidirectional"/>
     </net>
-    <net code="11" name="/SPI_SCK">
-      <node ref="D1" pin="3" pinfunction="K" pintype="passive"/>
+    <net code="15" name="/SPI_SCK">
+      <node ref="D1" pin="1" pinfunction="K" pintype="passive"/>
       <node ref="R5" pin="1" pintype="passive"/>
       <node ref="U1" pin="15" pinfunction="PA5" pintype="bidirectional"/>
     </net>
-    <net code="12" name="/SWCLK">
+    <net code="16" name="/SWCLK">
       <node ref="J1" pin="1" pinfunction="Pin_1" pintype="passive"/>
       <node ref="U1" pin="37" pinfunction="PA14" pintype="bidirectional"/>
     </net>
-    <net code="13" name="/SWDIO">
+    <net code="17" name="/SWDIO">
       <node ref="J1" pin="2" pinfunction="Pin_2" pintype="passive"/>
       <node ref="U1" pin="34" pinfunction="PA13" pintype="bidirectional"/>
     </net>
-    <net code="14" name="/USBDM">
+    <net code="18" name="/USBDM">
       <node ref="U1" pin="32" pinfunction="PA11" pintype="bidirectional"/>
       <node ref="U3" pin="4" pinfunction="I/O2" pintype="passive"/>
     </net>
-    <net code="15" name="/USBDP">
+    <net code="19" name="/USBDP">
+      <node ref="R10" pin="1" pintype="passive"/>
       <node ref="U1" pin="33" pinfunction="PA12" pintype="bidirectional"/>
       <node ref="U3" pin="6" pinfunction="I/O1" pintype="passive"/>
     </net>
-    <net code="16" name="/VBUS">
+    <net code="20" name="/USB_PU">
+      <node ref="Q1" pin="1" pinfunction="B" pintype="input"/>
+      <node ref="U1" pin="31" pinfunction="PA10" pintype="bidirectional"/>
+    </net>
+    <net code="21" name="/VBUS">
       <node ref="C3" pin="1" pintype="passive"/>
+      <node ref="J2" pin="1" pinfunction="Pin_1" pintype="passive"/>
       <node ref="J26" pin="1" pinfunction="Pin_1" pintype="passive"/>
-      <node ref="J27" pin="1" pinfunction="Pin_1" pintype="passive"/>
-      <node ref="J30" pin="1" pinfunction="Pin_1" pintype="passive"/>
       <node ref="J37" pin="A4" pinfunction="VBUS" pintype="passive"/>
       <node ref="J37" pin="A9" pinfunction="VBUS" pintype="passive"/>
       <node ref="J37" pin="B4" pinfunction="VBUS" pintype="passive"/>
       <node ref="J37" pin="B9" pinfunction="VBUS" pintype="passive"/>
+      <node ref="J5" pin="1" pinfunction="Pin_1" pintype="passive"/>
       <node ref="U2" pin="3" pinfunction="VI" pintype="power_in"/>
       <node ref="U3" pin="5" pinfunction="VBUS" pintype="passive"/>
+      <node ref="U4" pin="3" pinfunction="VDD" pintype="power_in"/>
     </net>
-    <net code="17" name="GND">
+    <net code="22" name="GND">
       <node ref="C1" pin="2" pintype="passive"/>
       <node ref="C2" pin="2" pintype="passive"/>
       <node ref="C3" pin="2" pintype="passive"/>
@@ -975,15 +896,17 @@
       <node ref="C9" pin="2" pintype="passive"/>
       <node ref="D1" pin="2" pinfunction="A" pintype="passive"/>
       <node ref="J1" pin="3" pinfunction="Pin_3" pintype="passive"/>
-      <node ref="J29" pin="1" pinfunction="Pin_1" pintype="passive"/>
-      <node ref="J34" pin="1" pinfunction="Pin_1" pintype="passive"/>
       <node ref="J35" pin="1" pinfunction="Pin_1" pintype="passive"/>
       <node ref="J37" pin="A1" pinfunction="GND" pintype="passive"/>
       <node ref="J37" pin="A12" pinfunction="GND" pintype="passive"/>
       <node ref="J37" pin="B1" pinfunction="GND" pintype="passive"/>
       <node ref="J37" pin="B12" pinfunction="GND" pintype="passive"/>
       <node ref="J37" pin="S1" pinfunction="SHIELD" pintype="passive"/>
+      <node ref="J4" pin="1" pinfunction="Pin_1" pintype="passive"/>
+      <node ref="J9" pin="1" pinfunction="Pin_1" pintype="passive"/>
+      <node ref="JP1" pin="1" pinfunction="A" pintype="passive"/>
       <node ref="R1" pin="2" pintype="passive"/>
+      <node ref="R11" pin="1" pintype="passive"/>
       <node ref="R6" pin="2" pintype="passive"/>
       <node ref="R9" pin="2" pintype="passive"/>
       <node ref="U1" pin="23" pinfunction="VSS" pintype="power_in"/>
@@ -992,173 +915,139 @@
       <node ref="U1" pin="8" pinfunction="VSSA" pintype="power_in"/>
       <node ref="U2" pin="1" pinfunction="GND" pintype="power_in"/>
       <node ref="U3" pin="2" pinfunction="GND" pintype="passive"/>
+      <node ref="U4" pin="2" pinfunction="VSS" pintype="power_in"/>
     </net>
-    <net code="18" name="Net-(J2-Pad1)">
-      <node ref="J2" pin="1" pinfunction="Pin_1" pintype="passive"/>
-      <node ref="U1" pin="18" pinfunction="PB0" pintype="bidirectional"/>
-    </net>
-    <net code="19" name="Net-(J3-Pad1)">
+    <net code="23" name="Net-(J3-Pad1)">
       <node ref="J3" pin="1" pinfunction="Pin_1" pintype="passive"/>
-      <node ref="U1" pin="19" pinfunction="PB1" pintype="bidirectional"/>
-    </net>
-    <net code="20" name="Net-(J4-Pad1)">
-      <node ref="J4" pin="1" pinfunction="Pin_1" pintype="passive"/>
-      <node ref="U1" pin="20" pinfunction="PB2" pintype="bidirectional"/>
-    </net>
-    <net code="21" name="Net-(J5-Pad1)">
-      <node ref="J5" pin="1" pinfunction="Pin_1" pintype="passive"/>
-      <node ref="U1" pin="39" pinfunction="PB3" pintype="bidirectional"/>
-    </net>
-    <net code="22" name="Net-(J6-Pad1)">
-      <node ref="J6" pin="1" pinfunction="Pin_1" pintype="passive"/>
-      <node ref="U1" pin="40" pinfunction="PB4" pintype="bidirectional"/>
-    </net>
-    <net code="23" name="Net-(J7-Pad1)">
-      <node ref="J7" pin="1" pinfunction="Pin_1" pintype="passive"/>
-      <node ref="U1" pin="41" pinfunction="PB5" pintype="bidirectional"/>
-    </net>
-    <net code="24" name="Net-(J8-Pad1)">
-      <node ref="J8" pin="1" pinfunction="Pin_1" pintype="passive"/>
-      <node ref="U1" pin="42" pinfunction="PB6" pintype="bidirectional"/>
-    </net>
-    <net code="25" name="Net-(J9-Pad1)">
-      <node ref="J9" pin="1" pinfunction="Pin_1" pintype="passive"/>
-      <node ref="U1" pin="43" pinfunction="PB7" pintype="bidirectional"/>
-    </net>
-    <net code="26" name="Net-(J10-Pad1)">
-      <node ref="J10" pin="1" pinfunction="Pin_1" pintype="passive"/>
-      <node ref="U1" pin="45" pinfunction="PB8" pintype="bidirectional"/>
-    </net>
-    <net code="27" name="Net-(J11-Pad1)">
-      <node ref="J11" pin="1" pinfunction="Pin_1" pintype="passive"/>
-      <node ref="U1" pin="46" pinfunction="PB9" pintype="bidirectional"/>
-    </net>
-    <net code="28" name="Net-(J12-Pad1)">
-      <node ref="J12" pin="1" pinfunction="Pin_1" pintype="passive"/>
-      <node ref="U1" pin="21" pinfunction="PB10" pintype="bidirectional"/>
-    </net>
-    <net code="29" name="Net-(J13-Pad1)">
-      <node ref="J13" pin="1" pinfunction="Pin_1" pintype="passive"/>
-      <node ref="U1" pin="22" pinfunction="PB11" pintype="bidirectional"/>
-    </net>
-    <net code="30" name="Net-(J14-Pad1)">
-      <node ref="J14" pin="1" pinfunction="Pin_1" pintype="passive"/>
-      <node ref="U1" pin="25" pinfunction="PB12" pintype="bidirectional"/>
-    </net>
-    <net code="31" name="Net-(J15-Pad1)">
-      <node ref="J15" pin="1" pinfunction="Pin_1" pintype="passive"/>
-      <node ref="U1" pin="26" pinfunction="PB13" pintype="bidirectional"/>
-    </net>
-    <net code="32" name="Net-(J16-Pad1)">
-      <node ref="J16" pin="1" pinfunction="Pin_1" pintype="passive"/>
-      <node ref="U1" pin="27" pinfunction="PB14" pintype="bidirectional"/>
-    </net>
-    <net code="33" name="Net-(J17-Pad1)">
-      <node ref="J17" pin="1" pinfunction="Pin_1" pintype="passive"/>
-      <node ref="U1" pin="28" pinfunction="PB15" pintype="bidirectional"/>
-    </net>
-    <net code="34" name="Net-(J18-Pad1)">
-      <node ref="J18" pin="1" pinfunction="Pin_1" pintype="passive"/>
-      <node ref="U1" pin="10" pinfunction="PA0" pintype="bidirectional"/>
-    </net>
-    <net code="35" name="Net-(J19-Pad1)">
-      <node ref="J19" pin="1" pinfunction="Pin_1" pintype="passive"/>
-      <node ref="U1" pin="11" pinfunction="PA1" pintype="bidirectional"/>
-    </net>
-    <net code="36" name="Net-(J20-Pad1)">
-      <node ref="J20" pin="1" pinfunction="Pin_1" pintype="passive"/>
-      <node ref="U1" pin="12" pinfunction="PA2" pintype="bidirectional"/>
-    </net>
-    <net code="37" name="Net-(J21-Pad1)">
-      <node ref="J21" pin="1" pinfunction="Pin_1" pintype="passive"/>
-      <node ref="U1" pin="13" pinfunction="PA3" pintype="bidirectional"/>
-    </net>
-    <net code="38" name="Net-(J22-Pad1)">
-      <node ref="J22" pin="1" pinfunction="Pin_1" pintype="passive"/>
-      <node ref="U1" pin="29" pinfunction="PA8" pintype="bidirectional"/>
-    </net>
-    <net code="39" name="Net-(J23-Pad1)">
-      <node ref="J23" pin="1" pinfunction="Pin_1" pintype="passive"/>
-      <node ref="U1" pin="30" pinfunction="PA9" pintype="bidirectional"/>
-    </net>
-    <net code="40" name="Net-(J24-Pad1)">
-      <node ref="J24" pin="1" pinfunction="Pin_1" pintype="passive"/>
-      <node ref="U1" pin="31" pinfunction="PA10" pintype="bidirectional"/>
-    </net>
-    <net code="41" name="Net-(J25-Pad1)">
-      <node ref="J25" pin="1" pinfunction="Pin_1" pintype="passive"/>
-      <node ref="U1" pin="38" pinfunction="PA15" pintype="bidirectional"/>
-    </net>
-    <net code="42" name="Net-(J28-Pad1)">
-      <node ref="J28" pin="1" pinfunction="Pin_1" pintype="passive"/>
       <node ref="R2" pin="2" pintype="passive"/>
     </net>
-    <net code="43" name="Net-(J31-Pad1)">
-      <node ref="J31" pin="1" pinfunction="Pin_1" pintype="passive"/>
+    <net code="24" name="Net-(J6-Pad1)">
+      <node ref="J6" pin="1" pinfunction="Pin_1" pintype="passive"/>
       <node ref="R3" pin="2" pintype="passive"/>
     </net>
-    <net code="44" name="Net-(J32-Pad1)">
-      <node ref="J32" pin="1" pinfunction="Pin_1" pintype="passive"/>
+    <net code="25" name="Net-(J7-Pad1)">
+      <node ref="J7" pin="1" pinfunction="Pin_1" pintype="passive"/>
       <node ref="R4" pin="2" pintype="passive"/>
     </net>
-    <net code="45" name="Net-(J33-Pad1)">
-      <node ref="J33" pin="1" pinfunction="Pin_1" pintype="passive"/>
+    <net code="26" name="Net-(J8-Pad1)">
+      <node ref="J8" pin="1" pinfunction="Pin_1" pintype="passive"/>
       <node ref="R5" pin="2" pintype="passive"/>
     </net>
-    <net code="46" name="Net-(J37-PadA5)">
-      <node ref="J37" pin="A5" pinfunction="CC1" pintype="bidirectional"/>
-      <node ref="R9" pin="1" pintype="passive"/>
+    <net code="27" name="Net-(JP1-Pad2)">
+      <node ref="JP1" pin="2" pinfunction="B" pintype="passive"/>
+      <node ref="U1" pin="2" pinfunction="PC13" pintype="bidirectional"/>
     </net>
-    <net code="47" name="Net-(J37-PadB5)">
-      <node ref="J37" pin="B5" pinfunction="CC2" pintype="bidirectional"/>
-      <node ref="R6" pin="1" pintype="passive"/>
+    <net code="28" name="Net-(Q1-Pad3)">
+      <node ref="Q1" pin="3" pinfunction="C" pintype="passive"/>
+      <node ref="R10" pin="2" pintype="passive"/>
     </net>
-    <net code="48" name="Net-(R7-Pad2)">
+    <net code="29" name="Net-(R7-Pad2)">
       <node ref="R7" pin="2" pintype="passive"/>
       <node ref="U3" pin="1" pinfunction="I/O1" pintype="passive"/>
     </net>
-    <net code="49" name="Net-(R8-Pad2)">
+    <net code="30" name="Net-(R8-Pad2)">
       <node ref="R8" pin="2" pintype="passive"/>
       <node ref="U3" pin="3" pinfunction="I/O2" pintype="passive"/>
     </net>
-    <net code="50" name="unconnected-(J37-PadA2)">
+    <net code="31" name="Net-(R11-Pad2)">
+      <node ref="R11" pin="2" pintype="passive"/>
+      <node ref="U4" pin="8" pinfunction="Rs" pintype="input"/>
+    </net>
+    <net code="32" name="unconnected-(J37-PadA2)">
       <node ref="J37" pin="A2" pinfunction="TX1+" pintype="bidirectional+no_connect"/>
     </net>
-    <net code="51" name="unconnected-(J37-PadA3)">
+    <net code="33" name="unconnected-(J37-PadA3)">
       <node ref="J37" pin="A3" pinfunction="TX1-" pintype="bidirectional+no_connect"/>
     </net>
-    <net code="52" name="unconnected-(J37-PadA8)">
-      <node ref="J37" pin="A8" pinfunction="SBU1" pintype="bidirectional+no_connect"/>
-    </net>
-    <net code="53" name="unconnected-(J37-PadA10)">
+    <net code="34" name="unconnected-(J37-PadA10)">
       <node ref="J37" pin="A10" pinfunction="RX2-" pintype="bidirectional+no_connect"/>
     </net>
-    <net code="54" name="unconnected-(J37-PadA11)">
+    <net code="35" name="unconnected-(J37-PadA11)">
       <node ref="J37" pin="A11" pinfunction="RX2+" pintype="bidirectional+no_connect"/>
     </net>
-    <net code="55" name="unconnected-(J37-PadB2)">
+    <net code="36" name="unconnected-(J37-PadB2)">
       <node ref="J37" pin="B2" pinfunction="TX2+" pintype="bidirectional+no_connect"/>
     </net>
-    <net code="56" name="unconnected-(J37-PadB3)">
+    <net code="37" name="unconnected-(J37-PadB3)">
       <node ref="J37" pin="B3" pinfunction="TX2-" pintype="bidirectional+no_connect"/>
     </net>
-    <net code="57" name="unconnected-(J37-PadB8)">
-      <node ref="J37" pin="B8" pinfunction="SBU2" pintype="bidirectional+no_connect"/>
-    </net>
-    <net code="58" name="unconnected-(J37-PadB10)">
+    <net code="38" name="unconnected-(J37-PadB10)">
       <node ref="J37" pin="B10" pinfunction="RX1-" pintype="bidirectional+no_connect"/>
     </net>
-    <net code="59" name="unconnected-(J37-PadB11)">
+    <net code="39" name="unconnected-(J37-PadB11)">
       <node ref="J37" pin="B11" pinfunction="RX1+" pintype="bidirectional+no_connect"/>
     </net>
-    <net code="60" name="unconnected-(U1-Pad2)">
-      <node ref="U1" pin="2" pinfunction="PC13" pintype="bidirectional+no_connect"/>
-    </net>
-    <net code="61" name="unconnected-(U1-Pad3)">
+    <net code="40" name="unconnected-(U1-Pad3)">
       <node ref="U1" pin="3" pinfunction="PC14" pintype="bidirectional+no_connect"/>
     </net>
-    <net code="62" name="unconnected-(U1-Pad4)">
+    <net code="41" name="unconnected-(U1-Pad4)">
       <node ref="U1" pin="4" pinfunction="PC15" pintype="bidirectional+no_connect"/>
+    </net>
+    <net code="42" name="unconnected-(U1-Pad10)">
+      <node ref="U1" pin="10" pinfunction="PA0" pintype="bidirectional+no_connect"/>
+    </net>
+    <net code="43" name="unconnected-(U1-Pad11)">
+      <node ref="U1" pin="11" pinfunction="PA1" pintype="bidirectional+no_connect"/>
+    </net>
+    <net code="44" name="unconnected-(U1-Pad12)">
+      <node ref="U1" pin="12" pinfunction="PA2" pintype="bidirectional+no_connect"/>
+    </net>
+    <net code="45" name="unconnected-(U1-Pad13)">
+      <node ref="U1" pin="13" pinfunction="PA3" pintype="bidirectional+no_connect"/>
+    </net>
+    <net code="46" name="unconnected-(U1-Pad18)">
+      <node ref="U1" pin="18" pinfunction="PB0" pintype="bidirectional+no_connect"/>
+    </net>
+    <net code="47" name="unconnected-(U1-Pad19)">
+      <node ref="U1" pin="19" pinfunction="PB1" pintype="bidirectional+no_connect"/>
+    </net>
+    <net code="48" name="unconnected-(U1-Pad20)">
+      <node ref="U1" pin="20" pinfunction="PB2" pintype="bidirectional+no_connect"/>
+    </net>
+    <net code="49" name="unconnected-(U1-Pad21)">
+      <node ref="U1" pin="21" pinfunction="PB10" pintype="bidirectional+no_connect"/>
+    </net>
+    <net code="50" name="unconnected-(U1-Pad22)">
+      <node ref="U1" pin="22" pinfunction="PB11" pintype="bidirectional+no_connect"/>
+    </net>
+    <net code="51" name="unconnected-(U1-Pad25)">
+      <node ref="U1" pin="25" pinfunction="PB12" pintype="bidirectional+no_connect"/>
+    </net>
+    <net code="52" name="unconnected-(U1-Pad26)">
+      <node ref="U1" pin="26" pinfunction="PB13" pintype="bidirectional+no_connect"/>
+    </net>
+    <net code="53" name="unconnected-(U1-Pad27)">
+      <node ref="U1" pin="27" pinfunction="PB14" pintype="bidirectional+no_connect"/>
+    </net>
+    <net code="54" name="unconnected-(U1-Pad28)">
+      <node ref="U1" pin="28" pinfunction="PB15" pintype="bidirectional+no_connect"/>
+    </net>
+    <net code="55" name="unconnected-(U1-Pad29)">
+      <node ref="U1" pin="29" pinfunction="PA8" pintype="bidirectional+no_connect"/>
+    </net>
+    <net code="56" name="unconnected-(U1-Pad30)">
+      <node ref="U1" pin="30" pinfunction="PA9" pintype="bidirectional+no_connect"/>
+    </net>
+    <net code="57" name="unconnected-(U1-Pad38)">
+      <node ref="U1" pin="38" pinfunction="PA15" pintype="bidirectional+no_connect"/>
+    </net>
+    <net code="58" name="unconnected-(U1-Pad39)">
+      <node ref="U1" pin="39" pinfunction="PB3" pintype="bidirectional+no_connect"/>
+    </net>
+    <net code="59" name="unconnected-(U1-Pad40)">
+      <node ref="U1" pin="40" pinfunction="PB4" pintype="bidirectional+no_connect"/>
+    </net>
+    <net code="60" name="unconnected-(U1-Pad41)">
+      <node ref="U1" pin="41" pinfunction="PB5" pintype="bidirectional+no_connect"/>
+    </net>
+    <net code="61" name="unconnected-(U1-Pad42)">
+      <node ref="U1" pin="42" pinfunction="PB6" pintype="bidirectional+no_connect"/>
+    </net>
+    <net code="62" name="unconnected-(U1-Pad43)">
+      <node ref="U1" pin="43" pinfunction="PB7" pintype="bidirectional+no_connect"/>
+    </net>
+    <net code="63" name="unconnected-(U4-Pad5)">
+      <node ref="U4" pin="5" pinfunction="Vref" pintype="power_out+no_connect"/>
     </net>
   </nets>
 </export>
