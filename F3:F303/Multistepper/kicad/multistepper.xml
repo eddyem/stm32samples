@@ -2,7 +2,7 @@
 <export version="E">
   <design>
     <source>/Big/Data/00__Electronics/STM32/F303-nolib/Multistepper/kicad/multistepper.kicad_sch</source>
-    <date>Пн 06 фев 2023 19:51:26</date>
+    <date>Вт 14 мар 2023 21:19:34</date>
     <tool>Eeschema 6.0.10</tool>
     <sheet number="1" name="/" tstamps="/">
       <title_block>
@@ -1401,6 +1401,24 @@
       <property name="Sheetfile" value="motors.kicad_sch"/>
       <sheetpath names="/Motors/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/"/>
       <tstamps>3f7c24bb-e00b-463b-b665-e2a70a26f3fd</tstamps>
+    </comp>
+    <comp ref="R37">
+      <value>1k</value>
+      <footprint>Resistor_SMD:R_0603_1608Metric_Pad0.98x0.95mm_HandSolder</footprint>
+      <libsource lib="Device" part="R" description="Resistor"/>
+      <property name="Sheetname" value="Motors"/>
+      <property name="Sheetfile" value="motors.kicad_sch"/>
+      <sheetpath names="/Motors/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/"/>
+      <tstamps>e5d5729d-499e-4e5d-9ee6-b813631221cf</tstamps>
+    </comp>
+    <comp ref="R38">
+      <value>1k</value>
+      <footprint>Resistor_SMD:R_0603_1608Metric_Pad0.98x0.95mm_HandSolder</footprint>
+      <libsource lib="Device" part="R" description="Resistor"/>
+      <property name="Sheetname" value="Motors"/>
+      <property name="Sheetfile" value="motors.kicad_sch"/>
+      <sheetpath names="/Motors/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/"/>
+      <tstamps>45072f84-fef4-4069-9b3a-570d1e5fce19</tstamps>
     </comp>
     <comp ref="RN7">
       <value>330</value>
@@ -4259,6 +4277,8 @@
       <node ref="D9" pin="1" pinfunction="K" pintype="passive"/>
       <node ref="JP3" pin="1" pinfunction="A" pintype="passive"/>
       <node ref="R2" pin="1" pintype="passive"/>
+      <node ref="R37" pin="2" pintype="passive"/>
+      <node ref="R38" pin="2" pintype="passive"/>
       <node ref="SW2" pin="2" pinfunction="2" pintype="passive"/>
       <node ref="U1" pin="100" pinfunction="VDD" pintype="power_in"/>
       <node ref="U1" pin="22" pinfunction="VDDA" pintype="power_in"/>
@@ -4720,10 +4740,12 @@
     </net>
     <net code="279" name="USART2_TX">
       <node ref="R22" pin="1" pintype="passive"/>
+      <node ref="R38" pin="1" pintype="passive"/>
       <node ref="U1" pin="89" pinfunction="PB3" pintype="bidirectional"/>
     </net>
     <net code="280" name="USART3_TX">
       <node ref="R21" pin="1" pintype="passive"/>
+      <node ref="R37" pin="1" pintype="passive"/>
       <node ref="U1" pin="47" pinfunction="PB10" pintype="bidirectional"/>
     </net>
     <net code="281" name="USB_DM">

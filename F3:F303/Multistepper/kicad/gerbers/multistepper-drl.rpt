@@ -1,0 +1,36 @@
+Drill report for multistepper.kicad_pcb
+Created on Вт 14 мар 2023 21:17:06
+
+Copper Layer Stackup:
+    =============================================================
+    L1 :  F.Cu                      front
+    L2 :  Ground.Cu                 in1
+    L3 :  Power.Cu                  in2
+    L4 :  B.Cu                      back
+
+
+Drill file 'multistepper.drl' contains
+    plated through holes:
+    =============================================================
+    T1  0.400mm  0.0157"  (248 holes)
+    T2  0.600mm  0.0236"  (61 holes)
+    T3  0.700mm  0.0276"  (14 holes)
+    T4  0.750mm  0.0295"  (20 holes)
+    T5  0.800mm  0.0315"  (22 holes)
+    T6  0.920mm  0.0362"  (4 holes)
+    T7  0.950mm  0.0374"  (64 holes)
+    T8  1.000mm  0.0394"  (22 holes)
+    T9  1.020mm  0.0402"  (144 holes)
+    T10  1.100mm  0.0433"  (5 holes)
+    T11  1.300mm  0.0512"  (7 holes)
+    T12  2.330mm  0.0917"  (2 holes)
+    T13  3.200mm  0.1260"  (4 holes)
+
+    Total plated holes count 617
+
+
+Not plated through holes are merged with plated holes
+    unplated through holes:
+    =============================================================
+
+    Total unplated holes count 0
