@@ -1,12 +1,12 @@
 %TF.GenerationSoftware,KiCad,Pcbnew,6.0.10*%
-%TF.CreationDate,2023-03-13T17:30:16+03:00*%
+%TF.CreationDate,2023-03-14T09:48:46+03:00*%
 %TF.ProjectId,Canon_manage,43616e6f-6e5f-46d6-916e-6167652e6b69,rev?*%
 %TF.SameCoordinates,Original*%
 %TF.FileFunction,Soldermask,Bot*%
 %TF.FilePolarity,Negative*%
 %FSLAX46Y46*%
 G04 Gerber Fmt 4.6, Leading zero omitted, Abs format (unit mm)*
-G04 Created by KiCad (PCBNEW 6.0.10) date 2023-03-13 17:30:16*
+G04 Created by KiCad (PCBNEW 6.0.10) date 2023-03-14 09:48:46*
 %MOMM*%
 %LPD*%
 G01*
@@ -64,10 +64,10 @@ D10*
 X103980000Y-64570000D03*
 %TD*%
 D11*
-%TO.C,REF\u002A\u002A1*%
+%TO.C,H4*%
 X125880000Y-63225000D03*
 %TD*%
-%TO.C,REF\u002A\u002A2*%
+%TO.C,H2*%
 X86050000Y-110665000D03*
 %TD*%
 D10*
@@ -95,7 +95,7 @@ X109930000Y-50420000D03*
 X101290000Y-50420000D03*
 %TD*%
 D11*
-%TO.C,REF\u002A\u002A*%
+%TO.C,H3*%
 X86050000Y-63225000D03*
 %TD*%
 D10*
@@ -103,7 +103,7 @@ D10*
 X114040000Y-66090000D03*
 %TD*%
 D11*
-%TO.C,REF\u002A\u002A3*%
+%TO.C,H1*%
 X125880000Y-110665000D03*
 %TD*%
 D10*

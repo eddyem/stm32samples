@@ -1,5 +1,5 @@
 Drill report for Canon_manage.kicad_pcb
-Created on Пн 13 мар 2023 17:29:01
+Created on Вт 14 мар 2023 09:48:43
 
 Copper Layer Stackup:
     =============================================================
@@ -11,14 +11,14 @@ Drill file 'Canon_manage.drl' contains
     plated through holes:
     =============================================================
     T1  0.300mm  0.0118"  (6 holes)
-    T2  0.500mm  0.0197"  (25 holes)
+    T2  0.500mm  0.0197"  (32 holes)
     T3  0.600mm  0.0236"  (4 holes)  (with 4 slots)
     T4  0.650mm  0.0256"  (6 holes)
-    T5  0.800mm  0.0315"  (7 holes)
+    T5  0.800mm  0.0315"  (5 holes)
     T6  1.000mm  0.0394"  (3 holes)
     T7  1.500mm  0.0591"  (8 holes)
 
-    Total plated holes count 59
+    Total plated holes count 64
 
 
 Not plated through holes are merged with plated holes
