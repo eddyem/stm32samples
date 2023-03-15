@@ -1,5 +1,9 @@
+can.c
+can.h
 canon.c
 canon.h
+flash.c
+flash.h
 hardware.c
 hardware.h
 main.c

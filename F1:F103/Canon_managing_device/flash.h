@@ -1,6 +1,6 @@
 /*
  * This file is part of the canonmanage project.
- * Copyright 2022 Edward V. Emelianov <edward.emelianoff@gmail.com>.
+ * Copyright 2023 Edward V. Emelianov <edward.emelianoff@gmail.com>.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,24 +17,25 @@
  */
 
 #pragma once
-#ifndef PROTO_H__
-#define PROTO_H__
 
 #include <stm32f1.h>
 
-#define printu(x)       do{USB_send(u2str(x));}while(0)
-#define printuhex(x)    do{USB_send(uhex2str(x));}while(0)
+#define FLASH_SIZE_REG      ((uint32_t)0x1FFFF7E0)
+#define FLASH_SIZE          *((uint16_t*)FLASH_SIZE_REG)
 
-#ifdef EBUG
-#define DBG(x)      do{USB_send(x); USB_send("\n");}while(0)
-#else
-#define DBG(x)
-#endif
+/*
+ * struct to save user configurations
+ */
+typedef struct __attribute__((packed, aligned(4))){
+    uint16_t userconf_sz;       // "magick number"
+    uint16_t canspeed;          // CAN bus speed
+    uint16_t canID;             // CAN bus device ID
+    uint8_t autoinit;            // == 1 for auto-initialization
+} user_conf;
 
-const char *parse_cmd(const char *buf);
-char *omit_spaces(const char *buf);
-char *getnum(const char *buf, uint32_t *N);
-char *u2str(uint32_t val);
-char *u2hexstr(uint32_t val);
+extern user_conf the_conf;
 
-#endif // PROTO_H__
+void flashstorage_init();
+int store_userconf();
+int erase_storage(int npage);
+void dump_userconf();

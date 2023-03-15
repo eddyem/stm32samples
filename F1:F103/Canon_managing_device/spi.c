@@ -34,7 +34,6 @@ static void mymemcpy(uint8_t *dest, uint8_t *src, int len){
 uint32_t SPI_CR1 = SPI_CR1_MSTR | SPI_CR1_BR | SPI_CR1_SSM | SPI_CR1_SSI | SPI_CR1_CPHA | SPI_CR1_CPOL;
 
 spiStatus SPI_status = SPI_NOTREADY;
-static uint8_t inbuff[SPIBUFSZ], lastlen = 0;
 
 void spi_setup(){
     RCC->APB2ENR |= SPI_APB2; // Enable the peripheral clock SPI1
@@ -44,37 +43,40 @@ void spi_setup(){
     SPIx->CR1 |= SPI_CR1_SPE; // enable SPI
 }
 
+volatile uint32_t wctr;
+#define WAITX(x)  do{wctr = 0; while((x) && (++wctr < 360000)) IWDG->KR = IWDG_REFRESH; if(wctr==360000) return -1;}while(0)
+
 /**
  * @brief SPI_transmit - transmit data over SPI DMA
  * @param buf - data to transmit
  * @param len - its length
- * @return amount of transmitted data
+ * @return amount of transmitted data or -1 if error
  */
-uint8_t SPI_transmit(const uint8_t *buf, uint8_t len){
+uint8_t SPI_transmit(uint8_t *buf, uint8_t len){
     if(!buf || !len) return 0; // bad data format
     if(SPI_status != SPI_READY) return 0; // spi not ready to transmit data
+#ifdef EBUG
+    USB_send("SPI send "); USB_send(u2str(len));
+    USB_send("bytes, data: ");
+#endif
     for(uint8_t x = 0; x < len; ++x){
-        while(!(SPI1->SR & SPI_SR_TXE));
+        WAITX(!(SPI1->SR & SPI_SR_TXE));
         SPI1->DR = buf[x];
-        while(!(SPI1->SR & SPI_SR_BSY));
-        while(!(SPI1->SR & SPI_SR_RXNE));
-        inbuff[x] = SPI1->DR;
-        for(int ctr = 0; ctr < 3600; ++ctr) nop(); // ~100mks delay
+        WAITX(!(SPI1->SR & SPI_SR_BSY));
+#ifdef EBUG
+        USB_send(u2hexstr(buf[x])); USB_send(", ");
+#endif
+        WAITX(!(SPI1->SR & SPI_SR_RXNE));
+        buf[x] = SPI1->DR;
+        for(int ctr = 0; ctr < 3600; ++ctr) IWDG->KR = IWDG_REFRESH; // ~100mks delay
     }
-    lastlen = len;
+#ifdef EBUG
+    USB_send("\nReceive: ");
+    for(int i = 0; i < len; ++i){
+        USB_send(u2hexstr(buf[i])); USB_send(", ");
+    }
+    USB_send("\n");
+#endif
     return len;
-}
-
-/**
- * @brief SPI_receive - get received data
- * @param len (o) - received length
- * @return received buffer
- */
-uint8_t *SPI_receive(uint8_t *len){
-    if(SPI_status != SPI_READY) return NULL;
-    if(lastlen == 0) return NULL;
-    if(len) *len = lastlen;
-    lastlen = 0;
-    return inbuff;
 }
 

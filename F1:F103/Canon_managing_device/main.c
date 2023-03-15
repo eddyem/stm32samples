@@ -16,7 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "can.h"
 #include "canon.h"
+#include "flash.h"
 #include "hardware.h"
 #include "proto.h"
 #include "spi.h"
@@ -54,24 +56,22 @@ int main(void){
     sysreset();
     StartHSE();
     SysTick_Config(72000);
+    flashstorage_init();
     hw_setup();
-    USB_setup();
+    if(ISUSB()) USB_setup();
+    else CAN_setup(the_conf.canspeed, the_conf.canID);
     spi_setup();
-    canon_init();
 
-    uint32_t ctr = Tms, SPIctr = Tms;
+    uint32_t SPIctr = Tms;
     while(1){
-        if(Tms - ctr > 499){
-            ctr = Tms;
-            LED_blink(LED0);
-        }
+        IWDG->KR = IWDG_REFRESH;
         char *txt = NULL;
         usb_proc();
         if((txt = get_USB())){
             const char *ans = parse_cmd(txt);
             if(ans) USB_send(ans);
         }
-        if(Tms != SPIctr){ // not more than once per 1ms
+        if(Tms - SPIctr > 10){ // not more than once per 10ms
             SPIctr = Tms;
             canon_proc();
         }

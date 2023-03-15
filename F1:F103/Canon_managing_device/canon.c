@@ -17,12 +17,19 @@
  */
 
 #include "canon.h"
+#include "flash.h"
 #include "hardware.h"
 #include "proto.h"
 #include "spi.h"
 #include "usb.h"
 
 #define CU(a)   ((const uint8_t*)a)
+
+// common state machine, init state machine
+static lens_state state = LENS_DISCONNECTED;
+static lensinit_state inistate = INI_ERR;
+// Freal = F - Fdelta, F - F counts, Fdelta - F@0; Forig - when F was @ start; Fmax is F@1
+static uint16_t Fdelta = 0, Forig = BADFOCVAL, Fmax = BADFOCVAL;
 
 #if 0
 typedef struct{
@@ -51,113 +58,271 @@ static command commands[] = {
 };
 #endif
 
-// command buffer (buf[0] == last command sent)
-static uint8_t buf[SPIBUFSZ] = {0}, ready = 0;
+// command buffer
+static uint8_t buf[MAXCMDLEN] = {0}, ready = 0;
 
-static void canon_read(uint8_t cmd, uint8_t zeroz){
-    if(zeroz > MAXCMDLEN - 1) return;
+// return 1 if Tms - T0 < MOVING_PAUSE
+static int waitstill(uint32_t T0){
+    if(Tms - T0 < MOVING_PAUSE) return 1;
+    return 0;
+}
+
+/**
+ * @brief canon_read - read some data
+ * @param cmd
+ * @param zeroz
+ * @return
+ */
+static int canon_read(uint8_t cmd, uint8_t zeroz){
+    if(zeroz > MAXCMDLEN - 1) return FALSE;
     ++zeroz;
-    *((uint32_t*)buf) = 0;
+    for(int i = 0; i < MAXCMDLEN/4; ++i) ((uint32_t*)buf)[i] = 0;
     buf[0] = cmd;
-    SPI_transmit(buf, zeroz);
-}/*
+    if(SPI_transmit(buf, zeroz) != zeroz) return FALSE;
+    return TRUE;
+}
+
+// get current F value
+static uint16_t getfocval(){
+    if(!canon_read(CANON_GETDIAL, 2)) return BADFOCVAL;
+    uint16_t F = (buf[1] << 8) | buf[2];
+    return (F - Fdelta);
+}
+
+typedef enum{
+    F_MOVING,
+    F_STOPPED,
+    F_ERR
+} f_movstate;
+
+// return F_STOPPED if current F differs from old; modify old
+static f_movstate Fstopped(uint16_t *oldF){
+    uint16_t f = getfocval();
+#ifdef EBUG
+    USB_send("Curpos="); USB_send(u2str(f)); USB_send("\n");
+#endif
+    if(BADFOCVAL == f) return F_ERR;
+    if(*oldF == f){
+        DBG("F stopped");
+        return F_STOPPED;
+    }
+    *oldF = f;
+    return F_MOVING;
+}
+
+/*
 static void canon_writeu8(uint8_t cmd, uint8_t u){
     *((uint32_t*)buf) = 0;
     buf[0] = cmd; buf[1] = u;
     SPI_transmit(buf, 2);
 }*/
-static void canon_writeu16(uint8_t cmd, uint16_t u){
+static int canon_writeu16(uint8_t cmd, uint16_t u){
     *((uint32_t*)buf) = 0;
     buf[0] = cmd; buf[1] = u >> 8; buf[2] = u & 0xff;
-    SPI_transmit(buf, 3);
+    if(3 != SPI_transmit(buf, 3)) return FALSE;
+    return TRUE;
 }
 
 static void canon_poll(){
+    DBG("CANON_POLL");
     ready = 0;
-    canon_read(CANON_POLL, 0);
+    // wait no more than 1s
+    uint32_t Tstart = Tms;
+    while(Tms - Tstart < 1000){
+        IWDG->KR = IWDG_REFRESH;
+        if(!canon_read(CANON_POLL, 1)){
+            continue;
+        }
+        if(buf[1] == CANON_POLLANS){// && canon_read(CANON_LONGID, 0)){
+            ready = 1;
+            DBG("Ready!");
+            return;
+        }
+    }
+    // set state to error
+    DBG("Not poll answer or no 0\n");
+    state = LENS_ERR;
 }
 
 // turn on power and send ack
 void canon_init(){
     ready = 0;
-    canon_read(CANON_ID, 31);
-}
-
-// send over USB 16-bit unsigned
-static void printu16(uint8_t *b){
-    USB_send(u2str((b[1] << 8) | b[2]));
+    inistate = INI_ERR;
+    state = LENS_ERR;
+    if(!canon_read(CANON_ID, 31)){
+        DBG("Can't read ID\n");
+        return;
+    }
+    DBG("turn on power\n");
+    if(!canon_read(CANON_POWERON, 1)){
+        DBG("OOps\n");
+        return;
+    }
+    canon_poll();
+    if(ready){
+        inistate = INI_START;
+        state = LENS_INITIALIZED;
+        Fdelta = 0; Forig = BADFOCVAL; Fmax = BADFOCVAL;
+    }
 }
 
 /**
  * @brief canon_proc - check incoming SPI messages
  */
 void canon_proc(){
-    uint8_t lastcmd = buf[0]; // last command sent
-    uint32_t uval;
-    uint8_t x;
-    uint8_t *rbuf = SPI_receive(&x);
-    if(!rbuf) return;
-#ifdef EBUG
-    //if(lastcmd != CANON_POLL){
-        USB_send("SPI receive: ");
-        for(uint8_t i = 0; i < x; ++i){
-            if(i) USB_send(", ");
-            USB_send(u2hexstr(rbuf[i]));
+    static uint32_t Tconn = 0;
+    if(state == LENS_DISCONNECTED){
+        if(!LENSCONNECTED()){
+            Tconn = 0;
+            return;
         }
-        USB_send("\n");
-    //}
-#endif
-    int need2poll = 0;
-    switch (lastcmd){
-        case CANON_LONGID: // something
-//            need2poll = 0;
-        break;
-        case CANON_ID: // got ID -> turn on power
-            canon_read(CANON_POWERON, 1);
-        break;
-        /*case CANON_POWERON:
-            ;
-        break;*/
-        case CANON_POLL:
-            if(rbuf[0] == CANON_POLLANS){
-                canon_read(CANON_LONGID, 0);
-                ready = 1;
-#ifdef EBUG
-                USB_send("Ready!\n");
-#endif
-            }else need2poll = 1;
-        break;
-        case CANON_GETINFO:
-            USB_send("Info="); for(int i = 1; i < 7; ++i){
-                USB_send(u2hexstr(rbuf[i])); USB_send(" ");
+        if(0 == Tconn){ // just connected
+            DBG("Lens connected");
+            Tconn = Tms ? Tms : 1;
+            return;
+        }
+        if(Tms - Tconn < CONN_TIMEOUT) return;
+        DBG("Connection timeout left, all OK");
+        LENS_ON();
+        if(the_conf.autoinit){
+            canon_init();
+        }else{
+            state = LENS_SLEEPING; // wait until init
+            ready = 1; // emulate ready flag for manual operations
+        }
+        return;
+    }
+    uint8_t OC = OVERCURRENT();
+    if(!LENSCONNECTED() || OC){
+        DBG("Disconnect or overcurrent");
+        state = OC ? LENS_OVERCURRENT : LENS_DISCONNECTED;
+        LENS_OFF();
+        Tconn = 0;
+        return;
+    }
+    if(state == LENS_ERR){
+        if(0 == Tconn){
+            DBG("Wait 5s till next recinit");
+            Tconn = Tms ? Tms : 1;
+            return;
+        }
+        if(Tms - Tconn < REINIT_PAUSE){
+            DBG("5s left, try to reinit");
+            Tconn = 0;
+            canon_init();
+        }
+    }
+    if(state != LENS_INITIALIZED) return;
+    // initializing procedure: goto zero, check zeropoint and go back
+    static uint8_t errctr = 0;
+    if(errctr > 8){
+        errctr = 0;
+        inistate = INI_ERR;
+    }
+    static uint16_t oldF = BADFOCVAL; // old focus value (need to know that lens dont moving now)
+    switch(inistate){
+        case INI_START:
+            DBG("INI_START");
+            if(Forig != BADFOCVAL){
+                if(canon_sendcmd(CANON_FMIN)){
+                    ++errctr;
+                    return;
+                }
+                inistate = INI_FGOTOZ;
+                oldF = Forig;
+                errctr = 0;
+                Tconn = Tms;
+            }else{
+                Forig = getfocval(); // Fdelta == 0 -> Forig now is pure F counts
+                ++errctr;
             }
-            USB_send("\n");
         break;
-        case CANON_GETREG:
-            USB_send("Reg="); USB_send(u2hexstr((rbuf[1] << 8) | rbuf[2])); USB_send("\n");
+        case INI_FGOTOZ: // wait until F changes stopped
+            if(waitstill(Tconn)) return; // timeout
+            DBG("INI_FGOTOZ");
+            switch(Fstopped(&oldF)){
+                case F_STOPPED:
+                    Fdelta = oldF; // F@0
+                    Forig -= oldF; // F in counts from 0
+                    inistate = INI_FPREPMAX;
+                    errctr = 0;
+                break;
+                case F_ERR:
+                    ++errctr;
+                break;
+                default: // moving
+                    return;
+            }
         break;
-        case CANON_GETMODEL:
-            USB_send("Lens="); printu16(rbuf); USB_send("\n");
+        case INI_FPREPMAX:
+            DBG("INI_FPREPMAX");
+            if(canon_sendcmd(CANON_FMAX)){
+                ++errctr;
+                return;
+            }
+            inistate = INI_FGOTOMAX;
+            errctr = 0;
+            Tconn = Tms;
         break;
-        case CANON_GETDIAL:
-            USB_send("Fsteps="); printu16(rbuf); USB_send("\n");
-            //canon_read(CANON_GETFOCM, 4);
+        case INI_FGOTOMAX:
+            if(waitstill(Tconn)) return;
+            DBG("INI_FGOTOMAX");
+            switch(Fstopped(&oldF)){
+                case F_STOPPED:
+                    Fmax = oldF;
+                    inistate = INI_FPREPOLD;
+                    errctr = 0;
+                break;
+                case F_ERR:
+                    ++errctr;
+                break;
+                default: // moving
+                    return;
+            }
         break;
+        case INI_FPREPOLD:
+            DBG("INI_FPREPOLD");
+            if(!canon_writeu16(CANON_FOCMOVE, Forig - Fmax)){
+                ++errctr;
+            }else{
+                errctr = 0;
+                inistate = INI_FGOTOOLD;
+                Tconn = Tms;
+            }
+        break;
+        case INI_FGOTOOLD:
+            if(waitstill(Tconn)) return;
+            DBG("INI_FGOTOOLD");
+            switch(Fstopped(&oldF)){
+                case F_STOPPED:
+                    DBG("ON position");
+                    inistate = INI_READY;
+                    state = LENS_READY;
+                    errctr = 0;
+                break;
+                case F_ERR:
+                    ++errctr;
+                break;
+                default: // moving
+                    return;
+            }
+        break;
+        default: // some error - change lens state to `ready` despite of errini
+            DBG("ERROR in initialization -> ready without ini");
+            state = LENS_READY;
+    }
+/*
         case CANON_GETFOCM: // don't work @EF200
             uval = (rbuf[1] << 24) | (rbuf[2] << 16) | (rbuf[3] << 8) | rbuf[4];
             USB_send("Fval="); USB_send(u2str(uval)); USB_send("\n");
         break;
-        default:
-            need2poll = 1; // poll after any other command
-        break;
-    }
-    if(need2poll) canon_poll();
+        */
 }
 
 /**
  * @brief canon_diaphragm - run comands
  * @param command: open/close diaphragm by 1 step (+/-), open/close fully (o/c)
- * @return 0 if success or error code (1 - not ready, 2 - bad command)
+ * @return 0 if success or error code (1 - not ready, 2 - bad command, 3 - can't send data)
  */
 int canon_diaphragm(char command){
     if(!ready) return 1;
@@ -180,36 +345,58 @@ int canon_diaphragm(char command){
         default:
             return 2; // unknown command
     }
-    canon_writeu16(CANON_DIAPHRAGM, (uint16_t)(val << 8));
+    if(!canon_writeu16(CANON_DIAPHRAGM, (uint16_t)(val << 8))) return 3;
+    canon_poll();
     return 0;
 }
 
 int canon_focus(int16_t val){
     if(!ready) return 1;
-    if(val == 0) canon_read(CANON_GETDIAL, 2);
-    else canon_writeu16(CANON_FOCMOVE, val);
+    if(val < 0){
+        USB_send("Fsteps="); USB_send(u2str(getfocval())); USB_send("\n");
+    }else{
+        if(val > Fmax){
+            USB_send("Fmax="); USB_send(u2str(Fmax)); USB_send("\n");
+            return 2;
+        }
+        uint16_t curF = getfocval();
+        if(curF == BADFOCVAL){
+            DBG("Unknown current F");
+            return 1;
+        }
+        val -= curF;
+        if(!canon_writeu16(CANON_FOCMOVE, val)) return 1;
+    }
+    canon_poll();
     return 0;
 }
 
 int canon_sendcmd(uint8_t cmd){
-    if(!ready) return 1;
-    canon_read(cmd, 0);
+    if(!ready || !canon_read(cmd, 0)) return 1;
+    canon_poll();
     return 0;
-}
-
-void canon_setlastcmd(uint8_t x){
-    buf[0] = x;
 }
 
 // acquire 16bit value
 int canon_asku16(uint8_t cmd){
-    if(!ready) return 1;
-    canon_read(cmd, 2);
+    if(!ready || !canon_read(cmd, 3)) return 1;
+    USB_send("par=");
+    USB_send(u2str((buf[1] << 8) | buf[2]));
+    USB_send("\n");
+    canon_poll();
     return 0;
 }
 
 int canon_getinfo(){
-    if(!ready) return 1;
-    canon_read(CANON_GETINFO, 6);
+    if(!ready || !canon_read(CANON_GETINFO, 6)) return 1;
+    USB_send("Info="); for(int i = 1; i < 7; ++i){
+        USB_send(u2hexstr(buf[i])); USB_send(" ");
+    }
+    canon_poll();
+    USB_send("\n");
     return 0;
+}
+
+uint16_t canon_getstate(){
+    return state | (inistate << 8);
 }

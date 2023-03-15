@@ -17,11 +17,14 @@
  */
 
 #include "canon.h"
+#include "flash.h"
 #include "hardware.h"
 #include "proto.h"
 #include "spi.h"
 #include "usb.h"
 #include "version.inc"
+
+static const char *OK = "OK", *FAIL = "FAIL";
 
 char *omit_spaces(const char *buf){
     while(*buf){
@@ -154,22 +157,29 @@ char *getnum(const char *txt, uint32_t *N){
 }
 
 const char* helpmsg =
-    "https://github.com/eddyem/stm32samples/tree/master/F1-nolib/USB_Canon_management build#" BUILD_NUMBER " @ " BUILD_DATE "\n"
+    "https://github.com/eddyem/stm32samples/tree/master/F1-nolib/Canon_managing_device  build#" BUILD_NUMBER " @ " BUILD_DATE "\n"
     "0 - move to smallest foc value (e.g. 2.5m)\n"
     "1 - move to largest foc value (e.g. infinity)\n"
+    "a - set (!0) or reset (0) autoinit\n"
     "d - open/close diaphragm by 1 step (+/-), open/close fully (o/c) (no way to know it current status)\n"
-    "f - get focus state or move it to given relative position\n"
+    "f - move focus to given ABSOLUTE position or get current value (without number)\n"
     "h - turn on hand focus management\n"
     "i - get lens information\n"
     "l - get lens model\n"
     "r - get regulators' state\n"
-    "\t\tdebugging commands:\n"
+    "\t\tdebugging/conf commands:\n"
+    "C - set CAN speed (25-3000 kbaud)\n"
+    "D - set CAN ID (11 bit)\n"
+    "E - erase full flash storage\n"
     "F - change SPI flags (F f val), f== l-LSBFIRST, b-BR [18MHz/2^(b+1)], p-CPOL, h-CPHA\n"
     "G - get SPI status\n"
     "I - reinit SPI\n"
+    "P - dump current config\n"
+    "s - get state\n"
     "R - software reset\n"
     "S - send data over SPI\n"
     "T - show Tms value\n"
+    "X - save current config to flash\n"
 ;
 
 #define STBUFSZ 255
@@ -190,15 +200,38 @@ static void errw(int e){
         add2buf("Error with code ");
         add2buf(u2str(e));
         if(e == 1) add2buf(" (busy or need initialization)");
-    }else add2buf("OK");
+    }else add2buf(OK);
 }
 
 extern uint8_t usbON;
+const char *connmsgs[LENS_S_AMOUNT+1] = {
+    [LENS_DISCONNECTED] = "disconnected",
+    [LENS_SLEEPING] = "sleeping, need init",
+    [LENS_OVERCURRENT] = "overcurrent",
+    [LENS_INITIALIZED] = "initialized",
+    [LENS_READY] = "ready",
+    [LENS_ERR] = "error",
+    [LENS_S_AMOUNT] = "wrong state"
+};
+const char *inimsgs[INI_S_AMOUNT+1] = {
+    [INI_START] = "started",
+    [INI_FGOTOZ] = "go to min F",
+    [INI_FPREPMAX] = "prepare to go to max F",
+    [INI_FGOTOMAX] = "go to max F",
+    [INI_FPREPOLD] = "prepare to return to original F",
+    [INI_FGOTOOLD] = "go to starting F",
+    [INI_READY] = "ready",
+    [INI_ERR] = "error in init procedure",
+    [INI_S_AMOUNT] = "wrong state"
+};
 const char *parse_cmd(const char *buf){
     //uint32_t u3;
     initbuf();
     if(buf[1] == '\n' || !buf[1]){ // one symbol commands
         switch(*buf){
+            case '-':
+                flashstorage_init();
+            break;
             case '0':
                 errw(canon_sendcmd(CANON_FMIN));
             break;
@@ -206,7 +239,7 @@ const char *parse_cmd(const char *buf){
                 errw(canon_sendcmd(CANON_FMAX));
             break;
             case 'f':
-                errw(canon_focus(0));
+                errw(canon_focus(-1));
             break;
             case 'i':
                 errw(canon_getinfo());
@@ -216,6 +249,10 @@ const char *parse_cmd(const char *buf){
             break;
             case 'r':
                 errw(canon_asku16(CANON_GETREG));
+            break;
+            case 'E':
+                if(erase_storage(-1)) add2buf(FAIL);
+                add2buf(OK);
             break;
             case 'F': // just watch SPI->CR1 value
                 add2buf("SPI1->CR1="); add2buf(u2hexstr(SPI_CR1));
@@ -244,13 +281,32 @@ const char *parse_cmd(const char *buf){
                 spi_setup();
                 canon_init();
             break;
+            case 'P':
+                dump_userconf();
+                return NULL;
+            break;
             case 'R':
                 USB_send("Soft reset\n");
                 NVIC_SystemReset();
             break;
+            case 's':
+                add2buf("state=");
+                uint16_t s = canon_getstate();
+                uint8_t idx = s & 0xff;
+                if(idx > LENS_S_AMOUNT) idx = LENS_S_AMOUNT;
+                add2buf(connmsgs[idx]);
+                idx = s >> 8;
+                add2buf("\ninistate=");
+                if(idx > INI_S_AMOUNT) idx = INI_S_AMOUNT;
+                add2buf(inimsgs[idx]);
+            break;
             case 'T':
                 add2buf("Tms=");
                 add2buf(u2str(Tms));
+            break;
+            case 'X':
+                if(store_userconf()) add2buf(FAIL);
+                else add2buf(OK);
             break;
             default:
                 return helpmsg;
@@ -260,22 +316,44 @@ const char *parse_cmd(const char *buf){
     }
     uint32_t D = 0, N = 0;
     char *nxt;
-    switch(*buf){ // long messages
+    switch(*buf++){ // long messages
+        case 'a':
+            nxt = getnum(buf, &D);
+            if(nxt != buf){
+                if(D) the_conf.autoinit = 1;
+                else the_conf.autoinit = 0;
+            }
+            USB_send("autoinit="); USB_send(u2str(the_conf.autoinit)); USB_send("\n");
+        break;
         case 'd':
-            nxt = omit_spaces(buf+1);
+            nxt = omit_spaces(buf);
             errw(canon_diaphragm(*nxt));
         break;
         case 'f': // move focus
-            buf = omit_spaces(buf + 1);
+            buf = omit_spaces(buf);
             int16_t neg = 1;
             if(*buf == '-'){ ++buf; neg = -1; }
             nxt = getnum(buf, &D);
             if(nxt == buf) add2buf("Need number");
             else if(D > 0x7fff) add2buf("From -0x7fff to 0x7fff");
-            else errw(canon_focus(neg * (int32_t)D));
+            else errw(canon_focus(neg * (int16_t)D));
+        break;
+        case 'C':
+            nxt = getnum(buf, &D);
+            if(nxt != buf && D >= 25 && D <= 3000){
+                the_conf.canspeed = D;
+                add2buf("CAN_speed="); add2buf(u2str(the_conf.canspeed));
+            }else add2buf(FAIL);
+        break;
+        case 'D':
+            nxt = getnum(buf, &D);
+            if(nxt != buf && D < 0x800){
+                the_conf.canID = D;
+                add2buf("CAN_ID="); add2buf(u2str(the_conf.canID));
+            }else add2buf(FAIL);
         break;
         case 'F': // SPI flags
-            nxt = omit_spaces(buf+1);
+            nxt = omit_spaces(buf);
             char c = *nxt;
             if(*nxt && *nxt != '\n'){
                 buf = nxt + 1;
@@ -305,7 +383,6 @@ const char *parse_cmd(const char *buf){
             add2buf("SPI_CR1="); add2buf(u2hexstr(SPI_CR1));
         break;
         case 'S': // use stbuf here to store user data
-            ++buf;
             do{
                 nxt = getnum(buf, &D);
                 if(buf == nxt) break;
@@ -327,9 +404,14 @@ const char *parse_cmd(const char *buf){
                 USB_send(u2hexstr(stbuf[i]));
             }
             USB_send("\n... ");
-            canon_setlastcmd(stbuf[0]);
-            if(N == SPI_transmit((uint8_t*)stbuf, (uint8_t)N)) USB_send("OK\n");
-            else USB_send("Failed\n");
+            if(N == SPI_transmit((uint8_t*)stbuf, (uint8_t)N)){
+                USB_send("OK\nGot SPI answer: ");
+                for(int i = 0; i < (int)N; ++i){
+                    if(i) USB_send(", ");
+                    USB_send(u2hexstr(stbuf[i]));
+                }
+                USB_send("\n");
+            }else USB_send("Failed\n");
             return NULL;
         break;
         default:

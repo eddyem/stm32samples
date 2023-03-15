@@ -79,6 +79,9 @@ static void receive_Handler(){ // EP2OUT
 }
 
 void usb_proc(){
+    if(CAN1->RF0R & CAN_RF0R_FOVR0){ // FIFO overrun
+        CAN1->RF0R &= ~CAN_RF0R_FOVR0;
+    }
     switch(USB_Dev.USB_Status){
         case USB_STATE_CONFIGURED:
             // make new BULK endpoint

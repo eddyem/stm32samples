@@ -20,7 +20,7 @@
 #ifndef SPI_H__
 #define SPI_H__
 
-#include "stm32f1.h"
+#include <stm32f1.h>
 
 extern uint32_t SPI_CR1;
 
@@ -33,7 +33,6 @@ typedef enum{
 extern spiStatus SPI_status;
 
 void spi_setup();
-uint8_t SPI_transmit(const uint8_t *buf, uint8_t len);
-uint8_t *SPI_receive(uint8_t *len);
+uint8_t SPI_transmit(uint8_t *buf, uint8_t len);
 
 #endif // SPI_H__

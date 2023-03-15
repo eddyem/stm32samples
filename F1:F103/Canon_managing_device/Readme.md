@@ -1,9 +1,21 @@
-Canon lens management.
+# Canon lens management.
+
+Management of some Canon Lens.
+
+## Pinout
+
+* PA4 - lens detect (zero active);
+* PA5,6,7 - SPI SCK, MISO, MOSI;
+* PA10 - USB DP pullup (zero active);
+* PA11,12 - USB DM, DP;
+* PA13,14 - SWD IO, CLK;
+* PB8,9 - CAN Rx,Tx;
+* PC13 - USB/CAN (solder jumper to turn on CAN instead of USB, zero - CAN).
 
 Protocol have a string form, each string ends with '\n'. You should wait an answer for previous command before sending next,
 or have risk to miss all the rest commands in one packet.
 
-USB commands:
+## USB commands:
 
 0 - move to smallest foc value (e.g. 2.5m)
 1 - move to largest foc value (e.g. infinity)
