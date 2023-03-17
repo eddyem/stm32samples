@@ -67,11 +67,10 @@ int main(void){
         IWDG->KR = IWDG_REFRESH;
         char *txt = NULL;
         usb_proc();
-        if((txt = get_USB())){
-            const char *ans = parse_cmd(txt);
-            if(ans) USB_send(ans);
-        }
-        if(Tms - SPIctr > 10){ // not more than once per 10ms
+        txt = get_USB();
+        const char *ans = parse_cmd(txt); // call it even for NULL (if `flood` is running)
+        if(ans) USB_send(ans);
+        if(Tms - SPIctr > CANONPROC_INTERVAL){ // not more than once per 10ms
             SPIctr = Tms;
             canon_proc();
         }

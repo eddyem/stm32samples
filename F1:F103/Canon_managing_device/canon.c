@@ -82,9 +82,9 @@ static int canon_read(uint8_t cmd, uint8_t zeroz){
     return TRUE;
 }
 
-// get current F value
+// get current F value by stepper pos
 static uint16_t getfocval(){
-    if(!canon_read(CANON_GETDIAL, 2)) return BADFOCVAL;
+    if(!canon_read(CANON_GETSTPPOS, 3)) return BADFOCVAL;
     uint16_t F = (buf[1] << 8) | buf[2];
     return (F - Fdelta);
 }
@@ -116,10 +116,10 @@ static void canon_writeu8(uint8_t cmd, uint8_t u){
     buf[0] = cmd; buf[1] = u;
     SPI_transmit(buf, 2);
 }*/
-static int canon_writeu16(uint8_t cmd, uint16_t u){
+int canon_writeu16(uint8_t cmd, uint16_t u){
     *((uint32_t*)buf) = 0;
-    buf[0] = cmd; buf[1] = u >> 8; buf[2] = u & 0xff;
-    if(3 != SPI_transmit(buf, 3)) return FALSE;
+    buf[0] = cmd; buf[1] = u >> 8; buf[2] = u & 0xff; buf[3] = 0;
+    if(4 != SPI_transmit(buf, 4)) return FALSE;
     return TRUE;
 }
 
@@ -128,7 +128,7 @@ static void canon_poll(){
     ready = 0;
     // wait no more than 1s
     uint32_t Tstart = Tms;
-    while(Tms - Tstart < 1000){
+    while(Tms - Tstart < POLLING_TIMEOUT){
         IWDG->KR = IWDG_REFRESH;
         if(!canon_read(CANON_POLL, 1)){
             continue;
@@ -150,7 +150,7 @@ void canon_init(){
     inistate = INI_ERR;
     state = LENS_ERR;
     if(!canon_read(CANON_ID, 31)){
-        DBG("Can't read ID\n");
+        DBG("Error sending starting sequence\n");
         return;
     }
     DBG("turn on power\n");
@@ -299,6 +299,7 @@ void canon_proc(){
                     inistate = INI_READY;
                     state = LENS_READY;
                     errctr = 0;
+                    canon_sendcmd(CANON_FOCBYHANDS);
                 break;
                 case F_ERR:
                     ++errctr;
@@ -350,8 +351,9 @@ int canon_diaphragm(char command){
     return 0;
 }
 
+// move focuser @ absolute position val (or show current F if val < 0)
 int canon_focus(int16_t val){
-    if(!ready) return 1;
+    if(!ready || inistate != INI_READY) return 1;
     if(val < 0){
         USB_send("Fsteps="); USB_send(u2str(getfocval())); USB_send("\n");
     }else{
@@ -365,14 +367,15 @@ int canon_focus(int16_t val){
             return 1;
         }
         val -= curF;
-        if(!canon_writeu16(CANON_FOCMOVE, val)) return 1;
+        if(!canon_writeu16(CANON_FOCMOVE, val)) return 3;
     }
     canon_poll();
     return 0;
 }
 
+// send simplest command
 int canon_sendcmd(uint8_t cmd){
-    if(!ready || !canon_read(cmd, 0)) return 1;
+    if(!ready || !canon_read(cmd, 1)) return 1;
     canon_poll();
     return 0;
 }
@@ -383,7 +386,7 @@ int canon_asku16(uint8_t cmd){
     USB_send("par=");
     USB_send(u2str((buf[1] << 8) | buf[2]));
     USB_send("\n");
-    canon_poll();
+    //canon_poll();
     return 0;
 }
 
@@ -392,7 +395,7 @@ int canon_getinfo(){
     USB_send("Info="); for(int i = 1; i < 7; ++i){
         USB_send(u2hexstr(buf[i])); USB_send(" ");
     }
-    canon_poll();
+    //canon_poll();
     USB_send("\n");
     return 0;
 }
