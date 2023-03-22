@@ -202,3 +202,15 @@ Automated liquid nitrogen flooding machine
 |  10     | PF9         | -           | -           |                  |
 |  11     | PF10        | VadcON      | slow out    | turn ON ADC power|
 |---------|-------------|-------------|-------------|------------------|
+
+
+## DMA usage
+### DMA1
+
+- Channel 1 - ADC1
+- Channel 6 - I2C1 Tx
+- Channel 7 - I2C1 Rx
+
+### DMA2
+
+- Channel 2 - ADC2

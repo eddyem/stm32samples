@@ -17,19 +17,23 @@
  */
 
 #include "hardware.h"
+#include "i2c.h"
 
 int LEDsON = 0;
 
 // setup here ALL GPIO pins (due to table in Readme.md)
 // leave SWD as default AF; high speed for CLK and some other AF; med speed for some another AF
 TRUE_INLINE void gpio_setup(){
+    BUZZER_OFF();
+    ADCON(0);
+    pin_set(LEDs_port, 0xf<<8); // turn off LEDs
     RCC->AHBENR |= RCC_AHBENR_GPIOAEN | RCC_AHBENR_GPIOBEN | RCC_AHBENR_GPIOCEN | RCC_AHBENR_GPIODEN
                 | RCC_AHBENR_GPIOEEN | RCC_AHBENR_GPIOFEN;
     // enable PWM timer TIM3
     RCC->APB1ENR |= RCC_APB1ENR_TIM3EN;
     for(int i = 0; i < 10000; ++i) nop();
     // PORT A (PA13/14 - SWDIO/SWCLK - AF0)
-    GPIOA->ODR = 0;
+    //GPIOA->ODR = 0;
     GPIOA->AFR[0] = 0;
     GPIOA->AFR[1] = AFRf(4, 9) | AFRf(4, 10) | AFRf(14, 11) | AFRf(14,12);
     GPIOA->MODER = MODER_AI(0) | MODER_AI(1) | MODER_AI(2) | MODER_AI(3) | MODER_AI(4) |
@@ -39,7 +43,7 @@ TRUE_INLINE void gpio_setup(){
     GPIOA->PUPDR = PUPD_PU(13) | PUPD_PD(14); // SWDIO - pullup, SDCLK - pulldown
 
     // PORT B
-    GPIOB->ODR = 0;
+    //GPIOB->ODR = 0;
     GPIOB->AFR[0] = AFRf(4, 6) | AFRf(4, 7);
     GPIOB->AFR[1] = AFRf(5, 13) | AFRf(5, 14) | AFRf(5, 15);
     GPIOB->MODER = MODER_O(0) | MODER_AF(6) | MODER_AF(7) | MODER_O(10) | MODER_O(11) | MODER_O(12) | MODER_AF(13)
@@ -49,7 +53,7 @@ TRUE_INLINE void gpio_setup(){
     GPIOB->PUPDR = 0;
 
     // PORT C
-    GPIOC->ODR = 0;
+    //GPIOC->ODR = 0;
     GPIOC->AFR[0] = 0;
     GPIOC->AFR[1] = AFRf(7, 10) | AFRf(7, 11);
     GPIOC->MODER = MODER_AI(0) | MODER_AI(1) | MODER_AI(2) | MODER_AI(3) | MODER_O(9) | MODER_AF(10) | MODER_AF(11);
@@ -58,7 +62,7 @@ TRUE_INLINE void gpio_setup(){
     GPIOC->PUPDR = 0;
 
     // PORT D
-    GPIOD->ODR = 0;
+    //GPIOD->ODR = 0;
     GPIOD->AFR[0] = AFRf(7, 0) | AFRf(7, 1) | AFRf(7, 5) | AFRf(7, 6);
     GPIOD->AFR[1] = 0;
     GPIOD->MODER = MODER_AF(0) | MODER_AF(1) | MODER_O(4) | MODER_AF(5) | MODER_AF(6) | MODER_I(9)
@@ -68,7 +72,7 @@ TRUE_INLINE void gpio_setup(){
     GPIOD->PUPDR = PUPD_PU(9) | PUPD_PU(10) | PUPD_PU(11) | PUPD_PU(12) | PUPD_PU(13) | PUPD_PU(14) | PUPD_PU(15);
 
     // PORT E
-    GPIOE->ODR = 0;
+    //GPIOE->ODR = 0;
     GPIOE->AFR[0] = 0;
     GPIOE->AFR[1] = AFRf(2, 2) | AFRf(2, 3) | AFRf(2, 4) | AFRf(2, 5);
     GPIOE->MODER = MODER_AF(2) | MODER_AF(3) | MODER_AF(4) | MODER_AF(5) | MODER_O(8) | MODER_O(9) | MODER_O(10) | MODER_O(11);
@@ -77,13 +81,26 @@ TRUE_INLINE void gpio_setup(){
     GPIOE->PUPDR = 0;
 
     // PORT F
-    GPIOF->ODR = 0;
+    //GPIOF->ODR = 0;
     GPIOF->AFR[0] = 0;
     GPIOF->AFR[1] = 0;
     GPIOF->MODER = MODER_AI(2) | MODER_O(10);
     GPIOF->OSPEEDR = 0;
     GPIOF->OTYPER = 0;
     GPIOF->PUPDR = 0;
+}
+
+TRUE_INLINE void pwm_setup(){
+    TIM3->CR1 = TIM_CR1_ARPE;
+    TIM3->PSC = 1999; // 48M/2000 = 24kHz
+    // PWM mode 1 (active -> inactive)
+    TIM3->CCMR1 = TIM_CCMR1_OC1M_2 | TIM_CCMR1_OC1M_1 | TIM_CCMR1_OC2M_2 | TIM_CCMR1_OC2M_1;
+    TIM3->CCMR2 = TIM_CCMR2_OC3M_2 | TIM_CCMR2_OC3M_1 | TIM_CCMR2_OC4M_2 | TIM_CCMR2_OC4M_1;
+    TIM3->CCR1 = 0;
+    TIM3->ARR = 255; // 8bit PWM
+    TIM3->BDTR |= TIM_BDTR_MOE; // enable main output
+    TIM3->CCER = TIM_CCER_CC1E | TIM_CCER_CC2E | TIM_CCER_CC3E | TIM_CCER_CC4E;
+    TIM3->CR1 |= TIM_CR1_CEN;
 }
 
 #ifndef EBUG
@@ -112,9 +129,50 @@ TRUE_INLINE void iwdg_setup(){
 #endif
 
 void hw_setup(){
+    RCC->AHBENR |= RCC_AHBENR_DMA1EN | RCC_AHBENR_DMA2EN;
     gpio_setup();
+    i2c_setup(HIGH_SPEED);
+    pwm_setup();
 #ifndef EBUG
     iwdg_setup();
 #endif
 }
 
+void setPWM(int nch, uint8_t val){
+    switch(nch){
+        case 0:
+            TIM3->CCR1 = val;
+        break;
+        case 1:
+            TIM3->CCR2 = val;
+        break;
+        case 2:
+            TIM3->CCR3 = val;
+        break;
+        case 3:
+            TIM3->CCR4 = val;
+        break;
+        default:
+        break;
+    }
+}
+
+uint8_t getPWM(int nch){
+    switch(nch){
+        case 0:
+            return TIM3->CCR1;
+        break;
+        case 1:
+            return TIM3->CCR2;
+        break;
+        case 2:
+            return TIM3->CCR3;
+        break;
+        case 3:
+            return TIM3->CCR4;
+        break;
+        default:
+        break;
+    }
+    return 0;
+}

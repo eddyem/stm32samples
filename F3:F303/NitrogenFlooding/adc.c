@@ -25,9 +25,9 @@
  * @brief ADCx_array - arrays for ADC channels with median filtering:
  * ADC1:
  * 0..9 - AIN0..9 (ADC1_IN1..10)
- * 4 - internal Tsens - ADC1_IN16
+ * 10 - internal Tsens - ADC1_IN16
  * ADC2:
- * 6 - AINext - (ADC2 in 1)
+ * 11 - AINext - (ADC2 in 1)
  */
 static uint16_t ADC_array[NUMBER_OF_ADC_CHANNELS*9];
 
@@ -66,7 +66,7 @@ TRUE_INLINE void enADC(ADC_TypeDef *chnl){
  * ADC1 - DMA1_ch1
  * ADC2 - DMA2_ch1
  */
-// Setup ADC and DAC
+// Setup ADC
 void adc_setup(){
     RCC->AHBENR |= RCC_AHBENR_ADC12EN; //  Enable clocking
     ADC12_COMMON->CCR = ADC_CCR_TSEN | ADC_CCR_CKMODE; // enable Tsens, HCLK/4
@@ -83,7 +83,6 @@ void adc_setup(){
     ADC2->SMPR1 = ADC_SMPR1_SMP1;
     ADC2->SQR1 = (1<<6) | (NUMBER_OF_ADC2_CHANNELS-1);
     // configure DMA for ADC
-    RCC->AHBENR |= RCC_AHBENR_DMA1EN | RCC_AHBENR_DMA2EN;
     ADC1->CFGR = ADC_CFGR_CONT | ADC_CFGR_DMAEN | ADC_CFGR_DMACFG;
     ADC2->CFGR = ADC_CFGR_CONT | ADC_CFGR_DMAEN | ADC_CFGR_DMACFG;
     DMA1_Channel1->CPAR = (uint32_t) (&(ADC1->DR));
@@ -112,8 +111,11 @@ uint16_t getADCval(int nch){
 #define PIX_SORT(a,b) { if ((a)>(b)) PIX_SWAP((a),(b)); }
 #define PIX_SWAP(a,b) { temp=(a);(a)=(b);(b)=temp; }
     uint16_t p[9];
-    int adval = (nch >= NUMBER_OF_ADC1_CHANNELS) ? NUMBER_OF_ADC2_CHANNELS : NUMBER_OF_ADC1_CHANNELS;
-    int addr = (nch >= NUMBER_OF_ADC1_CHANNELS) ? nch - NUMBER_OF_ADC2_CHANNELS + ADC2START: nch;
+    int addr = nch, adval = NUMBER_OF_ADC1_CHANNELS;
+    if(nch >= NUMBER_OF_ADC1_CHANNELS){
+        adval = NUMBER_OF_ADC2_CHANNELS;
+        addr += ADC2START;
+    }
     for(int i = 0; i < 9; ++i, addr += adval) // first we should prepare array for optmed
         p[i] = ADC_array[addr];
     PIX_SORT(p[1], p[2]) ; PIX_SORT(p[4], p[5]) ; PIX_SORT(p[7], p[8]) ;

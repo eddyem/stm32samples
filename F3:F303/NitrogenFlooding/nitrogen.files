@@ -14,6 +14,8 @@ hashgen/hashgen.c
 hashgen/hdr.c
 hashgen/hdr.h
 hashgen/test.c
+i2c.c
+i2c.h
 main.c
 pdnuart.c
 pdnuart.h

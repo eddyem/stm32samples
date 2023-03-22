@@ -60,8 +60,22 @@
 // state 0 - pressed, 1 - released
 #define BTN_state(x)    (BTNs_port->IDR & 1<<(9+x) ? 0 : 1)
 
+// buzzer, ADC voltage
+#define BUZZER_port     GPIOB
+#define BUZZER_pin      (1<<0)
+#define BUZZER_ON()     do{pin_clear(BUZZER_port, BUZZER_pin);}while(0)
+#define BUZZER_OFF()    do{pin_set(BUZZER_port, BUZZER_pin);}while(0)
+#define BUZZER_STATE()  (BUZZER_port->IDR & BUZZER_pin ? 0 : 1)
+#define ADCON_port      GPIOF
+#define ADCON_pin       (1<<10)
+#define ADCON(x)        do{if(x==0) pin_set(ADCON_port, ADCON_pin); else pin_clear(ADCON_port, ADCON_pin);}while(0)
+#define ADCONSTATE()    (ADCON_port->IDR & ADCON_pin ? 0 : 1)
+
 extern volatile uint32_t Tms;
 extern int LEDsON;
 
 uint8_t MSB(uint16_t val);
 void hw_setup();
+
+void setPWM(int nch, uint8_t val);
+uint8_t getPWM(int nch);

@@ -21,6 +21,7 @@
 //#include "can.h"
 //#include "flash.h"
 #include "hardware.h"
+#include "i2c.h"
 #include "proto.h"
 #include "usb.h"
 
@@ -75,6 +76,17 @@ int main(void){
                 }
             }
         }*/
+        if(I2C_scan_mode){
+            uint8_t addr;
+            int ok = i2c_scan_next_addr(&addr);
+            if(addr == I2C_ADDREND) USND("Scan ends");
+            else if(ok){
+                USB_sendstr(uhex2str(addr));
+                USB_sendstr(" ("); USB_sendstr(u2str(addr));
+                USB_sendstr(") - found device\n");
+            }
+        }
+        i2c_have_DMA_Rx(); // check if there's DMA Rx complete
         USB_proc();
         int l = USB_receivestr(inbuff, MAXSTRLEN);
         if(l < 0) USB_sendstr("ERROR: USB buffer overflow or string was too long\n");

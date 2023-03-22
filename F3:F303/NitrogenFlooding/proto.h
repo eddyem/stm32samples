@@ -30,10 +30,11 @@
 #define CMD_MAXLEN  (32)
 
 enum{
-   RET_CMDNOTFOUND = -2,
-   RET_WRONGARG = -1,
-   RET_GOOD = 0,
-   RET_BAD = 1
+   RET_WRONGPARNO = -3,     // wrong parameter number
+   RET_CMDNOTFOUND = -2,    // command not found
+   RET_WRONGARG = -1,       // wrong argument
+   RET_GOOD = 0,            // all OK
+   RET_BAD = 1              // something wrong
 };
 
 #define printu(x)       do{USB_sendstr(u2str(x));}while(0)

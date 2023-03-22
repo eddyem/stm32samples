@@ -2,6 +2,7 @@ MEMORY
 {
 	rom (rx) : ORIGIN = 0x08000000, LENGTH = 128K
 	ram (rwx) : ORIGIN = 0x20000000, LENGTH = 40K
+	ccmram (rwx) : ORIGIN = 0x10000000, LENGTH = 0
 }
 
 PROVIDE(_BLOCKSIZE = 2048);
