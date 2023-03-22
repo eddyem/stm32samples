@@ -28,7 +28,7 @@ TRUE_INLINE void gpio_setup(){
     // enable PWM timer TIM3
     RCC->APB1ENR |= RCC_APB1ENR_TIM3EN;
     for(int i = 0; i < 10000; ++i) nop();
-    // PORT A
+    // PORT A (PA13/14 - SWDIO/SWCLK - AF0)
     GPIOA->ODR = 0;
     GPIOA->AFR[0] = 0;
     GPIOA->AFR[1] = AFRf(4, 9) | AFRf(4, 10) | AFRf(14, 11) | AFRf(14,12);
@@ -36,7 +36,7 @@ TRUE_INLINE void gpio_setup(){
                     MODER_AF(9) | MODER_AF(10) | MODER_AF(11) | MODER_AF(12) | MODER_AF(13) | MODER_AF(14);
     GPIOA->OSPEEDR = OSPEED_HI(9) | OSPEED_HI(10) | OSPEED_HI(11) | OSPEED_HI(12) | OSPEED_HI(13) | OSPEED_HI(14);
     GPIOA->OTYPER = 0;
-    GPIOA->PUPDR = 0;
+    GPIOA->PUPDR = PUPD_PU(13) | PUPD_PD(14); // SWDIO - pullup, SDCLK - pulldown
 
     // PORT B
     GPIOB->ODR = 0;
