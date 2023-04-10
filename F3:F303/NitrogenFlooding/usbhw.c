@@ -84,7 +84,6 @@ void usb_lp_isr(){
         lastaddr = LASTADDR_DEFAULT;
         // clear address, leave only enable bit
         USB->DADDR = USB_DADDR_EF;
-        USB_Dev.USB_Status = USB_STATE_DEFAULT;
         if(EP_Init(0, EP_TYPE_CONTROL, USB_EP0_BUFSZ, USB_EP0_BUFSZ, EP0_Handler)){
             return;
         }
@@ -101,10 +100,10 @@ void usb_lp_isr(){
         if(USB->ISTR & USB_ISTR_DIR){ // OUT interrupt - receive data, CTR_RX==1 (if CTR_TX == 1 - two pending transactions: receive following by transmit)
             if(n == 0){ // control endpoint
                 if(epstatus & USB_EPnR_SETUP){ // setup packet -> copy data to conf_pack
-                    EP_Read(0, (uint8_t*)&setup_packet);
+                    EP_Read(0, setupdatabuf);
                     // interrupt handler will be called later
                 }else if(epstatus & USB_EPnR_CTR_RX){ // data packet -> push received data to ep0databuf
-                    EP_Read(0, (uint8_t*)&ep0databuf);
+                    EP_Read(0, ep0databuf);
                 }
             }
         }

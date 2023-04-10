@@ -87,7 +87,6 @@ int main(void){
             }
         }
         i2c_have_DMA_Rx(); // check if there's DMA Rx complete
-        USB_proc();
         int l = USB_receivestr(inbuff, MAXSTRLEN);
         if(l < 0) USB_sendstr("ERROR: USB buffer overflow or string was too long\n");
         else if(l){

@@ -18,6 +18,7 @@
 
 #pragma once
 
+#include "ringbuffer.h"
 #include "usbhw.h"
 
 // sizes of ringbuffers for outgoing and incoming data
@@ -36,7 +37,10 @@
 #define DBG(str)
 #endif
 
-void USB_proc();
+extern volatile ringbuffer rbout, rbin;
+extern volatile uint8_t bufisempty, bufovrfl;
+
+void send_next();
 int USB_sendall();
 int USB_send(const uint8_t *buf, int len);
 int USB_putbyte(uint8_t byte);

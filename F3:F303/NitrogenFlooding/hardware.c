@@ -19,7 +19,7 @@
 #include "hardware.h"
 #include "i2c.h"
 
-int LEDsON = 0;
+int LEDsON = 1;
 
 // setup here ALL GPIO pins (due to table in Readme.md)
 // leave SWD as default AF; high speed for CLK and some other AF; med speed for some another AF
