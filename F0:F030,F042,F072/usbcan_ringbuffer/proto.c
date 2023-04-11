@@ -228,7 +228,7 @@ TRUE_INLINE void CANini(char *txt){
     }
     CAN_reinit((uint16_t)N);
     USB_sendstr("Reinit CAN bus with speed ");
-    printu(N); USB_sendstr("kbps");
+    printu(N); USB_sendstr("kbps\n");
 }
 
 TRUE_INLINE void addIGN(char *txt){
@@ -250,6 +250,7 @@ TRUE_INLINE void addIGN(char *txt){
     Ignore_IDs[IgnSz++] = (uint16_t)(N & 0x7ff);
     USB_sendstr("Added ID "); printu(N);
     USB_sendstr("\nIgn buffer size: "); printu(IgnSz);
+    newline();
 }
 
 TRUE_INLINE void print_ign_buf(){
@@ -321,15 +322,16 @@ TRUE_INLINE void list_filters(){
     }
 }
 
+
+
 TRUE_INLINE void setfloodt(char *s){
     uint32_t N;
     s = omit_spaces(s);
     char *n = getnum(s, &N);
-    if(s == n){
-        USB_sendstr("t="); printu(floodT); USB_putbyte('\n');
-        return;
+    if(s != n){
+        floodT = N;
     }
-    floodT = N;
+    USB_sendstr("t="); printu(floodT); USB_putbyte('\n');
 }
 
 /**
@@ -421,7 +423,7 @@ static void add_filter(char *str){
     }
     CAN->FMR &=~ CAN_FMR_FINIT;
     USB_sendstr("Added filter with ");
-    printu(nfilt); USB_sendstr(" parameters");
+    printu(nfilt); USB_sendstr(" parameters\n");
 }
 
 const char *helpmsg =
@@ -472,31 +474,31 @@ void cmd_parser(char *txt){
     switch(_1st){
         case 'a':
             addIGN(txt);
-            goto eof;
+            return;
         break;
         case 'b':
             CANini(txt);
-            goto eof;
+            return;
         break;
         case 'f':
             add_filter(txt);
-            goto eof;
+            return;
         break;
         case 'F':
             set_flood(parseCANmsg(txt), 0);
-            goto eof;
+            return;
         break;
         case 's':
         case 'S':
             USB_sendstrCANcommand(txt);
-            goto eof;
+            return;
         break;
         case 't':
             setfloodt(txt);
-            goto eof;
+            return;
         break;
     }
-    if(*txt != '\n') _1st = '?'; // help for wrong message length
+    if(*txt) _1st = '?'; // help for wrong message length
     switch(_1st){
         case 'c':
             getcanstat();
@@ -517,7 +519,9 @@ void cmd_parser(char *txt){
             USB_sendstr("Incremental flooding is ON ('F' to off)\n");
         break;
         case 'I':
-            CAN_reinit(0);
+            USB_sendstr("CANspeed=");
+            printu(CAN_reinit(0));
+            newline();
         break;
         case 'l':
             list_filters();
@@ -526,9 +530,11 @@ void cmd_parser(char *txt){
             ledsON = 0;
             LED_off(LED0);
             LED_off(LED1);
+            USB_sendstr("LEDS=0\n");
         break;
         case 'O':
             ledsON = 1;
+            USB_sendstr("LEDS=1\n");
         break;
         case 'p':
             print_ign_buf();
@@ -552,8 +558,8 @@ void cmd_parser(char *txt){
             USB_sendstr(helpmsg);
         break;
     }
-eof:
-    USB_putbyte('\n');
+//eof:
+    //USB_putbyte('\n');
 }
 
 // print 32bit unsigned int

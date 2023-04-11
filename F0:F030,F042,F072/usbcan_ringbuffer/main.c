@@ -52,7 +52,6 @@ int main(void){
             lastT = 0;
         }
         can_proc();
-        USB_proc();
         if(CAN_get_status() == CAN_FIFO_OVERRUN){
             USB_sendstr("CAN bus fifo overrun occured!\n");
         }

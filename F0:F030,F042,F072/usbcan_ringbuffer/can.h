@@ -47,8 +47,8 @@ typedef enum{
 
 CAN_status CAN_get_status();
 
-void CAN_reinit(uint16_t speed);
-void CAN_setup(uint16_t speed);
+int CAN_reinit(uint16_t speed);
+int CAN_setup(uint16_t speed);
 
 CAN_status can_send(uint8_t *msg, uint8_t len, uint16_t target_id);
 void can_proc();

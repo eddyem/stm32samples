@@ -25,7 +25,6 @@
 static CAN_message messages[CAN_INMESSAGE_SIZE];
 static uint8_t first_free_idx = 0;    // index of first empty cell
 static int8_t first_nonfree_idx = -1; // index of first data cell
-static uint16_t oldspeed = 100; // speed of last init
 uint32_t floodT = FLOOD_PERIOD_MS; // flood period in ms
 static uint8_t incrflood = 0; // ==1 for incremental flooding
 
@@ -84,11 +83,11 @@ CAN_message *CAN_messagebuf_pop(){
     return msg;
 }
 
-void CAN_reinit(uint16_t speed){
+int CAN_reinit(uint16_t speed){
     CAN->TSR |= CAN_TSR_ABRQ0 | CAN_TSR_ABRQ1 | CAN_TSR_ABRQ2;
     RCC->APB1RSTR |= RCC_APB1RSTR_CANRST;
     RCC->APB1RSTR &= ~RCC_APB1RSTR_CANRST;
-    CAN_setup(speed);
+    return CAN_setup(speed);
 }
 
 /*
@@ -112,8 +111,9 @@ so if TBS1=4 and TBS2=3, sum=8, bit sampling freq is 48/8 = 6MHz
             1MBps   - 6
 */
 
-// speed - in kbps
-void CAN_setup(uint16_t speed){
+// speed - in kbps. @return - current speed
+int CAN_setup(uint16_t speed){
+    static uint16_t oldspeed = 100; // speed of last init
     LED_off(LED1);
     if(speed == 0) speed = oldspeed;
     else if(speed < 50) speed = 50;
@@ -168,6 +168,7 @@ void CAN_setup(uint16_t speed){
     NVIC_SetPriority(CEC_CAN_IRQn, 0); /* (14) */
     NVIC_EnableIRQ(CEC_CAN_IRQn); /* (15) */
     can_status = CAN_READY;
+    return speed;
 }
 
 void printCANerr(){
@@ -234,7 +235,7 @@ void can_proc(){
         can_send(flood_msg->data, flood_msg->length, flood_msg->ID);
     }else if(incrflood && (Tms - lastFloodTime) >= floodT){ // incremental flood message
         lastFloodTime = Tms;
-        if(CAN_OK == can_send((uint8_t*)&incrmessagectr, 4, flood_msg->ID)) ++incrmessagectr;
+        if(CAN_OK == can_send((uint8_t*)&incrmessagectr, 4, loc_flood_msg.ID)) ++incrmessagectr;
     }
 }
 
