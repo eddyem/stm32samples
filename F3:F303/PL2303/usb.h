@@ -1,6 +1,6 @@
 /*
  * This file is part of the pl2303 project.
- * Copyright 2022 Edward V. Emelianov <edward.emelianoff@gmail.com>.
+ * Copyright 2023 Edward V. Emelianov <edward.emelianoff@gmail.com>.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,22 +17,33 @@
  */
 
 #pragma once
-#ifndef __USB_H__
-#define __USB_H__
 
+#include "ringbuffer.h"
 #include "usbhw.h"
 
 // sizes of ringbuffers for outgoing and incoming data
 #define RBOUTSZ     (512)
 #define RBINSZ      (512)
 
-void USB_proc();
+#define newline()   USB_putbyte('\n')
+#define USND(s)     do{USB_sendstr(s); USB_putbyte('\n');}while(0)
+
+#define STR_HELPER(s)   #s
+#define STR(s)          STR_HELPER(s)
+
+#ifdef EBUG
+#define DBG(str)  do{USB_sendstr(__FILE__ " (L" STR(__LINE__) "): " str); newline();}while(0)
+#else
+#define DBG(str)
+#endif
+
+extern volatile ringbuffer rbout, rbin;
+extern volatile uint8_t bufisempty, bufovrfl;
+
+void send_next();
 int USB_sendall();
 int USB_send(const uint8_t *buf, int len);
 int USB_putbyte(uint8_t byte);
 int USB_sendstr(const char *string);
 int USB_receive(uint8_t *buf, int len);
 int USB_receivestr(char *buf, int len);
-
-
-#endif // __USB_H__

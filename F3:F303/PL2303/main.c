@@ -1,6 +1,6 @@
 /*
  * This file is part of the pl2303 project.
- * Copyright 2022 Edward V. Emelianov <edward.emelianoff@gmail.com>.
+ * Copyright 2023 Edward V. Emelianov <edward.emelianoff@gmail.com>.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,6 +35,7 @@ void sys_tick_handler(void){
 int main(void){
     char inbuff[MAXSTRLEN+1];
     int hse = 0;
+    USBPU_OFF();
     if(StartHSE()){
         hse = 1;
         SysTick_Config((uint32_t)72000); // 1ms
@@ -45,6 +46,7 @@ int main(void){
     hw_setup();
     usart_setup();
     USB_setup();
+    USBPU_ON();
     if(hse) usart_send("Ready @ HSE");
     else usart_send("Ready @ HSI");
     usart_send(", CFGR="); usart_send(u2hexstr(RCC->CFGR));
@@ -65,7 +67,6 @@ int main(void){
             const char *ans = parse_cmd(txt);
             if(ans) usart_send(ans);
         }
-        USB_proc();
         int l = USB_receivestr(inbuff, MAXSTRLEN);
         if(l < 0) USB_sendstr("ERROR: USB buffer overflow or string was too long\n");
         else if(l){

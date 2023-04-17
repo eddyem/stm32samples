@@ -21,7 +21,7 @@
 #include "usb.h"
 #include "version.inc"
 
-uint8_t starttest = 50;
+uint8_t starttest = 0;
 
 char *omit_spaces(const char *buf){
     while(*buf){

@@ -1,6 +1,6 @@
 /*
  * This file is part of the pl2303 project.
- * Copyright 2022 Edward V. Emelianov <edward.emelianoff@gmail.com>.
+ * Copyright 2023 Edward V. Emelianov <edward.emelianoff@gmail.com>.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,22 +19,12 @@
 #include "usb.h"
 #include "usb_lib.h"
 
+// here we suppose that all PIN settings done in hw_setup earlier
 void USB_setup(){
     NVIC_DisableIRQ(USB_LP_IRQn);
     // remap USB LP & Wakeup interrupts to 75 and 76 - works only on pure F303
     RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN; // enable tacting of SYSCFG
     SYSCFG->CFGR1 |= SYSCFG_CFGR1_USB_IT_RMP;
-    // setup pullup
-    RCC->AHBENR |= RCC_AHBENR_GPIOAEN;
-    USBPU_OFF();
-    //GPIOA->MODER = (GPIOA->MODER & ~(GPIO_MODER_MODER15_Msk | GPIO_MODER_MODER11_Msk | GPIO_MODER_MODER12_Msk)) |
-    GPIOA->MODER = (GPIOA->MODER & (MODER_CLR(11) & MODER_CLR(12) & MODER_CLR(15))) |
-            (MODER_AF(11) | MODER_AF(12) | MODER_O(15));
-            //(GPIO_MODER_MODER11_AF | GPIO_MODER_MODER12_AF | GPIO_MODER_MODER15_O);
-    // USB - alternate function 14 @ pins PA11/PA12
-    GPIOA->AFR[1] = (GPIOA->AFR[1] & ~(GPIO_AFRH_AFRH3_Msk | GPIO_AFRH_AFRH4_Msk)) |
-            //AFR1(14, 11) | AFR1(14, 12);
-            AFRf(14, 11) | AFRf(14, 12);
     RCC->APB1ENR |= RCC_APB1ENR_USBEN;
     USB->CNTR   = USB_CNTR_FRES; // Force USB Reset
     for(uint32_t ctr = 0; ctr < 72000; ++ctr) nop(); // wait >1ms
@@ -45,7 +35,6 @@ void USB_setup(){
     USB->ISTR   = 0;
     USB->CNTR   = USB_CNTR_RESETM | USB_CNTR_WKUPM; // allow only wakeup & reset interrupts
     NVIC_EnableIRQ(USB_LP_IRQn);
-    USBPU_ON();
 }
 
 static uint16_t lastaddr = LASTADDR_DEFAULT;
@@ -72,12 +61,12 @@ int EP_Init(uint8_t number, uint8_t type, uint16_t txsz, uint16_t rxsz, void (*f
         countrx = 31 + rxsz / 32;
     }
     USB_BTABLE->EP[number].USB_ADDR_TX = lastaddr;
-    endpoints[number].tx_buf = (uint16_t *)(USB_BTABLE_BASE + lastaddr*2);
+    endpoints[number].tx_buf = (uint16_t *)(USB_BTABLE_BASE + lastaddr * ACCESSZ);
     endpoints[number].txbufsz = txsz;
     lastaddr += txsz;
     USB_BTABLE->EP[number].USB_COUNT_TX = 0;
     USB_BTABLE->EP[number].USB_ADDR_RX = lastaddr;
-    endpoints[number].rx_buf = (uint16_t *)(USB_BTABLE_BASE + lastaddr*2);
+    endpoints[number].rx_buf = (uint8_t *)(USB_BTABLE_BASE + lastaddr * ACCESSZ);
     lastaddr += rxsz;
     USB_BTABLE->EP[number].USB_COUNT_RX = countrx << 10;
     endpoints[number].func = func;
@@ -95,7 +84,6 @@ void usb_lp_isr(){
         lastaddr = LASTADDR_DEFAULT;
         // clear address, leave only enable bit
         USB->DADDR = USB_DADDR_EF;
-        USB_Dev.USB_Status = USB_STATE_DEFAULT;
         if(EP_Init(0, EP_TYPE_CONTROL, USB_EP0_BUFSZ, USB_EP0_BUFSZ, EP0_Handler)){
             return;
         }
@@ -112,12 +100,10 @@ void usb_lp_isr(){
         if(USB->ISTR & USB_ISTR_DIR){ // OUT interrupt - receive data, CTR_RX==1 (if CTR_TX == 1 - two pending transactions: receive following by transmit)
             if(n == 0){ // control endpoint
                 if(epstatus & USB_EPnR_SETUP){ // setup packet -> copy data to conf_pack
-                    EP_Read(0, (uint16_t*)&setup_packet);
-                    ep0dbuflen = 0;
+                    EP_Read(0, setupdatabuf);
                     // interrupt handler will be called later
                 }else if(epstatus & USB_EPnR_CTR_RX){ // data packet -> push received data to ep0databuf
-                    ep0dbuflen = endpoints[0].rx_cnt;
-                    EP_Read(0, (uint16_t*)&ep0databuf);
+                    EP_Read(0, ep0databuf);
                 }
             }
         }

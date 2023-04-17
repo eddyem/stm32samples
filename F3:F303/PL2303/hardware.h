@@ -1,6 +1,6 @@
 /*
  * This file is part of the pl2303 project.
- * Copyright 2022 Edward V. Emelianov <edward.emelianoff@gmail.com>.
+ * Copyright 2023 Edward V. Emelianov <edward.emelianoff@gmail.com>.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,6 +21,11 @@
 #define __HARDWARE_H__
 
 #include <stm32f3.h>
+
+#define USBPU_port  GPIOA
+#define USBPU_pin   (1<<15)
+#define USBPU_ON()  pin_clear(USBPU_port, USBPU_pin)
+#define USBPU_OFF() pin_set(USBPU_port, USBPU_pin)
 
 extern volatile uint32_t Tms;
 

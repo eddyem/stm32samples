@@ -65,12 +65,6 @@ void usart_send(const char *str){
 }
 
 void usart_setup(){
-    // USART1: Rx - PA10 (AF7), Tx - PA9  (AF7)
-    // setup pins:
-    GPIOA->MODER = (GPIOA->MODER & ~(GPIO_MODER_MODER9 | GPIO_MODER_MODER10)) |
-                   GPIO_MODER_MODER9_AF | GPIO_MODER_MODER10_AF;
-    GPIOA->AFR[1] = (GPIOA->AFR[1] & ~(GPIO_AFRH_AFRH1 | GPIO_AFRH_AFRH2)) |
-                7 << (1 * 4) | 7 << (2 * 4); // PA9, PA10
     // clock
     RCC->APB2ENR |= RCC_APB2ENR_USART1EN;
     USART1->ICR = 0xffffffff; // clear all flags
