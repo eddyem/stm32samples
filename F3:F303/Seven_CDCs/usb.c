@@ -30,7 +30,7 @@ volatile ringbuffer rbout[WORK_EPs] = {OBUF(0), OBUF(1), OBUF(2), OBUF(3), OBUF(
 #define IBUF(N)  {.data = ibuf[N], .length = RBOUTSZ, .head = 0, .tail = 0}
 volatile ringbuffer rbin[WORK_EPs] = {IBUF(0), IBUF(1), IBUF(2), IBUF(3), IBUF(4), IBUF(5), IBUF(6)};
 // transmission is succesfull
-volatile uint8_t bufisempty[WORK_EPs] = {1,1,1,1,1,1};
+volatile uint8_t bufisempty[WORK_EPs] = {1,1,1,1,1,1,1};
 volatile uint8_t bufovrfl[WORK_EPs] = {0};
 
 // here and later: ifNo is index of buffers, i.e. ifNo = epno-1 !!!
@@ -39,12 +39,12 @@ void send_next(int ifNo){
     static int lastdsz = 0;
     int buflen = RB_read((ringbuffer*)&rbout[ifNo], (uint8_t*)usbbuff, USB_TRBUFSZ);
     if(!buflen){
-        if(lastdsz == 64) EP_Write(3, NULL, 0); // send ZLP after 64 bits packet when nothing more to send
+        if(lastdsz == 64) EP_Write(ifNo+1, NULL, 0); // send ZLP after 64 bits packet when nothing more to send
         lastdsz = 0;
         bufisempty[ifNo] = 1;
         return;
     }
-    EP_Write(3, (uint8_t*)usbbuff, buflen);
+    EP_Write(ifNo+1, (uint8_t*)usbbuff, buflen);
     lastdsz = buflen;
 }
 
@@ -59,8 +59,10 @@ int USB_sendall(int ifNo){
 // put `buf` into queue to send
 int USB_send(int ifNo, const uint8_t *buf, int len){
     if(!buf || !usbON || !len) return 0;
+    uint32_t T = Tms;
     while(len){
         int a = RB_write((ringbuffer*)&rbout[ifNo], buf, len);
+        if(a == 0 && Tms - T > 5) return 0; // timeout
         len -= a;
         buf += a;
         if(bufisempty[ifNo]){
@@ -126,4 +128,3 @@ int USB_receivestr(int ifNo, char *buf, int len){
     }
     return l;
 }
-

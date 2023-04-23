@@ -1,6 +1,6 @@
 /*
- * This file is part of the SevenCDCs project.
- * Copyright 2022 Edward V. Emelianov <edward.emelianoff@gmail.com>.
+ * This file is part of the 7CDCs project.
+ * Copyright 2023 Edward V. Emelianov <edward.emelianoff@gmail.com>.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,20 +17,18 @@
  */
 
 #pragma once
-#ifndef __USART_H__
-#define __USART_H__
 
-#include "hardware.h"
-#include "usb_lib.h"
+#include "usb.h"
 
-// amount of usarts
-#define USARTSNO        3
+#ifdef EBUG
+#define DBG(str)  do{USB_sendstr(DBG_IDX, __FILE__ " (L" STR(__LINE__) "): " str); newline(DBG_IDX);}while(0)
+#define DBGmesg(str) do{USB_sendstr(DBG_IDX, str);}while(0)
+#define DBGnl()  newline(DBG_IDX)
+#else
+#define DBG(str)
+#define DBGmesg(str)
+#define DBGnl()
+#endif
 
-extern volatile int linerdy, bufovr;
+#define MSG(str)  do{USB_sendstr(DBG_IDX, str); newline(DBG_IDX);}while(0)
 
-void usarts_setup();
-void usart_config(uint8_t ifNo, usb_LineCoding *lc);
-void usart_sendn(const uint8_t *str, int L);
-usb_LineCoding *getLineCoding(int ifNo);
-
-#endif // __USART_H__

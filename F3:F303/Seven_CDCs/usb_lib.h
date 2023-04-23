@@ -98,16 +98,6 @@ enum{
 
 #define LANG_US (uint16_t)0x0409
 
-#if 0
-typedef struct{
-    uint8_t  bLength;
-    uint8_t  bDescriptorType;
-    uint16_t *bString;
-} string_descriptor_t;
-
-#define _USB_STRING_(name, str) string_descriptor_t name = {(sizeof(str) + 2), STRING_DESCRIPTOR, str}
-#endif
-
 #define _USB_STRING_(name, str)                  \
 static const struct name \
 {                          \
@@ -161,14 +151,6 @@ typedef struct {
     #define USB_CDC_SPACE_PARITY  4
     uint8_t bDataBits;
 } __attribute__ ((packed)) usb_LineCoding;
-
-typedef struct {
-    uint8_t   bmRequestType;
-    uint8_t   bNotificationType;
-    uint16_t  wValue;
-    uint16_t  wIndex;
-    uint16_t  wLength;
-} __attribute__ ((packed)) usb_cdc_notification;
 
 extern ep_t endpoints[];
 extern volatile uint8_t usbON;

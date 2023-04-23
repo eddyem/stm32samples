@@ -1,6 +1,6 @@
 /*
  * This file is part of the SevenCDCs project.
- * Copyright 2022 Edward V. Emelianov <edward.emelianoff@gmail.com>.
+ * Copyright 2023 Edward V. Emelianov <edward.emelianoff@gmail.com>.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,17 +17,7 @@
  */
 
 #pragma once
-#ifndef PROTO_H__
-#define PROTO_H__
 
 #include <stm32f3.h>
 
-extern uint8_t starttest;
-
 void parse_cmd(const char *buf);
-char *omit_spaces(const char *buf);
-char *getnum(const char *buf, uint32_t *N);
-char *u2str(uint32_t val);
-char *u2hexstr(uint32_t val);
-
-#endif // PROTO_H__

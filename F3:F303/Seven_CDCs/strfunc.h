@@ -1,6 +1,6 @@
 /*
- * This file is part of the SevenCDCs project.
- * Copyright 2022 Edward V. Emelianov <edward.emelianoff@gmail.com>.
+ * This file is part of the 7CDCs project.
+ * Copyright 2023 Edward V. Emelianov <edward.emelianoff@gmail.com>.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,20 +17,16 @@
  */
 
 #pragma once
-#ifndef __USART_H__
-#define __USART_H__
 
-#include "hardware.h"
-#include "usb_lib.h"
+#include <stdint.h>
+#include <string.h>
 
-// amount of usarts
-#define USARTSNO        3
-
-extern volatile int linerdy, bufovr;
-
-void usarts_setup();
-void usart_config(uint8_t ifNo, usb_LineCoding *lc);
-void usart_sendn(const uint8_t *str, int L);
-usb_LineCoding *getLineCoding(int ifNo);
-
-#endif // __USART_H__
+void hexdump(int (*sendfun)(const char *s), uint8_t *arr, uint16_t len);
+const char *u2str(uint32_t val);
+const char *i2str(int32_t i);
+const char *uhex2str(uint32_t val);
+const char *getnum(const char *txt, uint32_t *N);
+const char *omit_spaces(const char *buf);
+const char *getint(const char *txt, int32_t *I);
+//void mymemcpy(char *dest, const char *src, int len);
+char * float2str(float x, uint8_t prec);

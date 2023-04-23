@@ -118,6 +118,7 @@ void usb_lp_isr(){
     if(USB->ISTR & USB_ISTR_WKUP){ // wakeup
         USB->CNTR &= ~(USB_CNTR_FSUSP | USB_CNTR_LP_MODE); // clear suspend flags
         USB->ISTR = ~USB_ISTR_WKUP;
+        usbON = 1;
     }
 }
 

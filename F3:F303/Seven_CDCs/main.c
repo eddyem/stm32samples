@@ -16,8 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "hardware.h"
 #include "cmdproto.h"
+#include "debug.h"
+#include "hardware.h"
 #include "usart.h"
 #include "usb.h"
 
@@ -48,11 +49,14 @@ int main(void){
         if(Tms - ctr > 499){
             ctr = Tms;
             pin_toggle(GPIOB, 1 << 1 | 1 << 0); // toggle LED @ PB0
+            //DBG("blink\n");
         }
         int l = USB_receivestr(CMD_IDX, inbuff, MAXSTRLEN);
         if(l < 0) USB_sendstr(CMD_IDX, "ERROR: USB buffer overflow or string was too long\n");
         else if(l){
             parse_cmd(inbuff);
         }
+        l = USB_receivestr(DBG_IDX, inbuff, MAXSTRLEN);
+        if(l) USB_sendstr(DBG_IDX, inbuff); // just echo back all from USB-DBG interface
     }
 }

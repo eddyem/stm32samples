@@ -17,6 +17,10 @@
  */
 
 #include <stdint.h>
+#include "debug.h"
+#ifdef EBUG
+#include "strfunc.h"
+#endif
 #include "usart.h"
 #include "usb.h"
 #include "usb_lib.h"
@@ -48,8 +52,8 @@ static const uint8_t USB_DeviceDescriptor[] = {
         bDeviceSubClass,   // bDeviceSubClass
         bDeviceProtocol,   // bDeviceProtocol
         USB_EP0_BUFSZ,   // bMaxPacketSize
-    // 0483:5740 (VID:PID) - stm32 VCP
-    0x83, 0x04, 0x40, 0x57,
+        // 0483:5740 (VID:PID) - stm32 VCP
+        0x83, 0x04, 0x40, 0x57,
         0x00,   // bcdDevice_Ver_L
         0x02,   // bcdDevice_Ver_H
         iMANUFACTURER_DESCR,   // iManufacturer
@@ -768,6 +772,8 @@ static void rxtx_Handler(uint8_t epno){
     uint8_t buf[USB_TRBUFSZ];
     int idx = epno - 1;
     uint16_t epstatus = KEEP_DTOG(USB->EPnR[epno]);
+    DBGmesg("RxTx="); DBGmesg(u2str(epno));
+    DBGmesg(", epst="); DBGmesg(u2str(epstatus)); DBGnl();
     if(RX_FLAG(epstatus)){
         uint8_t sz = EP_Read(epno, (uint8_t*)buf);
         if(sz){
@@ -793,6 +799,7 @@ static inline void std_h2d_req(){
             for(uint8_t i = 1; i <= WORK_EPs; ++i){
                 EP_Init(i, EP_TYPE_BULK, USB_TRBUFSZ, USB_TRBUFSZ, rxtx_Handler);
             }
+            usbON = 1;
         break;
         default:
         break;
@@ -814,6 +821,8 @@ void EP0_Handler(uint8_t  __attribute__((unused)) epno){
     uint8_t dev2host = (setup_packet->bmRequestType & 0x80) ? 1 : 0;
     int rxflag = RX_FLAG(epstatus);
     usb_LineCoding *lc;
+    // calculate iFno (EP number minus 1) by setup_packet->wIndex (bInterfaceNumber): iFno = wIndex >> 1
+    int iFno = setup_packet->wIndex >> 1;
     if(rxflag && SETUP_FLAG(epstatus)){
         switch(reqtype){
             case STANDARD_DEVICE_REQUEST_TYPE: // standard device request
@@ -832,17 +841,20 @@ void EP0_Handler(uint8_t  __attribute__((unused)) epno){
             case CONTROL_REQUEST_TYPE:
                 switch(setup_packet->bRequest){
                     case GET_LINE_CODING:
-                        lc = getLineCoding(1); // TODO: HOW can we change number of interface???
+                        DBG("GET_LINE_CODING from"); DBGmesg(u2str(iFno)); DBGnl();
+                        lc = getLineCoding(iFno);
                         if(!lc) EP_WriteIRQ(0, (uint8_t *)0, 0);
                         else EP_WriteIRQ(0, (uint8_t*)&lc, sizeof(usb_LineCoding));
                     break;
                     case SET_LINE_CODING: // omit this for next stage, when data will come
                     break;
                     case SET_CONTROL_LINE_STATE:
-                        clstate_handler(1, setup_packet->wValue); // TODO: how can we check iface number???
+                        DBG("SET_CONTROL_LINE_STATE from"); DBGmesg(u2str(iFno)); DBGnl();
+                        clstate_handler(iFno, setup_packet->wValue);
                     break;
                     case SEND_BREAK:
-                        break_handler(1); // TODO: how can we check iface number???
+                        DBG("SEND_BREAK from"); DBGmesg(u2str(iFno)); DBGnl();
+                        break_handler(iFno);
                     break;
                     default:
                     break;
@@ -855,8 +867,8 @@ void EP0_Handler(uint8_t  __attribute__((unused)) epno){
     }else if(rxflag){ // got data over EP0 or host acknowlegement
         if(endpoints[0].rx_cnt){
             if(setup_packet->bRequest == SET_LINE_CODING){
-                // TODO: how can we check iface number???
-                linecoding_handler(1, (usb_LineCoding*)ep0databuf);
+                DBG("SET_LINE_CODING from"); DBGmesg(u2str(iFno)); DBGnl();
+                linecoding_handler(iFno, (usb_LineCoding*)ep0databuf);
             }
         }
     } else if(TX_FLAG(epstatus)){ // package transmitted

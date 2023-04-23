@@ -31,12 +31,6 @@
 #define STR_HELPER(s)   #s
 #define STR(s)          STR_HELPER(s)
 
-#ifdef EBUG
-#define DBG(str)  do{USB_sendstr(__FILE__ " (L" STR(__LINE__) "): " str); newline();}while(0)
-#else
-#define DBG(str)
-#endif
-
 // total amount of working EPs
 #define WORK_EPs    7
 // functional EPs
@@ -45,10 +39,12 @@
 #define USART2_EPNO 3
 #define USART3_EPNO 4
 #define CAN_EPNO    6
+#define DBG_EPNO    7
 #define USARTMAX_EPNO USART3_EPNO
 // functional indexes
 #define CMD_IDX     (CMD_EPNO-1)
 #define CAN_IDX     (CAN_EPNO-1)
+#define DBG_IDX     (DBG_EPNO-1)
 
 extern volatile ringbuffer rbout[], rbin[];
 extern volatile uint8_t bufisempty[], bufovrfl[];

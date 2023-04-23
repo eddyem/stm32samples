@@ -30,17 +30,18 @@ volatile int linerdy = 0,   // received data ready
     dlen    = 0,            // length of data (including '\n') in current buffer
     bufovr  = 0;            // input buffer overfull
 // USARTs speeds
-static int speeds[USARTSNO+1] = {0};
+static usb_LineCoding lineCodings[USARTSNO+1] = {
+    {115200, USB_CDC_1_STOP_BITS, USB_CDC_NO_PARITY, 8}, {0}};
 
-usb_LineCoding *getLineCoding(int usartNo){
-    static usb_LineCoding lineCoding; // `static` - to return pointer to it
-    if(usartNo < 1 || usartNo > USARTSNO) return NULL;
-// TODO: fixme
-    lineCoding.dwDTERate = speeds[usartNo];
-    lineCoding.bCharFormat = USB_CDC_1_STOP_BITS;
-    lineCoding.bParityType = USB_CDC_NO_PARITY;
-    lineCoding.bDataBits = 8;
-    return &lineCoding;
+usb_LineCoding *getLineCoding(int ifNo){
+    int usartNo = ifNo - USART1_EPNO + 1;
+    if(usartNo < 1 || usartNo > USARTSNO) return lineCodings;
+    return & lineCodings[usartNo];
+// TODO: fixme for different settings
+    //lineCoding.dwDTERate = speeds[usartNo];
+    //lineCoding.bCharFormat = USB_CDC_1_STOP_BITS;
+    //lineCoding.bParityType = USB_CDC_NO_PARITY;
+    //lineCoding.bDataBits = 8;
 }
 
 void usart_putchar(uint8_t ch){
@@ -64,9 +65,11 @@ void usarts_setup(){
     NVIC_EnableIRQ(USART3_IRQn);
 }
 
-void usart_config(uint8_t usartNo, usb_LineCoding *lc){
-    if(!usartNo || usartNo > USARTSNO) return;
-    speeds[usartNo] = lc->dwDTERate;
+void usart_config(uint8_t ifNo, usb_LineCoding *lc){
+    int usartNo = ifNo - USART1_EPNO + 1;
+    if(usartNo < 1 || usartNo > USARTSNO) return;
+    lineCodings[usartNo] = *lc;
+    // FIXME: change also parity and so on
     volatile USART_TypeDef *U = USARTx[usartNo];
     U->ICR = 0xffffffff; // clear all flags
     U->BRR = SysFreq / lc->dwDTERate;
