@@ -153,6 +153,8 @@ typedef struct {
 } __attribute__ ((packed)) usb_LineCoding;
 
 extern ep_t endpoints[];
+// device disconnected from terminal (BIT flags!!!)
+#define USBON(ifno) (usbON & (1<<ifno))
 extern volatile uint8_t usbON;
 extern config_pack_t *setup_packet;
 extern uint8_t ep0databuf[], setupdatabuf[];

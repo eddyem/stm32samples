@@ -20,16 +20,17 @@
 #include "debug.h"
 #include "strfunc.h"
 #include "usb.h"
+#include "usb_lib.h" // USBON
 #include "version.inc"
 
 #define SEND(str)       do{USB_sendstr(CMD_IDX, str);}while(0)
 #define SENDN(str)      do{USB_sendstr(CMD_IDX, str); USB_putbyte(CMD_IDX, '\n');}while(0)
 
 extern volatile uint32_t Tms;
-extern uint8_t usbON;
 
 const char* helpmsg =
     "https://github.com/eddyem/stm32samples/tree/master/F3:F303/PL2303 build#" BUILD_NUMBER " @ " BUILD_DATE "\n"
+    "2..7 - send next string to given EP\n"
     "'i' - print USB->ISTR state\n"
     "'N' - read number (dec, 0xhex, 0oct, bbin) and show it in decimal\n"
     "'R' - software reset\n"
@@ -53,8 +54,7 @@ void parse_cmd(const char *buf){
             break;
             case 'U':
                 SEND("USB status: ");
-                if(usbON) SENDN("ON");
-                else SENDN("OFF");
+                SENDN(uhex2str(usbON));
             break;
             case 'W':
                 SENDN("Wait for reboot");
@@ -68,9 +68,20 @@ void parse_cmd(const char *buf){
     }
     uint32_t Num = 0;
     const char *nxt;
-    switch(*buf){ // long messages
+    char cmd = *buf++;
+    if(cmd > '0'+CMD_EPNO && cmd <= '0'+DBG_EPNO){ // send data to iface
+        cmd -= '1';
+        if(USBON(cmd)){
+            SENDN("OK");
+            USB_sendstr(cmd, buf);
+            USB_putbyte(cmd, '\n');
+        }else{
+            SENDN("Not connected");
+        }
+        return;
+    }
+    switch(cmd){ // long messages
         case 'N':
-            ++buf;
             nxt = getnum(buf, &Num);
             if(buf == nxt){
                 if(Num == 0) SENDN("Wrong number");
@@ -84,7 +95,7 @@ void parse_cmd(const char *buf){
             }else SEND("\n");
         break;
         default:
-            SEND(buf);
+            SEND(buf-1); // echo
             return;
     }
 }

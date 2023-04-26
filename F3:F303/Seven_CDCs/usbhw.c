@@ -75,6 +75,7 @@ int EP_Init(uint8_t number, uint8_t type, uint16_t txsz, uint16_t rxsz, void (*f
 
 // standard IRQ handler
 void usb_lp_isr(){
+    static uint8_t oldusbon = 0; // to store flags while suspended
     if(USB->ISTR & USB_ISTR_RESET){
         usbON = 0;
         // Reinit registers
@@ -111,6 +112,7 @@ void usb_lp_isr(){
         if(endpoints[n].func) endpoints[n].func(n);
     }
     if(USB->ISTR & USB_ISTR_SUSP){ // suspend -> still no connection, may sleep
+        oldusbon = usbON;
         usbON = 0;
         USB->CNTR |= USB_CNTR_FSUSP | USB_CNTR_LP_MODE;
         USB->ISTR = ~USB_ISTR_SUSP;
@@ -118,7 +120,7 @@ void usb_lp_isr(){
     if(USB->ISTR & USB_ISTR_WKUP){ // wakeup
         USB->CNTR &= ~(USB_CNTR_FSUSP | USB_CNTR_LP_MODE); // clear suspend flags
         USB->ISTR = ~USB_ISTR_WKUP;
-        usbON = 1;
+        usbON = oldusbon;
     }
 }
 

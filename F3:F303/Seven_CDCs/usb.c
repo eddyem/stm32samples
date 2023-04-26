@@ -36,33 +36,38 @@ volatile uint8_t bufovrfl[WORK_EPs] = {0};
 // here and later: ifNo is index of buffers, i.e. ifNo = epno-1 !!!
 void send_next(int ifNo){
     if(bufisempty[ifNo]) return;
-    static int lastdsz = 0;
+    static uint8_t lastdsz[WORK_EPs] = {0};
     int buflen = RB_read((ringbuffer*)&rbout[ifNo], (uint8_t*)usbbuff, USB_TRBUFSZ);
     if(!buflen){
-        if(lastdsz == 64) EP_Write(ifNo+1, NULL, 0); // send ZLP after 64 bits packet when nothing more to send
-        lastdsz = 0;
+        if(lastdsz[ifNo] == 64) EP_Write(ifNo+1, NULL, 0); // send ZLP after 64 bits packet when nothing more to send
+        lastdsz[ifNo] = 0;
         bufisempty[ifNo] = 1;
         return;
     }
     EP_Write(ifNo+1, (uint8_t*)usbbuff, buflen);
-    lastdsz = buflen;
+    lastdsz[ifNo] = buflen;
 }
 
 // blocking send full content of ring buffer
 int USB_sendall(int ifNo){
     while(!bufisempty[ifNo]){
-        if(!usbON) return 0;
+        if(!USBON(ifNo)) return 0;
     }
     return 1;
 }
 
 // put `buf` into queue to send
 int USB_send(int ifNo, const uint8_t *buf, int len){
-    if(!buf || !usbON || !len) return 0;
+    if(!buf || !USBON(ifNo) || !len) return 0;
     uint32_t T = Tms;
     while(len){
         int a = RB_write((ringbuffer*)&rbout[ifNo], buf, len);
-        if(a == 0 && Tms - T > 5) return 0; // timeout
+        if(a == 0 && Tms - T > 5){
+            usbON &= ~(1<<ifNo);
+            bufisempty[ifNo] = 0;
+            RB_clearbuf((ringbuffer*)&rbout[ifNo]);
+            return 0; // timeout - interface is down
+        }
         len -= a;
         buf += a;
         if(bufisempty[ifNo]){
@@ -74,7 +79,7 @@ int USB_send(int ifNo, const uint8_t *buf, int len){
 }
 
 int USB_putbyte(int ifNo, uint8_t byte){
-    if(!usbON) return 0;
+    if(!USBON(ifNo)) return 0;
     while(0 == RB_write((ringbuffer*)&rbout[ifNo], &byte, 1)){
         if(bufisempty[ifNo]){
             bufisempty[ifNo] = 0;
@@ -85,7 +90,7 @@ int USB_putbyte(int ifNo, uint8_t byte){
 }
 
 int USB_sendstr(int ifNo, const char *string){
-    if(!string || !usbON) return 0;
+    if(!string || !USBON(ifNo)) return 0;
     int len = 0;
     const char *b = string;
     while(*b++) ++len;

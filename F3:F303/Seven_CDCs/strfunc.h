@@ -21,7 +21,7 @@
 #include <stdint.h>
 #include <string.h>
 
-void hexdump(int (*sendfun)(const char *s), uint8_t *arr, uint16_t len);
+void hexdump(int ifno, uint8_t *arr, uint16_t len);
 const char *u2str(uint32_t val);
 const char *i2str(int32_t i);
 const char *uhex2str(uint32_t val);
