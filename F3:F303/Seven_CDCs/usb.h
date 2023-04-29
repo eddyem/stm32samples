@@ -35,16 +35,23 @@
 #define WORK_EPs    7
 // functional EPs
 #define CMD_EPNO    1
-#define USART1_EPNO 2
-#define USART2_EPNO 3
-#define USART3_EPNO 4
-#define CAN_EPNO    6
 #define DBG_EPNO    2
+#define USART1_EPNO 3
+#define USART2_EPNO 4
+#define USART3_EPNO 5
+#define USART4_EPNO 6
+#define CAN_EPNO    7
+#define MAX_EPNO    7
+
 #define USARTMAX_EPNO USART3_EPNO
 // functional indexes
 #define CMD_IDX     (CMD_EPNO-1)
 #define CAN_IDX     (CAN_EPNO-1)
 #define DBG_IDX     (DBG_EPNO-1)
+#define USART1_IDX  (USART1_EPNO-1)
+#define USART2_IDX  (USART2_EPNO-1)
+#define USART3_IDX  (USART3_EPNO-1)
+#define USART4_IDX  (USART4_EPNO-1)
 #define MAX_IDX     7
 
 extern volatile ringbuffer rbout[], rbin[];

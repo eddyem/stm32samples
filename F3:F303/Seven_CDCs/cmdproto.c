@@ -69,7 +69,7 @@ void parse_cmd(const char *buf){
     uint32_t Num = 0;
     const char *nxt;
     char cmd = *buf++;
-    if(cmd > '0'+CMD_EPNO && cmd <= '0'+DBG_EPNO){ // send data to iface
+    if(cmd > '0'+CMD_EPNO && cmd <= '0'+MAX_EPNO){ // send data to iface
         cmd -= '1';
         if(USBON(cmd)){
             SENDN("OK");

@@ -23,10 +23,12 @@
 #ifdef EBUG
 #define DBG(str)  do{USB_sendstr(DBG_IDX, __FILE__ " (L" STR(__LINE__) "): " str); newline(DBG_IDX);}while(0)
 #define DBGmesg(str) do{USB_sendstr(DBG_IDX, str);}while(0)
+#define DBGmesgn(str,n) do{USB_send(DBG_IDX, str, n);}while(0)
 #define DBGnl()  newline(DBG_IDX)
 #else
 #define DBG(str)
 #define DBGmesg(str)
+#define DBGmesgn(str,n)
 #define DBGnl()
 #endif
 

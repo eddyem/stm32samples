@@ -16,6 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "debug.h"
 #include "usb.h"
 #include "usb_lib.h"
 
@@ -33,7 +34,7 @@ void USB_setup(){
     USB->BTABLE = 0;
     USB->DADDR  = 0;
     USB->ISTR   = 0;
-    USB->CNTR   = USB_CNTR_RESETM | USB_CNTR_WKUPM; // allow only wakeup & reset interrupts
+    USB->CNTR   = USB_CNTR_RESETM;// | USB_CNTR_WKUPM; // allow only wakeup & reset interrupts
     NVIC_EnableIRQ(USB_LP_IRQn);
 }
 
@@ -50,11 +51,11 @@ static uint16_t lastaddr = LASTADDR_DEFAULT;
 int EP_Init(uint8_t number, uint8_t type, uint16_t txsz, uint16_t rxsz, void (*func)(uint8_t epno)){
     if(number >= STM32ENDPOINTS) return 4; // out of configured amount
     if(txsz > USB_BTABLE_SIZE || rxsz > USB_BTABLE_SIZE) return 1; // buffer too large
-    if(lastaddr + txsz + rxsz >= USB_BTABLE_SIZE) return 2; // out of btable
+    if(lastaddr + txsz + rxsz >= USB_BTABLE_SIZE/ACCESSZ) return 2; // out of btable
     USB->EPnR[number] = (type << 9) | (number & USB_EPnR_EA);
     USB->EPnR[number] ^= USB_EPnR_STAT_RX | USB_EPnR_STAT_TX_1;
-    if(rxsz & 1 || rxsz > 512) return 3; // wrong rx buffer size
-    uint16_t countrx = 0;
+    if(rxsz & 1 || rxsz > USB_BTABLE_SIZE) return 3; // wrong rx buffer size
+    uint16_t countrx = 0; // BLSIZE:NUM_BLOCKS[4:0]
     if(rxsz < 64) countrx = rxsz / 2;
     else{
         if(rxsz & 0x1f) return 3; // should be multiple of 32
@@ -73,13 +74,17 @@ int EP_Init(uint8_t number, uint8_t type, uint16_t txsz, uint16_t rxsz, void (*f
     return 0;
 }
 
+static uint8_t oldusbon = 0; // to store flags while suspended
+
 // standard IRQ handler
 void usb_lp_isr(){
-    static uint8_t oldusbon = 0; // to store flags while suspended
+    // EP number
+    uint8_t n = USB->ISTR & USB_ISTR_EPID;
+    //if(n && n != DBG_EPNO) DBG("ISR\n");
     if(USB->ISTR & USB_ISTR_RESET){
         usbON = 0;
         // Reinit registers
-        USB->CNTR = USB_CNTR_RESETM | USB_CNTR_CTRM | USB_CNTR_SUSPM | USB_CNTR_WKUPM;
+        USB->CNTR = USB_CNTR_RESETM | USB_CNTR_CTRM | USB_CNTR_SUSPM;
         // Endpoint 0 - CONTROL
         // ON USB LS size of EP0 may be 8 bytes, but on FS it should be 64 bytes!
         lastaddr = LASTADDR_DEFAULT;
@@ -91,8 +96,6 @@ void usb_lp_isr(){
         USB->ISTR = ~USB_ISTR_RESET;
     }
     if(USB->ISTR & USB_ISTR_CTR){
-        // EP number
-        uint8_t n = USB->ISTR & USB_ISTR_EPID;
         // copy status register
         uint16_t epstatus = USB->EPnR[n];
         // copy received bytes amount
@@ -101,9 +104,11 @@ void usb_lp_isr(){
         if(USB->ISTR & USB_ISTR_DIR){ // OUT interrupt - receive data, CTR_RX==1 (if CTR_TX == 1 - two pending transactions: receive following by transmit)
             if(n == 0){ // control endpoint
                 if(epstatus & USB_EPnR_SETUP){ // setup packet -> copy data to conf_pack
+                    DBG("setup\n");
                     EP_Read(0, setupdatabuf);
                     // interrupt handler will be called later
                 }else if(epstatus & USB_EPnR_CTR_RX){ // data packet -> push received data to ep0databuf
+                    DBG("data\n");
                     EP_Read(0, ep0databuf);
                 }
             }
@@ -112,15 +117,25 @@ void usb_lp_isr(){
         if(endpoints[n].func) endpoints[n].func(n);
     }
     if(USB->ISTR & USB_ISTR_SUSP){ // suspend -> still no connection, may sleep
+        DBG("susp");
         oldusbon = usbON;
         usbON = 0;
         USB->CNTR |= USB_CNTR_FSUSP | USB_CNTR_LP_MODE;
         USB->ISTR = ~USB_ISTR_SUSP;
     }
     if(USB->ISTR & USB_ISTR_WKUP){ // wakeup
+        DBG("wkup");
         USB->CNTR &= ~(USB_CNTR_FSUSP | USB_CNTR_LP_MODE); // clear suspend flags
         USB->ISTR = ~USB_ISTR_WKUP;
         usbON = oldusbon;
     }
 }
 
+void usb_wkup_isr(){
+    DBG("wkup");
+    if(USB->ISTR & USB_ISTR_WKUP){ // wakeup
+        USB->CNTR &= ~(USB_CNTR_FSUSP | USB_CNTR_LP_MODE); // clear suspend flags
+        USB->ISTR = ~USB_ISTR_WKUP;
+        usbON = oldusbon;
+    }
+}

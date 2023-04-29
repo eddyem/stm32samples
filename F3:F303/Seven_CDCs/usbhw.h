@@ -25,13 +25,14 @@
 /**
  *                 Buffers size definition
  **/
-#define USB_BTABLE_SIZE         768
-// first 64 bytes of USB_BTABLE are registers!
+#define USB_BTABLE_SIZE         512
+// first 64*ACCESSZ bytes of USB_BTABLE are registers!
 //#define USB_EP0_BASEADDR        64
 // for USB FS EP0 buffers are from 8 to 64 bytes long
+// For STM32F303CBT6 ACCESSZ=2, so real available buffers size for all EPs = only 192 bytes (128 - EP0)
 #define USB_EP0_BUFSZ           64
 // USB transmit/receive buffer size
-#define USB_TRBUFSZ             64
+#define USB_TRBUFSZ             4
 // EP1 - interrupt - buffer size
 #define USB_EP1BUFSZ            8
 

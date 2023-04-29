@@ -27,7 +27,7 @@ static volatile uint8_t usbbuff[USB_TRBUFSZ]; // temporary buffer for sending da
 static uint8_t obuf[WORK_EPs][RBOUTSZ], ibuf[WORK_EPs][RBINSZ];
 #define OBUF(N)  {.data = obuf[N], .length = RBOUTSZ, .head = 0, .tail = 0}
 volatile ringbuffer rbout[WORK_EPs] = {OBUF(0), OBUF(1), OBUF(2), OBUF(3), OBUF(4), OBUF(5), OBUF(6)};
-#define IBUF(N)  {.data = ibuf[N], .length = RBOUTSZ, .head = 0, .tail = 0}
+#define IBUF(N)  {.data = ibuf[N], .length = RBINSZ, .head = 0, .tail = 0}
 volatile ringbuffer rbin[WORK_EPs] = {IBUF(0), IBUF(1), IBUF(2), IBUF(3), IBUF(4), IBUF(5), IBUF(6)};
 // transmission is succesfull
 volatile uint8_t bufisempty[WORK_EPs] = {1,1,1,1,1,1,1};
@@ -39,7 +39,7 @@ void send_next(int ifNo){
     static uint8_t lastdsz[WORK_EPs] = {0};
     int buflen = RB_read((ringbuffer*)&rbout[ifNo], (uint8_t*)usbbuff, USB_TRBUFSZ);
     if(!buflen){
-        if(lastdsz[ifNo] == 64) EP_Write(ifNo+1, NULL, 0); // send ZLP after 64 bits packet when nothing more to send
+        if(lastdsz[ifNo] == USB_TRBUFSZ) EP_Write(ifNo+1, NULL, 0); // send ZLP after 64 bits packet when nothing more to send
         lastdsz[ifNo] = 0;
         bufisempty[ifNo] = 1;
         return;
@@ -62,7 +62,7 @@ int USB_send(int ifNo, const uint8_t *buf, int len){
     uint32_t T = Tms;
     while(len){
         int a = RB_write((ringbuffer*)&rbout[ifNo], buf, len);
-        if(a == 0 && Tms - T > 5){
+        if(a == 0 && Tms - T > 5){ // buffer overflow && timeout -> interface disconnected
             usbON &= ~(1<<ifNo);
             bufisempty[ifNo] = 0;
             RB_clearbuf((ringbuffer*)&rbout[ifNo]);
@@ -80,11 +80,10 @@ int USB_send(int ifNo, const uint8_t *buf, int len){
 
 int USB_putbyte(int ifNo, uint8_t byte){
     if(!USBON(ifNo)) return 0;
-    while(0 == RB_write((ringbuffer*)&rbout[ifNo], &byte, 1)){
-        if(bufisempty[ifNo]){
-            bufisempty[ifNo] = 0;
-            send_next(ifNo);
-        }
+    while(0 == RB_write((ringbuffer*)&rbout[ifNo], &byte, 1)) send_next(ifNo);
+    if(bufisempty[ifNo]){
+        bufisempty[ifNo] = 0;
+        send_next(ifNo);
     }
     return 1;
 }

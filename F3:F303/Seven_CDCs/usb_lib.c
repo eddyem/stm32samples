@@ -18,9 +18,7 @@
 
 #include <stdint.h>
 #include "debug.h"
-#ifdef EBUG
 #include "strfunc.h"
-#endif
 #include "usart.h"
 #include "usb.h"
 #include "usb_lib.h"
@@ -188,7 +186,7 @@ static const uint8_t USB_ConfigDescriptor[] = {
     0x02, /* bInterfaceClass: Communication Interface Class */
     0x02, /* bInterfaceSubClass: Abstract Control Model */
     0x00, /* bInterfaceProtocol  */
-    iINTERFACE_DESCR_USART1, /* iInterface: */
+    iINTERFACE_DESCR_DBG, /* iInterface: */
     /*Header Functional Descriptor*/
     0x05, /* bLength: Endpoint Descriptor size */
     0x24, /* bDescriptorType: CS_INTERFACE */
@@ -269,7 +267,7 @@ static const uint8_t USB_ConfigDescriptor[] = {
     0x02, /* bInterfaceClass: Communication Interface Class */
     0x02, /* bInterfaceSubClass: Abstract Control Model */
     0x00, /* bInterfaceProtocol  */
-    iINTERFACE_DESCR_USART2, /* iInterface: */
+    iINTERFACE_DESCR_USART1, /* iInterface: */
     /*Header Functional Descriptor*/
     0x05, /* bLength: Endpoint Descriptor size */
     0x24, /* bDescriptorType: CS_INTERFACE */
@@ -350,7 +348,7 @@ static const uint8_t USB_ConfigDescriptor[] = {
     0x02, /* bInterfaceClass: Communication Interface Class */
     0x02, /* bInterfaceSubClass: Abstract Control Model */
     0x00, /* bInterfaceProtocol  */
-    iINTERFACE_DESCR_USART3, /* iInterface: */
+    iINTERFACE_DESCR_USART2, /* iInterface: */
     /*Header Functional Descriptor*/
     0x05, /* bLength: Endpoint Descriptor size */
     0x24, /* bDescriptorType: CS_INTERFACE */
@@ -430,8 +428,8 @@ static const uint8_t USB_ConfigDescriptor[] = {
     0x01, /* bNumEndpoints: One endpoints used */
     0x02, /* bInterfaceClass: Communication Interface Class */
     0x02, /* bInterfaceSubClass: Abstract Control Model */
-    iINTERFACE_DESCR_USART4, /* bInterfaceProtocol  */
-    0x00, /* iInterface: */
+    0x00, /* bInterfaceProtocol  */
+    iINTERFACE_DESCR_USART3, /* iInterface: */
     /*Header Functional Descriptor*/
     0x05, /* bLength: Endpoint Descriptor size */
     0x24, /* bDescriptorType: CS_INTERFACE */
@@ -512,7 +510,7 @@ static const uint8_t USB_ConfigDescriptor[] = {
     0x02, /* bInterfaceClass: Communication Interface Class */
     0x02, /* bInterfaceSubClass: Abstract Control Model */
     0x00, /* bInterfaceProtocol  */
-    iINTERFACE_DESCR_CAN, /* iInterface: */
+    iINTERFACE_DESCR_USART4, /* iInterface: */
     /*Header Functional Descriptor*/
     0x05, /* bLength: Endpoint Descriptor size */
     0x24, /* bDescriptorType: CS_INTERFACE */
@@ -593,7 +591,7 @@ static const uint8_t USB_ConfigDescriptor[] = {
     0x02, /* bInterfaceClass: Communication Interface Class */
     0x02, /* bInterfaceSubClass: Abstract Control Model */
     0x00, /* bInterfaceProtocol  */
-    iINTERFACE_DESCR_DBG, /* iInterface: */
+    iINTERFACE_DESCR_CAN, /* iInterface: */
     /*Header Functional Descriptor*/
     0x05, /* bLength: Endpoint Descriptor size */
     0x24, /* bDescriptorType: CS_INTERFACE */
@@ -673,12 +671,12 @@ static void const *StringDescriptor[iDESCR_AMOUNT] = {
     [iPRODUCT_DESCR] = &PD,
     [iSERIAL_DESCR] = &SD,
     [iINTERFACE_DESCR_CMD] = &ID0,
+    [iINTERFACE_DESCR_DBG] = &ID6,
     [iINTERFACE_DESCR_USART1] = &ID1,
     [iINTERFACE_DESCR_USART2] = &ID2,
     [iINTERFACE_DESCR_USART3] = &ID3,
     [iINTERFACE_DESCR_USART4] = &ID4,
-    [iINTERFACE_DESCR_CAN] = &ID5,
-    [iINTERFACE_DESCR_DBG] = &ID6
+    [iINTERFACE_DESCR_CAN] = &ID5
 };
 
 static void wr0(const uint8_t *buf, uint16_t size){
@@ -760,9 +758,30 @@ static void rxtx_Handler(uint8_t epno){
         USB->EPnR[epno] = epstatus;
         //USB->EPnR[epno] = (KEEP_DTOG(epstatus) & ~USB_EPnR_CTR_RX) ^ USB_EPnR_STAT_RX;
         uint8_t sz = EP_Read(epno, (uint8_t*)buf);
+        DBG("epno");
+        DBGmesg(u2str(epno)); DBGmesg(" ("); DBGmesg(u2str(sz));
+        DBGmesg(") > "); hexdump(DBG_IDX, buf, sz); DBGnl();
         if(sz){
-            if(RB_write((ringbuffer*)&rbin[idx], buf, sz) != sz) bufovrfl[idx] = 1;
+            switch(epno){
+                case USART1_EPNO:
+                    usart_sendn(1, buf, sz);
+                break;
+                case USART2_EPNO:
+                    usart_sendn(2, buf, sz);
+                break;
+                case USART3_EPNO:
+                    usart_sendn(3, buf, sz);
+                break;
+                case USART4_EPNO:
+                    ; // we have no USART4 in STM32F303CBT6
+                break;
+                default:
+                    if(RB_write((ringbuffer*)&rbin[idx], buf, sz) != sz) bufovrfl[idx] = 1;
+            }
         }
+        /*if(epno != DBG_EPNO){
+            MSG();
+        }*/
         // set ACK Rx
         USB->EPnR[epno] = (KEEP_DTOG(USB->EPnR[epno]) & ~(USB_EPnR_STAT_TX)) ^ USB_EPnR_STAT_RX;
     }else{
@@ -807,9 +826,13 @@ void EP0_Handler(uint8_t  __attribute__((unused)) epno){
     usb_LineCoding *lc;
     // calculate iFno (EP number minus 1) by setup_packet->wIndex (bInterfaceNumber): iFno = wIndex >> 1
     int iFno = setup_packet->wIndex >> 1;
-    DBGmesg(uhex2str(epstatus));
-    DBGmesg(" - "); hexdump(DBG_IDX, (uint8_t*)setup_packet, sizeof(config_pack_t));
+    if(iFno != DBG_IDX){
+        DBGmesg(uhex2str(epstatus));
+        DBGmesg(" ("); DBGmesg(u2str(iFno));
+        DBGmesg(") - "); hexdump(DBG_IDX, (uint8_t*)setup_packet, sizeof(config_pack_t));
+    }
     if(rxflag && SETUP_FLAG(epstatus)){
+        if(iFno != DBG_IDX){DBGmesg("setup\n");}
         switch(reqtype){
             case STANDARD_DEVICE_REQUEST_TYPE: // standard device request
                 if(dev2host){
@@ -827,24 +850,24 @@ void EP0_Handler(uint8_t  __attribute__((unused)) epno){
             case CONTROL_REQUEST_TYPE:
                 switch(setup_packet->bRequest){
                     case GET_LINE_CODING:
-                        DBG("GLC");
+                        if(iFno != DBG_IDX){ DBG("GLC");}
                         lc = getLineCoding(iFno);
                         if(!lc) EP_WriteIRQ(0, (uint8_t *)0, 0);
                         else EP_WriteIRQ(0, (uint8_t*)&lc, sizeof(usb_LineCoding));
                     break;
                     case SET_LINE_CODING: // omit this for next stage, when data will come
-                        DBG("SLC");
+                        if(iFno != DBG_IDX){ DBG("SLC");}
                     break;
                     case SET_CONTROL_LINE_STATE:
-                        DBG("SCLS");
+                        if(iFno != DBG_IDX){ DBG("SCLS");}
                         usbON |= 1 << iFno; // now this interface is connected
                     break;
                     case SEND_BREAK:
-                        DBG("B");
+                        if(iFno != DBG_IDX){ DBG("B");}
                         usbON &= ~(1<<iFno); // interface is disconnected
                     break;
                     default:
-                        DBG("U");
+                        if(iFno != DBG_IDX){ DBG("U");}
                     break;
                 }
                 if(setup_packet->bRequest != GET_LINE_CODING) EP_WriteIRQ(0, (uint8_t *)0, 0); // write acknowledgement
@@ -853,11 +876,16 @@ void EP0_Handler(uint8_t  __attribute__((unused)) epno){
                 EP_WriteIRQ(0, (uint8_t *)0, 0);
         }
     }else if(rxflag){ // got data over EP0 or host acknowlegement
-        if(endpoints[0].rx_cnt){
-            if(setup_packet->bRequest == SET_LINE_CODING){
-                usart_config(iFno + 1 - USART1_EPNO, (usb_LineCoding*)ep0databuf);
-            }
-        }
+        if(iFno != DBG_IDX){ DBGmesg("rxflag\n");}
+        //if(endpoints[0].rx_cnt){
+           // if(setup_packet->bRequest == SET_LINE_CODING){
+                if(iFno != DBG_IDX){
+                    DBGmesg("USART"); DBGmesg(u2str(iFno + 2 - USART1_EPNO));
+                    DBGmesg(" speed = "); DBGmesg(u2str(((usb_LineCoding*)ep0databuf)->dwDTERate)); DBGnl();
+                }
+                usart_config(iFno, (usb_LineCoding*)ep0databuf);
+           // }
+        //}
     } else if(TX_FLAG(epstatus)){ // package transmitted
         // now we can change address after enumeration
         if ((USB->DADDR & USB_DADDR_ADD) != USB_Addr){

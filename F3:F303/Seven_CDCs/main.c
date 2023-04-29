@@ -32,7 +32,7 @@ void sys_tick_handler(void){
 }
 
 static const char *ebufovr = "ERROR: USB buffer overflow or string was too long\n";
-static const char *idxnames[MAX_IDX] = {"CMD", "USART1", "USART2", "USART3", "NOFUNCT", "CAN", "DBG"};
+static const char *idxnames[MAX_IDX] = {"CMD", "DBG", "USART1", "USART2", "USART3", "NOFUNCT", "CAN"};
 
 int main(void){
     char inbuff[MAXSTRLEN+1];
@@ -68,10 +68,6 @@ int main(void){
             USB_sendstr(DBG_IDX, "> ");
             USB_sendstr(DBG_IDX, inbuff);
             USB_putbyte(DBG_IDX, '\n');
-            USB_sendstr(CMD_IDX, idxnames[i]);
-            USB_sendstr(CMD_IDX, "> ");
-            USB_sendstr(CMD_IDX, inbuff);
-            USB_putbyte(CMD_IDX, '\n');
             switch(i){
                 case CMD_IDX:
                     parse_cmd(inbuff);

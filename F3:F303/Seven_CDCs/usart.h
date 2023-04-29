@@ -30,7 +30,7 @@ extern volatile int linerdy, bufovr;
 
 void usarts_setup();
 void usart_config(uint8_t ifNo, usb_LineCoding *lc);
-void usart_sendn(const uint8_t *str, int L);
+void usart_sendn(int no, const uint8_t *str, int L);
 usb_LineCoding *getLineCoding(int ifNo);
 
 #endif // __USART_H__
