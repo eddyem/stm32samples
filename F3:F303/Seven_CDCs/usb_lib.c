@@ -775,9 +775,8 @@ static void rxtx_Handler(uint8_t epno){
                 case USART4_EPNO:
                     ; // we have no USART4 in STM32F303CBT6
                 break;
-                default:
-                    if(RB_write((ringbuffer*)&rbin[idx], buf, sz) != sz) bufovrfl[idx] = 1;
             }
+            if(RB_write((ringbuffer*)&rbin[idx], buf, sz) != sz) bufovrfl[idx] = 1;
         }
         // set ACK Rx
         USB->EPnR[epno] = (KEEP_DTOG(USB->EPnR[epno]) & ~(USB_EPnR_STAT_TX)) ^ USB_EPnR_STAT_RX;

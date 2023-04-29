@@ -1,3 +1,7 @@
+can.c
+can.h
+canproto.c
+canproto.h
 cmdproto.c
 cmdproto.h
 debug.h

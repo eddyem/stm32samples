@@ -268,6 +268,13 @@ const char *getint(const char *txt, int32_t *I){
     return nxt;
 }
 
+int mystrlen(const char *txt){
+    if(!txt) return 0;
+    int r = 0;
+    while(*txt++) ++r;
+    return r;
+}
+
 /*
 void mymemcpy(char *dest, const char *src, int len){
     if(len < 1) return;

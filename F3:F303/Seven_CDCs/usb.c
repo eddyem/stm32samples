@@ -19,6 +19,7 @@
 #include <string.h>
 
 #include "hardware.h"
+#include "strfunc.h"
 #include "usb.h"
 #include "usb_lib.h"
 
@@ -89,12 +90,8 @@ int USB_putbyte(int ifNo, uint8_t byte){
 }
 
 int USB_sendstr(int ifNo, const char *string){
-    if(!string || !USBON(ifNo)) return 0;
-    int len = 0;
-    const char *b = string;
-    while(*b++) ++len;
-    if(!len) return 0;
-    return USB_send(ifNo, (const uint8_t*)string, len);
+    if(!string) return 0;
+    return USB_send(ifNo, (const uint8_t*)string, mystrlen(string));
 }
 
 /**

@@ -19,6 +19,7 @@
 #include "cmdproto.h"
 #include "debug.h"
 #include "strfunc.h"
+#include "usart.h"
 #include "usb.h"
 #include "usb_lib.h" // USBON
 #include "version.inc"
@@ -28,12 +29,13 @@
 
 extern volatile uint32_t Tms;
 
-const char* helpmsg =
-    "https://github.com/eddyem/stm32samples/tree/master/F3:F303/PL2303 build#" BUILD_NUMBER " @ " BUILD_DATE "\n"
+static const char* helpmsg =
+    "https://github.com/eddyem/stm32samples/tree/master/F3:F303/Seven_CDCs build#" BUILD_NUMBER " @ " BUILD_DATE "\n"
     "2..7 - send next string to given EP\n"
     "'i' - print USB->ISTR state\n"
     "'N' - read number (dec, 0xhex, 0oct, bbin) and show it in decimal\n"
     "'R' - software reset\n"
+    "'ux data' - send data to USARTx\n"
     "'U' - get USB status\n"
     "'W' - test watchdog\n"
 ;
@@ -93,6 +95,15 @@ void parse_cmd(const char *buf){
                 SEND(", the rest of string: ");
                 SEND(nxt);
             }else SEND("\n");
+        break;
+        case 'u':
+            nxt = getnum(buf, &Num);
+            if(buf == nxt || Num < 1 || Num > USARTSNO){
+                if(Num == 0) SENDN("Wrong USART number");
+            }
+            nxt = omit_spaces(nxt);
+            usart_sendn(Num, (uint8_t*)nxt, mystrlen(nxt));
+            SENDN("OK");
         break;
         default:
             SEND(buf-1); // echo
