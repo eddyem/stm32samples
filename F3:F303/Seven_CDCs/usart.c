@@ -87,7 +87,7 @@ void usart_config(uint8_t ifNo, usb_LineCoding *lc){
 
 void usart1_exti25_isr(){
     if(USART1->ISR & USART_ISR_RXNE){ // RX not emty - receive next char
-        DBG("got\n");
+        //DBG("got\n");
         // read RDR clears flag
         uint8_t rb = USART1->RDR;
         USB_putbyte(USART1_IDX, rb);
@@ -96,7 +96,7 @@ void usart1_exti25_isr(){
 
 void usart2_exti26_isr(){
     if(USART2->ISR & USART_ISR_RXNE){
-        DBG("got\n");
+        //DBG("got\n");
         uint8_t rb = USART2->RDR;
         USB_putbyte(USART2_IDX, rb);
     }
@@ -104,7 +104,7 @@ void usart2_exti26_isr(){
 
 void usart3_exti28_isr(){
     if(USART3->ISR & USART_ISR_RXNE){
-        DBG("got\n");
+        //DBG("got\n");
         uint8_t rb = USART3->RDR;
         USB_putbyte(USART3_IDX, rb);
     }

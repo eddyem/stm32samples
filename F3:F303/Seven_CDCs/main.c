@@ -53,6 +53,7 @@ int main(void){
         if(Tms - ctr > 499){
             ctr = Tms;
             pin_toggle(GPIOB, 1 << 1 | 1 << 0); // toggle LED @ PB0
+            USB_sendstr(CMD_IDX, "1");
             //DBGmesg(u2str(Tms));
             //DBGnl();
         }

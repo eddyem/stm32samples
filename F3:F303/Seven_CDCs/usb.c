@@ -22,24 +22,24 @@
 #include "usb.h"
 #include "usb_lib.h"
 
-static volatile uint8_t usbbuff[USB_TRBUFSZ]; // temporary buffer for sending data
+static volatile uint8_t usbbuff[USB_TXBUFSZ]; // temporary buffer for sending data
 // ring buffers for incoming and outgoing data
-static uint8_t obuf[WORK_EPs][RBOUTSZ], ibuf[WORK_EPs][RBINSZ];
+static uint8_t obuf[MAX_IDX][RBOUTSZ], ibuf[MAX_IDX][RBINSZ];
 #define OBUF(N)  {.data = obuf[N], .length = RBOUTSZ, .head = 0, .tail = 0}
-volatile ringbuffer rbout[WORK_EPs] = {OBUF(0), OBUF(1), OBUF(2), OBUF(3), OBUF(4), OBUF(5), OBUF(6)};
+volatile ringbuffer rbout[MAX_IDX] = {OBUF(0), OBUF(1), OBUF(2), OBUF(3), OBUF(4), OBUF(5), OBUF(6)};
 #define IBUF(N)  {.data = ibuf[N], .length = RBINSZ, .head = 0, .tail = 0}
-volatile ringbuffer rbin[WORK_EPs] = {IBUF(0), IBUF(1), IBUF(2), IBUF(3), IBUF(4), IBUF(5), IBUF(6)};
+volatile ringbuffer rbin[MAX_IDX] = {IBUF(0), IBUF(1), IBUF(2), IBUF(3), IBUF(4), IBUF(5), IBUF(6)};
 // transmission is succesfull
-volatile uint8_t bufisempty[WORK_EPs] = {1,1,1,1,1,1,1};
-volatile uint8_t bufovrfl[WORK_EPs] = {0};
+volatile uint8_t bufisempty[MAX_IDX] = {1,1,1,1,1,1,1};
+volatile uint8_t bufovrfl[MAX_IDX] = {0};
 
 // here and later: ifNo is index of buffers, i.e. ifNo = epno-1 !!!
 void send_next(int ifNo){
     if(bufisempty[ifNo]) return;
-    static uint8_t lastdsz[WORK_EPs] = {0};
-    int buflen = RB_read((ringbuffer*)&rbout[ifNo], (uint8_t*)usbbuff, USB_TRBUFSZ);
+    static uint8_t lastdsz[MAX_EPNO] = {0};
+    int buflen = RB_read((ringbuffer*)&rbout[ifNo], (uint8_t*)usbbuff, USB_TXBUFSZ);
     if(!buflen){
-        if(lastdsz[ifNo] == USB_TRBUFSZ) EP_Write(ifNo+1, NULL, 0); // send ZLP after 64 bits packet when nothing more to send
+        if(lastdsz[ifNo] == USB_TXBUFSZ) EP_Write(ifNo+1, NULL, 0); // send ZLP after 64 bits packet when nothing more to send
         lastdsz[ifNo] = 0;
         bufisempty[ifNo] = 1;
         return;
@@ -104,13 +104,12 @@ int USB_sendstr(int ifNo, const char *string){
  * @return amount of received bytes (negative, if overfull happened)
  */
 int USB_receive(int ifNo, uint8_t *buf, int len){
-    int sz = RB_read((ringbuffer*)&rbin[ifNo], buf, len);
     if(bufovrfl[ifNo]){
         RB_clearbuf((ringbuffer*)&rbin[ifNo]);
-        if(!sz) sz = -1;
-        else sz = -sz;
         bufovrfl[ifNo] = 0;
+        return -1;
     }
+    int sz = RB_read((ringbuffer*)&rbin[ifNo], buf, len);
     return sz;
 }
 
@@ -121,14 +120,13 @@ int USB_receive(int ifNo, uint8_t *buf, int len){
  * @return strlen or negative value indicating overflow (if so, string won't be ends with 0 and buffer should be cleared)
  */
 int USB_receivestr(int ifNo, char *buf, int len){
-    int l = RB_readto((ringbuffer*)&rbin[ifNo], '\n', (uint8_t*)buf, len);
-    if(l == 0) return 0;
-    if(--l < 0 || bufovrfl[ifNo]) RB_clearbuf((ringbuffer*)&rbin[ifNo]);
-    else buf[l] = 0; // replace '\n' with strend
     if(bufovrfl[ifNo]){
-        if(l > 0) l = -l;
-        else l = -1;
+        RB_clearbuf((ringbuffer*)&rbin[ifNo]);
         bufovrfl[ifNo] = 0;
+        return -1;
     }
+    int l = RB_readto((ringbuffer*)&rbin[ifNo], '\n', (uint8_t*)buf, len);
+    if(l < 1) return 0;
+    buf[--l] = 0; // replace '\n' with strend
     return l;
 }

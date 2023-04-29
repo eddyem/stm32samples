@@ -153,16 +153,16 @@ static const uint8_t USB_ConfigDescriptor[] = {
     0x05, /* bDescriptorType: Endpoint */
     0x81, /* bEndpointAddress IN1 */
     0x02, /* bmAttributes: Bulk */
-    (USB_TRBUFSZ & 0xff), /* wMaxPacketSize: 64 */
-    (USB_TRBUFSZ >> 8),
+    (USB_TXBUFSZ & 0xff), /* wMaxPacketSize: 64 */
+    (USB_TXBUFSZ >> 8),
     0x00, /* bInterval: ignore for Bulk transfer */
     /*Endpoint OUT Descriptor*/
     0x07, /* bLength: Endpoint Descriptor size */
     0x05, /* bDescriptorType: Endpoint */
     0x01, /* bEndpointAddress OUT1 */
     0x02, /* bmAttributes: Bulk */
-    (USB_TRBUFSZ & 0xff), /* wMaxPacketSize: 64 */
-    (USB_TRBUFSZ >> 8),
+    (USB_RXBUFSZ & 0xff), /* wMaxPacketSize: 64 */
+    (USB_RXBUFSZ >> 8),
     0x00, /* bInterval: ignore for Bulk transfer */
     /*---------------------------------------------------------------------------*/
 
@@ -234,16 +234,16 @@ static const uint8_t USB_ConfigDescriptor[] = {
     0x05, /* bDescriptorType: Endpoint */
 /**/0x82, /* bEndpointAddress IN2 */
     0x02, /* bmAttributes: Bulk */
-    (USB_TRBUFSZ & 0xff), /* wMaxPacketSize: 64 */
-    (USB_TRBUFSZ >> 8),
+    (USB_TXBUFSZ & 0xff), /* wMaxPacketSize: 64 */
+    (USB_TXBUFSZ >> 8),
     0x00, /* bInterval: ignore for Bulk transfer */
     /*Endpoint OUT Descriptor */
     0x07, /* bLength: Endpoint Descriptor size */
     0x05, /* bDescriptorType: Endpoint */
 /**/0x02, /* bEndpointAddress OUT2 */
     0x02, /* bmAttributes: Bulk */
-    (USB_TRBUFSZ & 0xff), /* wMaxPacketSize: 64 */
-    (USB_TRBUFSZ >> 8),
+    (USB_RXBUFSZ & 0xff), /* wMaxPacketSize: 64 */
+    (USB_RXBUFSZ >> 8),
     0x00, /* bInterval: ignore for Bulk transfer */
     /*---------------------------------------------------------------------------*/
 
@@ -315,16 +315,16 @@ static const uint8_t USB_ConfigDescriptor[] = {
     0x05, /* bDescriptorType: Endpoint */
 /**/0x83, /* bEndpointAddress IN3 */
     0x02, /* bmAttributes: Bulk */
-    (USB_TRBUFSZ & 0xff), /* wMaxPacketSize: 64 */
-    (USB_TRBUFSZ >> 8),
+    (USB_TXBUFSZ & 0xff), /* wMaxPacketSize: 64 */
+    (USB_TXBUFSZ >> 8),
     0x00, /* bInterval: ignore for Bulk transfer */
     /*Endpoint OUT Descriptor */
     0x07, /* bLength: Endpoint Descriptor size */
     0x05, /* bDescriptorType: Endpoint */
 /**/0x03, /* bEndpointAddress OUT3 */
     0x02, /* bmAttributes: Bulk */
-    (USB_TRBUFSZ & 0xff), /* wMaxPacketSize: 64 */
-    (USB_TRBUFSZ >> 8),
+    (USB_RXBUFSZ & 0xff), /* wMaxPacketSize: 64 */
+    (USB_RXBUFSZ >> 8),
     0x00, /* bInterval: ignore for Bulk transfer */
     /*---------------------------------------------------------------------------*/
 
@@ -396,16 +396,16 @@ static const uint8_t USB_ConfigDescriptor[] = {
     0x05, /* bDescriptorType: Endpoint */
 /**/0x84, /* bEndpointAddress IN4 */
     0x02, /* bmAttributes: Bulk */
-    (USB_TRBUFSZ & 0xff), /* wMaxPacketSize: 64 */
-    (USB_TRBUFSZ >> 8),
+    (USB_TXBUFSZ & 0xff), /* wMaxPacketSize: 64 */
+    (USB_TXBUFSZ >> 8),
     0x00, /* bInterval: ignore for Bulk transfer */
     /*Endpoint OUT Descriptor */
     0x07, /* bLength: Endpoint Descriptor size */
     0x05, /* bDescriptorType: Endpoint */
 /**/0x04, /* bEndpointAddress OUT4 */
     0x02, /* bmAttributes: Bulk */
-    (USB_TRBUFSZ & 0xff), /* wMaxPacketSize: 64 */
-    (USB_TRBUFSZ >> 8),
+    (USB_RXBUFSZ & 0xff), /* wMaxPacketSize: 64 */
+    (USB_RXBUFSZ >> 8),
     0x00, /* bInterval: ignore for Bulk transfer */
     /*---------------------------------------------------------------------------*/
 
@@ -477,16 +477,16 @@ static const uint8_t USB_ConfigDescriptor[] = {
     0x05, /* bDescriptorType: Endpoint */
 /**/0x85, /* bEndpointAddress IN5 */
     0x02, /* bmAttributes: Bulk */
-    (USB_TRBUFSZ & 0xff), /* wMaxPacketSize: 64 */
-    (USB_TRBUFSZ >> 8),
+    (USB_TXBUFSZ & 0xff), /* wMaxPacketSize: 64 */
+    (USB_TXBUFSZ >> 8),
     0x00, /* bInterval: ignore for Bulk transfer */
     /*Endpoint OUT Descriptor */
     0x07, /* bLength: Endpoint Descriptor size */
     0x05, /* bDescriptorType: Endpoint */
 /**/0x05, /* bEndpointAddress OUT5 */
     0x02, /* bmAttributes: Bulk */
-    (USB_TRBUFSZ & 0xff), /* wMaxPacketSize: 64 */
-    (USB_TRBUFSZ >> 8),
+    (USB_RXBUFSZ & 0xff), /* wMaxPacketSize: 64 */
+    (USB_RXBUFSZ >> 8),
     0x00, /* bInterval: ignore for Bulk transfer */
     /*---------------------------------------------------------------------------*/
 
@@ -558,16 +558,16 @@ static const uint8_t USB_ConfigDescriptor[] = {
     0x05, /* bDescriptorType: Endpoint */
 /**/0x86, /* bEndpointAddress IN6 */
     0x02, /* bmAttributes: Bulk */
-    (USB_TRBUFSZ & 0xff), /* wMaxPacketSize: 64 */
-    (USB_TRBUFSZ >> 8),
+    (USB_TXBUFSZ & 0xff), /* wMaxPacketSize: 64 */
+    (USB_TXBUFSZ >> 8),
     0x00, /* bInterval: ignore for Bulk transfer */
     /*Endpoint OUT Descriptor */
     0x07, /* bLength: Endpoint Descriptor size */
     0x05, /* bDescriptorType: Endpoint */
 /**/0x06, /* bEndpointAddress OUT6 */
     0x02, /* bmAttributes: Bulk */
-    (USB_TRBUFSZ & 0xff), /* wMaxPacketSize: 64 */
-    (USB_TRBUFSZ >> 8),
+    (USB_RXBUFSZ & 0xff), /* wMaxPacketSize: 64 */
+    (USB_RXBUFSZ >> 8),
     0x00, /* bInterval: ignore for Bulk transfer */
     /*---------------------------------------------------------------------------*/
 
@@ -639,16 +639,16 @@ static const uint8_t USB_ConfigDescriptor[] = {
     0x05, /* bDescriptorType: Endpoint */
 /**/0x87, /* bEndpointAddress IN7 */
     0x02, /* bmAttributes: Bulk */
-    (USB_TRBUFSZ & 0xff), /* wMaxPacketSize: 64 */
-    (USB_TRBUFSZ >> 8),
+    (USB_TXBUFSZ & 0xff), /* wMaxPacketSize: 64 */
+    (USB_TXBUFSZ >> 8),
     0x00, /* bInterval: ignore for Bulk transfer */
     /*Endpoint OUT Descriptor */
     0x07, /* bLength: Endpoint Descriptor size */
     0x05, /* bDescriptorType: Endpoint */
 /**/0x07, /* bEndpointAddress OUT7 */
     0x02, /* bmAttributes: Bulk */
-    (USB_TRBUFSZ & 0xff), /* wMaxPacketSize: 64 */
-    (USB_TRBUFSZ >> 8),
+    (USB_RXBUFSZ & 0xff), /* wMaxPacketSize: 64 */
+    (USB_RXBUFSZ >> 8),
     0x00, /* bInterval: ignore for Bulk transfer */
     /*---------------------------------------------------------------------------*/
 };
@@ -749,18 +749,18 @@ static inline void std_d2h_req(){
 
 // Rx and Tx handlers for EP1..EP7
 static void rxtx_Handler(uint8_t epno){
-    uint8_t buf[USB_TRBUFSZ];
+    uint8_t buf[USB_RXBUFSZ];
     int idx = epno - 1;
     uint16_t epstatus = KEEP_DTOG(USB->EPnR[epno]);
-    //uint16_t epstatus = USB->EPnR[epno];
     if(RX_FLAG(epstatus)){
         epstatus = (epstatus & ~(USB_EPnR_STAT_TX|USB_EPnR_CTR_RX)) ^ USB_EPnR_STAT_RX; // keep stat Tx & set valid RX, clear CTR Rx
         USB->EPnR[epno] = epstatus;
-        //USB->EPnR[epno] = (KEEP_DTOG(epstatus) & ~USB_EPnR_CTR_RX) ^ USB_EPnR_STAT_RX;
         uint8_t sz = EP_Read(epno, (uint8_t*)buf);
+        /*
         DBG("epno");
         DBGmesg(u2str(epno)); DBGmesg(" ("); DBGmesg(u2str(sz));
         DBGmesg(") > "); hexdump(DBG_IDX, buf, sz); DBGnl();
+        */
         if(sz){
             switch(epno){
                 case USART1_EPNO:
@@ -779,14 +779,10 @@ static void rxtx_Handler(uint8_t epno){
                     if(RB_write((ringbuffer*)&rbin[idx], buf, sz) != sz) bufovrfl[idx] = 1;
             }
         }
-        /*if(epno != DBG_EPNO){
-            MSG();
-        }*/
         // set ACK Rx
         USB->EPnR[epno] = (KEEP_DTOG(USB->EPnR[epno]) & ~(USB_EPnR_STAT_TX)) ^ USB_EPnR_STAT_RX;
     }else{
         USB->EPnR[epno] = (epstatus & ~(USB_EPnR_STAT_TX|USB_EPnR_CTR_TX)) ^ USB_EPnR_STAT_RX; // clear TX ctr
-        //USB->EPnR[epno] = (KEEP_DTOG_STAT(epstatus) & ~(USB_EPnR_CTR_TX)); // clear TX ctr
         send_next(idx);
     }
 }
@@ -800,8 +796,8 @@ static inline void std_h2d_req(){
         case SET_CONFIGURATION:
             // Now device configured
             configuration = setup_packet->wValue;
-            for(uint8_t i = 1; i <= WORK_EPs; ++i){
-                EP_Init(i, EP_TYPE_BULK, USB_TRBUFSZ, USB_TRBUFSZ, rxtx_Handler);
+            for(uint8_t i = 1; i <= MAX_EPNO; ++i){
+                EP_Init(i, EP_TYPE_BULK, USB_TXBUFSZ, USB_RXBUFSZ, rxtx_Handler);
             }
         break;
         default:

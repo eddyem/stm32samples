@@ -31,8 +31,6 @@
 #define STR_HELPER(s)   #s
 #define STR(s)          STR_HELPER(s)
 
-// total amount of working EPs
-#define WORK_EPs    7
 // functional EPs
 #define CMD_EPNO    1
 #define DBG_EPNO    2
@@ -41,6 +39,7 @@
 #define USART3_EPNO 5
 #define USART4_EPNO 6
 #define CAN_EPNO    7
+// total amount of working EPs
 #define MAX_EPNO    7
 
 #define USARTMAX_EPNO USART3_EPNO
@@ -52,7 +51,7 @@
 #define USART2_IDX  (USART2_EPNO-1)
 #define USART3_IDX  (USART3_EPNO-1)
 #define USART4_IDX  (USART4_EPNO-1)
-#define MAX_IDX     7
+#define MAX_IDX     (MAX_EPNO)
 
 extern volatile ringbuffer rbout[], rbin[];
 extern volatile uint8_t bufisempty[], bufovrfl[];
