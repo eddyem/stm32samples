@@ -2744,7 +2744,7 @@
       (reference "J10") (unit 1) (value "Screw_Terminal_01x02") (footprint "TerminalBlock_Phoenix:TerminalBlock_Phoenix_MKDS-1,5-2_1x02_P5.00mm_Horizontal")
     )
     (path "/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/610893b8-7125-40df-867c-22854f8efd58/0f3f2180-6e00-4de5-8d6d-bb200c241b76"
-      (reference "J11") (unit 1) (value "LimS") (footprint "Connector_JST:JST_EH_B4B-EH-A_1x04_P2.50mm_Vertical")
+      (reference "J11") (unit 1) (value "LimS") (footprint "Connector_JST:JST_PH_B4B-PH-K_1x04_P2.00mm_Vertical")
     )
     (path "/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/610893b8-7125-40df-867c-22854f8efd58/e602956b-fb1a-48e1-af9c-9935214ce0ab"
       (reference "J12") (unit 1) (value "Stepper") (footprint "Connector_JST:JST_EH_B4B-EH-A_1x04_P2.50mm_Vertical")
@@ -2753,43 +2753,43 @@
       (reference "J13") (unit 1) (value "UART") (footprint "Connector_JST:JST_PH_B3B-PH-K_1x03_P2.00mm_Vertical")
     )
     (path "/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/b972f8ca-7e49-4ce3-95f0-4eb1ac53975d/0f3f2180-6e00-4de5-8d6d-bb200c241b76"
-      (reference "J14") (unit 1) (value "LimS") (footprint "Connector_JST:JST_EH_B4B-EH-A_1x04_P2.50mm_Vertical")
+      (reference "J14") (unit 1) (value "LimS") (footprint "Connector_JST:JST_PH_B4B-PH-K_1x04_P2.00mm_Vertical")
     )
     (path "/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/b972f8ca-7e49-4ce3-95f0-4eb1ac53975d/e602956b-fb1a-48e1-af9c-9935214ce0ab"
       (reference "J15") (unit 1) (value "Stepper") (footprint "Connector_JST:JST_EH_B4B-EH-A_1x04_P2.50mm_Vertical")
     )
     (path "/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/db69c12d-b6fb-4fe1-9d53-7484d42c675e/0f3f2180-6e00-4de5-8d6d-bb200c241b76"
-      (reference "J16") (unit 1) (value "LimS") (footprint "Connector_JST:JST_EH_B4B-EH-A_1x04_P2.50mm_Vertical")
+      (reference "J16") (unit 1) (value "LimS") (footprint "Connector_JST:JST_PH_B4B-PH-K_1x04_P2.00mm_Vertical")
     )
     (path "/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/db69c12d-b6fb-4fe1-9d53-7484d42c675e/e602956b-fb1a-48e1-af9c-9935214ce0ab"
       (reference "J17") (unit 1) (value "Stepper") (footprint "Connector_JST:JST_EH_B4B-EH-A_1x04_P2.50mm_Vertical")
     )
     (path "/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/b01b77c6-0bd2-4b81-bd36-95ec39c21cb2/0f3f2180-6e00-4de5-8d6d-bb200c241b76"
-      (reference "J18") (unit 1) (value "LimS") (footprint "Connector_JST:JST_EH_B4B-EH-A_1x04_P2.50mm_Vertical")
+      (reference "J18") (unit 1) (value "LimS") (footprint "Connector_JST:JST_PH_B4B-PH-K_1x04_P2.00mm_Vertical")
     )
     (path "/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/b01b77c6-0bd2-4b81-bd36-95ec39c21cb2/e602956b-fb1a-48e1-af9c-9935214ce0ab"
       (reference "J19") (unit 1) (value "Stepper") (footprint "Connector_JST:JST_EH_B4B-EH-A_1x04_P2.50mm_Vertical")
     )
     (path "/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/f8c6e88c-0183-4d2e-a3ca-39251d1701fb/0f3f2180-6e00-4de5-8d6d-bb200c241b76"
-      (reference "J20") (unit 1) (value "LimS") (footprint "Connector_JST:JST_EH_B4B-EH-A_1x04_P2.50mm_Vertical")
+      (reference "J20") (unit 1) (value "LimS") (footprint "Connector_JST:JST_PH_B4B-PH-K_1x04_P2.00mm_Vertical")
     )
     (path "/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/f8c6e88c-0183-4d2e-a3ca-39251d1701fb/e602956b-fb1a-48e1-af9c-9935214ce0ab"
       (reference "J21") (unit 1) (value "Stepper") (footprint "Connector_JST:JST_EH_B4B-EH-A_1x04_P2.50mm_Vertical")
     )
     (path "/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/196d299d-b6ee-4d60-aeee-9540c185cbf4/0f3f2180-6e00-4de5-8d6d-bb200c241b76"
-      (reference "J22") (unit 1) (value "LimS") (footprint "Connector_JST:JST_EH_B4B-EH-A_1x04_P2.50mm_Vertical")
+      (reference "J22") (unit 1) (value "LimS") (footprint "Connector_JST:JST_PH_B4B-PH-K_1x04_P2.00mm_Vertical")
     )
     (path "/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/196d299d-b6ee-4d60-aeee-9540c185cbf4/e602956b-fb1a-48e1-af9c-9935214ce0ab"
       (reference "J23") (unit 1) (value "Stepper") (footprint "Connector_JST:JST_EH_B4B-EH-A_1x04_P2.50mm_Vertical")
     )
     (path "/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/94a117f3-a8fd-4a4e-9f53-f4f999343994/0f3f2180-6e00-4de5-8d6d-bb200c241b76"
-      (reference "J24") (unit 1) (value "LimS") (footprint "Connector_JST:JST_EH_B4B-EH-A_1x04_P2.50mm_Vertical")
+      (reference "J24") (unit 1) (value "LimS") (footprint "Connector_JST:JST_PH_B4B-PH-K_1x04_P2.00mm_Vertical")
     )
     (path "/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/94a117f3-a8fd-4a4e-9f53-f4f999343994/e602956b-fb1a-48e1-af9c-9935214ce0ab"
       (reference "J25") (unit 1) (value "Stepper") (footprint "Connector_JST:JST_EH_B4B-EH-A_1x04_P2.50mm_Vertical")
     )
     (path "/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/798c74da-0af9-46c8-8e27-5dd5c3baf2c3/0f3f2180-6e00-4de5-8d6d-bb200c241b76"
-      (reference "J26") (unit 1) (value "LimS") (footprint "Connector_JST:JST_EH_B4B-EH-A_1x04_P2.50mm_Vertical")
+      (reference "J26") (unit 1) (value "LimS") (footprint "Connector_JST:JST_PH_B4B-PH-K_1x04_P2.00mm_Vertical")
     )
     (path "/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/798c74da-0af9-46c8-8e27-5dd5c3baf2c3/e602956b-fb1a-48e1-af9c-9935214ce0ab"
       (reference "J27") (unit 1) (value "Stepper") (footprint "Connector_JST:JST_EH_B4B-EH-A_1x04_P2.50mm_Vertical")
