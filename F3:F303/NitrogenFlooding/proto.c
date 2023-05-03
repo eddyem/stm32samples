@@ -29,7 +29,11 @@
 static uint8_t I2Caddress = 0;
 
 // parno - number of parameter (or -1); cargs - string with arguments (after '=') (==NULL for getter), iarg - integer argument
-static int goodstub(const char _U_ *cmd, int _U_ parno, const char _U_ *carg, int32_t _U_ iarg){
+static int goodstub(const char *cmd, int parno, const char *carg, int32_t iarg){
+    USB_sendstr("cmd="); USB_sendstr(cmd);
+    USB_sendstr(", parno="); USB_sendstr(i2str(parno));
+    USB_sendstr(", args="); USB_sendstr(carg);
+    USB_sendstr(", intarg="); USB_sendstr(i2str(iarg)); newline();
     return RET_GOOD;
 }
 
@@ -130,8 +134,11 @@ static int tms(const char _U_ *cmd, int _U_ parno, const char _U_ *c, int32_t _U
 
 static int pwm(const char *cmd, int parno, const char *c, int32_t i){
     if(parno < 0 || parno > 3) return RET_WRONGPARNO;
-    if(c) setPWM(parno, (uint8_t)i);
-    sendkeyu(cmd, -1, getPWM(parno));
+    if(c){
+        if(i < 0 || i > PWM_CCR_MAX) return RET_WRONGARG;
+        setPWM(parno, (uint16_t)i);
+    }
+    sendkeyu(cmd, parno, getPWM(parno));
     return RET_GOOD;
 }
 
@@ -146,7 +153,7 @@ commands cmdlist[] = {
     {NULL, "Different commands", NULL},
     {buzzer, "buzzer", "get/set (0 - off, 1 - on) buzzer"},
     {leds, "LED", "LEDx=y; where x=0..3 to work with single LED (then y=1-set, 0-reset, 2-toggle), absent to work with all (y=0 - disable, 1-enable)"},
-    {pwm, "pwm", "set/get x channel (0..3) pwm value (0..255)"},
+    {pwm, "pwm", "set/get x channel (0..3) pwm value (0..100)"},
     {reset, "reset", "reset MCU"},
     {tms, "tms", "print Tms"},
     {NULL, "I2C commands", NULL},

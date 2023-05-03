@@ -26,6 +26,9 @@
 #define PCLK    (72000000)
 #endif
 
+// Max PWM CCR1 value (->1)
+#define PWM_CCR_MAX (100)
+
 // USB pullup: PC9
 #define USBPU_port  GPIOC
 #define USBPU_pin   (1<<9)
@@ -77,5 +80,5 @@ extern int LEDsON;
 uint8_t MSB(uint16_t val);
 void hw_setup();
 
-void setPWM(int nch, uint8_t val);
+void setPWM(int nch, uint16_t val);
 uint8_t getPWM(int nch);

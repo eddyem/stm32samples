@@ -73,8 +73,8 @@ TRUE_INLINE void gpio_setup(){
 
     // PORT E
     //GPIOE->ODR = 0;
-    GPIOE->AFR[0] = 0;
-    GPIOE->AFR[1] = AFRf(2, 2) | AFRf(2, 3) | AFRf(2, 4) | AFRf(2, 5);
+    GPIOE->AFR[0] = AFRf(2, 2) | AFRf(2, 3) | AFRf(2, 4) | AFRf(2, 5);
+    GPIOE->AFR[1] = 0;
     GPIOE->MODER = MODER_AF(2) | MODER_AF(3) | MODER_AF(4) | MODER_AF(5) | MODER_O(8) | MODER_O(9) | MODER_O(10) | MODER_O(11);
     GPIOE->OSPEEDR = 0;
     GPIOE->OTYPER = 0;
@@ -92,12 +92,15 @@ TRUE_INLINE void gpio_setup(){
 
 TRUE_INLINE void pwm_setup(){
     TIM3->CR1 = TIM_CR1_ARPE;
-    TIM3->PSC = 1999; // 48M/2000 = 24kHz
+    TIM3->PSC = 7199; // 72M/7200 = 10kHz; PWMfreq=10k/100=100Hz
     // PWM mode 1 (active -> inactive)
     TIM3->CCMR1 = TIM_CCMR1_OC1M_2 | TIM_CCMR1_OC1M_1 | TIM_CCMR1_OC2M_2 | TIM_CCMR1_OC2M_1;
     TIM3->CCMR2 = TIM_CCMR2_OC3M_2 | TIM_CCMR2_OC3M_1 | TIM_CCMR2_OC4M_2 | TIM_CCMR2_OC4M_1;
     TIM3->CCR1 = 0;
-    TIM3->ARR = 255; // 8bit PWM
+    TIM3->CCR2 = 0;
+    TIM3->CCR3 = 0;
+    TIM3->CCR4 = 0;
+    TIM3->ARR = PWM_CCR_MAX-1; // 8bit PWM
     TIM3->BDTR |= TIM_BDTR_MOE; // enable main output
     TIM3->CCER = TIM_CCER_CC1E | TIM_CCER_CC2E | TIM_CCER_CC3E | TIM_CCER_CC4E;
     TIM3->CR1 |= TIM_CR1_CEN;
@@ -138,7 +141,7 @@ void hw_setup(){
 #endif
 }
 
-void setPWM(int nch, uint8_t val){
+void setPWM(int nch, uint16_t val){
     switch(nch){
         case 0:
             TIM3->CCR1 = val;

@@ -114,7 +114,7 @@ uint16_t getADCval(int nch){
     int addr = nch, adval = NUMBER_OF_ADC1_CHANNELS;
     if(nch >= NUMBER_OF_ADC1_CHANNELS){
         adval = NUMBER_OF_ADC2_CHANNELS;
-        addr += ADC2START;
+        addr += ADC2START - NUMBER_OF_ADC1_CHANNELS;
     }
     for(int i = 0; i < 9; ++i, addr += adval) // first we should prepare array for optmed
         p[i] = ADC_array[addr];
