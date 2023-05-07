@@ -18,6 +18,7 @@
 
 #include "hardware.h"
 #include "i2c.h"
+#include "spi.h"
 
 int LEDsON = 1;
 
@@ -47,10 +48,10 @@ TRUE_INLINE void gpio_setup(){
     GPIOB->AFR[0] = AFRf(4, 6) | AFRf(4, 7);
     GPIOB->AFR[1] = AFRf(5, 13) | AFRf(5, 14) | AFRf(5, 15);
     GPIOB->MODER = MODER_O(0) | MODER_AF(6) | MODER_AF(7) | MODER_O(10) | MODER_O(11) | MODER_O(12) | MODER_AF(13)
-                 | MODER_AF(14) | MODER_AF(15);
-    GPIOB->OSPEEDR = OSPEED_HI(6) | OSPEED_HI(7) | OSPEED_MED(13) | OSPEED_MED(14) | OSPEED_MED(15);
+                 | MODER_AF(14) | MODER_AF(15);  // 10-DC, 11-RST, 12-LED, 13-SCK, 14-MISO, 15-MOSI
+    GPIOB->OSPEEDR = OSPEED_HI(6) | OSPEED_HI(7) | OSPEED_HI(13) | OSPEED_HI(14) | OSPEED_HI(15);
     GPIOB->OTYPER = 0;
-    GPIOB->PUPDR = 0;
+    GPIOB->PUPDR = PUPD_PU(14); // PU MISO
 
     // PORT C
     //GPIOC->ODR = 0;
@@ -134,7 +135,8 @@ TRUE_INLINE void iwdg_setup(){
 void hw_setup(){
     RCC->AHBENR |= RCC_AHBENR_DMA1EN | RCC_AHBENR_DMA2EN;
     gpio_setup();
-    i2c_setup(HIGH_SPEED);
+    i2c_setup(LOW_SPEED);
+    spi_setup();
     pwm_setup();
 #ifndef EBUG
     iwdg_setup();

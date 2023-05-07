@@ -42,7 +42,7 @@ static uint8_t I2Cbuf[256], i2cbuflen = 0; // buffer for DMA tx/rx and its len
 static inline int isI2Cbusy(){
     cntr = Tms;
     do{
-        if(Tms - cntr > I2C_TIMEOUT){ USND("Timeout, DMA transfer in progress?\n"); return 1;}
+        if(Tms - cntr > I2C_TIMEOUT){ USND("Timeout, DMA transfer in progress?"); return 1;}
     }while(I2Cbusy);
     return 0;
 }
@@ -103,7 +103,7 @@ static uint8_t i2c_start(uint8_t busychk){
         while(I2C1->ISR & I2C_ISR_BUSY){
             IWDG->KR = IWDG_REFRESH;
             if(Tms - cntr > I2C_TIMEOUT){
-                USND("Line busy\n");
+                USND("Line busy");
                 return 0;  // check busy
         }}
     }
@@ -111,7 +111,7 @@ static uint8_t i2c_start(uint8_t busychk){
     while(I2C1->CR2 & I2C_CR2_START){
         IWDG->KR = IWDG_REFRESH;
         if(Tms - cntr > I2C_TIMEOUT){
-            USND("No start\n");
+            USND("No start");
             return 0; // check start
     }}
     return 1;
@@ -143,11 +143,11 @@ static uint8_t write_i2cs(uint8_t addr, uint8_t *data, uint8_t nbytes, uint8_t s
             IWDG->KR = IWDG_REFRESH;
             if(I2C1->ISR & I2C_ISR_NACKF){
                 I2C1->ICR |= I2C_ICR_NACKCF;
-                //USND("NAK\n");
+                DBG("NAK");
                 return 0;
             }
             if(Tms - cntr > I2C_TIMEOUT){
-                //USND("Timeout\n");
+                DBG("Timeout");
                 return 0;
             }
         }
@@ -163,7 +163,10 @@ static uint8_t write_i2cs(uint8_t addr, uint8_t *data, uint8_t nbytes, uint8_t s
 }
 
 uint8_t write_i2c(uint8_t addr, uint8_t *data, uint8_t nbytes){
-    if(isI2Cbusy()) return 0;
+    if(isI2Cbusy()){
+        DBG("I2C busy");
+        return 0;
+    }
     return write_i2cs(addr, data, nbytes, 1);
 }
 
@@ -203,11 +206,11 @@ static uint8_t read_i2cb(uint8_t addr, uint8_t *data, uint8_t nbytes, uint8_t bu
             IWDG->KR = IWDG_REFRESH;
             if(I2C1->ISR & I2C_ISR_NACKF){
                 I2C1->ICR |= I2C_ICR_NACKCF;
-                //USND("NAK\n");
+                //DBG("NAK");
                 return 0;
             }
             if(Tms - cntr > I2C_TIMEOUT){
-                //USND("Timeout\n");
+                //DBG("Timeout");
                 return 0;
             }
         }
@@ -250,22 +253,22 @@ uint8_t read_i2c_reg16(uint8_t addr, uint16_t reg16, uint8_t *data, uint8_t nbyt
 void i2c_init_scan_mode(){
     i2caddr = 1; // start from 1 as 0 is a broadcast address
     I2C_scan_mode = 1;
+    DBG("init scan");
 }
 
 // return 1 if next addr is active & return in as `addr`
 // if addresses are over, return 1 and set addr to I2C_NOADDR
 // if scan mode inactive, return 0 and set addr to I2C_NOADDR
 int i2c_scan_next_addr(uint8_t *addr){
-    if(isI2Cbusy()) return 0;
+    if(isI2Cbusy()){
+        DBG("scan: busy");
+        return 0;
+    }
     *addr = i2caddr;
     if(i2caddr == I2C_ADDREND){
-        *addr = I2C_ADDREND;
         I2C_scan_mode = 0;
         return 0;
     }
-    /*while(!u3txrdy);
-    USND("Addr: "); USND(uhex2str(i2caddr)); USND("\n");
-    usart3_sendbuf();*/
     uint8_t byte;
     if(!read_i2c((i2caddr++)<<1, &byte, 1)) return 0;
     return 1;
@@ -274,10 +277,10 @@ int i2c_scan_next_addr(uint8_t *addr){
 // dump I2Cbuf
 void i2c_bufdudump(){
     if(goterr){
-        USND("Last transfer ends with error!\n");
+        USND("Last transfer ends with error!");
         goterr = 0;
     }
-    USND("I2C buffer:\n");
+    USND("I2C buffer:");
     hexdump(USB_sendstr, I2Cbuf, i2cbuflen);
 }
 

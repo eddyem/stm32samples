@@ -49,6 +49,21 @@
 #define LED_on(x)  do{if(LEDsON) pin_clear(LEDs_port, 1<<(8+x));}while(0)
 #define LED_get(x)  (LEDs_port->IDR & 1<<(8+x) ? 0 : 1)
 
+// screen LEDon/off - PB12; reset - PB11; data/command - PB10
+#define SCRN_LED_pin    (1<<12)
+#define SCRN_LED_port   (GPIOB)
+#define SCRN_LED_set(a) do{if(a) pin_set(SCRN_LED_port, SCRN_LED_pin); else pin_clear(SCRN_LED_port, SCRN_LED_pin);}while(0)
+#define SCRN_LED_get()  (SCRN_LED_port->IDR & SCRN_LED_pin ? 1: 0)
+#define SCRN_RST_pin    (1<<11)
+#define SCRN_RST_port   (GPIOB)
+#define SCRN_RST_set(a) do{if(a) pin_set(SCRN_RST_port, SCRN_RST_pin); else pin_clear(SCRN_RST_port, SCRN_RST_pin);}while(0)
+#define SCRN_RST_get()  (SCRN_RST_port->IDR & SCRN_RST_pin ? 1: 0)
+#define SCRN_DCX_pin    (1<<10)
+#define SCRN_DCX_port   (GPIOB)
+#define SCRN_DCX_get()  (SCRN_DCX_port->IDR & SCRN_DCX_pin ? 1: 0)
+#define SCRN_Data()     do{pin_set(SCRN_DCX_port, SCRN_DCX_pin);}while(0)
+#define SCRN_Command()  do{pin_clear(SCRN_DCX_port, SCRN_DCX_pin);}while(0)
+
 // Buttons amount
 #define BTNSNO      (7)
 #define BTNs_port   GPIOD

@@ -17,9 +17,11 @@
  */
 
 #include "adc.h"
+#include "BMP280.h"
 #include "hardware.h"
 #include "i2c.h"
 #include "proto.h"
+#include "ili9341.h"
 #include "strfunc.h"
 #include "version.inc"
 
@@ -37,20 +39,29 @@ static int goodstub(const char *cmd, int parno, const char *carg, int32_t iarg){
     return RET_GOOD;
 }
 
+// send over USB cmd[parno][=i]
 static void sendkey(const char *cmd, int parno, int32_t i){
     USB_sendstr(cmd);
     if(parno > -1) USB_sendstr(u2str((uint32_t)parno));
     USB_putbyte('='); USB_sendstr(i2str(i)); newline();
 }
+// `sendkey` for floating parameter
 static void sendkeyf(const char *cmd, int parno, float f){
     USB_sendstr(cmd);
     if(parno > -1) USB_sendstr(u2str((uint32_t)parno));
     USB_putbyte('='); USB_sendstr(float2str(f, 2)); newline();
 }
+// `sendkey` for uint32_t
 static void sendkeyu(const char *cmd, int parno, uint32_t u){
     USB_sendstr(cmd);
     if(parno > -1) USB_sendstr(u2str((uint32_t)parno));
     USB_putbyte('='); USB_sendstr(u2str(u)); newline();
+}
+// `sendkey` for uint32_t out in hex
+static void sendkeyuhex(const char *cmd, int parno, uint32_t u){
+    USB_sendstr(cmd);
+    if(parno > -1) USB_sendstr(u2str((uint32_t)parno));
+    USB_putbyte('='); USB_sendstr(uhex2str(u)); newline();
 }
 
 static int leds(const char *cmd, int parno, const char *c, int32_t i){
@@ -72,6 +83,30 @@ static int leds(const char *cmd, int parno, const char *c, int32_t i){
     return RET_GOOD;
 }
 
+static int bme(const char _U_ *cmd, int _U_ parno, const char _U_ *c, int32_t _U_ i){
+    if(BMP280_get_status() == BMP280_NOTINIT){
+        DBG("Need 2 init");
+        if(!BMP280_init()){
+            USND("Can't init");
+            return RET_BAD;
+        }
+    }
+    if(!BMP280_start()) return RET_BAD;
+    return RET_GOOD;
+}
+
+static int bmefilter(const char _U_ *cmd, int _U_ parno, const char _U_ *c, int32_t _U_ i){
+    BMP280_Filter f = BMP280_FILTER_OFF;
+    if(c){
+        if(i < 0 || i >= BMP280_FILTERMAX) return RET_WRONGARG;
+        f = (BMP280_Filter) i;
+        BMP280_setfilter(f);
+        if(!BMP280_init()) return RET_BAD;
+    }
+    sendkey(cmd, -1, BMP280_getfilter());
+    return RET_GOOD;
+}
+
 static int buzzer(const char *cmd, int _U_ parno, const char _U_ *c, int32_t i){
     if(c){
         if(i > 0) BUZZER_ON();
@@ -88,9 +123,29 @@ static int i2scan(const char _U_ *cmd, int _U_ parno, const char _U_ *c, int32_t
 static int i2addr(const char *cmd, int _U_ parno, const char *c, int32_t i){
     if(c){
         if(i < 0 || i>= I2C_ADDREND) return RET_WRONGARG;
-        I2Caddress = (uint8_t) i;
+        I2Caddress = ((uint8_t) i)<<1;
     }
-    sendkey(cmd, -1, I2Caddress);
+    sendkey(cmd, -1, I2Caddress>>1);
+    return RET_GOOD;
+}
+static int i2reg(const char *cmd, int parno, const char _U_ *c, int32_t i){
+    if(parno < 0 || parno > 127) return RET_WRONGPARNO;
+    uint8_t d[2];
+    if(c){
+        if(i < 0 || i > 255) return RET_WRONGARG;
+        d[0] = parno; d[1] = (uint8_t)i;
+        if(!write_i2c(I2Caddress, d, 2)) return RET_BAD;
+    }
+    if(!read_i2c_reg(I2Caddress, (uint8_t)parno, d, 1)) return RET_BAD;
+    sendkey(cmd, parno, d[0]);
+    return RET_GOOD;
+}
+static int i2read(const char _U_ *cmd, int parno, const char _U_ *c, int32_t _U_ i){
+    uint8_t buf[128];
+    if(parno < 0 || parno > 128) return RET_WRONGPARNO;
+    if(!read_i2c(I2Caddress, buf, (uint8_t)parno)) return RET_BAD;
+    USB_sendstr("I2C got data:\n");
+    hexdump(USB_sendstr, buf, parno);
     return RET_GOOD;
 }
 
@@ -142,6 +197,45 @@ static int pwm(const char *cmd, int parno, const char *c, int32_t i){
     return RET_GOOD;
 }
 
+static int scrnled(const char *cmd, int _U_ parno, const char *c, int32_t i){
+    if(c) SCRN_LED_set(i);
+    sendkeyu(cmd, -1, SCRN_LED_get());
+    return RET_GOOD;
+}
+static int scrndcr(const char *cmd, int _U_ parno, const char *c, int32_t i){
+    if(c){
+        if(i) SCRN_Data();
+        else SCRN_Command();
+    }
+    sendkeyu(cmd, -1, SCRN_DCX_get());
+    return RET_GOOD;
+}
+static int scrnrst(const char *cmd, int _U_ parno, const char *c, int32_t i){
+    if(c) SCRN_RST_set(i);
+    sendkeyu(cmd, -1, SCRN_RST_get());
+    return RET_GOOD;
+}
+static int scrnrdwr(const char *cmd, int parno, const char *c, int32_t i){
+    if(parno < 0) return RET_WRONGPARNO;
+    if(c){
+        if(i < 0 || i > 255) return RET_WRONGARG;
+        if(!ili9341_writereg(parno, (uint8_t*)&i, 1)) return RET_BAD;
+    }
+    i = 0;
+    if(!ili9341_readreg(parno, (uint8_t*)&i, 1)) return RET_BAD;
+    sendkeyu(cmd, parno, i);
+    return RET_GOOD;
+}
+static int scrnrdwr4(const char *cmd, int parno, const char *c, int32_t i){
+    if(parno < 0) return RET_WRONGPARNO;
+    if(c){
+        if(!ili9341_writereg(parno, (uint8_t*)&i, 4)) return RET_BAD;
+    }
+    if(!ili9341_readreg(parno, (uint8_t*)&i, 4)) return RET_BAD;
+    sendkeyuhex(cmd, parno, i);
+    return RET_GOOD;
+}
+
 typedef struct{
     int (*fn)(const char*, int, const char*, int32_t);
     const char *cmd;
@@ -151,6 +245,8 @@ typedef struct{
 commands cmdlist[] = {
     {goodstub, "stub", "simple stub"},
     {NULL, "Different commands", NULL},
+    {bme, "BME", "get pressure, temperature and humidity"},
+    {bmefilter, "BMEf", "set filter (0..4)"},
     {buzzer, "buzzer", "get/set (0 - off, 1 - on) buzzer"},
     {leds, "LED", "LEDx=y; where x=0..3 to work with single LED (then y=1-set, 0-reset, 2-toggle), absent to work with all (y=0 - disable, 1-enable)"},
     {pwm, "pwm", "set/get x channel (0..3) pwm value (0..100)"},
@@ -158,7 +254,15 @@ commands cmdlist[] = {
     {tms, "tms", "print Tms"},
     {NULL, "I2C commands", NULL},
     {i2addr, "iicaddr", "set/get I2C address"},
+    {i2read, "iicread", "read X (0..128) bytes"},
+    {i2reg, "iicreg", "read/write I2C register"},
     {i2scan, "iicscan", "scan I2C bus"},
+    {NULL, "Screen commands", NULL},
+    {scrnled, "Sled", "turn on/off screen lights"},
+    {scrndcr, "Sdcr", "set data(1)/command(0)"},
+    {scrnrst, "Srst", "reset (1/0)"},
+    {scrnrdwr, "Sreg", "read/write 8-bit register"},
+    {scrnrdwr4, "Sregx", "read/write 32-bit register"},
     {NULL, "ADC commands", NULL},
     {adcval, "ADC", "get ADCx value (without x - for all)"},
     {adcvoltage, "ADCv", "get ADCx voltage (without x - for all)"},

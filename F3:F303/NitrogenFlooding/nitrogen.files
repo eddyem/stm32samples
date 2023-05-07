@@ -1,3 +1,5 @@
+BMP280.c
+BMP280.h
 adc.c
 adc.h
 buttons.c
@@ -16,6 +18,8 @@ hashgen/hdr.h
 hashgen/test.c
 i2c.c
 i2c.h
+ili9341.c
+ili9341.h
 main.c
 pdnuart.c
 pdnuart.h
@@ -23,6 +27,8 @@ proto.c
 proto.h
 ringbuffer.c
 ringbuffer.h
+spi.c
+spi.h
 steppers.c
 steppers.h
 strfunc.c

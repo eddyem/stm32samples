@@ -40,6 +40,10 @@
 #define NULL (0)
 #endif
 
+#ifndef _U_
+#define _U_ __attribute__((__unused__))
+#endif
+
 // some good things from CMSIS
 #define nop()   __NOP()
 

@@ -272,7 +272,7 @@ const char *getint(const char *txt, int32_t *I){
 static const float pwr10[] = {1.f, 10.f, 100.f, 1000.f, 10000.f};
 static const float rounds[] = {0.5f, 0.05f, 0.005f, 0.0005f, 0.00005f};
 #define P10L  (sizeof(pwr10)/sizeof(uint32_t) - 1)
-const char *float2str(float x, uint8_t prec){
+char *float2str(float x, uint8_t prec){
     static char str[16] = {0}; // -117.5494E-36\0 - 14 symbols max!
     if(prec > P10L) prec = P10L;
     if(isnan(x)){ memcpy(str, "NAN", 4); return str;}

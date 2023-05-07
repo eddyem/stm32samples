@@ -59,7 +59,7 @@ Automated liquid nitrogen flooding machine
 |  48     | PB11        | SCRN RST    | slow out    | Screen reset     |
 |  49     | (VSS)       |             |             |                  |
 |  50     | (VDD)       |             |             |                  |
-|  51     | PB12        | SCRN NSS    | slow out    | Screen activate  |
+|  51     | PB12        | SCRN LED    | slow out    | Screen LEDs on   |
 |  52     | PB13        | SCRN SCK    | AF5         | SPI for screen   |
 |  53     | PB14        | SCRN MISO   | AF5         |                  |
 |  54     | PB15        | SCRN MOSI   | AF5         |                  |
@@ -143,7 +143,7 @@ Automated liquid nitrogen flooding machine
 |  96     | PB9         | -           | -           |                  |
 |  47     | PB10        | SCRN DCRS   | slow out    | Screen data/cmd  |
 |  48     | PB11        | SCRN RST    | slow out    | Screen reset     |
-|  51     | PB12        | SCRN NSS    | slow out    | Screen activate  |
+|  51     | PB12        | SCRN LED    | slow out    | Screen LEDs on   |
 |  52     | PB13        | SCRN SCK    | AF5         | SPI for screen   |
 |  53     | PB14        | SCRN MISO   | AF5         |                  |
 |  54     | PB15        | SCRN MOSI   | AF5         |                  |
@@ -208,6 +208,8 @@ Automated liquid nitrogen flooding machine
 ### DMA1
 
 - Channel 1 - ADC1
+- Channel 4 - SPI2 Rx
+- Channel 5 - SPI2 Tx
 - Channel 6 - I2C1 Tx
 - Channel 7 - I2C1 Rx
 

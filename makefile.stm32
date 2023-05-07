@@ -96,7 +96,7 @@ release: LDFLAGS += -flto
 release: $(TARGFILE) bin list size
 
 #debug: add debug flags
-debug: CFLAGS += -DEBUG -Werror -g3 -gdwarf-2 
+debug: CFLAGS += -DEBUG -Werror -g3 -gdwarf-2
 debug: TARGET := DEBUG
 debug: $(TARGFILE) bin list size
 
@@ -145,7 +145,7 @@ $(LIST): $(ELF)
 
 $(ELF): $(OBJDIR) $(OBJS)
 	@echo "  LD      $(ELF)"
-	$(LD) $(LDFLAGS) $(OBJS) $(LDLIBS) -o $(ELF)
+	$(LD) $(LDFLAGS) $(OBJS) $(LDLIBS) -o $(ELF) $(LDADD)
 
 size: $(ELF)
 	$(SIZE) $(ELF)    
@@ -158,6 +158,7 @@ clean:
 flash: $(BIN)
 	@echo "  FLASH  $(BIN)"
 	$(STFLASH) write $(BIN) 0x8000000
+	$(STFLASH) reset
 
 boot: $(BIN)
 	@echo "  LOAD $(BIN) through bootloader"
