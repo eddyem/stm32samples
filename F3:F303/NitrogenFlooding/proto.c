@@ -30,6 +30,8 @@
 
 static uint8_t I2Caddress = 0;
 
+static const char *OK = "OK\n";
+
 // parno - number of parameter (or -1); cargs - string with arguments (after '=') (==NULL for getter), iarg - integer argument
 static int goodstub(const char *cmd, int parno, const char *carg, int32_t iarg){
     USB_sendstr("cmd="); USB_sendstr(cmd);
@@ -216,7 +218,7 @@ static int scrnrst(const char *cmd, int _U_ parno, const char *c, int32_t i){
     return RET_GOOD;
 }
 static int scrnrdwr(const char *cmd, int parno, const char *c, int32_t i){
-    if(parno < 0) return RET_WRONGPARNO;
+    if(parno < 0 || parno > 255) return RET_WRONGPARNO;
     if(c){
         if(i < 0 || i > 255) return RET_WRONGARG;
         if(!ili9341_writereg(parno, (uint8_t*)&i, 1)) return RET_BAD;
@@ -227,13 +229,82 @@ static int scrnrdwr(const char *cmd, int parno, const char *c, int32_t i){
     return RET_GOOD;
 }
 static int scrnrdwr4(const char *cmd, int parno, const char *c, int32_t i){
-    if(parno < 0) return RET_WRONGPARNO;
+    if(parno < 0 || parno > 255) return RET_WRONGPARNO;
     if(c){
         if(!ili9341_writereg(parno, (uint8_t*)&i, 4)) return RET_BAD;
     }
     if(!ili9341_readreg(parno, (uint8_t*)&i, 4)) return RET_BAD;
     sendkeyuhex(cmd, parno, i);
     return RET_GOOD;
+}
+static int scrncmd(const char _U_ *cmd, int parno, const char _U_ *c, int32_t _U_ i){
+    if(parno < 0 || parno > 255) return RET_WRONGPARNO;
+    if(!ili9341_writecmd((uint8_t)parno)) return RET_BAD;
+    USB_sendstr(OK);
+    return RET_GOOD;
+}
+static int scrndata(const char *cmd, int parno, const char _U_ *c, int32_t _U_ i){
+    if(parno < 0 || parno > 255) return RET_WRONGPARNO;
+    uint8_t s = (uint8_t)parno;
+    if(!ili9341_writedata(&s, 1)) return RET_BAD;
+    sendkeyuhex(cmd, parno, s);
+    return RET_GOOD;
+}
+static int scrndata4(const char *cmd, int parno, const char *c, int32_t i){
+    if(parno < 1 || parno > 4) return RET_WRONGPARNO;
+    if(!c) return RET_WRONGARG;
+    if(!ili9341_writedata((uint8_t*)&i, parno)) return RET_BAD;
+    sendkeyuhex(cmd, parno, (uint32_t)i);
+    return RET_GOOD;
+}
+static int scrninit(const char _U_ *cmd, int _U_ parno, const char _U_ *c, int32_t _U_ i){
+    if(!ili9341_init()) return RET_BAD;
+    USB_sendstr(OK);
+    return RET_GOOD;
+}
+
+static int scrnfill(const char *cmd, int parno, const char *c, int32_t i){
+    if(parno < 0) parno = RGB(0xf, 0x1f, 0xf);
+    if(parno > 0xffff) return RET_WRONGPARNO;
+    if(!c){if(!ili9341_fill((uint16_t)parno)) return RET_BAD;
+    }else{
+        if(i < 1) return RET_WRONGARG;
+        if(!ili9341_fillp((uint16_t)parno, -i)) return RET_BAD;
+    }
+    sendkeyuhex(cmd, -1, i);
+    return RET_GOOD;
+}
+static int scrnfilln(const char *cmd, int _U_ parno, const char *c, int32_t i){
+    if(parno < 0) parno = RGB(0xf, 0x1f, 0xf);
+    if(parno > 0xffff) return RET_WRONGPARNO;
+    if(!c){if(!ili9341_filln((uint16_t)parno)) return RET_BAD;
+    }else{
+        if(i < 1) return RET_WRONGARG;
+        if(!ili9341_fillp((uint16_t)parno, i)) return RET_BAD;
+    }
+    sendkeyuhex(cmd, -1, i);
+    return RET_GOOD;
+}
+static int smadctl(const char *cmd, int _U_ parno, const char *c, int32_t i){
+    if(!c) i = 0;
+    if(i < 0 || i > 255) return RET_WRONGARG;
+    if(!ili9341_writereg(ILI9341_MADCTL, (uint8_t*)&i, 1)) return RET_BAD;
+    sendkeyuhex(cmd, -1, i);
+    return RET_GOOD;
+}
+static int scolrow(int col, const char *cmd, int parno, const char *c, int32_t i){
+    if(!c || i < 0 || i > 319) return RET_WRONGARG;
+    if(parno < 0 || parno > 319) return RET_WRONGPARNO;
+    if(col){if(!ili9341_setcol((uint16_t)parno, (uint16_t)i)) return RET_BAD;}
+    else{if(!ili9341_setrow((uint16_t)parno, (uint16_t)i)) return RET_BAD;}
+    sendkeyu(cmd, parno, i);
+    return RET_GOOD;
+}
+static int scol(const char *cmd, int parno, const char *c, int32_t i){
+    return scolrow(1, cmd, parno, c, i);
+}
+static int srow(const char *cmd, int parno, const char *c, int32_t i){
+    return scolrow(0, cmd, parno, c, i);
 }
 
 typedef struct{
@@ -263,6 +334,15 @@ commands cmdlist[] = {
     {scrnrst, "Srst", "reset (1/0)"},
     {scrnrdwr, "Sreg", "read/write 8-bit register"},
     {scrnrdwr4, "Sregx", "read/write 32-bit register"},
+    {scrncmd, "Scmd", "write 8bit command"},
+    {scrndata, "Sdat", "write 8bit data"},
+    {scrndata4, "Sdatx", "write x bytes of data"},
+    {scrninit, "Sini", "init screen"},
+    {scrnfill, "Sfill", "fill screen with color (=npix)"},
+    {scrnfilln, "Sfilln", "fill screen (next) with color (=npix)"},
+    {smadctl, "Smad", "change MADCTL"},
+    {scol, "Scol", "set column limits (low=high)"},
+    {srow, "Srow", "set row limits (low=high)"},
     {NULL, "ADC commands", NULL},
     {adcval, "ADC", "get ADCx value (without x - for all)"},
     {adcvoltage, "ADCv", "get ADCx voltage (without x - for all)"},

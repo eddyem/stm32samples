@@ -37,7 +37,7 @@ volatile uint32_t wctr;
 void spi_setup(){
     RCC->APB1ENR |= RCC_APB1ENR_SPI2EN;
     // Baudrate = 0b011 - fpclk/16 = 2MHz; software slave management (without hardware NSS pin)
-    SPI2->CR1 = SPI_CR1_MSTR | SPI_CR1_BR_0 | SPI_CR1_BR_1 | SPI_CR1_SSM | SPI_CR1_SSI;
+    SPI2->CR1 = /*SPI_CR1_BIDIMODE | SPI_CR1_BIDIOE |*/ SPI_CR1_MSTR | SPI_CR1_BR_0 | SPI_CR1_BR_1 | SPI_CR1_SSM | SPI_CR1_SSI;
     // 8bit; RXNE generates after 8bit of data in FIFO
     SPI2->CR2 = SPI_CR2_FRXTH | SPI_CR2_DS_2|SPI_CR2_DS_1|SPI_CR2_DS_0 /*| SPI_CR2_TXDMAEN | SPI_CR2_RXDMAEN*/;
     spi_status = SPI_READY;
@@ -50,7 +50,7 @@ int spi_waitbsy(){
 }
 
 /**
- * @brief spi_send - send data over SPI2
+ * @brief spi_send - send data over SPI2 (change data array with received bytes)
  * @param data - data to read
  * @param n - length of data
  * @return 0 if failed
@@ -64,7 +64,7 @@ int spi_write(const uint8_t *data, uint32_t n){
         WAITX(!(SPI2->SR & SPI_SR_TXE));
         SPIDR = data[x];
         //WAITX(!(SPI2->SR & SPI_SR_RXNE));
-        //(void) SPI2->DR; // clear RXNE after last things
+        //data[x] = SPI2->DR; // clear RXNE after last things
     }
     return 1;
 }
@@ -91,6 +91,7 @@ int spi_read(uint8_t _U_ *data, uint32_t _U_ n){
         DBG("not ready");
         return 0;
     }
+    //SPI2->CR1 &= ~SPI_CR1_BIDIOE; // Rx
     while(SPI2->SR & SPI_SR_RXNE) (void) SPI2->DR;
     for(uint32_t x = 0; x < n; ++x){
         WAITX(!(SPI2->SR & SPI_SR_TXE));
@@ -98,6 +99,7 @@ int spi_read(uint8_t _U_ *data, uint32_t _U_ n){
         WAITX(!(SPI2->SR & SPI_SR_RXNE));
         data[x] = SPI2->DR;
     }
+    //SPI2->CR1 |= SPI_CR1_BIDIOE; // turn off clocking
     return 1;
 }
 
