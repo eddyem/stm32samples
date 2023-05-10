@@ -24,9 +24,13 @@
 #endif
 #include "usb.h"
 
+#include <string.h> // bzero
+
+// color buffer for DMA translations (2 lines)
+uint16_t colorbuf[COLORBUFSZ];
+
 static const uint8_t initcmd[] = {
     ILI9341_SWRESET,     0xff, // reset and wait a lot
-    //0xEF, 3, 0x03, 0x80, 0x02, // WTF?
     ILI9341_POWCTLA,     5, 0x39, 0x2C, 0x00, 0x34, 0x02, // default
     ILI9341_POWCTLB,     3, 0x00, 0xC1, 0x30, // PC/EQ for power saving
     ILI9341_DRVTCTLA1,   3, 0x85, 0x00, 0x78, // EQ timimg
@@ -48,7 +52,7 @@ static const uint8_t initcmd[] = {
     0x4E, 0xF1, 0x37, 0x07, 0x10, 0x03, 0x0E, 0x09, 0x00,
     ILI9341_NEGGAMCOR,   15, 0x00, 0x0E, 0x14, 0x03, 0x11, 0x07, // Set Gamma
     0x31, 0xC1, 0x48, 0x08, 0x0F, 0x0C, 0x31, 0x36, 0x0F,
-    ILI9341_SLPOUT,      0x8a, // Exit Sleep
+    ILI9341_SLPOUT,      0x8a, // Exit Sleep and wait 10ms
     ILI9341_NORON,       0x80, // Normal display mode ON
     ILI9341_DISPON,      0x80, // Display on
     0x00 // End of list
@@ -70,6 +74,8 @@ int ili9341_init(){
         if(!ili9341_writereg(reg, ptr, N)) return 0;
         ptr += N;
     }
+    if(!ili9341_setcol(0, SCRNW-1)) return 0;
+    if(!ili9341_setrow(0, SCRNH-1)) return 0;
     return 1;
 }
 
@@ -174,14 +180,47 @@ int ili9341_writecmd(uint8_t cmd){
     return r;
 }
 
-// write data
-int ili9341_writedata(const uint8_t *data, uint32_t N){
+// read/write data over DMA
+static int dmardwr(uint8_t *out, uint8_t *in, uint32_t N){
+    if(!out || !N) return 0;
+    if(in) bzero(out, N);
     SCRN_Data();
+    SCRN_RST_set(0);
+    uint32_t r = 0;
+    do{
+        if(!spi_write_dma((const uint8_t*)out, in, N)) break;
+        if(!spi_waitbsy()) break;
+        uint32_t T = Tms;
+        while(Tms - T < 100 && spi_status != SPI_READY);
+        if(spi_status != SPI_READY) break;
+        if(in){if(!spi_read_dma(&r)) break;}
+        else r = 1;
+    }while(0);
+    SCRN_Command();
+    SCRN_RST_set(1);
+    return r;
+}
+
+// write data by SPI over DMA (but blocking!)
+// !!!! don't do anything with `data` until transmission complete !!!!
+int ili9341_writedata(uint8_t *data, uint32_t N){
+    return dmardwr(data, NULL, N);
+}
+
+// blocking read data by DMA
+int ili9341_readdata(uint8_t *data, uint32_t N){
+    return dmardwr(data, data, N);
+}
+
+int ili9341_readregdma(uint8_t reg, uint8_t *data, uint32_t N){
+    SCRN_Command();
     SCRN_RST_set(0);
     int r = 0;
     do{
-        if(!spi_write(data, N)) break;
+        if(!spi_write(&reg, 1)) break;
         if(!spi_waitbsy()) break;
+        SCRN_Data();
+        if(!dmardwr(data, data, N)) break;
         r = 1;
     }while(0);
     SCRN_Command();
@@ -191,32 +230,14 @@ int ili9341_writedata(const uint8_t *data, uint32_t N){
 
 static int fillcmd(uint16_t color, uint8_t cmd, int sz){
     uint16_t rc = __builtin_bswap16(color);
-    //USB_sendstr("rc="); USB_sendstr(u2str(rc)); newline();
-    SCRN_Command();
-    SCRN_RST_set(0);
-    int r = 0;
-    if(!spi_write(&cmd, 1)) goto rtn;
-    if(!spi_waitbsy()) goto rtn;
-    r = 1;
-    SCRN_Data();
-    uint16_t black = 0;
-    for(int i = 0; i < sz; ++i){
-        IWDG->KR = IWDG_REFRESH;
-        if(i%80 == 0){
-            if(!spi_write((uint8_t*)&black, 2)){
-                r = 0;
-                break;
-            }
-        } else if(!spi_write((uint8_t*)&rc, 2)){
-            r = 0;
-            break;
-        }
+    if(!ili9341_writecmd(cmd)) return 0;
+    for(int i = 0; i < COLORBUFSZ; ++i) colorbuf[i] = rc; // prepare buffer to write
+    while(sz){
+        int portion = (sz > COLORBUFSZ) ? COLORBUFSZ : sz;
+        if(!ili9341_writedata((uint8_t*)colorbuf, portion * 2)) return 0; // multiply by 2: we are writing uint16_t!
+        sz -= portion;
     }
-    if(!spi_waitbsy()) r = 0;
-rtn:
-    SCRN_Command();
-    SCRN_RST_set(1);
-    return r;
+    return 1;
 }
 
 // fill start

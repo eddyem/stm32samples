@@ -163,7 +163,14 @@
 #define SCRNSZMIN 240
 #define SCRNSZ (SCRNSZMAX*SCRNSZMIN)
 
-#define DEFMADCTL (ILI9341_MADCTL_MY | ILI9341_MADCTL_RGB)
+// Different orientations
+// default orientation: w=320, h=240, zero in upper left corner, connector is from the left
+#define DEFMADCTL (ILI9341_MADCTL_MX | ILI9341_MADCTL_MY | ILI9341_MADCTL_MV | ILI9341_MADCTL_RGB)
+#define SCRNW SCRNSZMAX
+#define SCRNH SCRNSZMIN
+
+#define COLORBUFSZ (2*SCRNW)
+extern uint16_t colorbuf[];
 
 int ili9341_init();
 int ili9341_readreg(uint8_t reg, uint8_t *data, uint32_t N);
@@ -171,7 +178,10 @@ int ili9341_writereg(uint8_t reg, const uint8_t *data, uint32_t N);
 int ili9341_writereg16(uint8_t reg, uint16_t data);
 int ili9341_writereg32(uint8_t reg, uint16_t data1, uint16_t data2);
 int ili9341_writecmd(uint8_t cmd);
-int ili9341_writedata(const uint8_t *data, uint32_t N);
+int ili9341_writedata(uint8_t *data, uint32_t N);
+int ili9341_readdata(uint8_t *data, uint32_t N);
+int ili9341_readregdma(uint8_t reg, uint8_t *data, uint32_t N);
+
 int ili9341_fill(uint16_t color);
 int ili9341_filln(uint16_t color);
 int ili9341_fillp(uint16_t color, int sz);

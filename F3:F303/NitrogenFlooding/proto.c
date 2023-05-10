@@ -22,6 +22,7 @@
 #include "i2c.h"
 #include "proto.h"
 #include "ili9341.h"
+#include "screen.h"
 #include "strfunc.h"
 #include "version.inc"
 
@@ -62,7 +63,7 @@ static void sendkeyu(const char *cmd, int parno, uint32_t u){
 // `sendkey` for uint32_t out in hex
 static void sendkeyuhex(const char *cmd, int parno, uint32_t u){
     USB_sendstr(cmd);
-    if(parno > -1) USB_sendstr(u2str((uint32_t)parno));
+    if(parno > -1) USB_sendstr(uhex2str((uint32_t)parno));
     USB_putbyte('='); USB_sendstr(uhex2str(u)); newline();
 }
 
@@ -237,6 +238,14 @@ static int scrnrdwr4(const char *cmd, int parno, const char *c, int32_t i){
     sendkeyuhex(cmd, parno, i);
     return RET_GOOD;
 }
+static int scrnrdn(const char *cmd, int parno, const char *c, int32_t i){
+    if(parno < 0 || parno > 255) return RET_WRONGPARNO;
+    if(!c || i < 1 || i > COLORBUFSZ*2) return RET_WRONGARG;
+    if(!ili9341_readregdma(parno, (uint8_t*)colorbuf, i)) return RET_BAD;
+    sendkey(cmd, parno, i);
+    hexdump(USB_sendstr, (uint8_t*)colorbuf, i);
+    return RET_GOOD;
+}
 static int scrncmd(const char _U_ *cmd, int parno, const char _U_ *c, int32_t _U_ i){
     if(parno < 0 || parno > 255) return RET_WRONGPARNO;
     if(!ili9341_writecmd((uint8_t)parno)) return RET_BAD;
@@ -266,30 +275,30 @@ static int scrninit(const char _U_ *cmd, int _U_ parno, const char _U_ *c, int32
 static int scrnfill(const char *cmd, int parno, const char *c, int32_t i){
     if(parno < 0) parno = RGB(0xf, 0x1f, 0xf);
     if(parno > 0xffff) return RET_WRONGPARNO;
-    if(!c){if(!ili9341_fill((uint16_t)parno)) return RET_BAD;
+    if(!c){if(!(i=ili9341_fill((uint16_t)parno))) return RET_BAD;
     }else{
         if(i < 1) return RET_WRONGARG;
         if(!ili9341_fillp((uint16_t)parno, -i)) return RET_BAD;
     }
-    sendkeyuhex(cmd, -1, i);
+    sendkeyu(cmd, parno, i);
     return RET_GOOD;
 }
-static int scrnfilln(const char *cmd, int _U_ parno, const char *c, int32_t i){
+static int scrnfilln(const char *cmd, int parno, const char *c, int32_t i){
     if(parno < 0) parno = RGB(0xf, 0x1f, 0xf);
     if(parno > 0xffff) return RET_WRONGPARNO;
-    if(!c){if(!ili9341_filln((uint16_t)parno)) return RET_BAD;
+    if(!c){if(!(i=ili9341_filln((uint16_t)parno))) return RET_BAD;
     }else{
         if(i < 1) return RET_WRONGARG;
         if(!ili9341_fillp((uint16_t)parno, i)) return RET_BAD;
     }
-    sendkeyuhex(cmd, -1, i);
+    sendkeyu(cmd, parno, i);
     return RET_GOOD;
 }
-static int smadctl(const char *cmd, int _U_ parno, const char *c, int32_t i){
+static int smadctl(const char *cmd, int parno, const char *c, int32_t i){
     if(!c) i = 0;
     if(i < 0 || i > 255) return RET_WRONGARG;
     if(!ili9341_writereg(ILI9341_MADCTL, (uint8_t*)&i, 1)) return RET_BAD;
-    sendkeyuhex(cmd, -1, i);
+    sendkeyuhex(cmd, parno, i);
     return RET_GOOD;
 }
 static int scolrow(int col, const char *cmd, int parno, const char *c, int32_t i){
@@ -305,6 +314,66 @@ static int scol(const char *cmd, int parno, const char *c, int32_t i){
 }
 static int srow(const char *cmd, int parno, const char *c, int32_t i){
     return scolrow(0, cmd, parno, c, i);
+}
+static int sread(const char *cmd, int parno, const char _U_ *c, int32_t _U_ i){
+    if(parno < 0 || parno > COLORBUFSZ*2) return RET_WRONGARG;
+    if(!(parno = ili9341_readdata((uint8_t*)colorbuf, parno))) return RET_BAD;
+    USB_sendstr(cmd); USB_sendstr(u2str(parno)); newline();
+    hexdump(USB_sendstr, (uint8_t*)colorbuf, parno);
+    return RET_GOOD;
+}
+static int scls(const char *cmd, int parno, const char *c, int32_t i){
+    // fg=bg, default: fg=0xffff, bg=0
+    if(parno < 0 || parno > 0xffff) parno = 0xffff;
+    if(!c) i = 0;
+    setBGcolor(i);
+    setFGcolor(parno);
+    ClearScreen();
+    sendkeyuhex(cmd, parno, i);
+    return RET_GOOD;
+}
+static int scolor(const char *cmd, int parno, const char *c, int32_t i){
+    // fg=bg, default: fg=0xffff, bg=0
+    if(parno < 0 || parno > 0xffff) parno = 0xffff;
+    if(!c) i = 0;
+    setBGcolor(i);
+    setFGcolor(parno);
+    sendkeyuhex(cmd, parno, i);
+    return RET_GOOD;
+}
+static int sputstr(const char _U_ *cmd, int parno, const char *c, int32_t _U_ i){
+    if(!c) return RET_WRONGARG;
+    if(parno < 0) parno = 0;
+    if(parno > SCRNH-1) parno = SCRNH-1;
+    PutStringAt(0, parno, c);
+    UpdateScreen(parno - 14, parno+2);
+    USB_sendstr("put string: '"); USB_sendstr(c); USB_sendstr("'\n");
+    return RET_GOOD;
+}
+static int sstate(const char _U_ *cmd, int _U_ parno, const char _U_ *c, int32_t _U_ i){
+    const char *s = "unknown";
+    switch(getScreenState()){
+        case SCREEN_INIT:
+            s = "init";
+        break;
+        case SCREEN_W4INIT:
+            s = "wait for init";
+        break;
+        case SCREEN_RELAX:
+            s = "relax";
+        break;
+        case SCREEN_CONVBUF:
+            s = "convert buffer";
+        break;
+        case SCREEN_UPDATENXT:
+            s = "update next";
+        break;
+        case SCREEN_ACTIVE:
+            s = "transmission in progress";
+        break;
+    }
+    USB_sendstr("ScreenState="); USB_sendstr(s); newline();
+    return RET_GOOD;
 }
 
 typedef struct{
@@ -334,15 +403,21 @@ commands cmdlist[] = {
     {scrnrst, "Srst", "reset (1/0)"},
     {scrnrdwr, "Sreg", "read/write 8-bit register"},
     {scrnrdwr4, "Sregx", "read/write 32-bit register"},
+    {scrnrdn, "Sregn", "read from register x =n bytes"},
     {scrncmd, "Scmd", "write 8bit command"},
     {scrndata, "Sdat", "write 8bit data"},
-    {scrndata4, "Sdatx", "write x bytes of data"},
+    {scrndata4, "Sdatn", "write x bytes of =data"},
+    {sread, "Sread", "read "},
     {scrninit, "Sini", "init screen"},
     {scrnfill, "Sfill", "fill screen with color (=npix)"},
     {scrnfilln, "Sfilln", "fill screen (next) with color (=npix)"},
     {smadctl, "Smad", "change MADCTL"},
     {scol, "Scol", "set column limits (low=high)"},
     {srow, "Srow", "set row limits (low=high)"},
+    {scls, "Scls", "clear screen fg=bg"},
+    {scolor, "Scolor", "seg color fg=bg"},
+    {sputstr, "Sstr", "put string y=string"},
+    {sstate, "Sstate", "current screen state"},
     {NULL, "ADC commands", NULL},
     {adcval, "ADC", "get ADCx value (without x - for all)"},
     {adcvoltage, "ADCv", "get ADCx voltage (without x - for all)"},

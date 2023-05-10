@@ -10,6 +10,10 @@ commonproto.c
 commonproto.h
 flash.c
 flash.h
+font14.h
+fontNumb8.h
+fonts.c
+fonts.h
 hardware.c
 hardware.h
 hashgen/hashgen.c
@@ -27,6 +31,8 @@ proto.c
 proto.h
 ringbuffer.c
 ringbuffer.h
+screen.c
+screen.h
 spi.c
 spi.h
 steppers.c

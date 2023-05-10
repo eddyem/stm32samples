@@ -136,7 +136,6 @@ void hw_setup(){
     RCC->AHBENR |= RCC_AHBENR_DMA1EN | RCC_AHBENR_DMA2EN;
     gpio_setup();
     i2c_setup(LOW_SPEED);
-    spi_setup();
     pwm_setup();
 #ifndef EBUG
     iwdg_setup();

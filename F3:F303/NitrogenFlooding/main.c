@@ -24,6 +24,7 @@
 #include "hardware.h"
 #include "i2c.h"
 #include "proto.h"
+#include "screen.h"
 #include "strfunc.h"
 #include "usb.h"
 
@@ -35,6 +36,8 @@ void sys_tick_handler(void){
     ++Tms;
 }
 
+
+// SPI setup done in `screen.h`
 int main(void){
     char inbuff[MAXSTRLEN+1];
     if(StartHSE()){
@@ -112,6 +115,7 @@ int main(void){
             const char *ans = cmd_parser(inbuff);
             if(ans) USB_sendstr(ans);
         }
+        process_screen();
         //process_keys();
     }
 }

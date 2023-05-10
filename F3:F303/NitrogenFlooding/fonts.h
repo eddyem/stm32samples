@@ -17,19 +17,26 @@
  */
 
 #pragma once
-#include <stm32f3.h>
 
+#include <stdint.h>
+
+// type for font choosing
 typedef enum{
-    SPI_NOTREADY,
-    SPI_READY,
-    SPI_BUSY
-} spiStatus;
+    FONT_T_MIN = -1,    // no fonts <= this
+    FONT14,             // 16x16, font height near 14px
+    FONTN8,             // numbers and 'A'..'Z', height 8px
+    FONT_T_MAX          // no fonts >= this
+} font_t;
 
-extern spiStatus spi_status;
+int choose_font(font_t newfont);
+const uint8_t *font_char(uint8_t Char);
 
-void spi_setup();
-int spi_waitbsy();
-int spi_write(const uint8_t *data, uint32_t n);
-int spi_write_dma(const uint8_t *data, uint8_t *rxbuf, uint32_t n);
-int spi_read(uint8_t *data, uint32_t n);
-uint8_t *spi_read_dma(uint32_t *n);
+typedef struct{
+    const uint8_t *font;        // font inself
+    const uint8_t *enctable;    // font encoding table
+    uint8_t height;             // full font matrix height
+    uint8_t bytes;              // amount of bytes in font matrix
+    uint8_t baseline;           // baseline position (coordinate from bottom line)
+} afont;
+
+extern const afont *curfont;
