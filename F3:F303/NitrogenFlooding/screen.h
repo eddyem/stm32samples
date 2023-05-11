@@ -39,6 +39,9 @@ typedef enum{ // screen states
 #define SPRITEWD    (8)
 #define SPRITEHT    (8)
 
+// maximal font scale
+#define FONTSCALEMAX    (10)
+
 screen_state getScreenState();
 void ClearScreen();
 void UpdateScreen(int y0, int y1);
@@ -46,6 +49,7 @@ void setBGcolor(uint16_t c);
 void setFGcolor(uint16_t c);
 void invertSpriteColor(int xmin, int xmax, int ymin, int ymax);
 void DrawPix(int X, int Y, uint8_t pix);
+uint8_t SetFontScale(uint8_t scale);
 uint8_t DrawCharAt(int X, int Y, uint8_t Char);
 int PutStringAt(int X, int Y, const char *str);
 int CenterStringAt(int Y, const char *str);

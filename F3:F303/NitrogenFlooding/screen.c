@@ -56,6 +56,8 @@ static int uy0, uy1;
 static int updidx = 0; // ==-1 to initialize update
 // next data portion size (in bytes!), total amount of bytes in update buffer
 static int portionsz = 0, updbuffsz;
+// font scale
+static uint8_t fontscale = 1;
 
 static uint16_t fgColor = 0xff, bgColor = 0; // foreground and background colors
 void setBGcolor(uint16_t c){bgColor = c;}
@@ -84,14 +86,11 @@ void UpdateScreen(int y0, int y1){
  */
 void ClearScreen(){
     memset(screenbuf, 0, SCREENBUF_SZ);
-    int i;
-    for(i = 0; i < SPRITE_SZ; ++i){
+    for(int i = 0; i < SPRITE_SZ; ++i){
         foreground[i] = fgColor;
         background[i] = bgColor;
     }
-   USB_sendstr("total spsz="); USB_sendstr(i2str(i)); newline();
-    foreground[SPRITE_SZ-5] = 0x1234;
-    foreground[SPRITE_SZ-21] = 0x4321;
+    for(int i = SPRITE_SZ-40; i < SPRITE_SZ; ++i) foreground[i] = i;
     UpdateScreen(0, SCRNH-1);
 }
 
@@ -103,7 +102,7 @@ void ClearScreen(){
 void DrawPix(int X, int Y, uint8_t pix){
     if(X < 0 || X > SCRNW-1 || Y < 0 || Y > SCRNH-1) return; // outside of screen
     // now calculate coordinate of pixel
-    int16_t spritex = X/SPRITEWD, spriteidx = spritex + SCRNSPRITEW * Y / SPRITEHT;
+    int16_t spritex = X/SPRITEWD, spriteidx = spritex + SCRNSPRITEW * (Y / SPRITEHT);
     uint8_t *ptr = &screenbuf[Y*SCRNSPRITEW + spritex]; // pointer to byte with 8 pixels
     if(pix) *ptr |= 1 << (7 - (X%8));
     else *ptr &= ~(1 << (7 - (X%8)));
@@ -135,6 +134,11 @@ void invertSpriteColor(int xmin, int xmax, int ymin, int ymax){
     }
 }
 
+uint8_t SetFontScale(uint8_t scale){
+    if(scale > 0 && scale <= FONTSCALEMAX) fontscale = scale;
+    return fontscale;
+}
+
 // TODO in case of low speed: draw at once full line?
 /**
  * @brief DrawCharAt - draws character @ position X,Y (this point is left baseline corner of char!)
@@ -147,18 +151,20 @@ uint8_t DrawCharAt(int X, int Y, uint8_t Char){
     const uint8_t *curchar = font_char(Char);
     if(!curchar) return 0;
     // now change Y coordinate to left upper corner of font
-    Y += curfont->baseline - curfont->height + 1;
+    Y += fontscale*(curfont->baseline - curfont->height + 1);
     // height and width of letter in pixels
     uint8_t h = curfont->height, w = *curchar++; // now curchar is pointer to bits array
     uint8_t lw = curfont->bytes / h; // width of letter in bytes
     for(uint8_t row = 0; row < h; ++row){
-        int Y1 = Y + row;
+        int Y1 = Y + fontscale * row;
         for(uint8_t col = 0; col < w; ++col){
             register uint8_t pix = curchar[row*lw + (col/8)] & (1 << (7 - (col%8)));
-            DrawPix(X + col, Y1, pix);
+            int xx = X + fontscale * col;
+            for(int y = 0; y < fontscale; ++y) for(int x = 0; x < fontscale; ++x)
+                DrawPix(xx + x, Y1 + y, pix);
         }
     }
-    return w;
+    return w * fontscale;
 }
 
 /**
@@ -215,11 +221,8 @@ static int convbuf(){
         uint16_t *fg = foreground + spidx, *bg = background + spidx;
         for(int X = 0; X < SCRNSPRITEW; ++X, ++fg, ++bg, ++i){
             // prepare colors for SPI transfer
-            uint16_t f = __builtin_bswap16(*fg++), b = __builtin_bswap16(*bg++);
+            uint16_t f = __builtin_bswap16(*fg), b = __builtin_bswap16(*bg);
             uint8_t pix = *i;
-          if(Y==239){
-          USB_sendstr("X="); USB_sendstr(i2str(X)); newline();
-          USB_sendstr("f="); USB_sendstr(uhex2str(f)); newline();}
             for(int idx = 0; idx < SPRITEWD; ++idx){ // now check bits in pixels mask
                 *o++ = (pix & 0x80) ? f : b;
                 pix <<= 1;

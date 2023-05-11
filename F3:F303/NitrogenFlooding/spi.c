@@ -24,7 +24,7 @@
 #include "strfunc.h"
 #endif
 
-#define SPIDR   *((uint8_t*)&SPI2->DR)
+#define SPIDR   *((volatile uint8_t*)&SPI2->DR)
 
 spiStatus spi_status = SPI_NOTREADY;
 volatile uint32_t wctr;
@@ -40,11 +40,12 @@ static uint32_t rxbuflen = 0;
 // Channel 5 - SPI2 Tx
 void spi_setup(){
     SPI2->CR1 = 0; // clear EN
-    //RCC->APB1RSTR = RCC_APB1RSTR_SPI2RST; // reset SPI
+    RCC->APB1RSTR = RCC_APB1RSTR_SPI2RST; // reset SPI
+    RCC->APB1RSTR = 0; // clear reset
     RCC->APB1ENR |= RCC_APB1ENR_SPI2EN;
     RCC->AHBENR |= RCC_AHBENR_DMA1EN;
-    // Baudrate = 0b011 - fpclk/16 = 2MHz; software slave management (without hardware NSS pin)
-    SPI2->CR1 = SPI_CR1_MSTR | SPI_CR1_BR_0 | SPI_CR1_BR_1 | SPI_CR1_SSM | SPI_CR1_SSI;
+    // Baudrate = 0b011 - fpclk/4 = 8MHz; software slave management (without hardware NSS pin)
+    SPI2->CR1 = SPI_CR1_MSTR | /*SPI_CR1_BR_0 |*/ SPI_CR1_SSM | SPI_CR1_SSI;
     // 8bit; RXNE generates after 8bit of data in FIFO
     SPI2->CR2 = SPI_CR2_FRXTH | SPI_CR2_DS_2|SPI_CR2_DS_1|SPI_CR2_DS_0 | SPI_CR2_TXDMAEN | SPI_CR2_RXDMAEN;
     // setup SPI2 DMA
@@ -94,14 +95,10 @@ int spi_write(const uint8_t *data, uint32_t n){
  */
 int spi_write_dma(const uint8_t *data, uint8_t *rxbuf, uint32_t n){
     if(spi_status != SPI_READY) return 0;
+    if(!spi_waitbsy()) return 0;
     rxbufptr = rxbuf;
     rxbuflen = n;
-    if(!spi_waitbsy()) return 0;
-    // clear SPI Rx FIFO
-    (void) SPI2->DR;
-    while(SPI2->SR & SPI_SR_RXNE) (void) SPI2->DR;
-    //DMA1_Channel4->CCR &= ~DMA_CCR_EN; // turn off to reconfigure
-    //DMA1_Channel5->CCR &= ~DMA_CCR_EN;
+    // spi_setup(); - only so we can clear Rx FIFO!
     DMA1_Channel5->CMAR = (uint32_t) data;
     DMA1_Channel5->CNDTR = n;
     // check if user want to receive data
@@ -130,8 +127,7 @@ int spi_read(uint8_t *data, uint32_t n){
     }
     if(!spi_waitbsy()) return 0;
     // clear SPI Rx FIFO
-    (void) SPI2->DR;
-    while(SPI2->SR & SPI_SR_RXNE) (void) SPI2->DR;
+    for(int i = 0; i < 4; ++i) (void) SPI2->DR;
     for(uint32_t x = 0; x < n; ++x){
         WAITX(!(SPI2->SR & SPI_SR_TXE));
         SPIDR = 0;

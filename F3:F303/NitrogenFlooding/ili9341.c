@@ -219,12 +219,8 @@ int ili9341_readregdma(uint8_t reg, uint8_t *data, uint32_t N){
     do{
         if(!spi_write(&reg, 1)) break;
         if(!spi_waitbsy()) break;
-        SCRN_Data();
-        if(!dmardwr(data, data, N)) break;
-        r = 1;
+        r = dmardwr(data, data, N);
     }while(0);
-    SCRN_Command();
-    SCRN_RST_set(1);
     return r;
 }
 

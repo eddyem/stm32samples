@@ -241,7 +241,7 @@ static int scrnrdwr4(const char *cmd, int parno, const char *c, int32_t i){
 static int scrnrdn(const char *cmd, int parno, const char *c, int32_t i){
     if(parno < 0 || parno > 255) return RET_WRONGPARNO;
     if(!c || i < 1 || i > COLORBUFSZ*2) return RET_WRONGARG;
-    if(!ili9341_readregdma(parno, (uint8_t*)colorbuf, i)) return RET_BAD;
+    if(!(i = ili9341_readregdma(parno, (uint8_t*)colorbuf, i))) return RET_BAD;
     sendkey(cmd, parno, i);
     hexdump(USB_sendstr, (uint8_t*)colorbuf, i);
     return RET_GOOD;
@@ -346,7 +346,8 @@ static int sputstr(const char _U_ *cmd, int parno, const char *c, int32_t _U_ i)
     if(parno < 0) parno = 0;
     if(parno > SCRNH-1) parno = SCRNH-1;
     PutStringAt(0, parno, c);
-    UpdateScreen(parno - 14, parno+2);
+    int fs = SetFontScale(0); // get font scale
+    UpdateScreen(parno-13*fs, parno+3*fs);
     USB_sendstr("put string: '"); USB_sendstr(c); USB_sendstr("'\n");
     return RET_GOOD;
 }
@@ -375,6 +376,11 @@ static int sstate(const char _U_ *cmd, int _U_ parno, const char _U_ *c, int32_t
     USB_sendstr("ScreenState="); USB_sendstr(s); newline();
     return RET_GOOD;
 }
+static int sfscale(const char *cmd, int _U_ parno, const char _U_ *c, int32_t i){
+    sendkeyu(cmd, -1, SetFontScale((uint8_t)i));
+    return RET_GOOD;
+}
+
 
 typedef struct{
     int (*fn)(const char*, int, const char*, int32_t);
@@ -418,6 +424,7 @@ commands cmdlist[] = {
     {scolor, "Scolor", "seg color fg=bg"},
     {sputstr, "Sstr", "put string y=string"},
     {sstate, "Sstate", "current screen state"},
+    {sfscale, "Sfscale", "set/get =font scale"},
     {NULL, "ADC commands", NULL},
     {adcval, "ADC", "get ADCx value (without x - for all)"},
     {adcvoltage, "ADCv", "get ADCx voltage (without x - for all)"},
