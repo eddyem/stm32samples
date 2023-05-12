@@ -17,6 +17,7 @@
  */
 
 #include "adc.h"
+#include "buttons.h"
 #include "BMP280.h"
 #include "hardware.h"
 #include "i2c.h"
@@ -70,8 +71,8 @@ static void sendkeyuhex(const char *cmd, int parno, uint32_t u){
 static int leds(const char *cmd, int parno, const char *c, int32_t i){
     if(parno < 0){ // enable/disable all
         if(c){
-            LEDsON = (i ? 1 : 0);
-            if(!LEDsON) for(int _ = 0; _ < 4; ++_) LED_off(_);
+            if(i) LEDS_ON();
+            else LEDS_OFF();
         }
         sendkey("LEDon", -1, LEDsON);
     }else{
@@ -212,12 +213,12 @@ static int scrndcr(const char *cmd, int _U_ parno, const char *c, int32_t i){
     }
     sendkeyu(cmd, -1, SCRN_DCX_get());
     return RET_GOOD;
-}
+}/*
 static int scrnrst(const char *cmd, int _U_ parno, const char *c, int32_t i){
-    if(c) SCRN_RST_set(i);
-    sendkeyu(cmd, -1, SCRN_RST_get());
+    if(c) SCRN_CS_set(i);
+    sendkeyu(cmd, -1, SCRN_CS_get());
     return RET_GOOD;
-}
+}*/
 static int scrnrdwr(const char *cmd, int parno, const char *c, int32_t i){
     if(parno < 0 || parno > 255) return RET_WRONGPARNO;
     if(c){
@@ -271,7 +272,13 @@ static int scrninit(const char _U_ *cmd, int _U_ parno, const char _U_ *c, int32
     USB_sendstr(OK);
     return RET_GOOD;
 }
-
+static int scrnonoff(const char _U_ *cmd, int _U_ parno, const char *c, int32_t i){
+    if(!c) return RET_WRONGARG;
+    int r = (i) ? ili9341_on() : ili9341_off();
+    if(!r) return RET_BAD;
+    sendkeyu(cmd, -1, i);
+    return RET_GOOD;
+}
 static int scrnfill(const char *cmd, int parno, const char *c, int32_t i){
     if(parno < 0) parno = RGB(0xf, 0x1f, 0xf);
     if(parno > 0xffff) return RET_WRONGPARNO;
@@ -332,6 +339,12 @@ static int scls(const char *cmd, int parno, const char *c, int32_t i){
     sendkeyuhex(cmd, parno, i);
     return RET_GOOD;
 }
+static int srefr(const char _U_ *cmd, int _U_ parno, const char _U_ *c, int32_t _U_ i){
+    UpdateScreen(0, SCRNH-1);
+    USB_sendstr(OK);
+    return RET_GOOD;
+}
+
 static int scolor(const char *cmd, int parno, const char *c, int32_t i){
     // fg=bg, default: fg=0xffff, bg=0
     if(parno < 0 || parno > 0xffff) parno = 0xffff;
@@ -381,6 +394,16 @@ static int sfscale(const char *cmd, int _U_ parno, const char _U_ *c, int32_t i)
     return RET_GOOD;
 }
 
+static int buttons(const char *cmd, int parno, const char _U_ *c, int32_t _U_ i){
+    if(parno < 0 || parno >= BTNSNO) return RET_WRONGPARNO;
+    uint32_t T;
+    keyevent evt = keystate((uint8_t)parno, &T);
+    sendkeyu(cmd, parno, evt);
+    if(evt != EVT_NONE){
+        USB_sendstr("Tevent="); USB_sendstr(u2str(T)); newline();
+    }
+    return RET_GOOD;
+}
 
 typedef struct{
     int (*fn)(const char*, int, const char*, int32_t);
@@ -393,8 +416,9 @@ commands cmdlist[] = {
     {NULL, "Different commands", NULL},
     {bme, "BME", "get pressure, temperature and humidity"},
     {bmefilter, "BMEf", "set filter (0..4)"},
+    {buttons, "button", "get buttonx state"},
     {buzzer, "buzzer", "get/set (0 - off, 1 - on) buzzer"},
-    {leds, "LED", "LEDx=y; where x=0..3 to work with single LED (then y=1-set, 0-reset, 2-toggle), absent to work with all (y=0 - disable, 1-enable)"},
+    {leds, "LED", "LEDx=y; where x=0..3 to work with single LED (then y=1-set, 0-reset, 2-toggle), absent to set LEDsON (y=0 - disable, 1-enable)"},
     {pwm, "pwm", "set/get x channel (0..3) pwm value (0..100)"},
     {reset, "reset", "reset MCU"},
     {tms, "tms", "print Tms"},
@@ -406,7 +430,7 @@ commands cmdlist[] = {
     {NULL, "Screen commands", NULL},
     {scrnled, "Sled", "turn on/off screen lights"},
     {scrndcr, "Sdcr", "set data(1)/command(0)"},
-    {scrnrst, "Srst", "reset (1/0)"},
+   // {scrnrst, "Srst", "reset (1/0)"},
     {scrnrdwr, "Sreg", "read/write 8-bit register"},
     {scrnrdwr4, "Sregx", "read/write 32-bit register"},
     {scrnrdn, "Sregn", "read from register x =n bytes"},
@@ -415,12 +439,14 @@ commands cmdlist[] = {
     {scrndata4, "Sdatn", "write x bytes of =data"},
     {sread, "Sread", "read "},
     {scrninit, "Sini", "init screen"},
+    {scrnonoff, "Spower", "=0 - off, =1 - on"},
     {scrnfill, "Sfill", "fill screen with color (=npix)"},
     {scrnfilln, "Sfilln", "fill screen (next) with color (=npix)"},
     {smadctl, "Smad", "change MADCTL"},
     {scol, "Scol", "set column limits (low=high)"},
     {srow, "Srow", "set row limits (low=high)"},
     {scls, "Scls", "clear screen fg=bg"},
+    {srefr, "Srefresh", "refresh full screen"},
     {scolor, "Scolor", "seg color fg=bg"},
     {sputstr, "Sstr", "put string y=string"},
     {sstate, "Sstate", "current screen state"},

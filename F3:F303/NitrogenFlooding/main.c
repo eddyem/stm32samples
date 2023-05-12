@@ -18,11 +18,13 @@
 
 #include "adc.h"
 #include "BMP280.h"
-//#include "buttons.h"
+#include "buttons.h"
 //#include "can.h"
 //#include "flash.h"
 #include "hardware.h"
 #include "i2c.h"
+#include "ili9341.h"
+#include "incication.h"
 #include "proto.h"
 #include "screen.h"
 #include "strfunc.h"
@@ -54,14 +56,9 @@ int main(void){
     adc_setup();
     BMP280_setup(0);
     USBPU_ON();
-    uint32_t ctr = 0;
     // CAN_message *can_mesg;
     while(1){
         IWDG->KR = IWDG_REFRESH;
-        if(Tms - ctr > 499){
-            ctr = Tms;
-            LED_blink(0);
-        }
         /*CAN_proc();
         if(CAN_get_status() == CAN_FIFO_OVERRUN){
             USB_sendstr("CAN bus fifo overrun occured!\n");
@@ -94,21 +91,6 @@ int main(void){
         }
         //i2c_have_DMA_Rx(); // check if there's DMA Rx complete
         BMP280_process();
-        BMP280_status s = BMP280_get_status();
-        if(s == BMP280_RDY){ // data ready - get it
-            float T, P, H;
-            if(BMP280_getdata(&T, &P, &H)){
-                USB_sendstr("T="); USB_sendstr(float2str(T, 2)); USB_sendstr("\nP=");
-                USB_sendstr(float2str(P, 1));
-                P *= 0.00750062f; USB_sendstr("\nPmm="); USB_sendstr(float2str(P, 1));
-                USB_sendstr("\nH="); USB_sendstr(float2str(H, 1));
-                USB_sendstr("\nTdew="); USB_sendstr(float2str(Tdew(T, H), 1));
-                newline();
-            }else USB_sendstr("Can't read data\n");
-        }else if(s == BMP280_ERR){
-            USB_sendstr("BME280 error\n");
-            BMP280_init();
-        }
         int l = USB_receivestr(inbuff, MAXSTRLEN);
         if(l < 0) USB_sendstr("ERROR: USB buffer overflow or string was too long\n");
         else if(l){
@@ -116,6 +98,20 @@ int main(void){
             if(ans) USB_sendstr(ans);
         }
         process_screen();
-        //process_keys();
+        process_keys();
+        // turn off screen and LEDs if no keys was pressed last X ms
+        if(LEDsON){
+            if(Tms - lastUnsleep > BTN_ACTIVITY_TIMEOUT){ // timeout - turn off LEDs and screen
+                LEDS_OFF();
+                ili9341_off();
+            }else{ // check operation buttons for menu etc
+                indication_process();
+            }
+        }else{
+            if(Tms - lastUnsleep < BTN_ACTIVITY_TIMEOUT/2){ // recent activity - turn on indication
+                LEDS_ON();
+                ili9341_on();
+            }
+        }
     }
 }

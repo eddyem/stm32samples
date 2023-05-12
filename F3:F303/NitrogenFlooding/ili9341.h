@@ -173,6 +173,8 @@
 extern uint16_t colorbuf[];
 
 int ili9341_init();
+int ili9341_on();
+int ili9341_off();
 int ili9341_readreg(uint8_t reg, uint8_t *data, uint32_t N);
 int ili9341_writereg(uint8_t reg, const uint8_t *data, uint32_t N);
 int ili9341_writereg16(uint8_t reg, uint16_t data);

@@ -90,7 +90,6 @@ void ClearScreen(){
         foreground[i] = fgColor;
         background[i] = bgColor;
     }
-    for(int i = SPRITE_SZ-40; i < SPRITE_SZ; ++i) foreground[i] = i;
     UpdateScreen(0, SCRNH-1);
 }
 
@@ -199,7 +198,7 @@ int strpixlen(const char *str){
         const uint8_t *c = font_char(*str++);
         if(c) l += *c;
     }
-    return l;
+    return l * fontscale;
 }
 
 // convert buffer  to update (return 0 if all sent)

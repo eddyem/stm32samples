@@ -79,6 +79,22 @@ int ili9341_init(){
     return 1;
 }
 
+// turn screen ON of OFF
+int ili9341_on(){
+    SCRN_LED_set(1);
+    if(!ili9341_writecmd(ILI9341_SLPOUT)) return 0;
+    if(!ili9341_writecmd(ILI9341_NORON)) return 0;
+    if(!ili9341_writecmd(ILI9341_DISPON)) return 0;
+    return 1;
+}
+
+int ili9341_off(){
+    SCRN_LED_set(0);
+    if(!ili9341_writecmd(ILI9341_SLPIN)) return 0;
+    if(!ili9341_writecmd(ILI9341_DISPOFF)) return 0;
+    return 1;
+}
+
 /**
  * @brief il9341_readreg - read data from register
  * @param reg - register
@@ -88,7 +104,7 @@ int ili9341_init(){
  */
 int ili9341_readreg(uint8_t reg, uint8_t *data, uint32_t N){
     SCRN_Command();
-    SCRN_RST_set(0);
+    SCRN_CS_set(0);
     int r = 0;
     do{
         if(!spi_write(&reg, 1)) break;
@@ -99,7 +115,7 @@ int ili9341_readreg(uint8_t reg, uint8_t *data, uint32_t N){
         r = 1;
     }while(0);
     SCRN_Command();
-    SCRN_RST_set(1);
+    SCRN_CS_set(1);
     return r;
 }
 
@@ -112,7 +128,7 @@ int ili9341_readreg(uint8_t reg, uint8_t *data, uint32_t N){
  */
 int ili9341_writereg(uint8_t reg, const uint8_t *data, uint32_t N){
     SCRN_Command();
-    SCRN_RST_set(0);
+    SCRN_CS_set(0);
     int r = 0;
     do{
         if(!spi_write(&reg, 1)) break;
@@ -123,14 +139,14 @@ int ili9341_writereg(uint8_t reg, const uint8_t *data, uint32_t N){
         r = 1;
     }while(0);
     SCRN_Command();
-    SCRN_RST_set(1);
+    SCRN_CS_set(1);
     return r;
 }
 
 // write register with uint16_t data (swap bytes)
 int ili9341_writereg16(uint8_t reg, const uint16_t data){
     SCRN_Command();
-    SCRN_RST_set(0);
+    SCRN_CS_set(0);
     int r = 0;
     do{
         if(!spi_write(&reg, 1)) break;
@@ -142,13 +158,13 @@ int ili9341_writereg16(uint8_t reg, const uint16_t data){
         r = 1;
     }while(0);
     SCRN_Command();
-    SCRN_RST_set(1);
+    SCRN_CS_set(1);
     return r;
 }
 
 int ili9341_writereg32(uint8_t reg, uint16_t data1, uint16_t data2){
     SCRN_Command();
-    SCRN_RST_set(0);
+    SCRN_CS_set(0);
     int r = 0;
     do{
         if(!spi_write(&reg, 1)) break;
@@ -162,21 +178,21 @@ int ili9341_writereg32(uint8_t reg, uint16_t data1, uint16_t data2){
         r = 1;
     }while(0);
     SCRN_Command();
-    SCRN_RST_set(1);
+    SCRN_CS_set(1);
     return r;
 }
 
 // write simple command
 int ili9341_writecmd(uint8_t cmd){
     SCRN_Command();
-    SCRN_RST_set(0);
+    SCRN_CS_set(0);
     int r = 0;
     do{
         if(!spi_write(&cmd, 1)) break;
         if(!spi_waitbsy()) break;
         r = 1;
     }while(0);
-    SCRN_RST_set(1);
+    SCRN_CS_set(1);
     return r;
 }
 
@@ -185,7 +201,7 @@ static int dmardwr(uint8_t *out, uint8_t *in, uint32_t N){
     if(!out || !N) return 0;
     if(in) bzero(out, N);
     SCRN_Data();
-    SCRN_RST_set(0);
+    SCRN_CS_set(0);
     uint32_t r = 0;
     do{
         if(!spi_write_dma((const uint8_t*)out, in, N)) break;
@@ -197,7 +213,7 @@ static int dmardwr(uint8_t *out, uint8_t *in, uint32_t N){
         else r = 1;
     }while(0);
     SCRN_Command();
-    SCRN_RST_set(1);
+    SCRN_CS_set(1);
     return r;
 }
 
@@ -214,7 +230,7 @@ int ili9341_readdata(uint8_t *data, uint32_t N){
 
 int ili9341_readregdma(uint8_t reg, uint8_t *data, uint32_t N){
     SCRN_Command();
-    SCRN_RST_set(0);
+    SCRN_CS_set(0);
     int r = 0;
     do{
         if(!spi_write(&reg, 1)) break;

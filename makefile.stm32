@@ -48,7 +48,7 @@ LIB_DIR		:= $(INC_DIR)/ld
 ###############################################################################
 # C flags
 CFLAGS		+= -O2 -D__thumb2__=1 -MD
-CFLAGS		+= -Wall -Wextra -Wshadow 
+CFLAGS		+= -Wall -Wextra -Wshadow -Wdouble-promotion
 CFLAGS		+= -fshort-enums -ffunction-sections -fdata-sections
 #CFLAGS		+= -fno-common -fno-stack-protector
 CFLAGS		+=  $(ARCH_FLAGS)

@@ -359,6 +359,6 @@ int BMP280_getdata(float *T, float *P, float *H){
 
 // dewpoint calculation (T in degrC, H in percents)
 float Tdew(float T, float H){
-    float gamma = 17.27f * T / (237.7f + T) + log(H/100.f);
+    float gamma = 17.27f * T / (237.7f + T) + logf(H/100.f);
     return (237.7f * gamma)/(17.27 - gamma);
 }

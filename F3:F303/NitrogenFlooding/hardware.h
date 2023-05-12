@@ -48,16 +48,18 @@
 #define LED_off(x)  do{pin_set(LEDs_port, 1<<(8+x));}while(0)
 #define LED_on(x)  do{if(LEDsON) pin_clear(LEDs_port, 1<<(8+x));}while(0)
 #define LED_get(x)  (LEDs_port->IDR & 1<<(8+x) ? 0 : 1)
+#define LEDS_OFF()  do{LEDsON = 0; for(int _ = 0; _ < 4; ++_) LED_off(_);}while(0)
+#define LEDS_ON()   do{LEDsON = 1;}while(0)
 
 // screen LEDon/off - PB12; reset - PB11; data/command - PB10
 #define SCRN_LED_pin    (1<<12)
 #define SCRN_LED_port   (GPIOB)
 #define SCRN_LED_set(a) do{if(a) pin_set(SCRN_LED_port, SCRN_LED_pin); else pin_clear(SCRN_LED_port, SCRN_LED_pin);}while(0)
 #define SCRN_LED_get()  (SCRN_LED_port->IDR & SCRN_LED_pin ? 1: 0)
-#define SCRN_RST_pin    (1<<11)
-#define SCRN_RST_port   (GPIOB)
-#define SCRN_RST_set(a) do{if(a) pin_set(SCRN_RST_port, SCRN_RST_pin); else pin_clear(SCRN_RST_port, SCRN_RST_pin);}while(0)
-#define SCRN_RST_get()  (SCRN_RST_port->IDR & SCRN_RST_pin ? 1: 0)
+#define SCRN_CS_pin     (1<<11)
+#define SCRN_CS_port    (GPIOB)
+#define SCRN_CS_set(a)  do{if(a) pin_set(SCRN_CS_port, SCRN_CS_pin); else pin_clear(SCRN_CS_port, SCRN_CS_pin);}while(0)
+#define SCRN_CS_get()  (SCRN_CS_port->IDR & SCRN_CS_pin ? 1: 0)
 #define SCRN_DCX_pin    (1<<10)
 #define SCRN_DCX_port   (GPIOB)
 #define SCRN_DCX_get()  (SCRN_DCX_port->IDR & SCRN_DCX_pin ? 1: 0)
@@ -77,6 +79,10 @@
 #define BTN6_pin    (1<<15)
 // state 0 - pressed, 1 - released
 #define BTN_state(x)    (BTNs_port->IDR & 1<<(9+x) ? 0 : 1)
+// timeout to turn off screen and LEDs after no keys activity - 300 seconds
+#define BTN_ACTIVITY_TIMEOUT    (300000)
+// refresh interval for BME280 and other data  - 2.5s
+#define SENSORS_DATA_TIMEOUT    (2500)
 
 // buzzer, ADC voltage
 #define BUZZER_port     GPIOB
@@ -96,4 +102,4 @@ uint8_t MSB(uint16_t val);
 void hw_setup();
 
 void setPWM(int nch, uint16_t val);
-uint8_t getPWM(int nch);
+uint16_t getPWM(int nch);

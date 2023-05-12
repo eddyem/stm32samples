@@ -20,7 +20,7 @@
 #include "i2c.h"
 #include "spi.h"
 
-int LEDsON = 1;
+int LEDsON = 0;
 
 // setup here ALL GPIO pins (due to table in Readme.md)
 // leave SWD as default AF; high speed for CLK and some other AF; med speed for some another AF
@@ -161,7 +161,7 @@ void setPWM(int nch, uint16_t val){
     }
 }
 
-uint8_t getPWM(int nch){
+uint16_t getPWM(int nch){
     switch(nch){
         case 0:
             return TIM3->CCR1;
