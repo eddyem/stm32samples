@@ -83,6 +83,19 @@
 #define BTN_ACTIVITY_TIMEOUT    (300000)
 // refresh interval for BME280 and other data  - 2.5s
 #define SENSORS_DATA_TIMEOUT    (2500)
+// refresh interval for screen windows
+#define WINDOW_REFRESH_TIMEOUT  (1000)
+
+// buttons masks bit0 - button0 etc
+#define BTN_ESC_MASK    (1<<0)
+#define BTN_LEFT_MASK   (1<<1)
+#define BTN_RIGHT_MASK  (1<<2)
+#define BTN_SEL_MASK    (1<<3)
+
+// global sensors' data
+extern float Temperature, Pressure, Humidity, Dewpoint;
+extern uint32_t Sens_measured_time;
+extern uint16_t ADCvals[];
 
 // buzzer, ADC voltage
 #define BUZZER_port     GPIOB

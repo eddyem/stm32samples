@@ -25,7 +25,8 @@
 #define NUMBER_OF_ADC2_CHANNELS     (1)
 // total number of channels - for array
 #define NUMBER_OF_ADC_CHANNELS ((NUMBER_OF_ADC1_CHANNELS+NUMBER_OF_ADC2_CHANNELS))
-
+// number of AIN channels
+#define NUMBER_OF_AIN_CHANNELS      (10)
 
 // ADC1 in1..10 - inner and outern Tsens; ADC2 in1 - ext ADC
 // channels of ADC in array

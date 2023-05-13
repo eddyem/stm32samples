@@ -366,7 +366,7 @@ static int sputstr(const char _U_ *cmd, int parno, const char *c, int32_t _U_ i)
 }
 static int sstate(const char _U_ *cmd, int _U_ parno, const char _U_ *c, int32_t _U_ i){
     const char *s = "unknown";
-    switch(getScreenState()){
+    switch(ScrnState){
         case SCREEN_INIT:
             s = "init";
         break;

@@ -153,12 +153,6 @@ static uint8_t write_i2cs(uint8_t addr, uint8_t *data, uint8_t nbytes, uint8_t s
         }
         I2C1->TXDR = data[i]; // send data
     }
-    cntr = Tms;
-    // wait for data gone
-    while(I2C1->ISR & I2C_ISR_BUSY){
-        IWDG->KR = IWDG_REFRESH;
-        if(Tms - cntr > I2C_TIMEOUT){break;}
-    }
     return 1;
 }
 
@@ -217,7 +211,7 @@ static uint8_t read_i2cb(uint8_t addr, uint8_t *data, uint8_t nbytes, uint8_t bu
         *data++ = I2C1->RXDR;
     }
     return 1;
- }
+}
 
 uint8_t read_i2c(uint8_t addr, uint8_t *data, uint8_t nbytes){
     if(isI2Cbusy()) return 0;

@@ -18,9 +18,11 @@
 
 #include "BMP280.h"
 #include "buttons.h"
+#include "fonts.h"
 #include "hardware.h"
 #include "ili9341.h"
-#include "incication.h"
+#include "indication.h"
+#include "menu.h"
 #include "screen.h"
 #include "strfunc.h"
 #include "usb.h"
@@ -37,6 +39,23 @@ static uint32_t ledT[LEDS_AMOUNT] = {0};
 // arrays of high and low states' length
 static uint32_t ledH[LEDS_AMOUNT] = {199, 0, 0, 0};
 static uint32_t ledL[LEDS_AMOUNT] = {799, 1, 1, 1};
+
+static void refresh_mainwin(uint8_t evtmask);
+static void refresh_menu(uint8_t evtmask);
+
+// current menu
+static menu *curmenu = &mainmenu;
+// window handler
+window_handler swhandler = refresh_mainwin;
+
+// Display state: window or menu
+typedef enum{
+    DISP_WINDOW,    // show window
+    DISP_MENU       // show menu
+} display_state;
+
+static display_state dispstate = DISP_WINDOW;
+static uint32_t lastTupd = 0; // last main window update time
 
 // led blinking
 TRUE_INLINE void leds_proc(){
@@ -62,61 +81,43 @@ TRUE_INLINE void leds_proc(){
     }
 }
 
-// Display state: main window or menu
-typedef enum{
-    DISP_MAINWIN,
-    DISP_MENU
-} display_state;
-
-static display_state dispstate = DISP_MAINWIN;
-static uint32_t lastTmeas = 0; // last measurement time
-
-static void cls(){ // set default colors (bg=0, fg=0xffff) and clear screen
-    setBGcolor(0);
-    setFGcolor(0xffff);
-    ClearScreen();
-}
-
-static void refresh_mainwin(){ // ask all parameters and refresh main window with new values
-    DBG("REFRESH main window");
+static void refresh_mainwin(uint8_t evtmask){ // ask all parameters and refresh main window with new values
+    if(evtmask & BTN_ESC_MASK){ // force refresh
+        Sens_measured_time = Tms - SENSORS_DATA_TIMEOUT*2; // force refresh
+        lastTupd = Tms;
+        return; // just start measurements
+    }
+    if(evtmask & BTN_SEL_MASK){ // switch to menu
+        init_menu(&mainmenu);
+        return;
+    }
+    if(evtmask) return; // left/right buttons - do nothing
     cls();
-    float T, P, H;
-    BMP280_status s = BMP280_get_status();
-    if(s == BMP280_NOTINIT || s == BMP280_ERR) BMP280_init();
     SetFontScale(1); // small menu items labels
     setBGcolor(COLOR_BLACK); setFGcolor(COLOR_LIGHTGREEN);
     PutStringAt(4, 16, "Temperature Pressure Humidity Dew point");
     int y = 37;
     uint16_t fgcolor;
-    if(s == BMP280_RDY && BMP280_getdata(&T, &P, &H)){ // show data
-        if(T < T_MIN || T > T_MAX) fgcolor = COLOR_RED;
-        else if(T < 0) fgcolor = COLOR_BLUE;
+    if(Tms - Sens_measured_time < 2*SENSORS_DATA_TIMEOUT){ // data was recently refreshed
+        if(Temperature < T_MIN || Temperature > T_MAX) fgcolor = COLOR_RED;
+        else if(Temperature < 0) fgcolor = COLOR_BLUE;
         else fgcolor = COLOR_GREEN;
-        setFGcolor(fgcolor); PutStringAt(32, y, float2str(T, 2));
-        if(P > P_MAX) fgcolor = COLOR_RED;
+        setFGcolor(fgcolor); PutStringAt(32, y, float2str(Temperature, 2));
+        if(Pressure > P_MAX) fgcolor = COLOR_RED;
         else fgcolor = COLOR_YELLOW;
-        setFGcolor(fgcolor); PutStringAt(112, y, float2str(P, 1));
-        if(H > H_MAX) fgcolor = COLOR_RED;
+        setFGcolor(fgcolor); PutStringAt(104, y, float2str(Pressure, 1));
+        if(Humidity > H_MAX) fgcolor = COLOR_RED;
         else fgcolor = COLOR_CHOCOLATE;
-        setFGcolor(fgcolor); PutStringAt(192, y, float2str(H, 1));
-        float dew = Tdew(T, H);
-        if(T - dew < DEW_MIN) fgcolor = COLOR_RED;
+        setFGcolor(fgcolor); PutStringAt(184, y, float2str(Humidity, 1));
+        if(Temperature - Dewpoint < DEW_MIN) fgcolor = COLOR_RED;
         else fgcolor = COLOR_LIGHTBLUE;
-        setFGcolor(fgcolor); PutStringAt(248, y, float2str(dew, 1));
-#ifdef EBUG
-        USB_sendstr("T="); USB_sendstr(float2str(T, 2)); USB_sendstr("\nP=");
-        USB_sendstr(float2str(P, 1));
-        P *= 0.00750062f; USB_sendstr("\nPmm="); USB_sendstr(float2str(P, 1));
-        USB_sendstr("\nH="); USB_sendstr(float2str(H, 1));
-        USB_sendstr("\nTdew="); USB_sendstr(float2str(dew, 1));
-        newline();
-#endif
+        setFGcolor(fgcolor); PutStringAt(248, y, float2str(Dewpoint, 1));
     }else{ // show "errr"
         setBGcolor(COLOR_RED); setFGcolor(COLOR_CYAN);
         CenterStringAt(y, "No signal");
     }
     // display all other data
-    SetFontScale(3);
+    SetFontScale(3); setBGcolor(COLOR_BLACK);
     // TODO: show current level
     setFGcolor(COLOR_RED); CenterStringAt(130, "Level: NULL");
     if(getPWM(2) || getPWM(3)){
@@ -124,12 +125,70 @@ static void refresh_mainwin(){ // ask all parameters and refresh main window wit
         CenterStringAt(220, "Processing");
     }
     UpdateScreen(0, SCRNH-1);
-    if(!BMP280_start()) BMP280_init(); // start new measurement
 }
 
-static void refresh_menu(){ // refresh menu with changed selection
+#define refresh_window(e)   swhandler(e)
+
+void init_window(window_handler h){
+    dispstate = DISP_WINDOW;
+    swhandler = h ? h : refresh_mainwin;
+    refresh_window(0);
+}
+
+void init_menu(menu *m){
+    dispstate = DISP_MENU;
+    curmenu = m;
+    refresh_menu(0);
+}
+
+static void refresh_menu(uint8_t evtmask){ // refresh menu with changed selection
     DBG("REFRESH menu");
+    if(!curmenu){
+        init_window(refresh_mainwin);
+        return;
+    }
+    if(evtmask & BTN_ESC_MASK){ // escape to level upper or to main window
+        if(curmenu) curmenu = curmenu->parent;
+        if(!curmenu){
+            init_window(refresh_mainwin);
+            return;
+        }
+    } else if(evtmask & BTN_SEL_MASK){
+        menuitem *selitem = &curmenu->items[curmenu->selected];
+        menu *sub = selitem->submenu;
+        void (*action)() = selitem->action;
+        if(action) action(curmenu);
+        if(sub){ // change to submenu
+            curmenu = sub;
+        } else return;
+    } else if(evtmask & BTN_LEFT_MASK){ // up
+        if(curmenu->selected) --curmenu->selected;
+    } else if(evtmask & BTN_RIGHT_MASK){ // down
+        if(curmenu->selected < curmenu->nitems - 1) ++curmenu->selected;
+    }
     cls();
+    // check number of first menu item to display
+    int firstitem = 0, nitemsonscreen = SCRNH / fontheight, half = nitemsonscreen/2;
+    if(curmenu->nitems > nitemsonscreen){ // menu is too large
+        if(curmenu->nitems - curmenu->selected <= half) firstitem = curmenu->nitems - nitemsonscreen;
+        else firstitem = curmenu->selected - half;
+    } else nitemsonscreen = curmenu->nitems;
+    if(firstitem < 0) firstitem = 0;
+    SetFontScale(3);
+    int Y = fontheight - fontbase + 1;
+    for(int i = 0; i < nitemsonscreen; ++i, Y += fontheight){
+        int idx = firstitem + i;
+        if(idx >= curmenu->nitems) break;
+        if(idx == curmenu->selected){ // invert fg/bg
+            setFGcolor(COLOR_BLACK);
+            setBGcolor(COLOR_DARKGREEN);
+        }else{
+            setFGcolor(COLOR_DARKGREEN);
+            setBGcolor(COLOR_BLACK);
+        }
+        CenterStringAt(Y, curmenu->items[idx].text);
+    }
+    UpdateScreen(0, SCRNH-1);
 }
 
 /*
@@ -139,50 +198,33 @@ static void refresh_menu(){ // refresh menu with changed selection
  * 2 - down
  * 3 - select/menu
  */
-TRUE_INLINE void btns_proc(){
+TRUE_INLINE uint8_t btns_proc(){
+    static uint32_t lastT = 0;
     uint8_t evtmask = 0; // bitmask for active buttons (==1)
+    static keyevent lastevent[BTNSNO] = {0};
+    if(lastUnsleep == lastT) return 0; // no buttons activity
+    lastT = lastUnsleep;
     for(int i = 0; i < BTNSNO; ++i){
         keyevent evt = keystate(i, NULL); // T may be used for doubleclick detection
-        if(evt == EVT_PRESS || evt == EVT_HOLD) evtmask |= 1<<i;
+        if(evt == EVT_PRESS && lastevent[i] != EVT_PRESS) evtmask |= 1<<i;
+        lastevent[i] = evt;
     }
-    // now check all buttons
-    if(evtmask & 1<<0){ // escape to main window or force refresh
-        if(dispstate == DISP_MENU){
-            dispstate = DISP_MAINWIN;
-        }
-        lastTmeas = Tms - SENSORS_DATA_TIMEOUT*2; // force refresh
-    }
-    if(dispstate == DISP_MENU){ // buttons 'up'/'down' works only in menu mode
-        if(evtmask & 1<<1){ // up
-            ;
-        }
-        if(evtmask & 1<<2){ // down
-            ;
-        }
-    }
-    if(evtmask & 1<<3){ // select/menu
-        if(dispstate == DISP_MAINWIN){ // switch to menu mode
-            dispstate = DISP_MENU;
-            refresh_menu();
-        }else{ // select
-            ;
-        }
-    }
+    if(!evtmask) return 0;
+    if(dispstate == DISP_WINDOW) refresh_window(evtmask);
+    else refresh_menu(evtmask);
+    return evtmask;
 }
 
 void indication_process(){
     if(!LEDsON) return;
     leds_proc();
-    btns_proc();
-    switch(dispstate){
-        case DISP_MAINWIN:
-            if(Tms - lastTmeas > SENSORS_DATA_TIMEOUT){
-                refresh_mainwin();
-                lastTmeas = Tms;
-            }
-        break;
-        case DISP_MENU: // do nothing
-            ;
-        break;
+    if(ScrnState != SCREEN_RELAX) return; // dont process buttons when screen in updating state
+    uint8_t e = btns_proc();
+    if(dispstate == DISP_WINDOW){ // send refresh by timeout event
+        if(e) lastTupd = Tms;
+        else if(Tms - lastTupd > WINDOW_REFRESH_TIMEOUT){
+            lastTupd = Tms;
+            refresh_window(0);
+        }
     }
 }

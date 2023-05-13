@@ -45,13 +45,13 @@
 
 #include "i2c.h"
 #include "BMP280.h"
-
-#include <math.h>
-
+#include "usb.h"
 #ifdef EBUG
 #include "strfunc.h"
-#include "usb.h"
+extern volatile uint32_t Tms;
 #endif
+
+#include <math.h>
 
 #define BMP280_I2C_ADDRESS_MASK (0x76)
 #define BMP280_I2C_ADDRESS_0  (0x76)
@@ -338,7 +338,6 @@ int BMP280_getdata(float *T, float *P, float *H){
     uint8_t data[8];
     uint8_t datasz = 8; // amount of bytes to read
     if(params.ID != BME280_CHIP_ID){
-        DBG("Not BME!\n");
         if(H) *H = 0;
         H = NULL;
         datasz = 6;

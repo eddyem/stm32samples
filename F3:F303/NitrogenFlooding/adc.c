@@ -17,9 +17,6 @@
  */
 
 #include "adc.h"
-#ifdef EBUG
-#include "proto.h"
-#endif
 
 /**
  * @brief ADCx_array - arrays for ADC channels with median filtering:
@@ -127,9 +124,6 @@ uint16_t getADCval(int nch){
     PIX_SORT(p[4], p[2]) ;
 #undef PIX_SORT
 #undef PIX_SWAP
-#ifdef EBUG
-    DBG("val: "); printu(p[4]); newline();
-#endif
     return p[4];
 }
 
@@ -137,9 +131,6 @@ uint16_t getADCval(int nch){
 float getADCvoltage(int nch){
     float v = getADCval(nch) * 3.3;
     v /= 4096.f; // 12bit ADC
-#ifdef EBUG
-    DBG("v="); printf(v); newline();
-#endif
     return v;
 }
 
@@ -151,8 +142,5 @@ float getMCUtemp(){
     temperature *= (110.f - 30.f);
     temperature /= (float)(*TEMP110_CAL_ADDR - *TEMP30_CAL_ADDR);
     temperature += 30.f;
-#ifdef EBUG
-    DBG("t="); printf(temperature); newline();
-#endif
     return(temperature);
 }

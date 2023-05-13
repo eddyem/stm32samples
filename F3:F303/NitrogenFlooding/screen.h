@@ -19,6 +19,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <stm32f3.h>
 
 typedef enum{ // screen states
      SCREEN_INIT        // init stage
@@ -88,7 +89,9 @@ typedef enum{ // screen states
 #define COLOR_YELLOWGREEN 0x9E66
 
 
-screen_state getScreenState();
+extern screen_state ScrnState;
+extern int fontheight, fontbase;
+
 void ClearScreen();
 void UpdateScreen(int y0, int y1);
 void setBGcolor(uint16_t c);
@@ -103,3 +106,8 @@ int strpixlen(const char *str);
 uint8_t *getScreenBuf();
 void process_screen();
 
+TRUE_INLINE void cls(){ // set default colors (bg=0, fg=0xffff) and clear screen
+    setBGcolor(0);
+    setFGcolor(0xffff);
+    ClearScreen();
+}

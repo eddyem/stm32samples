@@ -24,9 +24,11 @@ i2c.c
 i2c.h
 ili9341.c
 ili9341.h
-incication.h
 indication.c
+indication.h
 main.c
+menu.c
+menu.h
 pdnuart.c
 pdnuart.h
 proto.c

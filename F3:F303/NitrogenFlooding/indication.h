@@ -18,6 +18,8 @@
 
 #pragma once
 
+#include "menu.h"
+
 // temporary defines - should be stored in settings
 // temperature (degC) limits
 #define T_MIN       (-20.f)
@@ -30,3 +32,5 @@
 #define DEW_MIN     (3.f)
 
 void indication_process();
+void init_window(window_handler h);
+void init_menu(menu *m);

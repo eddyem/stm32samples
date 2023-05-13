@@ -18,22 +18,23 @@
 
 #pragma once
 
-#include <stm32f3.h>
+#include <stdint.h>
 
-// threshold in ms for press/hold
-#define PRESSTHRESHOLD  (9)
-#define HOLDTHRESHOLD   (199)
+struct _menu_;
+typedef struct{
+    const char *text;                   // name of menu item
+    struct _menu_ *submenu;             // submenu if selected
+    void (*action)(struct _menu_ *top); // action when item selected (be carefull when both `submenu` and `action` !=NULL), top - parent menu
+} menuitem;
 
-// events
-typedef enum{
-    EVT_NONE,   // no events with given key
-    EVT_PRESS,  // pressed (hold more than PRESSTHRESHOLD ms)
-    EVT_HOLD,   // hold more than HOLDTHRESHOLD ms
-    EVT_RELEASE // released after press or hold state
-} keyevent;
+typedef struct _menu_{
+    struct _menu_ *parent;  // parent menu (when `ESC` pressed) or NULL if should return to main window
+    int nitems;             // amount of `menuitem`
+    int selected;           // selected item
+    menuitem *items;        // array of `menuitem` - menu itself
+} menu;
 
-extern uint32_t lastUnsleep; // last keys activity time
+extern menu mainmenu;
 
-void process_keys();
-keyevent keystate(uint8_t k, uint32_t *T);
-keyevent keyevt(uint8_t k);
+// subwindow handler
+typedef void (*window_handler)(uint8_t evtmask);

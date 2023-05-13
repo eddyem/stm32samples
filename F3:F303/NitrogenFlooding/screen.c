@@ -28,6 +28,8 @@
 #include "strfunc.h"
 #endif
 
+#include <string.h>
+
 #define SWAPINT(a,b) do{register int r = a; a = b; b = r;}while(0)
 
 // sprites 8x8 bytes with 8bit foreground and 8bit background
@@ -57,25 +59,23 @@ static int updidx = 0; // ==-1 to initialize update
 // next data portion size (in bytes!), total amount of bytes in update buffer
 static int portionsz = 0, updbuffsz;
 // font scale
-static uint8_t fontscale = 1;
+uint8_t fontscale = 1;
+int fontheight = 0, fontbase = 0;
 
 static uint16_t fgColor = 0xff, bgColor = 0; // foreground and background colors
 void setBGcolor(uint16_t c){bgColor = c;}
 void setFGcolor(uint16_t c){fgColor = c;}
 
-static screen_state ScrnState = SCREEN_INIT;
-screen_state getScreenState(){return ScrnState;}
+screen_state ScrnState = SCREEN_INIT;
 
 /**
  * @brief UpdateScreen - request to screen updating from lines y0 to y1 (including)
  * @param y0, y1 - first and last line of field to update
  */
 void UpdateScreen(int y0, int y1){
-    if(y0 > y1) SWAPINT(y0, y1);
+    //if(y0 > y1) SWAPINT(y0, y1);
     if(y0 < 0) y0 = 0;
-    if(y1 > SCRNH) y1 = SCRNH - 1;
-   //USB_sendstr("y0="); USB_sendstr(i2str(y0)); newline();
-   //USB_sendstr("y1="); USB_sendstr(i2str(y1)); newline();
+    if(y1 > SCRNH || y1 < 0) y1 = SCRNH - 1;
     uy0 = y0; uy1 = y1;
     updidx = -1;
     updbuffsz = SCRNW * (1 + y1 - y0);
@@ -93,20 +93,23 @@ void ClearScreen(){
     UpdateScreen(0, SCRNH-1);
 }
 
+#define DRAWPIX(X, Y, pix) \
+    if((X) > -1 && (X) < SCRNW && (Y) > -1 && (Y) < SCRNH){ \
+        int16_t spritex = (X)/SPRITEWD, spriteidx = spritex + SCRNSPRITEW * ((Y) / SPRITEHT); \
+        uint8_t *ptr = &screenbuf[(Y)*SCRNSPRITEW + spritex]; \
+        if(pix) *ptr |= 1 << (7 - ((X)%8)); \
+        else *ptr &= ~(1 << (7 - ((X)%8))); \
+        foreground[spriteidx] = fgColor; \
+        background[spriteidx] = bgColor; \
+    }
+
 /**
  * @brief DrawPix - set or clear pixel
  * @param X, Y - pixel coordinates (could be outside of screen)
  * @param pix - 1 - foreground, 0 - background
  */
 void DrawPix(int X, int Y, uint8_t pix){
-    if(X < 0 || X > SCRNW-1 || Y < 0 || Y > SCRNH-1) return; // outside of screen
-    // now calculate coordinate of pixel
-    int16_t spritex = X/SPRITEWD, spriteidx = spritex + SCRNSPRITEW * (Y / SPRITEHT);
-    uint8_t *ptr = &screenbuf[Y*SCRNSPRITEW + spritex]; // pointer to byte with 8 pixels
-    if(pix) *ptr |= 1 << (7 - (X%8));
-    else *ptr &= ~(1 << (7 - (X%8)));
-    foreground[spriteidx] = fgColor;
-    background[spriteidx] = bgColor;
+    DRAWPIX(X, Y, pix);
 }
 
 /**
@@ -135,8 +138,14 @@ void invertSpriteColor(int xmin, int xmax, int ymin, int ymax){
 
 uint8_t SetFontScale(uint8_t scale){
     if(scale > 0 && scale <= FONTSCALEMAX) fontscale = scale;
+    fontheight = curfont->height * fontscale;
+    fontbase = curfont->baseline * fontscale;
     return fontscale;
 }
+
+// left and right bits clearing masks
+//static const uint8_t lmask[8] = {0xff, 0b01111111, 0b00111111, 0b00011111, 0b00001111, 0b00000111, 0b00000011, 0b00000001};
+//static const uint8_t rmask[8] = {0, 0b10000000, 0b11000000, 0b11100000, 0b11110000, 0b11111000, 0b11111100, 0b11111110};
 
 // TODO in case of low speed: draw at once full line?
 /**
@@ -150,7 +159,7 @@ uint8_t DrawCharAt(int X, int Y, uint8_t Char){
     const uint8_t *curchar = font_char(Char);
     if(!curchar) return 0;
     // now change Y coordinate to left upper corner of font
-    Y += fontscale*(curfont->baseline - curfont->height + 1);
+    Y += fontbase - fontheight + 1;
     // height and width of letter in pixels
     uint8_t h = curfont->height, w = *curchar++; // now curchar is pointer to bits array
     uint8_t lw = curfont->bytes / h; // width of letter in bytes
@@ -159,8 +168,10 @@ uint8_t DrawCharAt(int X, int Y, uint8_t Char){
         for(uint8_t col = 0; col < w; ++col){
             register uint8_t pix = curchar[row*lw + (col/8)] & (1 << (7 - (col%8)));
             int xx = X + fontscale * col;
-            for(int y = 0; y < fontscale; ++y) for(int x = 0; x < fontscale; ++x)
-                DrawPix(xx + x, Y1 + y, pix);
+            for(int y = 0; y < fontscale; ++y) for(int x = 0; x < fontscale; ++x){
+                int nxtx = xx+x, nxty = Y1+y;
+                DRAWPIX(nxtx, nxty, pix);
+            }
         }
     }
     return w * fontscale;
@@ -193,6 +204,7 @@ int CenterStringAt(int Y, const char *str){
 
 // full string length in pixels
 int strpixlen(const char *str){
+    if(!str) return 0;
     int l = 0;
     while(*str){
         const uint8_t *c = font_char(*str++);
@@ -251,6 +263,8 @@ void process_screen(){
         case SCREEN_INIT: // try to init SPI and screen
             DBG("SCREEN_INIT");
             spi_setup();
+            choose_font(FONT14);
+            SetFontScale(1);
             if(ili9341_init()) ScrnState = SCREEN_RELAX;
             else{
                 Tscr_last = Tms;
@@ -262,7 +276,7 @@ void process_screen(){
         break;
         case SCREEN_RELAX: // check need of updating
             if(updidx > -1) return;
-            DBG("Need to update");
+            //DBG("Need to update");
             if(!ili9341_setcol(0, SCRNW-1)) return;
             if(!ili9341_setrow(uy0, uy1)) return;
             if(!ili9341_writecmd(ILI9341_RAMWR)) return;

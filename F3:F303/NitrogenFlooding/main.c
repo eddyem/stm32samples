@@ -24,7 +24,7 @@
 #include "hardware.h"
 #include "i2c.h"
 #include "ili9341.h"
-#include "incication.h"
+#include "indication.h"
 #include "proto.h"
 #include "screen.h"
 #include "strfunc.h"
@@ -33,11 +33,43 @@
 #define MAXSTRLEN    RBINSZ
 
 volatile uint32_t Tms = 0;
-
 void sys_tick_handler(void){
     ++Tms;
 }
 
+// global BME data and last measured time
+float Temperature, Pressure, Humidity, Dewpoint;
+uint32_t Sens_measured_time = 100000;
+uint16_t ADCvals[NUMBER_OF_ADC_CHANNELS]; // raw ADC values
+
+// get BME and sensors data for different calculations
+static void getsensors(){
+    // turn ON ADC voltage
+    ADCON(1);
+    BMP280_status s = BMP280_get_status();
+    if(s == BMP280_NOTINIT || s == BMP280_ERR) BMP280_init();
+    else if(s == BMP280_RDY && BMP280_getdata(&Temperature, &Pressure, &Humidity)){
+        Dewpoint = Tdew(Temperature, Humidity);
+#if 0
+        USB_sendstr("T="); USB_sendstr(float2str(Temperature, 2)); USB_sendstr("\nP=");
+        USB_sendstr(float2str(Pressure, 1));
+        USB_sendstr("\nPmm="); USB_sendstr(float2str(Pressure * 0.00750062f, 1));
+        USB_sendstr("\nH="); USB_sendstr(float2str(Humidity, 1));
+        USB_sendstr("\nTdew="); USB_sendstr(float2str(Dewpoint, 1));
+        newline();
+#endif
+    }
+    // here we should collect and process ADC data - get level etc
+    for(uint32_t i = 0; i < NUMBER_OF_ADC_CHANNELS; ++i){
+        ADCvals[i] = getADCval(i);
+#if 0
+        USB_sendstr("ADC"); USB_sendstr(u2str(i)); USB_putbyte('=');
+        USB_sendstr(u2str(ADCvals[i])); newline();
+#endif
+    }
+    ADCON(0); // and turn off ADC
+    if(!BMP280_start()){ BMP280_init(); BMP280_start(); }
+}
 
 // SPI setup done in `screen.h`
 int main(void){
@@ -55,10 +87,15 @@ int main(void){
     //CAN_setup(the_conf.CANspeed);
     adc_setup();
     BMP280_setup(0);
+    BMP280_start();
     USBPU_ON();
     // CAN_message *can_mesg;
     while(1){
         IWDG->KR = IWDG_REFRESH;
+        if(Tms - Sens_measured_time > SENSORS_DATA_TIMEOUT){ // get BME
+            getsensors();
+            Sens_measured_time = Tms;
+        }
         /*CAN_proc();
         if(CAN_get_status() == CAN_FIFO_OVERRUN){
             USB_sendstr("CAN bus fifo overrun occured!\n");
@@ -105,7 +142,9 @@ int main(void){
                 LEDS_OFF();
                 ili9341_off();
             }else{ // check operation buttons for menu etc
+                IWDG->KR = IWDG_REFRESH;
                 indication_process();
+                IWDG->KR = IWDG_REFRESH;
             }
         }else{
             if(Tms - lastUnsleep < BTN_ACTIVITY_TIMEOUT/2){ // recent activity - turn on indication
