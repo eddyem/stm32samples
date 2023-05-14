@@ -86,11 +86,15 @@
 // refresh interval for screen windows
 #define WINDOW_REFRESH_TIMEOUT  (1000)
 
+typedef uint16_t btnevtmask; // event mask: less 8 - press, high 8 - hold
 // buttons masks bit0 - button0 etc
 #define BTN_ESC_MASK    (1<<0)
 #define BTN_LEFT_MASK   (1<<1)
 #define BTN_RIGHT_MASK  (1<<2)
 #define BTN_SEL_MASK    (1<<3)
+#define BTN_PRESS(e, mask)  ((e) & (mask))
+#define BTN_HOLD(e, mask)   ((e) & ((mask) << 8))
+#define BTN_PRESSHOLD(e, mask)  ((e) & ((mask) | ((mask)<<8)))
 
 // global sensors' data
 extern float Temperature, Pressure, Humidity, Dewpoint;

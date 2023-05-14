@@ -133,7 +133,7 @@ int spi_read(uint8_t *data, uint32_t n){
         SPIDR = 0;
         WAITX(!(SPI2->SR & SPI_SR_RXNE));
         data[x] = SPIDR;
-        USB_sendstr("rd got "); USB_sendstr(uhex2str(data[x]));
+        //USB_sendstr("rd got "); USB_sendstr(uhex2str(data[x]));
         newline();
     }
     return 1;

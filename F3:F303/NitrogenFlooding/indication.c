@@ -40,8 +40,8 @@ static uint32_t ledT[LEDS_AMOUNT] = {0};
 static uint32_t ledH[LEDS_AMOUNT] = {199, 0, 0, 0};
 static uint32_t ledL[LEDS_AMOUNT] = {799, 1, 1, 1};
 
-static void refresh_mainwin(uint8_t evtmask);
-static void refresh_menu(uint8_t evtmask);
+static void refresh_mainwin(btnevtmask evtmask);
+static void refresh_menu(btnevtmask evtmask);
 
 // current menu
 static menu *curmenu = &mainmenu;
@@ -81,17 +81,17 @@ TRUE_INLINE void leds_proc(){
     }
 }
 
-static void refresh_mainwin(uint8_t evtmask){ // ask all parameters and refresh main window with new values
-    if(evtmask & BTN_ESC_MASK){ // force refresh
+static void refresh_mainwin(btnevtmask evtmask){ // ask all parameters and refresh main window with new values
+    if(BTN_PRESS(evtmask, BTN_ESC_MASK)){ // force refresh
         Sens_measured_time = Tms - SENSORS_DATA_TIMEOUT*2; // force refresh
         lastTupd = Tms;
         return; // just start measurements
     }
-    if(evtmask & BTN_SEL_MASK){ // switch to menu
+    if(BTN_PRESS(evtmask, BTN_SEL_MASK)){ // switch to menu
         init_menu(&mainmenu);
         return;
     }
-    if(evtmask) return; // left/right buttons - do nothing
+    if(evtmask) return; // left/right buttons press, any hold - do nothing
     cls();
     SetFontScale(1); // small menu items labels
     setBGcolor(COLOR_BLACK); setFGcolor(COLOR_LIGHTGREEN);
@@ -141,19 +141,19 @@ void init_menu(menu *m){
     refresh_menu(0);
 }
 
-static void refresh_menu(uint8_t evtmask){ // refresh menu with changed selection
+static void refresh_menu(btnevtmask evtmask){ // refresh menu with changed selection
     DBG("REFRESH menu");
     if(!curmenu){
         init_window(refresh_mainwin);
         return;
     }
-    if(evtmask & BTN_ESC_MASK){ // escape to level upper or to main window
+    if(BTN_PRESS(evtmask, BTN_ESC_MASK)){ // escape to level upper or to main window
         if(curmenu) curmenu = curmenu->parent;
         if(!curmenu){
             init_window(refresh_mainwin);
             return;
         }
-    } else if(evtmask & BTN_SEL_MASK){
+    } else if(BTN_PRESS(evtmask, BTN_SEL_MASK)){
         menuitem *selitem = &curmenu->items[curmenu->selected];
         menu *sub = selitem->submenu;
         void (*action)() = selitem->action;
@@ -161,9 +161,9 @@ static void refresh_menu(uint8_t evtmask){ // refresh menu with changed selectio
         if(sub){ // change to submenu
             curmenu = sub;
         } else return;
-    } else if(evtmask & BTN_LEFT_MASK){ // up
+    } else if(BTN_PRESSHOLD(evtmask, BTN_LEFT_MASK)){ // up
         if(curmenu->selected) --curmenu->selected;
-    } else if(evtmask & BTN_RIGHT_MASK){ // down
+    } else if(BTN_PRESSHOLD(evtmask, BTN_RIGHT_MASK)){ // down
         if(curmenu->selected < curmenu->nitems - 1) ++curmenu->selected;
     }
     cls();
@@ -198,15 +198,21 @@ static void refresh_menu(uint8_t evtmask){ // refresh menu with changed selectio
  * 2 - down
  * 3 - select/menu
  */
-TRUE_INLINE uint8_t btns_proc(){
+#if BTNSNO > 8
+#pragma error "Change this code!"
+#endif
+TRUE_INLINE btnevtmask btns_proc(){
     static uint32_t lastT = 0;
-    uint8_t evtmask = 0; // bitmask for active buttons (==1)
+    btnevtmask evtmask = 0; // bitmask for active buttons (==1)
     static keyevent lastevent[BTNSNO] = {0};
     if(lastUnsleep == lastT) return 0; // no buttons activity
     lastT = lastUnsleep;
     for(int i = 0; i < BTNSNO; ++i){
         keyevent evt = keystate(i, NULL); // T may be used for doubleclick detection
         if(evt == EVT_PRESS && lastevent[i] != EVT_PRESS) evtmask |= 1<<i;
+        if(evt == EVT_HOLD){
+            evtmask |= (0x100 << i);
+        }
         lastevent[i] = evt;
     }
     if(!evtmask) return 0;
@@ -219,7 +225,7 @@ void indication_process(){
     if(!LEDsON) return;
     leds_proc();
     if(ScrnState != SCREEN_RELAX) return; // dont process buttons when screen in updating state
-    uint8_t e = btns_proc();
+    btnevtmask e = btns_proc();
     if(dispstate == DISP_WINDOW){ // send refresh by timeout event
         if(e) lastTupd = Tms;
         else if(Tms - lastTupd > WINDOW_REFRESH_TIMEOUT){

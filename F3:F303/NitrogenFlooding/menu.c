@@ -24,17 +24,26 @@
 #include "strfunc.h"
 #include "usb.h"
 
+#include <string.h>
+
 // integer parameter to change
 typedef struct{
-    uint32_t min;
-    uint32_t max;
-    uint32_t cur;
-    uint32_t *val;
-} u32par;
+    int32_t min;
+    int32_t max;
+    int32_t cur;
+    int32_t *val;
+} i32par_t;
+
+// function to run after selecting "yes" in yesno window
+typedef void (*yesfun_t)();
+yesfun_t yesfunction = NULL;
 
 // current parameter of uint32_t setter
-static u32par u32parameter = {0};
+static i32par_t i32parameter = {0};
 
+// string buffer for non-constant parname
+#define PARNMBUFSZ  (63)
+static char parnmbuff[PARNMBUFSZ+1];
 static const char *parname = NULL;
 
 // upper level menu to return from subwindow functions
@@ -43,6 +52,7 @@ static menu *uplevel = NULL;
 static void showadc(menu *m);
 static void htr1(menu *m);
 static void htr2(menu *m);
+static void savesettings(menu *m);
 
 static void testx(const char *text){
     USB_sendstr(text);
@@ -55,29 +65,28 @@ static void stest1(menu _U_ *m){testx("sub 1");}
 static void stest2(menu _U_ *m){testx("sub 2");}
 static void stest3(menu _U_ *m){testx("sub 3");}
 static void stest4(menu _U_ *m){testx("sub 4");}
-static void stest5(menu _U_ *m){testx("sub 5");}
 
 
-static menuitem submenu1items[] = {
+static menuitem settingsmenuitems[] = {
     {"test 1", NULL, stest1},
     {"test 2", NULL, stest2},
     {"test 3", NULL, stest3},
     {"test 4", NULL, stest4},
-    {"test 5", NULL, stest5},
+    {"Save", NULL, savesettings},
 };
 
-static menu submenu1 = {
+static menu settingsmenu = {
     .parent = &mainmenu,
     .nitems = 5,
     .selected = 0,
-    .items = submenu1items
+    .items = settingsmenuitems
 };
 
 static menuitem mainmenuitems[] = {
     {"ADC raw data", NULL, showadc},
     {"Heater1 power", NULL, htr1},
     {"Heater2 power", NULL, htr2},
-    {"Submenu1", &submenu1, NULL},
+    {"Settings", &settingsmenu, NULL},
     {"Test3", NULL, test3},
     {"Test4", NULL, test4},
 };
@@ -89,8 +98,8 @@ menu mainmenu = {
     .items = mainmenuitems
 };
 
-static void refresh_adcwin(uint8_t evtmask){
-    if(evtmask & BTN_ESC_MASK || evtmask & BTN_SEL_MASK){ // switch to menu
+static void refresh_adcwin(btnevtmask evtmask){
+    if(BTN_PRESS(evtmask, BTN_ESC_MASK | BTN_SEL_MASK)){ // switch to menu
         init_menu(uplevel);
         return;
     }
@@ -127,20 +136,28 @@ static void showadc(menu *m){
 }
 
 // window of uint32_t setter
-static void refresh_u32setter(uint8_t evtmask){
+static void refresh_i32setter(btnevtmask evtmask){
     int selected = 0;
-    if(evtmask & BTN_ESC_MASK){ // return to main menu
+    if(BTN_PRESS(evtmask, BTN_ESC_MASK)){ // return to main menu
         init_menu(uplevel);
         return;
     }
     cls();
-    if(evtmask & BTN_SEL_MASK){ // change value
-        *u32parameter.val = u32parameter.cur;
+    int incrdecr = 0;
+    if(BTN_PRESS(evtmask, BTN_SEL_MASK)){ // change value
+        *i32parameter.val = i32parameter.cur;
         selected = 1;
-    } else if(evtmask & BTN_LEFT_MASK){ // decrement
-        if(u32parameter.cur > u32parameter.min) --u32parameter.cur;
-    } else if(evtmask & BTN_RIGHT_MASK){ // increment
-        if(u32parameter.cur < u32parameter.max) ++u32parameter.cur;
+    } else if(BTN_PRESSHOLD(evtmask, BTN_LEFT_MASK)){ // decrement
+        if(BTN_HOLD(evtmask, BTN_LEFT_MASK)) incrdecr = -3;
+        else incrdecr = -1;
+    } else if(BTN_PRESSHOLD(evtmask, BTN_RIGHT_MASK)){ // increment
+        if(BTN_HOLD(evtmask, BTN_RIGHT_MASK)) incrdecr = 3;
+        else incrdecr = 1;
+    }
+    if(incrdecr){
+        i32parameter.cur += incrdecr;
+        if(i32parameter.cur < i32parameter.min) i32parameter.cur = i32parameter.min;
+        if(i32parameter.cur > i32parameter.max) i32parameter.cur = i32parameter.max;
     }
     setFGcolor(COLOR_CHOCOLATE);
     SetFontScale(2);
@@ -150,18 +167,62 @@ static void refresh_u32setter(uint8_t evtmask){
     Y += fontheight + fontheight/2;
     if(selected) setFGcolor(COLOR_GREEN);
     else setFGcolor(COLOR_BLUE);
-    CenterStringAt(Y, u2str(u32parameter.cur));
+    CenterStringAt(Y, u2str(i32parameter.cur));
 }
 
 // init pwm setter
 static void showpwm(menu *m, int nccr){
-    u32parameter.max = 100;
-    u32parameter.min = 0;
-    u32parameter.cur = (nccr == 3) ? TIM3->CCR3 : TIM3->CCR4;
-    u32parameter.val = (nccr == 3) ? (uint32_t*) &TIM3->CCR3 : (uint32_t*) &TIM3->CCR4;
+    i32parameter.max = PWM_CCR_MAX;
+    i32parameter.min = 0;
+    i32parameter.cur = (nccr == 3) ? TIM3->CCR3 : TIM3->CCR4;
+    i32parameter.val = (nccr == 3) ? (int32_t*) &TIM3->CCR3 : (int32_t*) &TIM3->CCR4;
     parname = m->items[m->selected].text;
     uplevel = m;
-    init_window(refresh_u32setter);
+    init_window(refresh_i32setter);
 }
 static void htr1(menu *m){showpwm(m, 3);}
 static void htr2(menu *m){showpwm(m, 4);}
+
+
+static void refresh_yesno(btnevtmask evtmask){
+    if(BTN_PRESS(evtmask, BTN_ESC_MASK)){ // return to main menu
+        init_menu(uplevel);
+        return;
+    }
+    cls();
+    const char *msgs[] = {"No", "Yes"};
+    static int current = 0; // current item: "NO"
+    int selected = 0; // not selected
+    if(BTN_PRESS(evtmask, BTN_SEL_MASK)){ // change value
+        selected = 1;
+    } else if(BTN_PRESS(evtmask, BTN_LEFT_MASK | BTN_RIGHT_MASK)){
+        current = !current;
+    }
+    setFGcolor(COLOR_CHOCOLATE);
+    SetFontScale(2);
+    int Y = fontheight + fontheight/2;
+    CenterStringAt(Y, parname);
+    SetFontScale(3);
+    Y += fontheight + fontheight/2;
+    if(selected) setFGcolor(COLOR_GREEN);
+    else setFGcolor(COLOR_BLUE);
+    CenterStringAt(Y, msgs[current]);
+    if(selected && current == 1) yesfunction();
+}
+
+static void savesdummy(){
+    USB_sendstr("Settings saved\n");
+}
+// save current settings
+static void savesettings(menu *m){
+    yesfunction = savesdummy;
+    uplevel = m;
+    const char *p = m->items[m->selected].text;
+    int l = strlen(p);
+    if(l > PARNMBUFSZ-1) l = PARNMBUFSZ-1;
+    strncpy(parnmbuff, p, l);
+    parnmbuff[l] = '?';
+    parnmbuff[l+1] = 0;
+    parname = parnmbuff;
+    init_window(refresh_yesno);
+}

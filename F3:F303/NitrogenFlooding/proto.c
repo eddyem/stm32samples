@@ -161,9 +161,9 @@ static int adcon(const char *cmd, int _U_ parno, const char *c, int32_t i){
 static int adcval(const char *cmd, int parno, const char _U_ *c, int32_t i){
     if(parno >= NUMBER_OF_ADC_CHANNELS) return RET_WRONGPARNO;
     if(parno < 0){ // all channels
-        for(i = 0; i < NUMBER_OF_ADC_CHANNELS; ++i) sendkey(cmd, i, getADCval(i));
+        for(i = 0; i < NUMBER_OF_ADC_CHANNELS; ++i) sendkey(cmd, i, ADCvals[i]);
     }else
-        sendkey(cmd, parno, getADCval(parno));
+        sendkey(cmd, parno, ADCvals[i]);
     return RET_GOOD;
 }
 static int adcvoltage(const char *cmd, int parno, const char _U_ *c, int32_t i){

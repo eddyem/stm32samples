@@ -18,6 +18,8 @@
 
 #pragma once
 
+#include "hardware.h"
+
 #include <stdint.h>
 
 struct _menu_;
@@ -37,4 +39,4 @@ typedef struct _menu_{
 extern menu mainmenu;
 
 // subwindow handler
-typedef void (*window_handler)(uint8_t evtmask);
+typedef void (*window_handler)(btnevtmask evtmask);

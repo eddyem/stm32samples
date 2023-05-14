@@ -61,7 +61,7 @@ void process_keys(){
                 }
             }
         }
-        if(e != k->event){
+        if(e != k->event || e == EVT_HOLD){
             k->lastTms = Tms;
             lastUnsleep = Tms;
         }
