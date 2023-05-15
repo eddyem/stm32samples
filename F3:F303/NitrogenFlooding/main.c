@@ -89,6 +89,9 @@ int main(void){
     BMP280_setup(0);
     BMP280_start();
     USBPU_ON();
+#ifndef EBUG
+    iwdg_setup();
+#endif
     // CAN_message *can_mesg;
     while(1){
         IWDG->KR = IWDG_REFRESH;

@@ -47,7 +47,14 @@
 // starting index of ADC2
 #define ADC2START   (9*NUMBER_OF_ADC1_CHANNELS)
 
+// ADC level for not connected TRD
+#define ADC_NOCONN  (4000)
+
 void adc_setup();
 float getMCUtemp();
 uint16_t getADCval(int nch);
-float getADCvoltage(int nch);
+float getADCvoltage(uint16_t ADCval);
+
+float calcR(uint16_t ADCval);
+float calcT(uint16_t ADCval);
+float calcPres5050();

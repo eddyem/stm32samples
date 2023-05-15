@@ -17,6 +17,7 @@
  */
 
 #include "adc.h"
+#include "hardware.h" // ADCvals
 
 /**
  * @brief ADCx_array - arrays for ADC channels with median filtering:
@@ -65,6 +66,7 @@ TRUE_INLINE void enADC(ADC_TypeDef *chnl){
  */
 // Setup ADC
 void adc_setup(){
+    IWDG->KR = IWDG_REFRESH;
     RCC->AHBENR |= RCC_AHBENR_ADC12EN; //  Enable clocking
     ADC12_COMMON->CCR = ADC_CCR_TSEN | ADC_CCR_CKMODE; // enable Tsens, HCLK/4
     calADC(ADC1);
@@ -128,19 +130,68 @@ uint16_t getADCval(int nch){
 }
 
 // get voltage @input nch (V)
-float getADCvoltage(int nch){
-    float v = getADCval(nch) * 3.3;
-    v /= 4096.f; // 12bit ADC
-    return v;
+float getADCvoltage(uint16_t ADCval){
+    float v = (float)ADCval * 3.3;
+    return v/4096.f; // 12bit ADC
 }
 
 // return MCU temperature (degrees of celsius)
 float getMCUtemp(){
-    // make correction on Vdd value
-    int32_t ADval = getADCval(ADC_TSENS);
-    float temperature = ADval - (float) *TEMP30_CAL_ADDR;
+    float temperature = ADCvals[ADC_TSENS] - (float) *TEMP30_CAL_ADDR;
     temperature *= (110.f - 30.f);
     temperature /= (float)(*TEMP110_CAL_ADDR - *TEMP30_CAL_ADDR);
     temperature += 30.f;
     return(temperature);
+}
+
+// calculate R (Ohms) by given `ADCval` for main 10 ADC channels with 1k in upper arm of divider
+float calcR(uint16_t ADCval){
+    return 1000.f/(4096.f/((float)ADCval) - 1.f);
+}
+
+/****** R(T, K):
+T -= 273.15; % convert to K
+_A = 3.9083e-03;
+_B = -5.7750e-07;
+_C = 0.;
+if(T < 0.); _C = -4.1830e-12; endif
+R = 1000.*(1 + _A*T + _B*T.^2 - _C.*T.^3*100. + _C.*T.^4);
+
+=====> for T=[70:400] Kelvins
+
+function T = pt1000Tapp(R)
+	k1 = 27.645;
+	k2 = 0.235268;
+	k3 = 1.0242e-05;
+	k4 = 0.;
+	if(R < 1000)
+		k1 = 31.067;
+		k2 = 2.2272e-01;
+		k3 = 2.5251e-05;
+		k4 = -5.9001e-09;
+	endif
+	T = k1 + k2*R + k3*R.^2 + k4*R.^3;
+endfunction
+
+mean(T-Tapp)= -3.3824e-04
+std(T-Tapp')= 3.2089e-03
+max(abs(T-Tapp'))= 0.011899
+
+********/
+
+// approximate calculation of T (K) for platinum 1k PTC
+float calcT(uint16_t ADCval){
+    float R = calcR(ADCval);
+    if(R < 1000.){
+        return (31.067 + R * (2.2272e-01 + R * (2.5251e-05 - R * 5.9001e-09)));
+    }
+    return (27.645 + R * (0.235268 + R * 1.0242e-05));
+}
+
+// MPX5050: V=VS(P x 0.018 + 0.04); for 3v3 ADU=4096(P*0.018+0.04) ====>
+// 0.018P=ADU/4096-0.04,
+// P(kPa) = 55.556*(ADU/4096-0.04)
+float calcPres5050(){
+    float adu = (float)ADCvals[ADC_EXT]/4096. - 0.04;
+    return 55.556*adu;
 }

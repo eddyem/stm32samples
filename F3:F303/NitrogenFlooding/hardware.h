@@ -120,3 +120,7 @@ void hw_setup();
 
 void setPWM(int nch, uint16_t val);
 uint16_t getPWM(int nch);
+
+#ifndef EBUG
+void iwdg_setup();
+#endif

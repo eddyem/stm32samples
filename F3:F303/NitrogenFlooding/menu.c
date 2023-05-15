@@ -106,23 +106,60 @@ static void refresh_adcwin(btnevtmask evtmask){
     if(evtmask) return;
     cls();
     SetFontScale(1);
-    int Y = fontheight + 1, wmax = 0;
+    int Y0 = fontheight*2 + 5; // output
+    int X, Y = Y0, Xstart = 20, Xraw = 0, XR = 0, XK = 0;
     setFGcolor(COLOR_CYAN);
     for(int i = 0; i < NUMBER_OF_AIN_CHANNELS; ++i, Y+=fontheight+2){
-        int X = 20;
-        X = PutStringAt(X, Y, "ADC input ");
-        X = PutStringAt(X, Y, u2str(i));
-        if(X > wmax) wmax = X;
+        //X = PutStringAt(X, Y, "ADC input ");
+        X = PutStringAt(Xstart, Y, u2str(i));
+        if(X > Xraw) Xraw = X;
     }
-    wmax += 20;
-    setFGcolor(COLOR_WHITE);
-    Y = fontheight + 1;
+    Xraw += 20; // Xraw - starting X for text 'RAW'
+    Y = Y0;
+    setFGcolor(COLOR_LIGHTBLUE);
+    // RAW values
     for(int i = 0; i < NUMBER_OF_AIN_CHANNELS; ++i, Y+=fontheight+2){
-        PutStringAt(wmax, Y, u2str(ADCvals[i]));
+        X = PutStringAt(Xraw, Y, u2str(ADCvals[i]));
+        if(X > XR) XR = X;
     }
+    XR += 20; // XR - starting X for text 'R, Ohm'
+    Y = Y0;
     setFGcolor(COLOR_LIGHTGREEN);
+    // R in Ohms
+    for(int i = 0; i < NUMBER_OF_AIN_CHANNELS; ++i, Y+=fontheight+2){
+        if(ADCvals[i] > ADC_NOCONN) X = PutStringAt(XR, Y, "NC");
+        else X = PutStringAt(XR, Y, float2str(calcR(ADCvals[i]), 3));
+        if(X > XK) XK = X;
+    }
+    Y = Y0;
+    XK += 20; // XK - starting X for text 'T, K'
+    // T in K
+    for(int i = 0; i < NUMBER_OF_AIN_CHANNELS; ++i, Y+=fontheight+2){
+        if(ADCvals[i] < ADC_NOCONN){
+            float K = calcT(ADCvals[i]);
+            setFGcolor(COLOR_YELLOW);
+            PutStringAt(XK, Y, float2str(K, 1));
+            setFGcolor(COLOR_GOLD);
+            PutStringAt(XK+80, Y, float2str(K-273.15, 1));
+        }
+    }
+    setFGcolor(COLOR_BLUE);
+    Y0 = fontheight + 1;
+    // print header
+    PutStringAt(Xstart, Y0, "#");
+    PutStringAt(Xraw, Y0, "Raw");
+    PutStringAt(XR, Y0, "R, Ohm");
+    PutStringAt(XK, Y0, "T, K");
+    PutStringAt(XK+80, Y0, "degC");
+    setFGcolor(COLOR_CHOCOLATE);
     Y += 5;
-    PutStringAt(20, Y, "ADC ext"); PutStringAt(wmax, Y, u2str(ADCvals[ADC_EXT]));
+    PutStringAt(Xstart, Y, "P"); PutStringAt(Xraw, Y, u2str(ADCvals[ADC_EXT]));
+    float P = calcPres5050();
+    if(P > 30) setFGcolor(COLOR_RED);
+    else if(P > 10) setFGcolor(COLOR_YELLOW);
+    else setFGcolor(COLOR_GREEN);
+    X = PutStringAt(XR, Y, float2str(P, 1));
+    PutStringAt(X+16, Y, "kPa");
     //setFGcolor(COLOR_LIGHTYELLOW);
     //Y += 2 + fontheight;
     //PutStringAt(20, Y, "T MCU"); PutStringAt(wmax, Y, float2str(getMCUtemp(), 0));

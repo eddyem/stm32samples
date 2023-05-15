@@ -108,7 +108,7 @@ TRUE_INLINE void pwm_setup(){
 }
 
 #ifndef EBUG
-TRUE_INLINE void iwdg_setup(){
+void iwdg_setup(){
     uint32_t tmout = 16000000;
     /* Enable the peripheral clock RTC */
     /* (1) Enable the LSI (40kHz) */
@@ -135,11 +135,10 @@ TRUE_INLINE void iwdg_setup(){
 void hw_setup(){
     RCC->AHBENR |= RCC_AHBENR_DMA1EN | RCC_AHBENR_DMA2EN;
     gpio_setup();
+    IWDG->KR = IWDG_REFRESH;
     i2c_setup(HIGH_SPEED);
+    IWDG->KR = IWDG_REFRESH;
     pwm_setup();
-#ifndef EBUG
-    iwdg_setup();
-#endif
 }
 
 void setPWM(int nch, uint16_t val){

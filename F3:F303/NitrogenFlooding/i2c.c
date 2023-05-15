@@ -42,6 +42,7 @@ static uint8_t I2Cbuf[256], i2cbuflen = 0; // buffer for DMA tx/rx and its len
 static inline int isI2Cbusy(){
     cntr = Tms;
     do{
+        IWDG->KR = IWDG_REFRESH;
         if(Tms - cntr > I2C_TIMEOUT){ USND("Timeout, DMA transfer in progress?"); return 1;}
     }while(I2Cbusy);
     return 0;

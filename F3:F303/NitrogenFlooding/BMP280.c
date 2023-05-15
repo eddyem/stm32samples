@@ -197,6 +197,7 @@ static int write_reg(uint8_t reg, uint8_t val){
 
 // read compensation data & write registers
 int BMP280_init(){
+    IWDG->KR = IWDG_REFRESH;
     DBG("INI:\n");
     if(!read_reg(BMP280_REG_ID, &params.ID)){
         DBG("Can't get ID\n");
