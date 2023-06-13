@@ -21,7 +21,7 @@
 #include "usart.h"
 #include "usb.h"
 
-#define USBBUFSZ    127
+#define MAXSTRLEN    RBINSZ
 
 volatile uint32_t Tms = 0;
 
@@ -29,34 +29,16 @@ void sys_tick_handler(void){
     ++Tms;
 }
 
-// usb getline
-char *get_USB(){
-    static char tmpbuf[USBBUFSZ+1], *curptr = tmpbuf;
-    static int rest = USBBUFSZ;
-    uint8_t x = USB_receive(curptr);
-    if(!x) return NULL;
-    curptr[x] = 0;
-    if(curptr[x-1] == '\n'){
-        curptr = tmpbuf;
-        rest = USBBUFSZ;
-        return tmpbuf;
-    }
-    curptr += x; rest -= x;
-    if(rest <= 0){ // buffer overflow
-        curptr = tmpbuf;
-        rest = USBBUFSZ;
-        USEND("USB buffer overflow\n");
-    }
-    return NULL;
-}
-
 int main(void){
+    char inbuff[MAXSTRLEN+1];
     StartHSE();
     hw_setup();
     SysTick_Config(72000);
+    USBPU_OFF();
     hw_setup();
     usart_setup();
     USB_setup();
+    USBPU_ON();
 
     uint32_t ctr = Tms;
     while(1){
@@ -66,12 +48,16 @@ int main(void){
             LED_blink(LED0);
             usart_transmit();
         }
+        if(usartovr()){
+            usart_send("USART buffer overfull\n");
+        }
         char *txt = NULL;
-        usb_proc();
-        if((txt = get_USB())){
+        int l = USB_receivestr(inbuff, MAXSTRLEN);
+        if(l < 0) USB_sendstr("ERROR: USB buffer overflow or string was too long\n");
+        else if(l){
             USEND("Got USB data\n");
-            const char *ans = parse_cmd(txt);
-            if(ans) USB_send(ans);
+            const char *ans = parse_cmd(inbuff);
+            if(ans) USB_sendstr(ans);
         }
         if(usartrx()){
             if(usart_getline(&txt)){

@@ -19,13 +19,15 @@
 #include "hardware.h"
 
 static inline void gpio_setup(){
-    // Enable clocks to the GPIO subsystems (PB for ADC), turn on AFIO clocking to disable SWD/JTAG
-    RCC->APB2ENR |= RCC_APB2ENR_IOPAEN | RCC_APB2ENR_IOPBEN | RCC_APB2ENR_IOPCEN | RCC_APB2ENR_AFIOEN;
+    // Enable clocks to the GPIO subsystems, turn on AFIO clocking to disable SWD/JTAG
+    RCC->APB2ENR |= RCC_APB2ENR_IOPAEN | RCC_APB2ENR_IOPCEN | RCC_APB2ENR_AFIOEN;
     // turn off SWJ/JTAG
 //    AFIO->MAPR = AFIO_MAPR_SWJ_CFG_DISABLE;
     AFIO->MAPR = AFIO_MAPR_SWJ_CFG_JTAGDISABLE; // for PA15
     // Set led as opendrain output
-    GPIOC->CRH |= CRH(13, CNF_ODOUTPUT | MODE_SLOW);
+    //GPIOC->CRH |= CRH(13, CNF_ODOUTPUT | MODE_SLOW);
+    // USB pullup (PA15) - pushpull output
+    GPIOA->CRH = CRH(8, CNF_PPOUTPUT | MODE_SLOW) | CRH(15, CNF_PPOUTPUT | MODE_SLOW);
 }
 
 void hw_setup(){

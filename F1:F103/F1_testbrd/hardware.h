@@ -19,11 +19,5 @@
 #pragma once
 #include <stm32f1.h>
 
-// USB pullup (not used in STM32F0x2!) - PA13
-#define USBPU_port  GPIOA
-#define USBPU_pin   (1<<15)
-#define USBPU_ON()  pin_clear(USBPU_port, USBPU_pin)
-#define USBPU_OFF() pin_set(USBPU_port, USBPU_pin)
-
 void hw_setup();
 

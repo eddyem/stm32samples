@@ -72,17 +72,20 @@ void usart_putchar(const char ch){
     tbuf[tbufno][odatalen[tbufno]++] = ch;
 }
 
-void usart_send(const char *str){
+int usart_send(const char *str){
+    int l = 0;
     while(*str){
         if(odatalen[tbufno] == UARTBUFSZO){
             transmit_tbuf();
             continue;
         }
         tbuf[tbufno][odatalen[tbufno]++] = *str++;
+        ++l;
     }
+    return l;
 }
 
-void newline(){
+void usart_newline(){
     usart_putchar('\n');
     transmit_tbuf();
 }

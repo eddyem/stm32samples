@@ -38,14 +38,16 @@ volatile uint8_t ADCmon = 0; // ==1 to monitor ADC (change PWM of LEDS & show cu
 uint16_t oldADCval = 0;
 
 int main(void){
+    char tmpbuf[129];
     uint32_t lastT = 0;
     sysreset();
     StartHSE();
+
+    USBPU_OFF();
     hw_setup();
     usart_setup();
     SysTick_Config(72000);
 
-    USBPU_OFF();
     USB_setup();
     USBPU_ON();
 
@@ -68,7 +70,8 @@ int main(void){
                 int32_t d = v - oldADCval;
                 if(d < -ADCthreshold || d > ADCthreshold){
                     oldADCval = v;
-                    printADCvals();
+                    printADCvals(USB_sendstr);
+                    printADCvals(usart_send);
                     v >>= 2; // 10 bits
                     TIM3->CCR1 = TIM3->CCR2 = TIM3->CCR3 = 0xff; TIM3->CCR4 = 0;
                     if(v >= 0x300) TIM3->CCR4 = v - 0x300;
@@ -90,31 +93,29 @@ int main(void){
                 USND(") - found device\n");
             }
         }
-        usb_proc();
         int r = 0;
         char *txt, *ans;
-        if((txt = get_USB())){
-            ans = (char*)parse_cmd(txt);
+        int l = USB_receivestr(tmpbuf, 128);
+        if(l){
             SEND("Received data over USB:\n");
-            SEND(txt);
-            newline();
+            SEND(tmpbuf);
+            usart_newline();
+            ans = (char*)parse_cmd(USB_sendstr, tmpbuf);
             if(ans){
-                uint16_t l = 0; char *p = ans;
-                while(*p++) l++;
-                USB_send((uint8_t*)ans, l);
-                if(ans[l-1] != '\n') USND("\n");
+                USB_sendstr(ans);
+                //if(ans[l-1] != '\n') usb_newline();
             }
         }
         if(usartrx()){ // usart1 received data, store in in buffer
             r = usart_getline(&txt);
             if(r){
                 txt[r] = 0;
-                ans = (char*)parse_cmd(txt);
+                ans = (char*)parse_cmd(usart_send, txt);
                 if(ans){
                     usart_send(ans);
                     transmit_tbuf();
                 }
-                USND("Got string over USART:\n");
+                USND("Got string over USART:");
                 USB_sendstr(txt);
             }
         }

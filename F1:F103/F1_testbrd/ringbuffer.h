@@ -1,6 +1,6 @@
 /*
  * This file is part of the F1_testbrd project.
- * Copyright 2022 Edward V. Emelianov <edward.emelianoff@gmail.com>.
+ * Copyright 2023 Edward V. Emelianov <edward.emelianoff@gmail.com>.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,11 +19,17 @@
 #pragma once
 #include <stm32f1.h>
 
-#include "strfunc.h"
+typedef struct{
+    uint8_t *data;      // data buffer
+    const int length;   // its length
+    int head;           // head index
+    int tail;           // tail index
+} ringbuffer;
 
-extern volatile uint8_t ADCmon;
-
-const char *parse_cmd(int (*sendfun)(const char *s), const char *buf);
-void printADCvals(int (*sendfun)(const char *s));
-
+int RB_read(ringbuffer *b, uint8_t *s, int len);
+int RB_readto(ringbuffer *b, uint8_t byte, uint8_t *s, int len);
+int RB_hasbyte(ringbuffer *b, uint8_t byte);
+int RB_write(ringbuffer *b, const uint8_t *str, int l);
+int RB_datalen(ringbuffer *b);
+void RB_clearbuf(ringbuffer *b);
 

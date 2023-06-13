@@ -17,14 +17,13 @@
  */
 
 #pragma once
-#ifndef __HARDWARE_H__
-#define __HARDWARE_H__
 
 #include <stm32f1.h>
 
 // LED0 - PC13 (bluepill), blinking each second
-#define LED0_port   GPIOC
-#define LED0_pin    (1<<13)
+// PA8 - my board
+#define LED0_port   GPIOA
+#define LED0_pin    (1<<8)
 
 #define LED_blink(x)    pin_toggle(x ## _port, x ## _pin)
 #define LED_on(x)       pin_clear(x ## _port, x ## _pin)
@@ -34,4 +33,3 @@ extern volatile uint32_t Tms;
 
 void hw_setup();
 
-#endif // __HARDWARE_H__

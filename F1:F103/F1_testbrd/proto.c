@@ -29,15 +29,8 @@
 // local buffer for I2C and SPI data to send
 static uint8_t locBuffer[LOCBUFFSZ];
 
-void USB_sendstr(const char *str){
-    uint16_t l = 0;
-    const char *b = str;
-    while(*b++) ++l;
-    USB_send((const uint8_t*)str, l);
-}
-
-static inline char *chPWM(volatile uint32_t *reg, char *buf){
-    char *lbuf = buf;
+static inline const char *chPWM(volatile uint32_t *reg, const char *buf){
+    const char *lbuf = buf;
     lbuf = omit_spaces(lbuf);
     char cmd = *lbuf;
     lbuf = omit_spaces(lbuf + 1);
@@ -51,78 +44,50 @@ static inline char *chPWM(volatile uint32_t *reg, char *buf){
         if(oldval + N > 255) return "Already at maximum";
         else *reg += N;
     }else{
-        USND("Wrong command: ");
-        return buf;
+        return "Wrong command\n";
     }
     return "OK";
 }
 
-static inline char *TIM3pwm(char *buf){
+static inline const char *TIM3pwm(const char *buf){
     uint8_t channel = *buf - '1';
     if(channel > 3) return "Wrong channel number";
     volatile uint32_t *reg = (uint32_t*)&(TIM3->CCR1);
     return chPWM(&reg[channel], buf+1);
 }
 
-static inline char *getPWMvals(){
-    USND("TIM1CH1: "); USB_sendstr(u2str(TIM1->CCR1));
-    USND("\nTIM3CH1: "); USB_sendstr(u2str(TIM3->CCR1));
-    USND("\nTIM3CH2: "); USB_sendstr(u2str(TIM3->CCR2));
-    USND("\nTIM3CH3: "); USB_sendstr(u2str(TIM3->CCR3));
-    USND("\nTIM3CH4: "); USB_sendstr(u2str(TIM3->CCR4));
-    USND("\n");
+static inline char *getPWMvals(int (*sendfun)(const char *s)){
+    sendfun("TIM1CH1: "); sendfun(u2str(TIM1->CCR1));
+    sendfun("\nTIM3CH1: "); sendfun(u2str(TIM3->CCR1));
+    sendfun("\nTIM3CH2: "); sendfun(u2str(TIM3->CCR2));
+    sendfun("\nTIM3CH3: "); sendfun(u2str(TIM3->CCR3));
+    sendfun("\nTIM3CH4: "); sendfun(u2str(TIM3->CCR4));
+    sendfun("\n");
     return NULL;
 }
 
-static inline char *USARTsend(char *buf){
-//    uint32_t N;
-//    if(buf == getnum(buf, &N)) return "Point number of USART";
-//    if(N < 1 || N > USARTNUM) return "Wrong USART number";
-//    buf = omit_spaces(buf + 1);
+static inline const char *USARTsend(const char *buf){
     usart_send(buf);
     transmit_tbuf();
     return "OK";
 }
 
 // read N numbers from buf, @return 0 if wrong or none
-static uint16_t readNnumbers(char *buf){
+static uint16_t readNnumbers(int (*sendfun)(const char *s), const char *buf){
     uint32_t D;
-    char *nxt;
+    const char *nxt;
     uint16_t N = 0;
     while((nxt = getnum(buf, &D)) && nxt != buf && N < LOCBUFFSZ){
         buf = nxt;
         locBuffer[N++] = (uint8_t) D&0xff;
-        USND("add byte: "); USB_sendstr(uhex2str(D&0xff)); USND("\n");
+        sendfun("add byte: "); sendfun(uhex2str(D&0xff)); sendfun("\n");
     }
-    USND("Send "); USB_sendstr(u2str(N)); USND(" bytes\n");
+    sendfun("Send "); sendfun(u2str(N)); sendfun(" bytes\n");
     return N;
 }
 
-// dump memory buffer
-static void hexdump(uint8_t *arr, uint16_t len){
-    char buf[52], *bptr = buf;
-    for(uint16_t l = 0; l < len; ++l, ++arr){
-        for(int16_t j = 1; j > -1; --j){
-            register uint8_t half = (*arr >> (4*j)) & 0x0f;
-            if(half < 10) *bptr++ = half + '0';
-            else *bptr++ = half - 10 + 'a';
-        }
-        if(l % 16 == 15){
-            *bptr++ = '\n';
-            *bptr = 0;
-            USB_sendstr(buf);
-            bptr = buf;
-        }else *bptr++ = ' ';
-    }
-    if(bptr != buf){
-        *bptr++ = '\n';
-        *bptr = 0;
-        USB_sendstr(buf);
-    }
-}
-
 static uint8_t i2cinited = 1;
-static inline char *setupI2C(char *buf){
+static inline const char *setupI2C(const char *buf){
     buf = omit_spaces(buf);
     if(*buf < '0' || *buf > '2') return "Wrong speed";
     i2c_setup(*buf - '0');
@@ -130,79 +95,79 @@ static inline char *setupI2C(char *buf){
     return "OK";
 }
 
-static inline char *saI2C(char *buf){
+static inline const char *saI2C(int (*sendfun)(const char *s), const char *buf){
     uint32_t addr;
     if(!getnum(buf, &addr) || addr > 0x7f) return "Wrong address";
-    USND("I2Caddr="); USB_sendstr(uhex2str(addr)); USND("\n");
+    sendfun("I2Caddr="); sendfun(uhex2str(addr)); sendfun("\n");
     i2c_set_addr7(addr);
     return "OK";
 }
-static inline void rdI2C(char *buf){
+static inline void rdI2C(int (*sendfun)(const char *s), const char *buf){
     uint32_t N;
-    char *nxt = getnum(buf, &N);
+    const char *nxt = getnum(buf, &N);
     if(!nxt || buf == nxt || N > 0xff){
-        USND("Bad register number\n");
+        sendfun("Bad register number\n");
         return;
     }
     buf = nxt;
     uint8_t reg = N;
     nxt = getnum(buf, &N);
     if(!nxt || buf == nxt || N > LOCBUFFSZ){
-        USND("Bad length\n");
+        sendfun("Bad length\n");
         return;
     }
     if(!read_i2c_reg(reg, locBuffer, N)){
-        USND("Error reading I2C\n");
+        sendfun("Error reading I2C\n");
         return;
     }
-    if(N == 0){ USND("OK"); return; }
-    USND("Register "); USB_sendstr(uhex2str(reg)); USND(":\n");
-    hexdump(locBuffer, N);
+    if(N == 0){ sendfun("OK\n"); return; }
+    sendfun("Register "); sendfun(uhex2str(reg)); sendfun(":\n");
+    hexdump(sendfun, locBuffer, N);
 }
-static inline char *wrI2C(char *buf){
-    uint16_t N = readNnumbers(buf);
+static inline const char *wrI2C(int (*sendfun)(const char *s), const char *buf){
+    uint16_t N = readNnumbers(sendfun, buf);
     if(!write_i2c(locBuffer, N)) return "Error writing I2C";
     if(N < 1) return "bad";
     return "OK";
 }
 
 // write locBuffer to SPI
-static inline void wrSPI(int SPIidx, char *buf){
+static inline void wrSPI(int (*sendfun)(const char *s), int SPIidx, const char *buf){
     if(SPIidx < 0 || SPIidx > 2) return;
-    uint16_t N = readNnumbers(buf);
+    uint16_t N = readNnumbers(sendfun, buf);
     if(N < 1){
         *(uint8_t *)&(SPI1->DR) = 0xea;
-        USND("Enter at least 1 number (max: ");
-        USB_sendstr(u2str(LOCBUFFSZ)); USND(")\n");
+        sendfun("Enter at least 1 number (max: ");
+        sendfun(u2str(LOCBUFFSZ)); sendfun(")\n");
         return;
     }
     //if(SPI_transmit(SPIidx, locBuffer, N)) USND("Error: busy?\n");
-    else USND("done");
+    else sendfun("done");
 }
-static inline void rdSPI(int SPIidx){
+static inline void rdSPI(int (*sendfun)(const char *s), int SPIidx){
     if(SPIidx < 0 || SPIidx > 2) return;
-    //if(SPI_isoverflow(SPIidx)) USND("SPI buffer overflow\n");
+    //if(SPI_isoverflow(SPIidx)) sendfun("SPI buffer overflow\n");
     uint8_t len = LOCBUFFSZ;
     /*
     if(SPI_getdata(SPIidx, locBuffer, &len)){
-        USND("Error getting data: busy?\n");
+        sendfun("Error getting data: busy?\n");
         return;
     }*/
     if(len == 0){
-        USND("Nothing to read\n");
+        sendfun("Nothing to read\n");
         return;
     }
-    if(len > LOCBUFFSZ) USND("Can't get full message: buffer too small\n");
-    USND("SPI data:\n");
-    hexdump(locBuffer, len);
+    if(len > LOCBUFFSZ) sendfun("Can't get full message: buffer too small\n");
+    sendfun("SPI data:\n");
+    hexdump(sendfun, locBuffer, len);
 }
 
-static inline char *procSPI(char *buf){
+static inline const char *procSPI(int (*sendfun)(const char *s), const char *buf){
     int idx = 0;
     if(*buf == 'p') idx = 1;
     buf = omit_spaces(buf + 1);
-    if(*buf == 'w')  wrSPI(idx, buf + 1);
-    else if(*buf == 'r') rdSPI(idx);
+    if(*buf == 'w')  wrSPI(sendfun, idx, buf + 1);
+    else if(*buf == 'r') rdSPI(sendfun, idx);
     else return "Enter `w` and data to write, `r` - to read";
     return NULL;
 }
@@ -228,24 +193,24 @@ const char *helpstring =
         "R - software reset\n"
         "S - send short string over USB\n"
         "s - setup SPI (and turn off USARTs)\n"
-        "Ux str - send string to USARTx (1..3)\n"
+        "U str - send string to USART1\n"
         "u - setup USARTs (and turn off SPI)\n"
         "T - MCU temperature\n"
         "V - Vdd\n"
         "W - test watchdog\n"
 ;
 
-void printADCvals(){
-    USND("AIN0: "); USB_sendstr(u2str(getADCval(0)));
-    USND(" ("); USB_sendstr(u2str(getADCvoltage(0)));
-    USND("/100 V)\nAIN1: "); USB_sendstr(u2str(getADCval(1)));
-    USND(" ("); USB_sendstr(u2str(getADCvoltage(1)));
-    USND("/100 V)\nAIN5: "); USB_sendstr(u2str(getADCval(2)));
-    USND(" ("); USB_sendstr(u2str(getADCvoltage(2)));
-    USND("/100 V)\n");
+void printADCvals(int (*sendfun)(const char *s)){
+    sendfun("AIN0: "); sendfun(u2str(getADCval(0)));
+    sendfun(" ("); sendfun(u2str(getADCvoltage(0)));
+    sendfun("/100 V)\nAIN1: "); sendfun(u2str(getADCval(1)));
+    sendfun(" ("); sendfun(u2str(getADCvoltage(1)));
+    sendfun("/100 V)\nAIN5: "); sendfun(u2str(getADCval(2)));
+    sendfun(" ("); sendfun(u2str(getADCvoltage(2)));
+    sendfun("/100 V)\n");
 }
 
-const char *parse_cmd(char *buf){
+const char *parse_cmd(int (*sendfun)(const char *s), const char *buf){
     // "long" commands
     switch(*buf){
         case '+':
@@ -266,15 +231,15 @@ const char *parse_cmd(char *buf){
         case 'I':
             if(!i2cinited) return "Init I2C first";
             buf = omit_spaces(buf + 1);
-            if(*buf == 'a') return saI2C(buf + 1);
-            else if(*buf == 'r'){ rdI2C(buf + 1); return NULL; }
-            else if(*buf == 'w') return wrI2C(buf + 1);
+            if(*buf == 'a') return saI2C(sendfun, buf + 1);
+            else if(*buf == 'r'){ rdI2C(sendfun, buf + 1); return NULL; }
+            else if(*buf == 'w') return wrI2C(sendfun, buf + 1);
             else if(*buf == 's'){ i2c_init_scan_mode(); return "Start scan\n";}
             else return "Command should be 'Ia', 'Iw', 'Ir' or 'Is'\n";
         break;
         case 'p':
         case 'P':
-            //return procSPI(buf);
+            //return procSPI(sendfun, buf);
             return "TODO";
         break;
         case 'U':
@@ -282,7 +247,7 @@ const char *parse_cmd(char *buf){
         break;
     }
     // "short" commands
-    if(buf[1] != '\n') return buf;
+    if(buf[1] && buf[1] != '\n') return buf;
     switch(*buf){
         case '0':
             pin_toggle(USBPU_port, USBPU_pin);
@@ -290,10 +255,10 @@ const char *parse_cmd(char *buf){
             else return "Pullup set";
         break;
         case 'g':
-            return getPWMvals();
+            return getPWMvals(sendfun);
         break;
         case 'A':
-            printADCvals();
+            printADCvals(sendfun);
         break;
         case 'L':
             USND("Very long test string for USB (it's length is more than 64 bytes).\n"
@@ -302,21 +267,21 @@ const char *parse_cmd(char *buf){
         break;
         case 'm':
             ADCmon = !ADCmon;
-            USND("Monitoring is ");
-            if(ADCmon) USND("on\n");
-            else USND("off\n");
+            sendfun("Monitoring is ");
+            if(ADCmon) sendfun("on\n");
+            else sendfun("off\n");
         break;
         case 'R':
-            USND("Soft reset\n");
+            USND("Soft reset");
             SEND("Soft reset\n");
             NVIC_SystemReset();
         break;
         case 'S':
-            USND("Test string for USB\n");
+            USND("Test string for USB");
             return "Short test sent";
         break;
         case 's':
-            USND("SPI are ON, USART are OFF\n");
+            sendfun("SPI are ON, USART are OFF\n");
             //usart_stop();
             //spi_setup();
         break;
@@ -341,206 +306,4 @@ const char *parse_cmd(char *buf){
         break;
     }
     return NULL;
-}
-
-// usb getline
-char *get_USB(){
-    static char tmpbuf[129], *curptr = tmpbuf;
-    static int rest = 128;
-    int x = USB_receive((uint8_t*)curptr);
-    curptr[x] = 0;
-    if(!x) return NULL;
-    if(curptr[x-1] == '\n'){
-        curptr = tmpbuf;
-        rest = 128;
-        return tmpbuf;
-    }
-    curptr += x; rest -= x;
-    if(rest <= 0){ // buffer overflow
-        curptr = tmpbuf;
-        rest = 128;
-    }
-    return NULL;
-}
-
-
-static char *_2str(uint32_t  val, uint8_t minus){
-    static char strbuf[12];
-    char *bufptr = &strbuf[11];
-    *bufptr = 0;
-    if(!val){
-        *(--bufptr) = '0';
-    }else{
-        while(val){
-            *(--bufptr) = val % 10 + '0';
-            val /= 10;
-        }
-    }
-    if(minus) *(--bufptr) = '-';
-    return bufptr;
-}
-
-// return string with number `val`
-char *u2str(uint32_t val){
-    return _2str(val, 0);
-}
-char *i2str(int32_t i){
-    uint8_t minus = 0;
-    uint32_t val;
-    if(i < 0){
-        minus = 1;
-        val = -i;
-    }else val = i;
-    return _2str(val, minus);
-}
-// print 32bit unsigned int as hex
-char *uhex2str(uint32_t val){
-    static char buf[12] = "0x";
-    int npos = 2;
-    uint8_t *ptr = (uint8_t*)&val + 3;
-    int8_t i, j, z=1;
-    for(i = 0; i < 4; ++i, --ptr){
-        if(*ptr == 0){ // omit leading zeros
-            if(i == 3) z = 0;
-            if(z) continue;
-        }
-        else z = 0;
-        for(j = 1; j > -1; --j){
-            uint8_t half = (*ptr >> (4*j)) & 0x0f;
-            if(half < 10) buf[npos++] = half + '0';
-            else buf[npos++] = half - 10 + 'a';
-        }
-    }
-    buf[npos] = 0;
-    return buf;
-}
-
-char *omit_spaces(const char *buf){
-    while(*buf){
-        if(*buf > ' ') break;
-        ++buf;
-    }
-    return (char*)buf;
-}
-
-// In case of overflow return `buf` and N==0xffffffff
-// read decimal number & return pointer to next non-number symbol
-static char *getdec(const char *buf, uint32_t *N){
-    char *start = (char*)buf;
-    uint32_t num = 0;
-    while(*buf){
-        char c = *buf;
-        if(c < '0' || c > '9'){
-            break;
-        }
-        if(num > 429496729 || (num == 429496729 && c > '5')){ // overflow
-            *N = 0xffffff;
-            return start;
-        }
-        num *= 10;
-        num += c - '0';
-        ++buf;
-    }
-    *N = num;
-    return (char*)buf;
-}
-// read hexadecimal number (without 0x prefix!)
-static char *gethex(const char *buf, uint32_t *N){
-    char *start = (char*)buf;
-    uint32_t num = 0;
-    while(*buf){
-        char c = *buf;
-        uint8_t M = 0;
-        if(c >= '0' && c <= '9'){
-            M = '0';
-        }else if(c >= 'A' && c <= 'F'){
-            M = 'A' - 10;
-        }else if(c >= 'a' && c <= 'f'){
-            M = 'a' - 10;
-        }
-        if(M){
-            if(num & 0xf0000000){ // overflow
-                *N = 0xffffff;
-                return start;
-            }
-            num <<= 4;
-            num += c - M;
-        }else{
-            break;
-        }
-        ++buf;
-    }
-    *N = num;
-    return (char*)buf;
-}
-// read octal number (without 0 prefix!)
-static char *getoct(const char *buf, uint32_t *N){
-    char *start = (char*)buf;
-    uint32_t num = 0;
-    while(*buf){
-        char c = *buf;
-        if(c < '0' || c > '7'){
-            break;
-        }
-        if(num & 0xe0000000){ // overflow
-            *N = 0xffffff;
-            return start;
-        }
-        num <<= 3;
-        num += c - '0';
-        ++buf;
-    }
-    *N = num;
-    return (char*)buf;
-}
-// read binary number (without b prefix!)
-static char *getbin(const char *buf, uint32_t *N){
-    char *start = (char*)buf;
-    uint32_t num = 0;
-    while(*buf){
-        char c = *buf;
-        if(c < '0' || c > '1'){
-            break;
-        }
-        if(num & 0x80000000){ // overflow
-            *N = 0xffffff;
-            return start;
-        }
-        num <<= 1;
-        if(c == '1') num |= 1;
-        ++buf;
-    }
-    *N = num;
-    return (char*)buf;
-}
-
-/**
- * @brief getnum - read uint32_t from string (dec, hex or bin: 127, 0x7f, 0b1111111)
- * @param buf - buffer with number and so on
- * @param N   - the number read
- * @return pointer to first non-number symbol in buf
- *      (if it is == buf, there's no number or if *N==0xffffffff there was overflow)
- */
-char *getnum(const char *txt, uint32_t *N){
-    char *nxt = NULL;
-    char *s = omit_spaces(txt);
-    if(*s == '0'){ // hex, oct or 0
-        if(s[1] == 'x' || s[1] == 'X'){ // hex
-            nxt = gethex(s+2, N);
-            if(nxt == s+2) nxt = (char*)txt;
-        }else if(s[1] > '0'-1 && s[1] < '8'){ // oct
-            nxt = getoct(s+1, N);
-            if(nxt == s+1) nxt = (char*)txt;
-        }else{ // 0
-            nxt = s+1;
-            *N = 0;
-        }
-    }else if(*s == 'b' || *s == 'B'){
-        nxt = getbin(s+1, N);
-        if(nxt == s+1) nxt = (char*)txt;
-    }else{
-        nxt = getdec(s, N);
-        if(nxt == s) nxt = (char*)txt;
-    }
-    return nxt;
 }

@@ -1,6 +1,6 @@
 /*
  * This file is part of the F1_testbrd project.
- * Copyright 2022 Edward V. Emelianov <edward.emelianoff@gmail.com>.
+ * Copyright 2023 Edward V. Emelianov <edward.emelianoff@gmail.com>.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,13 +17,14 @@
  */
 
 #pragma once
-#include <stm32f1.h>
 
-#include "strfunc.h"
+#include <stdint.h>
+#include <string.h>
 
-extern volatile uint8_t ADCmon;
-
-const char *parse_cmd(int (*sendfun)(const char *s), const char *buf);
-void printADCvals(int (*sendfun)(const char *s));
-
-
+void hexdump(int (*sendfun)(const char *s), uint8_t *arr, uint16_t len);
+const char *u2str(uint32_t val);
+const char *i2str(int32_t i);
+const char *uhex2str(uint32_t val);
+const char *getnum(const char *txt, uint32_t *N);
+const char *omit_spaces(const char *buf);
+const char *getint(const char *txt, int32_t *I);

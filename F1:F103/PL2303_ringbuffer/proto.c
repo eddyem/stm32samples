@@ -194,12 +194,12 @@ const char *parse_cmd(const char *buf){
                 else add2buf("on\n");
             break;
             case 'R':
-                USB_send("Soft reset\n");
+                USB_sendstr("Soft reset\n");
                 NVIC_SystemReset();
             break;
             case 'T':
                 u3 = Tms;
-                for(int i = 0; i < 1000; ++i) USB_send(test);
+                for(int i = 0; i < 1000; ++i) USB_sendstr(test);
                 add2buf("\n\nspd=");
                 add2buf(u2str(2000000000/(Tms - u3))); add2buf("\n"); // strlen == 2Mbit, speed in bits per second
             break;
@@ -210,7 +210,7 @@ const char *parse_cmd(const char *buf){
                 add2buf("\n");
             break;
             case 'W':
-                USB_send("Wait for reboot\n");
+                USB_sendstr("Wait for reboot\n");
                 while(1){nop();};
             break;
             default:

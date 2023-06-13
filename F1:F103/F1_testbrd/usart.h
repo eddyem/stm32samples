@@ -49,7 +49,7 @@ extern volatile int linerdy, bufovr, txrdy;
 void transmit_tbuf();
 void usart_setup();
 int usart_getline(char **line);
-void usart_send(const char *str);
-void newline();
+int usart_send(const char *str);
+void usart_newline();
 void usart_putchar(const char ch);
 

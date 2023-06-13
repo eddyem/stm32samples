@@ -1,5 +1,5 @@
 /*
- * This file is part of the pl2303 project.
+ * This file is part of the F1_testbrd project.
  * Copyright 2023 Edward V. Emelianov <edward.emelianoff@gmail.com>.
  *
  * This program is free software: you can redistribute it and/or modify
