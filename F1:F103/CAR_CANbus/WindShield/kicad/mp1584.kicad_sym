@@ -60,7 +60,7 @@
     (property "Value" "MT1470" (at 0 -5.08 0)
       (effects (font (size 1.524 1.524)))
     )
-    (property "Footprint" "" (at 0 0 0)
+    (property "Footprint" "Package_TO_SOT_SMD:SOT-23-6_Handsoldering" (at 0 0 0)
       (effects (font (size 1.524 1.524)))
     )
     (property "Datasheet" "" (at 0 0 0)
