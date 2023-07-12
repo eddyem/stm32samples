@@ -1,0 +1,4 @@
+(fp_lib_table
+  (version 7)
+  (lib (name "kicad")(type "KiCad")(uri "/Big/Data/00__Electronics/STM32/F1-nolib/CAR_CANbus/WindShield/kicad")(options "")(descr ""))
+)

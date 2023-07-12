@@ -1,0 +1,7 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "s8205a")(type "KiCad")(uri "${KIPRJMOD}/s8205a.kicad_sym")(options "")(descr ""))
+  (lib (name "mp1584")(type "KiCad")(uri "${KIPRJMOD}/mp1584.kicad_sym")(options "")(descr ""))
+  (lib (name "ZXCT1009")(type "KiCad")(uri "${KIPRJMOD}/ZXCT1009.kicad_sym")(options "")(descr ""))
+  (lib (name "elements")(type "KiCad")(uri "${KIPRJMOD}/elements.kicad_sym")(options "")(descr ""))
+)
