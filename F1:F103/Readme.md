@@ -1,6 +1,7 @@
 - **BMP180** - I2C temperature/pressure sensor BMP180
 - **BMP280** - I2C temperature/pressure sensor BMP280 and temp/pres/humidity sensor BME280
 - **Canon_managing_device** - device for independent managing of some Canon lens
+- **canUART** - UART-CAN bridge
 - **CDC_ACM** - simplest CDC-ACM snippet (*deprecated*)
 - **chronometer** - first version of chronometer for bike/auto/moto competitions
 - **chronometer_v2** - chrono-2
@@ -22,6 +23,7 @@
 - **pwmtest** - generate signals on PA8 by PWM @ TIM1_CC1
 - **RGB_LED_Screen** - HUB75E-based RGB LED panel management, 8.8.4 color (RRRGGGBB)
 - **SevenCDCs** - a joke - 7 CDCs @ one STM32F103
+- **shutter** - bistable shutter management (via USB and external signal)
 - **SI7005_HTU21D** - work with I2C humidity/temperature sensors SI7005 & HTU21D
 - **SPI** - SPI over DMA for "bluepill"
 - **Tetris** - some games @ HUB75E-based RGB LED panel: snake, balls and tetris
