@@ -1,0 +1,27 @@
+Drill report for lamps.kicad_pcb
+Created on Ср 16 авг 2023 19:13:50
+
+Copper Layer Stackup:
+    =============================================================
+    L1 :  F.Cu                      front
+    L2 :  B.Cu                      back
+
+
+Drill file 'lamps.drl' contains
+    plated through holes:
+    =============================================================
+    T1  0.600mm  0.0236"  (26 holes)
+    T2  0.700mm  0.0276"  (6 holes)
+    T3  0.750mm  0.0295"  (2 holes)
+    T4  0.800mm  0.0315"  (19 holes)
+    T5  1.000mm  0.0394"  (9 holes)
+    T6  1.300mm  0.0512"  (15 holes)
+
+    Total plated holes count 77
+
+
+Not plated through holes are merged with plated holes
+    unplated through holes:
+    =============================================================
+
+    Total unplated holes count 0
