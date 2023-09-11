@@ -46,6 +46,6 @@ void usart_setup();
 int usart_getline(char **line);
 TXstatus usart_send(const char *str, int len);
 TXstatus usart_send_blocking(const char *str, int len);
-void usart_send_blck(const char *str);
+//void usart_send_blck(const char *str);
 
 #endif // __USART_H__

@@ -80,8 +80,7 @@ void can_messages_proc(){
 #ifdef EBUG
     SEND("got message, len: "); bufputchar('0' + len);
     SEND(", data: ");
-    uint8_t ctr;
-    for(ctr = 0; ctr < len; ++ctr){
+    for(int ctr = 0; ctr < len; ++ctr){
         printuhex(can_mesg->data[ctr]);
         bufputchar(' ');
     }

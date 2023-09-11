@@ -37,7 +37,13 @@ extern volatile uint8_t canerror;
 extern volatile uint32_t Tms;
 
 static char buff[UARTBUFSZ+1], /* +1 - for USB send (it receive \0-terminated line) */ *bptr = buff;
-static int blen = 0, USBcmd = 0, debugmode = 0;
+static int blen = 0, USBcmd = 0, debugmode =
+#ifdef EBUG
+        1
+#else
+    0
+#endif
+;
 // LEDs are OFF by default
 uint8_t noLED =
 #ifdef EBUG
@@ -70,9 +76,9 @@ void addtobuf(const char *txt){
         }
         strcpy(bptr, txt);
         bptr += l;
+        *bptr = 0;
+        blen += l;
     }
-    *bptr = 0;
-    blen += l;
 }
 
 void bufputchar(char ch){

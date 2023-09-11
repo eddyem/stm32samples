@@ -65,7 +65,13 @@ const char *sensors_get_statename(SensorsState x){
 
 // TODO: check if we can convert double to float!
 
-const double mul[5] = {-1.5e-2, 1., -2., 4., -2.};
+#ifndef EBUG
+#define TYPE double
+#else
+#define TYPE float
+#endif
+
+const TYPE mul[5] = {-1.5e-2, 1., -2., 4., -2.};
 /**
  * Get temperature & calculate it by polinome
  * T =    (-2) * k4 * 10^{-21} * ADC16^4
@@ -86,10 +92,10 @@ static uint16_t calc_t(uint32_t t, int i){
     }
     if(t < 600000 || t > 30000000) return BAD_TEMPERATURE; // wrong value - too small or too large
     int j;
-    double d = (double)t/256., tmp = 0.;
+    TYPE d = (TYPE)t/256., tmp = 0.;
     // k0*(-1.5e-2) + 0.1*1e-5*val*(1*k1 + 1e-5*val*(-2.*k2 + 1e-5*val*(4*k3 + 1e-5*val*(-2*k4))))
     for(j = 4; j > 0; --j){
-        tmp += mul[j] * (double)coeff[j];
+        tmp += mul[j] * (TYPE)coeff[j];
         tmp *= 1e-5*d;
     }
     tmp = tmp * 10. + 100. * mul[0] * coeff[0];
@@ -143,8 +149,12 @@ void sensors_start(){
             Sstate = SENS_START_MSRMNT;
         break;
         case SENS_OFF:
-            overcurnt_ctr = 0;
-            if(sensors_on()) Sstate = SENS_START_MSRMNT;
+            if(Nsens_present){ // already gon N sensors - use this information
+                overcurnt_ctr = 0;
+                if(sensors_on()) Sstate = SENS_START_MSRMNT;
+             }else{
+                sensors_init();
+            }
         break;
         case SENS_OVERCURNT_OFF:
             sensors_init();
@@ -314,11 +324,11 @@ void showcoeffs(){
 void showtemperature(){
     int a, p;
     if(Nsens_present == 0){
-        SEND("showtemperature(): no sensors found");
+        SEND("showtemperature(): no sensors found\n");
         return;
     }
     if(Ntemp_measured == 0){
-        SEND("showtemperature(): no temperatures measured");
+        SEND("showtemperature(): no temperatures measured\n");
         return;
     }
     for(a = 0; a <= MUL_MAX_ADDRESS; ++a){
@@ -338,6 +348,7 @@ void showtemperature(){
             }
             printu(t);
             newline();
+            IWDG->KR = IWDG_REFRESH;
         }
     }
 }
@@ -410,6 +421,12 @@ void sensors_process(){
         break;
         case SENS_SENDING_DATA:
             mesg("SENS_SENDING_DATA");
+            if(Nsens_present == 0){
+                mesg("No sensors found -> off");
+                sensors_off();
+                NsentOverCAN = 0;
+                break;
+            }
             NsentOverCAN = send_temperatures(NsentOverCAN); // call sending T process
             if(NsentOverCAN < 0){ // all data sent -> sleep
                 Sstate = SENS_SLEEPING;

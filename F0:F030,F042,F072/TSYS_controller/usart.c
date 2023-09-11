@@ -25,6 +25,10 @@
 #include "hardware.h"
 #include "usart.h"
 
+#ifdef EBUG
+#include "usb.h"
+#endif
+
 
 extern volatile uint32_t Tms;
 static int datalen[2] = {0,0}; // received data line length (including '\n')
@@ -58,7 +62,14 @@ TXstatus usart_send(const char *str, int len){
     if(!txrdy) return LINE_BUSY;
     if(len > UARTBUFSZ) return STR_TOO_LONG;
     txrdy = 0;
+    IWDG->KR = IWDG_REFRESH;
+#ifdef EBUG
+    USB_send("\n\n\nUSART send:\n");
+    USB_send(str);
+    USB_send("\n\n");
+#endif
     memcpy(tbuf, str, len);
+    while(!(USARTX->ISR & USART_ISR_TXE)); // no refresh of WD to prevent weird things
 #if USARTNUM == 2
     DMA1_Channel4->CCR &= ~DMA_CCR_EN;
     DMA1_Channel4->CNDTR = len;
@@ -77,13 +88,20 @@ TXstatus usart_send_blocking(const char *str, int len){
     if(!txrdy) return LINE_BUSY;
     int i;
     bufovr = 0;
+    IWDG->KR = IWDG_REFRESH;
+    while(!(USARTX->ISR & USART_ISR_TXE)); // no refresh of WD to prevent weird things
+#ifdef EBUG
+    USB_send("\n\n\nUSART send blocking:\n");
+    USB_send(str);
+    USB_send("\n\n");
+#endif
     for(i = 0; i < len; ++i){
         USARTX -> TDR = *str++;
         while(!(USARTX->ISR & USART_ISR_TXE)){IWDG->KR = IWDG_REFRESH;};
     }
     return ALL_OK;
 }
-
+/*
 void usart_send_blck(const char *str){
     while(!txrdy){IWDG->KR = IWDG_REFRESH;}
     bufovr = 0;
@@ -91,7 +109,7 @@ void usart_send_blck(const char *str){
         USARTX -> TDR = *str++;
         while(!(USARTX->ISR & USART_ISR_TXE)){IWDG->KR = IWDG_REFRESH;};
     }
-}
+}*/
 
 void usart_setup(){
 // Nucleo's USART2 connected to VCP proxy of st-link
@@ -199,6 +217,7 @@ void usart1_isr(){
 #if USARTNUM == 2
 void dma1_channel4_5_isr(){
     if(DMA1->ISR & DMA_ISR_TCIF4){ // Tx
+        DMA1_Channel4->CCR &= ~DMA_CCR_EN; // stop DMA
         DMA1->IFCR |= DMA_IFCR_CTCIF4; // clear TC flag
         txrdy = 1;
     }
@@ -207,6 +226,7 @@ void dma1_channel4_5_isr(){
 #elif USARTNUM == 1
 void dma1_channel2_3_isr(){
     if(DMA1->ISR & DMA_ISR_TCIF2){ // Tx
+        DMA1_Channel2->CCR &= ~DMA_CCR_EN; // stop DMA
         DMA1->IFCR |= DMA_IFCR_CTCIF2; // clear TC flag
         txrdy = 1;
     }

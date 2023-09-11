@@ -124,6 +124,10 @@ int main(void){
             char *txt = NULL;
             r = usart_getline(&txt);
             txt[r] = 0;
+#ifdef EBUG
+            USB_send("\n\nUSART got:\n");
+            USB_send(txt); USB_send("\n\n");
+#endif
             cmd_parser(txt, 0);
         }
         if(lastB - Tms > 99){ // run `sendbuf` each 100ms

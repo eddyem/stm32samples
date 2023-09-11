@@ -33,6 +33,7 @@ static uint8_t incoming_data[IDATASZ];
 static uint8_t ovfl = 0;
 static uint16_t idatalen = 0;
 static int8_t usbON = 0; // ==1 when USB fully configured
+volatile int8_t usbConn = 0; // ==1 when connected
 static volatile uint8_t tx_succesfull = 0;
 
 // interrupt IN handler (never used?)
@@ -111,6 +112,7 @@ void usb_proc(){
 }
 
 void USB_send(const char *buf){
+    if(!usbConn) return;
     uint16_t l = 0, ctr = 0;
     const char *p = buf;
     while(*p++) ++l;
@@ -143,22 +145,10 @@ int USB_receive(char *buf, int bufsize){
         }
     }
     if(i == idatalen || stlen == 0) return 0;
-    /*
-    char x[] = "USB got x:\n";
-    x[8] = '0' + stlen;
-    usart_send_blck(x);
-    usart_send_blck((char*)incoming_data);
-    usart_send_blck("\n");
-    */
     USB->CNTR = 0;
     int sz = (stlen > bufsize) ? bufsize : stlen, rest = idatalen - sz;
     memcpy(buf, incoming_data, sz);
     buf[sz] = 0;
-    /*
-    usart_send_blck("buf:\n");
-    usart_send_blck((char*)buf);
-    usart_send_blck("\n");
-    */
     if(rest > 0){
         memmove(incoming_data, &incoming_data[sz], rest);
         idatalen = rest;
@@ -177,7 +167,7 @@ int USB_receive(char *buf, int bufsize){
 /**
  * @brief USB_configured
  * @return 1 if USB is in configured state
- */
+ *
 int USB_configured(){
     return usbON;
-}
+}*/

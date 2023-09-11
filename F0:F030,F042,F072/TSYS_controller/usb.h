@@ -32,6 +32,6 @@ void USB_setup();
 void usb_proc();
 void USB_send(const char *buf);
 int USB_receive(char *buf, int bufsize);
-int USB_configured();
+//int USB_configured();
 
 #endif // __USB_H__

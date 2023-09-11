@@ -27,10 +27,11 @@
 #include "usart.h"
 #include "usb_lib.h"
 
-
 #ifdef EBUG
-#undef EBUG
+#include "usart.h"
+#define MSG(x) do{usart_send(x, sizeof(x));}while(0)
 #endif
+
 
 ep_t endpoints[ENDPOINTS_NUM];
 
@@ -148,17 +149,17 @@ _USB_STRING_(USB_StringProdDescriptor, u"USB-Serial Controller");
  */
 // SET_LINE_CODING
 void WEAK linecoding_handler(usb_LineCoding __attribute__((unused)) *lc){
-    //MSG("linecoding_handler\n");
+    MSG("linecoding_handler\n");
 }
 
 // SET_CONTROL_LINE_STATE
 void WEAK clstate_handler(uint16_t __attribute__((unused)) val){
-    //MSG("clstate_handler\n");
+    MSG("clstate_handler\n");
 }
 
 // SEND_BREAK
 void WEAK break_handler(){
-    //MSG("break_handler\n");
+    MSG("break_handler\n");
 }
 
 // handler of vendor requests
@@ -192,12 +193,6 @@ void WEAK vendor_handler(config_pack_t *packet){
 }
 
 
-#ifdef EBUG
-    uint8_t _2wr = 0;
-    #define WRITEDUMP(str)  do{MSG(str); _2wr = 1;}while(0)
-#else
-    #define WRITEDUMP(str)
-#endif
 static void wr0(const uint8_t *buf, uint16_t size){
     if(setup_packet.wLength < size) size = setup_packet.wLength;
     EP_WriteIRQ(0, buf, size);
@@ -227,7 +222,7 @@ static inline void get_descriptor(){
             wr0(USB_DeviceQualifierDescriptor, USB_DeviceQualifierDescriptor[0]);
         break;
         default:
-            WRITEDUMP("UNK_DES");
+
         break;
     }
 }
@@ -243,11 +238,9 @@ static inline void std_d2h_req(){
             EP_WriteIRQ(0, (uint8_t *)&status, 2); // send status: Bus Powered
         break;
         case GET_CONFIGURATION:
-            WRITEDUMP("GET_CONFIGURATION");
             EP_WriteIRQ(0, &configuration, 1);
         break;
         default:
-            WRITEDUMP("80:WR_REQ");
         break;
     }
 }
@@ -264,11 +257,12 @@ static inline void std_h2d_req(){
             configuration = setup_packet.wValue;
         break;
         default:
-            WRITEDUMP("0:WR_REQ");
         break;
     }
 }
 
+
+extern volatile int8_t usbConn;
 /*
 bmRequestType: 76543210
 7    direction: 0 - host->device, 1 - device->host
@@ -303,8 +297,6 @@ static uint16_t EP0_Handler(ep_t ep){
                     EP_WriteIRQ(0, (uint8_t *)0, 0);
                     epstatus = SET_NAK_RX(epstatus);
                     epstatus = SET_VALID_TX(epstatus);
-                }else{
-                    WRITEDUMP("02:WR_REQ");
                 }
             break;
             case VENDOR_REQUEST_TYPE:
@@ -324,9 +316,10 @@ static uint16_t EP0_Handler(ep_t ep){
                     break;
                     case SEND_BREAK:
                         break_handler();
+                        usbConn = 0;
                     break;
                     default:
-                        WRITEDUMP("undef control req");
+                    break;
                 }
                 if(!dev2host) EP_WriteIRQ(0, (uint8_t *)0, 0); // write acknowledgement
                 epstatus = SET_VALID_RX(epstatus);
@@ -341,8 +334,8 @@ static uint16_t EP0_Handler(ep_t ep){
         if(ep.rx_cnt){
             EP_WriteIRQ(0, (uint8_t *)0, 0);
             if(setup_packet.bRequest == SET_LINE_CODING){
-                //WRITEDUMP("SET_LINE_CODING");
                 linecoding_handler((usb_LineCoding*)ep0databuf);
+                usbConn = 1; // now we can transmit data: computer have stable connection
             }
         }
         // Close transaction
@@ -364,32 +357,8 @@ static uint16_t EP0_Handler(ep_t ep){
         epstatus = SET_VALID_RX(epstatus);
         epstatus = SET_VALID_TX(epstatus);
     }
-#ifdef EBUG
-    if(_2wr){
-        usart_putchar(' ');
-        if (ep.rx_flag) usart_putchar('r');
-        else usart_putchar('t');
-        printu(setup_packet.wLength);
-        if(ep.setup_flag) usart_putchar('s');
-        usart_putchar(' ');
-        usart_putchar('I');
-        printu(setup_packet.wIndex);
-        usart_putchar('V');
-        printu(setup_packet.wValue);
-        usart_putchar('R');
-        printu(setup_packet.bRequest);
-        usart_putchar('T');
-        printu(setup_packet.bmRequestType);
-        usart_putchar(' ');
-        usart_putchar('0' + ep0dbuflen);
-        usart_putchar(' ');
-        hexdump(ep0databuf, ep0dbuflen);
-        usart_putchar('\n');
-    }
-#endif
     return epstatus;
 }
-#undef WRITEDUMP
 
 static uint16_t lastaddr = USB_EP0_BASEADDR;
 /**
