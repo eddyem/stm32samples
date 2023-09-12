@@ -44,6 +44,7 @@ void sys_tick_handler(void){
     ++Tms;
 }
 
+#if 0
 static void iwdg_setup(){
     /* Enable the peripheral clock RTC */
     /* (1) Enable the LSI (40kHz) */
@@ -64,6 +65,7 @@ static void iwdg_setup(){
     while(IWDG->SR); /* (5) */
     IWDG->KR = IWDG_REFRESH; /* (6) */
 }
+#endif
 
 int main(void){
     uint32_t lastT = 0, lastS = 0, lastB = 0;
@@ -81,7 +83,7 @@ int main(void){
     RCC->CSR |= RCC_CSR_RMVF; // remove reset flags
     USB_setup();
     sensors_init();
-    iwdg_setup();
+    //iwdg_setup();
 
     while (1){
         IWDG->KR = IWDG_REFRESH; // refresh watchdog
@@ -130,7 +132,7 @@ int main(void){
 #endif
             cmd_parser(txt, 0);
         }
-        if(lastB - Tms > 99){ // run `sendbuf` each 100ms
+        if(lastB - Tms > 249){ // run `sendbuf` each 250ms
             sendbuf();
             lastB = Tms;
         }

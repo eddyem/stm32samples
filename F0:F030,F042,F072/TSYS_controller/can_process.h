@@ -50,6 +50,7 @@ typedef enum{
     CMD_REINIT_SENSORS,     // (re)init sensors
     CMD_GETBUILDNO,         // request for firmware build number
     CMD_SYSTIME,            // get system time
+    CMD_RESET_MCU,          // reset MCU
     // dummy commands for test purposes
     CMD_DUMMY0 = 0xDA,
     CMD_DUMMY1 = 0xAD

@@ -35,7 +35,7 @@
 #define TSYS01_START_CONV       (0x48)
 #define TSYS01_PROM_ADDR0       (0xA0)
 // conversion time (with reserve)
-#define CONV_TIME               (15)
+#define CONV_TIME               (25)
 
 uint8_t read_i2c(uint8_t addr, uint32_t *data, uint8_t nbytes);
 uint8_t write_i2c(uint8_t addr, uint8_t data);

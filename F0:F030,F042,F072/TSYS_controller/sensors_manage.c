@@ -116,11 +116,13 @@ void sensors_off(){
 static int sensors_on(){
     mesg("Turn on sensors");
     curr_mul_addr = 0;
+    sensors_scan_mode = 0;
     MUL_OFF();
     if(SENSORS_OVERCURNT()){
         mesg("OVERCURRENT!");
         SENSORS_OFF();
         Sstate = (++overcurnt_ctr > 32) ? SENS_OVERCURNT_OFF : SENS_OVERCURNT;
+        if(Sstate == SENS_OVERCURNT_OFF) mesg("sensors_on() ---> OFF by overcurrent");
         return FALSE;
     }else{
         mesg("Powered on");
@@ -143,7 +145,7 @@ void sensors_init(){
  * do nothing if measurement processing
  */
 void sensors_start(){
-    if(sensors_scan_mode) return;
+    //if(sensors_scan_mode) return;
     switch(Sstate){
         case SENS_SLEEPING:
             Sstate = SENS_START_MSRMNT;
@@ -263,11 +265,13 @@ static uint8_t gettempproc(){
                 if(BAD_TEMPERATURE != (Temperatures[curr_mul_addr][i] = calc_t(t, i))){
                     err = 0;
                     ++Ntemp_measured;
-                }
+                    mesg("  got one T");
+                }else mesg("  bad T");
             }
         }
         if(err){
             write_i2c(Taddr[i], TSYS01_RESET);
+            mesg("  i2c err");
         }
     }
     return TRUE;
@@ -357,9 +361,11 @@ void showtemperature(){
 void sensors_process(){
     static int8_t NsentOverCAN = -1; // number of T (N*10+p) sent over CAN bus; -1 - nothing to send
     if(SENSORS_OVERCURNT()){
+        mesg("sensors_process(): overcurrent!");
         MUL_OFF();
         SENSORS_OFF();
         Sstate = (++overcurnt_ctr > 32) ? SENS_OVERCURNT_OFF : SENS_OVERCURNT;
+        if(Sstate == SENS_OVERCURNT_OFF) mesg("sensors_process(): ---> OFF by overcurrent");
         return;
     }
     switch(Sstate){
@@ -368,18 +374,19 @@ void sensors_process(){
             i2c_setup(CURRENT_SPEED);
             Sstate = SENS_RESETING;
             lastSensT = Tms;
-            NsentOverCAN = -1;
+            //NsentOverCAN = -1;
         break;
         case SENS_RESETING: // reset & discovery procedure
-            if(NsentOverCAN == -1){
+            /*if(NsentOverCAN == -1){
                 mesg("SENS_RESETING");
                 NsentOverCAN = 0;
-            }
+            }*/
             if(Tms - lastSensT > POWERUP_TIME){
                 if(sensors_scan(resetproc)){
                     count_sensors(); // get total amount of sensors
                     if(Nsens_present){
                         Sstate = SENS_GET_COEFFS;
+                        mesg("SENS_RESETING -> SENS_GET_COEFFS");
                     }else{ // no sensors found
                         mesg("No sensors found -> off");
                         sensors_off();
@@ -388,39 +395,39 @@ void sensors_process(){
             }
         break;
         case SENS_GET_COEFFS: // get coefficients
-            mesg("SENS_GET_COEFFS");
             if(sensors_scan(getcoefsproc)){
                 Sstate = SENS_SLEEPING; // sleep after got coefficients
+                mesg("SENS_GET_COEFFS -> SENS_SLEEPING");
             }
         break;
         case SENS_START_MSRMNT: // send all sensors command to start measurements
-            mesg("SENS_START_MSRMNT");
             if(sensors_scan(msrtempproc)){
                 lastSensT = Tms;
                 Sstate = SENS_WAITING;
                 Ntemp_measured = 0; // reset value of good measurements
+                mesg("SENS_START_MSRMNT -> SENS_WAITING");
             }
         break;
         case SENS_WAITING: // wait for end of conversion
-            mesg("SENS_WAITING");
             if(Tms - lastSensT > CONV_TIME){
-                NsentOverCAN = -1;
+                //NsentOverCAN = -1;
+                mesg("SENS_WAITING -> SENS_GATHERING");
                 Sstate = SENS_GATHERING;
             }
         break;
         case SENS_GATHERING: // scan all sensors, get thermal data & calculate temperature
-            if(NsentOverCAN < 0){
-                mesg("SENS_SLEEPING");
+            /*if(NsentOverCAN < 0){
+                mesg("SENS_GATHERING");
                 NsentOverCAN = 0;
-            }
+            }*/
             if(sensors_scan(gettempproc)){
                 lastSensT = Tms;
                 NsentOverCAN = 0;
                 Sstate = SENS_SENDING_DATA;
+                mesg("SENS_GATHERING -> SENS_SENDING_DATA");
             }
         break;
         case SENS_SENDING_DATA:
-            mesg("SENS_SENDING_DATA");
             if(Nsens_present == 0){
                 mesg("No sensors found -> off");
                 sensors_off();
@@ -430,6 +437,7 @@ void sensors_process(){
             NsentOverCAN = send_temperatures(NsentOverCAN); // call sending T process
             if(NsentOverCAN < 0){ // all data sent -> sleep
                 Sstate = SENS_SLEEPING;
+                mesg("SENS_SENDING_DATA -> SENS_SLEEPING");
                 /*
                 if(Nsens_present != Ntemp_measured){ // restart sensors only after measurements sent
                         mesg("restart");
@@ -439,13 +447,14 @@ void sensors_process(){
             }
         break;
         case SENS_SLEEPING: // wait for `SLEEP_TIME` till next measurements in scan mode
-            if(NsentOverCAN < 0){
+            /*if(NsentOverCAN < 0){
                 mesg("SENS_SLEEPING");
                 NsentOverCAN = 0;
-            }
+            }*/
             if(sensors_scan_mode){ // sleep until next measurement start
                 if(Tms - lastSensT > SLEEP_TIME){
                     Sstate = SENS_START_MSRMNT;
+                    mesg("SENS_SLEEPING -> SENS_START_MSRMNT");
                 }
             }
         break;

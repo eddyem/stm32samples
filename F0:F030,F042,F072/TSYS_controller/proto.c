@@ -58,7 +58,7 @@ void sendbuf(){
     if(blen == 0) return;
     *bptr = 0;
     if(USBcmd) USB_send(buff);
-    else while(LINE_BUSY == usart_send(buff, blen)){IWDG->KR = IWDG_REFRESH;}
+    else for(int i = 0; (i < 9999) && (LINE_BUSY == usart_send(buff, blen)); ++i){IWDG->KR = IWDG_REFRESH;}
     bptr = buff;
     blen = 0;
 }
@@ -69,7 +69,7 @@ void addtobuf(const char *txt){
     if(l > UARTBUFSZ){
         sendbuf(); // send prevoius data in buffer
         if(USBcmd) USB_send(txt);
-        else while(LINE_BUSY == usart_send_blocking(txt, l)){IWDG->KR = IWDG_REFRESH;}
+        else for(int i = 0; (i < 9999) && (LINE_BUSY == usart_send_blocking(txt, l)); ++i){IWDG->KR = IWDG_REFRESH;}
     }else{
         if(blen+l > UARTBUFSZ){
             sendbuf();
@@ -222,6 +222,10 @@ void cmd_parser(char *txt, uint8_t isUSB){
         }
     }
     switch(_1st){
+        case '#':
+            if(ID == BCAST_ID) NVIC_SystemReset();
+            CANsend(ID, CMD_RESET_MCU, _1st);
+        break;
         case '@':
             debugmode = !debugmode;
             SEND("DEBUG mode ");
@@ -336,7 +340,7 @@ void cmd_parser(char *txt, uint8_t isUSB){
             CANsend(ID, CMD_START_MEASUREMENT, _1st);
         break;
         case 't':
-            if(!sensors_scan_mode) sensors_start();
+            sensors_start();
         break;
         case 'u':
             SEND("Unique ID CAN mode\n");
@@ -380,8 +384,9 @@ void cmd_parser(char *txt, uint8_t isUSB){
             SEND("https://github.com/eddyem/tsys01/tree/master/STM32/TSYS_controller build#" BUILD_NUMBER " @ " BUILD_DATE "\n");
             SEND(
             "ALL little letters - without CAN messaging\n"
+            "# - reset MCU (self or with given ID like '1#')\n"
             "0..7 - send command to given controller (0 - this) instead of broadcast\n"
-            "@ - set/reset debug mode\n"
+            "@ - set/clear debug mode\n"
             "a - get raw ADC values\n"
             "B - send broadcast CAN dummy message\n"
             "b - get/set CAN bus baudrate\n"

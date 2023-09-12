@@ -113,6 +113,8 @@ void can_messages_proc(){
                 SEND("DUMMY");
                 bufputchar('0' + (data[1]==CMD_DUMMY0 ? 0 : 1));
                 newline();
+                b[0] = CMD_PING;
+                can_send_data(b, 1); // return to slave: pong
             break;
             case CMD_PING: // pong
                 can_send_data(b, 1);
@@ -173,6 +175,9 @@ void can_messages_proc(){
                 b[1] = 0;
                 *((uint32_t*)&b[2]) = Tms;
                 can_send_data(b, 6);
+            break;
+            case CMD_RESET_MCU:
+                NVIC_SystemReset();
             break;
         }
     }else if(data[0] == DATA_MARK){ // process received data

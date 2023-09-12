@@ -29,6 +29,7 @@
 #include "usb.h"
 #endif
 
+#define WAITFOR (72000000)
 
 extern volatile uint32_t Tms;
 static int datalen[2] = {0,0}; // received data line length (including '\n')
@@ -62,14 +63,14 @@ TXstatus usart_send(const char *str, int len){
     if(!txrdy) return LINE_BUSY;
     if(len > UARTBUFSZ) return STR_TOO_LONG;
     txrdy = 0;
-    IWDG->KR = IWDG_REFRESH;
 #ifdef EBUG
     USB_send("\n\n\nUSART send:\n");
     USB_send(str);
     USB_send("\n\n");
 #endif
     memcpy(tbuf, str, len);
-    while(!(USARTX->ISR & USART_ISR_TXE)); // no refresh of WD to prevent weird things
+    for(int i = 0; (i < WAITFOR) && !(USARTX->ISR & USART_ISR_TXE); ++i){IWDG->KR = IWDG_REFRESH;}
+    if(!(USARTX->ISR & USART_ISR_TXE)) return LINE_BUSY;
 #if USARTNUM == 2
     DMA1_Channel4->CCR &= ~DMA_CCR_EN;
     DMA1_Channel4->CNDTR = len;
@@ -81,24 +82,31 @@ TXstatus usart_send(const char *str, int len){
 #else
 #error "Not implemented"
 #endif
+#ifdef EBUG
+    USB_send("    -> start transmission\n");
+#endif
     return ALL_OK;
 }
 
 TXstatus usart_send_blocking(const char *str, int len){
     if(!txrdy) return LINE_BUSY;
-    int i;
     bufovr = 0;
     IWDG->KR = IWDG_REFRESH;
-    while(!(USARTX->ISR & USART_ISR_TXE)); // no refresh of WD to prevent weird things
+    for(int i = 0; (i < WAITFOR) && !(USARTX->ISR & USART_ISR_TXE); ++i){IWDG->KR = IWDG_REFRESH;}
+    if(!(USARTX->ISR & USART_ISR_TXE)) return LINE_BUSY;
 #ifdef EBUG
     USB_send("\n\n\nUSART send blocking:\n");
     USB_send(str);
-    USB_send("\n\n");
+    USB_send("\n");
 #endif
-    for(i = 0; i < len; ++i){
+    for(int l = 0; l < len; ++l){
         USARTX -> TDR = *str++;
-        while(!(USARTX->ISR & USART_ISR_TXE)){IWDG->KR = IWDG_REFRESH;};
+        for(int i = 0; (i < WAITFOR) && !(USARTX->ISR & USART_ISR_TXE); ++i){IWDG->KR = IWDG_REFRESH;}
+        if(!(USARTX->ISR & USART_ISR_TXE)) return LINE_BUSY;
     }
+#ifdef EBUG
+    USB_send("    -> done\n");
+#endif
     return ALL_OK;
 }
 /*
@@ -135,7 +143,7 @@ void usart_setup(){
     USART2->BRR = 480000 / 1152;
     USART2->CR3 = USART_CR3_DMAT; // enable DMA Tx
     USART2->CR1 = USART_CR1_TE | USART_CR1_RE | USART_CR1_UE; // 1start,8data,nstop; enable Rx,Tx,USART
-    while(!(USART2->ISR & USART_ISR_TC)); // polling idle frame Transmission
+    for(int i = 0; (i < WAITFOR) && !(USART2->ISR & USART_ISR_TC); ++i){IWDG->KR = IWDG_REFRESH;} // polling idle frame Transmission
     USART2->ICR |= USART_ICR_TCCF; // clear TC flag
     USART2->CR1 |= USART_CR1_RXNEIE;
     NVIC_EnableIRQ(USART2_IRQn);
@@ -159,7 +167,7 @@ void usart_setup(){
     USART1->BRR = 480000 / 1152;
     USART1->CR3 = USART_CR3_DMAT; // enable DMA Tx
     USART1->CR1 = USART_CR1_TE | USART_CR1_RE | USART_CR1_UE; // 1start,8data,nstop; enable Rx,Tx,USART
-    while(!(USART1->ISR & USART_ISR_TC)); // polling idle frame Transmission
+    for(int i = 0; (i < WAITFOR) && !(USART1->ISR & USART_ISR_TC); ++i){IWDG->KR = IWDG_REFRESH;} // polling idle frame Transmission
     USART1->ICR |= USART_ICR_TCCF; // clear TC flag
     USART1->CR1 |= USART_CR1_RXNEIE;
     NVIC_EnableIRQ(USART1_IRQn);
