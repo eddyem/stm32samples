@@ -65,11 +65,11 @@ const char *sensors_get_statename(SensorsState x){
 
 // TODO: check if we can convert double to float!
 
-#ifndef EBUG
-#define TYPE double
-#else
+//#ifndef EBUG
+//#define TYPE double
+//#else
 #define TYPE float
-#endif
+//#endif
 
 const TYPE mul[5] = {-1.5e-2, 1., -2., 4., -2.};
 /**

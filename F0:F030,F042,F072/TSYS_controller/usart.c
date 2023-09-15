@@ -29,8 +29,6 @@
 #include "usb.h"
 #endif
 
-#define WAITFOR (72000000)
-
 extern volatile uint32_t Tms;
 static int datalen[2] = {0,0}; // received data line length (including '\n')
 
@@ -109,15 +107,6 @@ TXstatus usart_send_blocking(const char *str, int len){
 #endif
     return ALL_OK;
 }
-/*
-void usart_send_blck(const char *str){
-    while(!txrdy){IWDG->KR = IWDG_REFRESH;}
-    bufovr = 0;
-    while(*str){
-        USARTX -> TDR = *str++;
-        while(!(USARTX->ISR & USART_ISR_TXE)){IWDG->KR = IWDG_REFRESH;};
-    }
-}*/
 
 void usart_setup(){
 // Nucleo's USART2 connected to VCP proxy of st-link
@@ -133,7 +122,7 @@ void usart_setup(){
     DMA1_Channel4->CMAR = (uint32_t) tbuf; // mem
     DMA1_Channel4->CCR |= DMA_CCR_MINC | DMA_CCR_DIR | DMA_CCR_TCIE; // 8bit, mem++, mem->per, transcompl irq
     // Tx CNDTR set @ each transmission due to data size
-    NVIC_SetPriority(DMA1_Channel4_5_IRQn, 3);
+    NVIC_SetPriority(DMA1_Channel4_5_IRQn, 0);
     NVIC_EnableIRQ(DMA1_Channel4_5_IRQn);
     NVIC_SetPriority(USART2_IRQn, 0);
     // setup usart2
@@ -159,7 +148,7 @@ void usart_setup(){
     DMA1_Channel2->CMAR = (uint32_t) tbuf; // mem
     DMA1_Channel2->CCR |= DMA_CCR_MINC | DMA_CCR_DIR | DMA_CCR_TCIE; // 8bit, mem++, mem->per, transcompl irq
     // Tx CNDTR set @ each transmission due to data size
-    NVIC_SetPriority(DMA1_Channel2_3_IRQn, 3);
+    NVIC_SetPriority(DMA1_Channel2_3_IRQn, 0);
     NVIC_EnableIRQ(DMA1_Channel2_3_IRQn);
     NVIC_SetPriority(USART1_IRQn, 0);
     // setup usart1

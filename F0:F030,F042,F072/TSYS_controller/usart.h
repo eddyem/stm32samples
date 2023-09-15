@@ -31,6 +31,9 @@
 #define TIMEOUT_MS (1500)
 #endif
 
+// timeout for cycles
+#define WAITFOR (72000000)
+
 typedef enum{
     ALL_OK,
     LINE_BUSY,

@@ -56,9 +56,20 @@ uint8_t noLED =
 void sendbuf(){
     IWDG->KR = IWDG_REFRESH;
     if(blen == 0) return;
+#ifdef EBUG
+    USB_send("  sendbuf()\n");
+#endif
     *bptr = 0;
     if(USBcmd) USB_send(buff);
-    else for(int i = 0; (i < 9999) && (LINE_BUSY == usart_send(buff, blen)); ++i){IWDG->KR = IWDG_REFRESH;}
+    else for(int i = 0; (i < WAITFOR) && (LINE_BUSY == usart_send(buff, blen)); ++i){
+#ifdef EBUG
+    USB_send("    line busy\n");
+#endif
+        IWDG->KR = IWDG_REFRESH;
+    }
+#ifdef EBUG
+    USB_send("  sendbuf() done\n");
+#endif
     bptr = buff;
     blen = 0;
 }
@@ -69,7 +80,7 @@ void addtobuf(const char *txt){
     if(l > UARTBUFSZ){
         sendbuf(); // send prevoius data in buffer
         if(USBcmd) USB_send(txt);
-        else for(int i = 0; (i < 9999) && (LINE_BUSY == usart_send_blocking(txt, l)); ++i){IWDG->KR = IWDG_REFRESH;}
+        else for(int i = 0; (i < WAITFOR) && (LINE_BUSY == usart_send_blocking(txt, l)); ++i){IWDG->KR = IWDG_REFRESH;}
     }else{
         if(blen+l > UARTBUFSZ){
             sendbuf();

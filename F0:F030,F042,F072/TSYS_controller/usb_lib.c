@@ -30,6 +30,8 @@
 #ifdef EBUG
 #include "usart.h"
 #define MSG(x) do{usart_send(x, sizeof(x));}while(0)
+#else
+#define MSG(x)
 #endif
 
 

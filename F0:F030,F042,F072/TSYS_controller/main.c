@@ -44,7 +44,7 @@ void sys_tick_handler(void){
     ++Tms;
 }
 
-#if 0
+#ifdef EBUG
 static void iwdg_setup(){
     /* Enable the peripheral clock RTC */
     /* (1) Enable the LSI (40kHz) */
