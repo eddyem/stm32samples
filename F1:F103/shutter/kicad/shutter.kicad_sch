@@ -3920,7 +3920,7 @@
     (property "Reference" "R4" (at 51.054 123.9774 90)
       (effects (font (size 1.27 1.27)) (justify left))
     )
-    (property "Value" "300 II" (at 52.451 128.27 90)
+    (property "Value" "150 II" (at 52.451 128.27 90)
       (effects (font (size 1.27 1.27)) (justify left))
     )
     (property "Footprint" "Resistor_THT:R_Axial_Power_L20.0mm_W6.4mm_P22.40mm" (at 49.53 127.889 90)

@@ -131,7 +131,7 @@ _USB_LANG_ID_(LD, LANG_US);
 _USB_STRING_(SD, u"0.0.1");
 _USB_STRING_(MD, u"Prolific Technology Inc.");
 _USB_STRING_(PD, u"USB-Serial Controller");
-_USB_STRING_(ID, u"shutter_emulator");
+_USB_STRING_(ID, u"shutter");
 static void const *StringDescriptor[iDESCR_AMOUNT] = {
     [iLANGUAGE_DESCR] = &LD,
     [iMANUFACTURER_DESCR] = &MD,

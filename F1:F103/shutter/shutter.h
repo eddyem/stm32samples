@@ -18,6 +18,8 @@
 
 #pragma once
 
+#include <stm32f1.h>
+
 // opening/closing time (ms)
 #define SHUTTER_TIME    (20)
 // waiting for getting status time (ms)
@@ -28,6 +30,7 @@ typedef enum{
     SHUTTER_RELAX,          // powered off
     SHUTTER_PROCESS,        // opened or closed
     SHUTTER_WAIT,           // wait in off state before turn to hi-z
+    SHUTTER_EXPOSE,         //
     SHUTTER_STATE_AMOUNT
 } shutter_state;
 
@@ -36,4 +39,5 @@ extern shutter_state shutterstate;
 void process_shutter();
 int open_shutter();
 int close_shutter();
+int expose_shutter(uint32_t exptime);
 void print_shutter_state();

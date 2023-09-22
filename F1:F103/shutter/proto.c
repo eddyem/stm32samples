@@ -21,6 +21,7 @@
 #include "proto.h"
 #include "shutter.h"
 #include "usb.h"
+#include "version.inc"
 
 char *omit_spaces(const char *buf){
     while(*buf){
@@ -153,12 +154,13 @@ char *getnum(const char *txt, uint32_t *N){
 }
 
 const char* helpmsg =
+    "https://github.com/eddyem/stm32samples/tree/master/F1:F103/shutter build#" BUILD_NUMBER " @ " BUILD_DATE "\n"
     "'0' - shutter CLO\n"
     "'1' - shutter OPE\n"
     "'2' - shutter HIZ\n"
     "'A' - get raw ADC values\n"
-    "'C' - close shutter\n"
-    //"'N' - read number (dec, 0xhex, 0oct, bbin) and show it in decimal\n"
+    "'C' - close shutter / abort exposition\n"
+    "'E n' - expose for n milliseconds\n"
     "'O' - open shutter\n"
     "'R' - software reset\n"
     "'S' - get shutter state; also hall and ccd inputs state (1 - active)\n"
@@ -186,7 +188,7 @@ void bufputchar(char c){
     *bptr = 0;
 }
 
-extern uint8_t usbON;
+static const char *OK = "OK", *ERR = "ERR";
 const char *parse_cmd(const char *buf){
     uint32_t u3;
     initbuf();
@@ -213,12 +215,12 @@ const char *parse_cmd(const char *buf){
                 }
             break;
             case 'C':
-                if(close_shutter()) add2buf("OK");
-                else add2buf("ERR");
+                if(close_shutter()) add2buf(OK);
+                else add2buf(ERR);
             break;
             case 'O':
-                if(open_shutter()) add2buf("OK");
-                else add2buf("ERR");
+                if(open_shutter()) add2buf(OK);
+                else add2buf(ERR);
             break;
             case 'R':
                 USB_sendstr("Soft reset\n");
@@ -258,29 +260,29 @@ const char *parse_cmd(const char *buf){
             default:
                 return helpmsg;
         }
-        bufputchar('\n');
-        return stbuf;
+    }else{ // long messages
+        uint32_t Num = 0;
+        char *nxt;
+        switch(*buf){
+            case 'E':
+                ++buf;
+                nxt = getnum(buf, &Num);
+                if(buf == nxt){
+                    if(Num == 0) return "ERRNUM\n";
+                    return "I32OVERFLOW\n";
+                }
+                if(shutterstate != SHUTTER_RELAX){
+                    add2buf(ERR);
+                    break;
+                }
+                if(expose_shutter(Num)) add2buf(OK);
+                else add2buf(ERR);
+            break;
+            default:
+                return buf;
+        }
     }
-    uint32_t Num = 0;
-    char *nxt;
-    switch(*buf){ // long messages
-        case 'N':
-            ++buf;
-            nxt = getnum(buf, &Num);
-            if(buf == nxt){
-                if(Num == 0) return "Wrong number\n";
-                return "Integer32 overflow\n";
-            }
-            add2buf("You give: ");
-            add2buf(u2str(Num));
-            if(*nxt && *nxt != '\n'){
-                add2buf(", the rest of string: ");
-                add2buf(nxt);
-            }else add2buf("\n");
-        break;
-        default:
-            return buf;
-    }
+    bufputchar('\n');
     return stbuf;
 }
 

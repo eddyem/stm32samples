@@ -1,2 +1,0 @@
-#define BUILD_NUMBER "70"
-#define BUILD_DATE "2023-09-21"
