@@ -44,7 +44,7 @@ void sys_tick_handler(void){
     ++Tms;
 }
 
-#ifdef EBUG
+#ifndef EBUG
 static void iwdg_setup(){
     /* Enable the peripheral clock RTC */
     /* (1) Enable the LSI (40kHz) */
@@ -60,7 +60,7 @@ static void iwdg_setup(){
     /* (6) Refresh counter */
     IWDG->KR = IWDG_START; /* (1) */
     IWDG->KR = IWDG_WRITE_ACCESS; /* (2) */
-    IWDG->PR = IWDG_PR_PR_1; /* (3) */
+    IWDG->PR = IWDG_PR_PR_2; /* (3) */
     IWDG->RLR = 1250; /* (4) */
     while(IWDG->SR); /* (5) */
     IWDG->KR = IWDG_REFRESH; /* (6) */
@@ -68,7 +68,7 @@ static void iwdg_setup(){
 #endif
 
 int main(void){
-    uint32_t lastT = 0, lastS = 0, lastB = 0;
+    uint32_t lastT = 0, lastS = 0;
     uint8_t gotmeasurement = 0;
     char inbuf[256];
     sysreset();
@@ -83,7 +83,9 @@ int main(void){
     RCC->CSR |= RCC_CSR_RMVF; // remove reset flags
     USB_setup();
     sensors_init();
-    //iwdg_setup();
+#ifndef EBUG
+    iwdg_setup();
+#endif
 
     while (1){
         IWDG->KR = IWDG_REFRESH; // refresh watchdog
@@ -105,7 +107,6 @@ int main(void){
                 if(SENS_WAITING == Sstate) gotmeasurement = 0;
             }
         }
-        usb_proc();
         can_proc();
         CAN_status stat = CAN_get_status();
         if(stat == CAN_FIFO_OVERRUN){
@@ -118,23 +119,22 @@ int main(void){
         can_messages_proc();
         IWDG->KR = IWDG_REFRESH;
         uint8_t r = 0;
-        if((r = USB_receive(inbuf, 255))){
+        if((r = USB_receivestr(inbuf, 255))){
             inbuf[r] = 0;
-            cmd_parser(inbuf, 1);
+            if(r) cmd_parser(inbuf, 1);
         }
         if(usartrx()){ // usart1 received data, store it in buffer
             char *txt = NULL;
             r = usart_getline(&txt);
             txt[r] = 0;
 #ifdef EBUG
-            USB_send("\n\nUSART got:\n");
-            USB_send(txt); USB_send("\n\n");
+            USB_sendstr("\n\nUSART got:\n");
+            USB_sendstr(txt); USB_sendstr("\n\n");
 #endif
             cmd_parser(txt, 0);
         }
-        if(lastB - Tms > 249){ // run `sendbuf` each 250ms
+        if(lastTprint - Tms > 249){ // run `sendbuf` each 250ms
             sendbuf();
-            lastB = Tms;
         }
     }
     return 0;

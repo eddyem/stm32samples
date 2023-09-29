@@ -38,6 +38,15 @@
 
 #define newline() do{bufputchar('\n');}while(0)
 
+extern volatile uint32_t lastTprint;
+
+// cmdsource:
+enum{
+    SRC_NONE,
+    SRC_USB,
+    SRC_USART
+};
+
 extern uint8_t noLED;
 void cmd_parser(char *buf, uint8_t isUSB);
 void addtobuf(const char *txt);

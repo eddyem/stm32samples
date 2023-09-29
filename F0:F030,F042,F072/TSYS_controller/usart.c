@@ -58,17 +58,20 @@ int usart_getline(char **line){
 }
 
 TXstatus usart_send(const char *str, int len){
+    dma1_channel2_3_isr();
+#ifdef EBUG
+    USB_sendstr("usart_send()\n");
+#endif
     if(!txrdy) return LINE_BUSY;
     if(len > UARTBUFSZ) return STR_TOO_LONG;
-    txrdy = 0;
+    for(int i = 0; (i < WAITFOR) && !(USARTX->ISR & USART_ISR_TXE); ++i){IWDG->KR = IWDG_REFRESH;}
+    if(!(USARTX->ISR & USART_ISR_TXE)) return NO_RECEIVER;
 #ifdef EBUG
-    USB_send("\n\n\nUSART send:\n");
-    USB_send(str);
-    USB_send("\n\n");
+    USB_sendstr("\n\n\nUSART send:\n");
+    USB_sendstr(str);
+    USB_sendstr("\n\n");
 #endif
     memcpy(tbuf, str, len);
-    for(int i = 0; (i < WAITFOR) && !(USARTX->ISR & USART_ISR_TXE); ++i){IWDG->KR = IWDG_REFRESH;}
-    if(!(USARTX->ISR & USART_ISR_TXE)) return LINE_BUSY;
 #if USARTNUM == 2
     DMA1_Channel4->CCR &= ~DMA_CCR_EN;
     DMA1_Channel4->CNDTR = len;
@@ -80,8 +83,9 @@ TXstatus usart_send(const char *str, int len){
 #else
 #error "Not implemented"
 #endif
+    txrdy = 0;
 #ifdef EBUG
-    USB_send("    -> start transmission\n");
+    USB_sendstr("    -> start transmission\n");
 #endif
     return ALL_OK;
 }
@@ -91,19 +95,19 @@ TXstatus usart_send_blocking(const char *str, int len){
     bufovr = 0;
     IWDG->KR = IWDG_REFRESH;
     for(int i = 0; (i < WAITFOR) && !(USARTX->ISR & USART_ISR_TXE); ++i){IWDG->KR = IWDG_REFRESH;}
-    if(!(USARTX->ISR & USART_ISR_TXE)) return LINE_BUSY;
+    if(!(USARTX->ISR & USART_ISR_TXE)) return NO_RECEIVER;
 #ifdef EBUG
-    USB_send("\n\n\nUSART send blocking:\n");
-    USB_send(str);
-    USB_send("\n");
+    USB_sendstr("\n\n\nUSART send blocking:\n");
+    USB_sendstr(str);
+    USB_sendstr("\n");
 #endif
     for(int l = 0; l < len; ++l){
         USARTX -> TDR = *str++;
         for(int i = 0; (i < WAITFOR) && !(USARTX->ISR & USART_ISR_TXE); ++i){IWDG->KR = IWDG_REFRESH;}
-        if(!(USARTX->ISR & USART_ISR_TXE)) return LINE_BUSY;
+        if(!(USARTX->ISR & USART_ISR_TXE)) return NO_RECEIVER;
     }
 #ifdef EBUG
-    USB_send("    -> done\n");
+    USB_sendstr("    -> done\n");
 #endif
     return ALL_OK;
 }
@@ -122,9 +126,9 @@ void usart_setup(){
     DMA1_Channel4->CMAR = (uint32_t) tbuf; // mem
     DMA1_Channel4->CCR |= DMA_CCR_MINC | DMA_CCR_DIR | DMA_CCR_TCIE; // 8bit, mem++, mem->per, transcompl irq
     // Tx CNDTR set @ each transmission due to data size
-    NVIC_SetPriority(DMA1_Channel4_5_IRQn, 0);
+    NVIC_SetPriority(DMA1_Channel4_5_IRQn, 5);
     NVIC_EnableIRQ(DMA1_Channel4_5_IRQn);
-    NVIC_SetPriority(USART2_IRQn, 0);
+    NVIC_SetPriority(USART2_IRQn, 15);
     // setup usart2
     RCC->APB1ENR |= RCC_APB1ENR_USART2EN; // clock
     // oversampling by16, 115200bps (fck=48mHz)
@@ -148,9 +152,9 @@ void usart_setup(){
     DMA1_Channel2->CMAR = (uint32_t) tbuf; // mem
     DMA1_Channel2->CCR |= DMA_CCR_MINC | DMA_CCR_DIR | DMA_CCR_TCIE; // 8bit, mem++, mem->per, transcompl irq
     // Tx CNDTR set @ each transmission due to data size
-    NVIC_SetPriority(DMA1_Channel2_3_IRQn, 0);
+    NVIC_SetPriority(DMA1_Channel2_3_IRQn, 5);
     NVIC_EnableIRQ(DMA1_Channel2_3_IRQn);
-    NVIC_SetPriority(USART1_IRQn, 0);
+    NVIC_SetPriority(USART1_IRQn, 15);
     // setup usart1
     RCC->APB2ENR |= RCC_APB2ENR_USART1EN;
     USART1->BRR = 480000 / 1152;
@@ -223,7 +227,7 @@ void dma1_channel4_5_isr(){
 #elif USARTNUM == 1
 void dma1_channel2_3_isr(){
     if(DMA1->ISR & DMA_ISR_TCIF2){ // Tx
-        DMA1_Channel2->CCR &= ~DMA_CCR_EN; // stop DMA
+        //DMA1_Channel2->CCR &= ~DMA_CCR_EN; // stop DMA
         DMA1->IFCR |= DMA_IFCR_CTCIF2; // clear TC flag
         txrdy = 1;
     }

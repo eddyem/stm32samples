@@ -32,12 +32,13 @@
 #endif
 
 // timeout for cycles
-#define WAITFOR (72000000)
+#define WAITFOR (7200000)
 
 typedef enum{
     ALL_OK,
     LINE_BUSY,
-    STR_TOO_LONG
+    STR_TOO_LONG,
+    NO_RECEIVER
 } TXstatus;
 
 #define usartrx()  (linerdy)

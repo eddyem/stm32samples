@@ -16,8 +16,12 @@ i2c.h
 main.c
 proto.c
 proto.h
+ringbuffer.c
+ringbuffer.h
 sensors_manage.c
 sensors_manage.h
 usart.c
 usart.h
+usbhw.c
+usbhw.h
 version.inc

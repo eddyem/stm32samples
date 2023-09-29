@@ -103,6 +103,7 @@ void can_messages_proc(){
     if(can_mesg->ID != CANID && can_mesg->ID != BCAST_ID) return;
     int16_t t;
     uint32_t U32;
+    IWDG->KR = IWDG_REFRESH;
     if(data[0] == COMMAND_MARK){   // process commands
         if(len < 2) return;
         // master shouldn't react to broadcast commands!

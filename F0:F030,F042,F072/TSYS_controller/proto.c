@@ -35,9 +35,10 @@
 
 extern volatile uint8_t canerror;
 extern volatile uint32_t Tms;
+volatile uint32_t lastTprint = 0;
 
 static char buff[UARTBUFSZ+1], /* +1 - for USB send (it receive \0-terminated line) */ *bptr = buff;
-static int blen = 0, USBcmd = 0, debugmode =
+static int blen = 0, cmdsource = SRC_NONE, debugmode =
 #ifdef EBUG
         1
 #else
@@ -55,32 +56,54 @@ uint8_t noLED =
 
 void sendbuf(){
     IWDG->KR = IWDG_REFRESH;
+    lastTprint = Tms;
     if(blen == 0) return;
-#ifdef EBUG
-    USB_send("  sendbuf()\n");
-#endif
-    *bptr = 0;
-    if(USBcmd) USB_send(buff);
-    else for(int i = 0; (i < WAITFOR) && (LINE_BUSY == usart_send(buff, blen)); ++i){
-#ifdef EBUG
-    USB_send("    line busy\n");
-#endif
-        IWDG->KR = IWDG_REFRESH;
+    if(cmdsource == SRC_NONE){
+        bptr = buff;
+        blen = 0;
+        return;
     }
+    *bptr = 0;
+    if(cmdsource == SRC_USB) USB_sendstr(buff);
+    else for(int i = 0; i < WAITFOR; ++i){
+        IWDG->KR = IWDG_REFRESH;
+        TXstatus s = usart_send(buff, blen);
+        if(s == NO_RECEIVER){
 #ifdef EBUG
-    USB_send("  sendbuf() done\n");
+            USB_sendstr("    no receiver\n");
 #endif
+            cmdsource = SRC_NONE;
+            break;
+        }else if(s != LINE_BUSY) break;
+#ifdef EBUG
+    if(DMA1->ISR & DMA_ISR_TCIF2) USB_sendstr("DMA rdy\n");
+    USB_sendstr("  sendbuf: line busy\n");
+#endif
+    }
     bptr = buff;
     blen = 0;
+    lastTprint = Tms;
 }
 
 void addtobuf(const char *txt){
+    if(cmdsource == SRC_NONE) return;
     IWDG->KR = IWDG_REFRESH;
     int l = strlen(txt);
     if(l > UARTBUFSZ){
         sendbuf(); // send prevoius data in buffer
-        if(USBcmd) USB_send(txt);
-        else for(int i = 0; (i < WAITFOR) && (LINE_BUSY == usart_send_blocking(txt, l)); ++i){IWDG->KR = IWDG_REFRESH;}
+        if(cmdsource == SRC_USB) USB_sendstr(txt);
+        else for(int i = 0; i < WAITFOR; ++i){
+            TXstatus s = usart_send_blocking(txt, l);
+            if(s == NO_RECEIVER){
+                cmdsource = SRC_NONE;
+                break;
+            }else if(s != LINE_BUSY) break;
+            IWDG->KR = IWDG_REFRESH;
+#ifdef EBUG
+            if(DMA1->ISR & DMA_ISR_TCIF2) USB_sendstr("DMA rdy\n");
+            USB_sendstr("  addtobuf: line busy\n");
+#endif
+        }
     }else{
         if(blen+l > UARTBUFSZ){
             sendbuf();
@@ -90,6 +113,7 @@ void addtobuf(const char *txt){
         *bptr = 0;
         blen += l;
     }
+    lastTprint = Tms;
 }
 
 void bufputchar(char ch){
@@ -98,6 +122,7 @@ void bufputchar(char ch){
     }
     *bptr++ = ch;
     ++blen;
+    lastTprint = Tms;
 }
 
 static void CANsend(uint16_t targetID, uint8_t cmd, char echo){
@@ -221,7 +246,8 @@ static void sendCANcommand(char *txt){
  * @param isUSB - == 1 if data got from USB
  */
 void cmd_parser(char *txt, uint8_t isUSB){
-    USBcmd = isUSB;
+    cmdsource = isUSB ? SRC_USB : SRC_USART;
+//addtobuf("\n\n__"); printuhex(*txt); addtobuf("__\n\n");
     int16_t L = strlen(txt), ID = BCAST_ID;
     char _1st = txt[0];
     if(_1st >= '0' && _1st < '8'){ // send command to Nth controller, not broadcast

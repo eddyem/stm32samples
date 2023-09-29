@@ -1,12 +1,10 @@
 /*
- *                                                                                                  geany_encoding=koi8-r
- * usb_lib.h
+ * This file is part of the usbcanrb project.
+ * Copyright 2023 Edward V. Emelianov <edward.emelianoff@gmail.com>.
  *
- * Copyright 2018 Edward V. Emelianov <eddy@sao.ru, edward.emelianoff@gmail.com>
- *
- * This program is free software; you can redistribute it and/or modify
+ * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -15,23 +13,17 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- * MA 02110-1301, USA.
- *
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #pragma once
-#ifndef __USB_LIB_H__
-#define __USB_LIB_H__
 
 #include <wchar.h>
-#include "usb_defs.h"
+#include "usbhw.h"
 
 #define EP0DATABUF_SIZE                 (64)
+#define LASTADDR_DEFAULT                (STM32ENDPOINTS * 8)
 
-// Max EP amount (EP0 + other used)
-#define ENDPOINTS_NUM                   4
 // bmRequestType & 0x7f
 #define STANDARD_DEVICE_REQUEST_TYPE    0
 #define STANDARD_ENDPOINT_REQUEST_TYPE  2
@@ -68,40 +60,29 @@
 #define CONTROL_DTR                     0x01
 #define CONTROL_RTS                     0x02
 
-// wValue
-#define DEVICE_DESCRIPTOR               0x100
-#define CONFIGURATION_DESCRIPTOR        0x200
-#define STRING_LANG_DESCRIPTOR          0x300
-#define STRING_MAN_DESCRIPTOR           0x301
-#define STRING_PROD_DESCRIPTOR          0x302
-#define STRING_SN_DESCRIPTOR            0x303
-#define DEVICE_QUALIFIER_DESCRIPTOR     0x600
+// string descriptors
+enum{
+    iLANGUAGE_DESCR,
+    iMANUFACTURER_DESCR,
+    iPRODUCT_DESCR,
+    iSERIAL_DESCR,
+    iINTERFACE_DESCR,
+    iDESCR_AMOUNT
+};
+
+// Types of descriptors
+#define DEVICE_DESCRIPTOR               0x01
+#define CONFIGURATION_DESCRIPTOR        0x02
+#define STRING_DESCRIPTOR               0x03
+#define DEVICE_QUALIFIER_DESCRIPTOR     0x06
+
+#define RX_FLAG(epstat)                 (epstat & USB_EPnR_CTR_RX)
+#define TX_FLAG(epstat)                 (epstat & USB_EPnR_CTR_TX)
+#define SETUP_FLAG(epstat)              (epstat & USB_EPnR_SETUP)
 
 // EPnR bits manipulation
-#define CLEAR_DTOG_RX(R)                (R & USB_EPnR_DTOG_RX) ? R : (R & (~USB_EPnR_DTOG_RX))
-#define SET_DTOG_RX(R)                  (R & USB_EPnR_DTOG_RX) ? (R & (~USB_EPnR_DTOG_RX)) : R
-#define TOGGLE_DTOG_RX(R)               (R | USB_EPnR_DTOG_RX)
-#define KEEP_DTOG_RX(R)                 (R & (~USB_EPnR_DTOG_RX))
-#define CLEAR_DTOG_TX(R)                (R & USB_EPnR_DTOG_TX) ? R : (R & (~USB_EPnR_DTOG_TX))
-#define SET_DTOG_TX(R)                  (R & USB_EPnR_DTOG_TX) ? (R & (~USB_EPnR_DTOG_TX)) : R
-#define TOGGLE_DTOG_TX(R)               (R | USB_EPnR_DTOG_TX)
-#define KEEP_DTOG_TX(R)                 (R & (~USB_EPnR_DTOG_TX))
-#define SET_VALID_RX(R)                 ((R & USB_EPnR_STAT_RX) ^ USB_EPnR_STAT_RX)   | (R & (~USB_EPnR_STAT_RX))
-#define SET_NAK_RX(R)                   ((R & USB_EPnR_STAT_RX) ^ USB_EPnR_STAT_RX_1) | (R & (~USB_EPnR_STAT_RX))
-#define SET_STALL_RX(R)                 ((R & USB_EPnR_STAT_RX) ^ USB_EPnR_STAT_RX_0) | (R & (~USB_EPnR_STAT_RX))
-#define KEEP_STAT_RX(R)                 (R & (~USB_EPnR_STAT_RX))
-#define SET_VALID_TX(R)                 ((R & USB_EPnR_STAT_TX) ^ USB_EPnR_STAT_TX)   | (R & (~USB_EPnR_STAT_TX))
-#define SET_NAK_TX(R)                   ((R & USB_EPnR_STAT_TX) ^ USB_EPnR_STAT_TX_1) | (R & (~USB_EPnR_STAT_TX))
-#define SET_STALL_TX(R)                 ((R & USB_EPnR_STAT_TX) ^ USB_EPnR_STAT_TX_0) | (R & (~USB_EPnR_STAT_TX))
-#define KEEP_STAT_TX(R)                 (R & (~USB_EPnR_STAT_TX))
-#define CLEAR_CTR_RX(R)                 (R & (~USB_EPnR_CTR_RX))
-#define CLEAR_CTR_TX(R)                 (R & (~USB_EPnR_CTR_TX))
-#define CLEAR_CTR_RX_TX(R)              (R & (~(USB_EPnR_CTR_TX | USB_EPnR_CTR_RX)))
-
-// USB state: uninitialized, addressed, ready for use
-#define USB_DEFAULT_STATE               0
-#define USB_ADRESSED_STATE              1
-#define USB_CONFIGURE_STATE             2
+#define KEEP_DTOG_STAT(EPnR)            (EPnR & ~(USB_EPnR_STAT_RX|USB_EPnR_STAT_TX|USB_EPnR_DTOG_RX|USB_EPnR_DTOG_TX))
+#define KEEP_DTOG(EPnR)                 (EPnR & ~(USB_EPnR_DTOG_RX|USB_EPnR_DTOG_TX))
 
 // EP types
 #define EP_TYPE_BULK                    0x00
@@ -131,7 +112,6 @@ static const struct name \
     \
 } \
 name = {0x04, 0x03, lng_id}
-#define STRING_LANG_DESCRIPTOR_SIZE_BYTE    (4)
 
 // EP0 configuration packet
 typedef struct {
@@ -143,22 +123,13 @@ typedef struct {
 } config_pack_t;
 
 // endpoints state
-typedef struct __ep_t{
+typedef struct{
     uint16_t *tx_buf;           // transmission buffer address
+    uint16_t txbufsz;           // transmission buffer size
     uint8_t *rx_buf;            // reception buffer address
-    uint16_t (*func)();         // endpoint action function
-    uint16_t status;            // status flags
+    void (*func)();             // endpoint action function
     unsigned rx_cnt  : 10;      // received data counter
-    unsigned tx_flag : 1;       // transmission flag
-    unsigned rx_flag : 1;       // reception flag
-    unsigned setup_flag : 1;    // this is setup packet (only for EP0)
 } ep_t;
-
-// USB status & its address
-typedef struct {
-    uint8_t  USB_Status;
-    uint16_t USB_Addr;
-}usb_dev_t;
 
 typedef struct {
     uint32_t dwDTERate;
@@ -184,19 +155,18 @@ typedef struct {
 } __attribute__ ((packed)) usb_cdc_notification;
 
 extern ep_t endpoints[];
+extern volatile uint8_t usbON;
+extern config_pack_t *setup_packet;
+extern uint8_t ep0databuf[], setupdatabuf[];
 
-void USB_Init();
-uint8_t USB_GetState();
-int EP_Init(uint8_t number, uint8_t type, uint16_t txsz, uint16_t rxsz, uint16_t (*func)(ep_t ep));
+void EP0_Handler();
+
 void EP_WriteIRQ(uint8_t number, const uint8_t *buf, uint16_t size);
 void EP_Write(uint8_t number, const uint8_t *buf, uint16_t size);
 int EP_Read(uint8_t number, uint8_t *buf);
 usb_LineCoding getLineCoding();
 
-
-void WEAK linecoding_handler(usb_LineCoding *lc);
-void WEAK clstate_handler(uint16_t val);
-void WEAK break_handler();
-void WEAK vendor_handler(config_pack_t *packet);
-
-#endif // __USB_LIB_H__
+void linecoding_handler(usb_LineCoding *lc);
+void clstate_handler(uint16_t val);
+void break_handler();
+void vendor_handler(config_pack_t *packet);

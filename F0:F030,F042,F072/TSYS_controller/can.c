@@ -146,7 +146,7 @@ void CAN_setup(uint16_t speed){
     /* Configure IT */
     /* (14) Set priority for CAN_IRQn */
     /* (15) Enable CAN_IRQn */
-    NVIC_SetPriority(CEC_CAN_IRQn, 0); /* (14) */
+    NVIC_SetPriority(CEC_CAN_IRQn, 10); /* (14) */
     NVIC_EnableIRQ(CEC_CAN_IRQn); /* (15) */
     can_status = CAN_READY;
 }

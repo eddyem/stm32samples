@@ -1,12 +1,10 @@
 /*
- *                                                                                                  geany_encoding=koi8-r
- * usb.h
+ * This file is part of the usbcanrb project.
+ * Copyright 2023 Edward V. Emelianov <edward.emelianoff@gmail.com>.
  *
- * Copyright 2018 Edward V. Emelianov <eddy@sao.ru, edward.emelianoff@gmail.com>
- *
- * This program is free software; you can redistribute it and/or modify
+ * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -15,23 +13,36 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- * MA 02110-1301, USA.
- *
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 #pragma once
-#ifndef __USB_H__
-#define __USB_H__
 
-#include "hardware.h"
+#include "ringbuffer.h"
+#include "usbhw.h"
 
-#define BUFFSIZE   (64)
+// sizes of ringbuffers for outgoing and incoming data
+#define RBOUTSZ     (512)
+#define RBINSZ      (512)
 
-void USB_setup();
-void usb_proc();
-void USB_send(const char *buf);
-int USB_receive(char *buf, int bufsize);
-//int USB_configured();
+#define USND(s)     do{USB_sendstr(s); USB_putbyte('\n');}while(0)
 
-#endif // __USB_H__
+#define STR_HELPER(s)   #s
+#define STR(s)          STR_HELPER(s)
+
+#ifdef EBUG
+#define DBG(str)  do{USB_sendstr(__FILE__ " (L" STR(__LINE__) "): " str); newline();}while(0)
+#else
+#define DBG(str)
+#endif
+
+extern volatile ringbuffer rbout, rbin;
+extern volatile uint8_t bufisempty, bufovrfl;
+
+void send_next();
+int USB_sendall();
+int USB_send(const uint8_t *buf, int len);
+int USB_putbyte(uint8_t byte);
+int USB_sendstr(const char *string);
+int USB_receive(uint8_t *buf, int len);
+int USB_receivestr(char *buf, int len);
