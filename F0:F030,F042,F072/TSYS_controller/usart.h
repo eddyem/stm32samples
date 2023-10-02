@@ -23,7 +23,7 @@
 #define __USART_H__
 
 // output buffers size
-#define UARTBUFSZ   (512)
+#define UARTBUFSZ   (1535)
 // input buffer size
 #define UARTINBUFSZ (64)
 // timeout between data bytes

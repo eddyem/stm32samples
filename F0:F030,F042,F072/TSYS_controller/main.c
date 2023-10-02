@@ -133,7 +133,7 @@ int main(void){
 #endif
             cmd_parser(txt, 0);
         }
-        if(lastTprint - Tms > 249){ // run `sendbuf` each 250ms
+        if(Tms - lastTprint > 249){ // run `sendbuf` each 250ms
             sendbuf();
         }
     }

@@ -77,9 +77,12 @@ void sendbuf(){
         }else if(s != LINE_BUSY) break;
 #ifdef EBUG
     if(DMA1->ISR & DMA_ISR_TCIF2) USB_sendstr("DMA rdy\n");
-    USB_sendstr("  sendbuf: line busy\n");
+    USB_sendstr("  sendbuf(): line busy\n");
 #endif
     }
+#ifdef EBUG
+    USB_sendstr("    sent or not\n");
+#endif
     bptr = buff;
     blen = 0;
     lastTprint = Tms;
@@ -90,6 +93,9 @@ void addtobuf(const char *txt){
     IWDG->KR = IWDG_REFRESH;
     int l = strlen(txt);
     if(l > UARTBUFSZ){
+#ifdef EBUG
+    USB_sendstr("l>UARTBUFSZ -> sendbuf\n");
+#endif
         sendbuf(); // send prevoius data in buffer
         if(cmdsource == SRC_USB) USB_sendstr(txt);
         else for(int i = 0; i < WAITFOR; ++i){
@@ -106,6 +112,9 @@ void addtobuf(const char *txt){
         }
     }else{
         if(blen+l > UARTBUFSZ){
+#ifdef EBUG
+        USB_sendstr("blen+l>UARTBUFSZ -> sendbuf\n");
+#endif
             sendbuf();
         }
         strcpy(bptr, txt);
@@ -118,6 +127,9 @@ void addtobuf(const char *txt){
 
 void bufputchar(char ch){
     if(blen > UARTBUFSZ-1){
+#ifdef EBUG
+        USB_sendstr("bufputchar() -> sendbuf\n");
+#endif
         sendbuf();
     }
     *bptr++ = ch;
