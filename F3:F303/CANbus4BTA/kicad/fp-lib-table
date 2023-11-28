@@ -1,0 +1,4 @@
+(fp_lib_table
+  (lib (name "my_footprints")(type "KiCad")(uri "${KIPRJMOD}/my_footprints.pretty")(options "")(descr ""))
+  (lib (name "kicad")(type "KiCad")(uri "/home/eddy/Docs/SAO/ELECTRONICS/STM32/F0-srcs/CANbus4BTA/kicad.pretty")(options "")(descr ""))
+)
