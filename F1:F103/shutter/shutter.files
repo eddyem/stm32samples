@@ -1,5 +1,7 @@
 adc.c
 adc.h
+flash.c
+flash.h
 hardware.c
 hardware.h
 main.c

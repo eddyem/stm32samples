@@ -20,6 +20,8 @@
 
 #include <stm32f1.h>
 
+#include "flash.h"
+
 // PA7 - SHTR_FB
 #define FBPORT      GPIOA
 #define FBPIN       (1<<7)
@@ -52,16 +54,11 @@ typedef enum{
 #define BTNPORT     GPIOB
 #define HALLPIN     (1<<0)
 #define CCDPIN      (1<<11)
-#define CHKHALL()   (BTNPORT->IDR & HALLPIN ? 0 : 1)
-#define CHKCCD()    (BTNPORT->IDR & CCDPIN ? 0 : 1)
+#define CHKHALL()   ((HALLPIN == (BTNPORT->IDR & HALLPIN)) == the_conf.hallactive)
+#define CHKCCD()    ((CCDPIN == (BTNPORT->IDR & CCDPIN)) == the_conf.ccdactive)
 
 // multiplyer of shutter voltage (due to R divider)
 #define SHTRVMUL    (13)
-
-// minimal voltage on capacitor for shutter can work
-#define SHTR_WORK_VOLTAGE       (1300)
-// minimal voltage on capacitor due to discharging
-#define SHTR_MIN_VOLTAGE        (100)
 
 extern volatile uint32_t Tms;
 

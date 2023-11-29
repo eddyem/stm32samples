@@ -39,6 +39,7 @@ int main(void){
     SysTick_Config(72000);
     USBPU_OFF();
     hw_setup();
+    flashstorage_init();
     USB_setup();
     USBPU_ON();
 

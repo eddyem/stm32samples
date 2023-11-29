@@ -44,7 +44,7 @@ static int changestate(int open, shutter_state nxt){
         shutterstate = SHUTTER_RELAX;
         return TRUE; // already opened or closed
     }
-    if(getADCvoltage(CHSHTR) < SHTR_WORK_VOLTAGE / SHTRVMUL) return FALSE;
+    if(getADCvoltage(CHSHTR) < the_conf.workvoltage / SHTRVMUL) return FALSE;
     if(shutterstate == SHUTTER_ERROR) return FALSE;
     if(open) SHTROPEN();
     else SHTRCLOSE();
@@ -89,7 +89,7 @@ void process_shutter(){
                 USB_putbyte('\n');
             }
 #endif
-            if(Tms - Tstart > SHUTTER_TIME || V < SHTR_MIN_VOLTAGE){
+            if(Tms - Tstart > SHUTTER_TIME || V < the_conf.minvoltage){
                 SHTROFF();
                 shutterstate = SHUTTER_WAIT;
                 Tstart = Tms;
@@ -125,7 +125,7 @@ void process_shutter(){
     uint8_t s = CHKCCD();
     if(oldbtnstate == s) return; // button's state not changed
     // check button only when can open/close & shutter operations done
-    if(V >= SHTR_WORK_VOLTAGE && shutterstate == SHUTTER_RELAX){ // shutter state allows to open/close
+    if(V >= the_conf.workvoltage && shutterstate == SHUTTER_RELAX){ // shutter state allows to open/close
         if(s){ // pressed
             if(!CHKHALL()){ if(open_shutter()){oldbtnstate = s; /*USB_sendstr(" open, old->1\n");*/}}
             else{/*USB_sendstr("pressed when CHKHALL(), old->1\n");*/ oldbtnstate = s;}

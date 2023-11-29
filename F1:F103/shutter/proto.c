@@ -17,6 +17,7 @@
  */
 
 #include "adc.h"
+#include "flash.h"
 #include "hardware.h"
 #include "proto.h"
 #include "shutter.h"
@@ -158,6 +159,13 @@ const char* helpmsg =
     "'0' - shutter CLO\n"
     "'1' - shutter OPE\n"
     "'2' - shutter HIZ\n"
+    "'< n' - voltage on discharged capacitor (*100)\n"
+    "'> n' - voltage on fully charged capacitor (*100)\n"
+    "'c n' - open shutter when CCD ext level is n (0/1)\n"
+    "'d' - dump current config\n"
+    "'e' - erase flash storage\n"
+    "'h n' - shutter is opened when hall level is n (0/1)\n"
+    "'s' - save configuration into flash\n"
     "'A' - get raw ADC values\n"
     "'C' - close shutter / abort exposition\n"
     "'E n' - expose for n milliseconds\n"
@@ -205,6 +213,17 @@ const char *parse_cmd(const char *buf){
             case '2':
                 SHTRHIZ();
                 add2buf("regstate=hiz");
+            break;
+            case 'd': // dump config
+                dump_userconf(); return NULL;
+            break;
+            case 'e': // erase flash
+                if(erase_storage(-1)) add2buf(ERR);
+                else add2buf(OK);
+            break;
+            case 's': // save configuration
+                if(store_userconf()) add2buf(ERR);
+                else add2buf(OK);
             break;
             case 'A':
                 for(int i = 0; i < NUMBER_OF_ADC_CHANNELS; ++i){
@@ -262,15 +281,38 @@ const char *parse_cmd(const char *buf){
         }
     }else{ // long messages
         uint32_t Num = 0;
-        char *nxt;
-        switch(*buf){
+        char c = *buf++;
+        char *nxt = getnum(buf, &Num);
+        int errnum = 0, overflow = 0;
+        if(buf == nxt){
+            if(Num) overflow = 1;
+            errnum = 1;
+        }
+        switch(c){
+            case '<': // min voltage
+                if(errnum) break;
+                if(Num < 100 || Num > 1000) return "ERRVAL\n";
+                the_conf.minvoltage = Num;
+                add2buf("minvoltage="); add2buf(u2str(the_conf.minvoltage));
+            break;
+            case '>': // max voltage
+                if(errnum) break;
+                if(Num < 500 || Num > 10000) return "ERRVAL\n";
+                the_conf.workvoltage = Num;
+                add2buf("workvoltage="); add2buf(u2str(the_conf.workvoltage));
+            break;
+            case 'c': // CCD active @
+                if(errnum) break;
+                the_conf.ccdactive = Num;
+                add2buf("ccdactive="); bufputchar('0' + the_conf.ccdactive);
+            break;
+            case 'h': // HALL active @
+                if(errnum) break;
+                the_conf.hallactive = Num;
+                add2buf("hallactive="); bufputchar('0' + the_conf.hallactive);
+            break;
             case 'E':
-                ++buf;
-                nxt = getnum(buf, &Num);
-                if(buf == nxt){
-                    if(Num == 0) return "ERRNUM\n";
-                    return "I32OVERFLOW\n";
-                }
+                if(errnum) break;
                 if(shutterstate != SHUTTER_RELAX){
                     add2buf(ERR);
                     break;
@@ -279,8 +321,10 @@ const char *parse_cmd(const char *buf){
                 else add2buf(ERR);
             break;
             default:
-                return buf;
+                return buf-1;
         }
+        if(overflow) return "I32OVERFLOW\n";
+        if(errnum) return "ERRNUM\n";
     }
     bufputchar('\n');
     return stbuf;
