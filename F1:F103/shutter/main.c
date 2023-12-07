@@ -35,15 +35,14 @@ void sys_tick_handler(void){
 int main(void){
     char inbuff[MAXSTRLEN+1];
     StartHSE();
-    hw_setup();
     SysTick_Config(72000);
     USBPU_OFF();
-    hw_setup();
     flashstorage_init();
+    hw_setup();
     USB_setup();
+    // close shutter and only after that turn on USB pullup
+    while(!close_shutter() && Tms < the_conf.waitingtime) IWDG->KR = IWDG_REFRESH;
     USBPU_ON();
-
-    close_shutter();
 
     uint32_t Terr = Tms + 2*ERRPERIOD;
     while(1){

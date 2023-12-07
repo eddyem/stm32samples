@@ -20,11 +20,6 @@
 
 #include <stm32f1.h>
 
-// opening/closing time (ms)
-#define SHUTTER_TIME    (20)
-// waiting for getting status time (ms)
-#define WAITING_TIME    (60)
-
 typedef enum{
     SHUTTER_ERROR,          // shutter is absent?
     SHUTTER_RELAX,          // powered off

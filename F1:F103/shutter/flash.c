@@ -31,8 +31,12 @@ static uint32_t maxCnum = 1024 / sizeof(user_conf); // can't use blocksize here
      .userconf_sz = sizeof(user_conf)   \
     ,.hallactive = 0                    \
     ,.ccdactive = 1                     \
-    ,.minvoltage = 500                  \
-    ,.workvoltage = 1300                \
+    ,.minvoltage = 400                  \
+    ,.workvoltage = 700                 \
+    ,.shutterrime = 20                  \
+    ,.waitingtime = 30                  \
+    ,.shtrVmul = 143                    \
+    ,.shtrVdiv = 25                     \
     }
 
 static int write2flash(const void*, const void*, uint32_t);
@@ -180,5 +184,9 @@ void dump_userconf(){
     USB_sendstr("\nhallactive="); USB_putbyte('0' + the_conf.hallactive);
     USB_sendstr("\nminvoltage="); USB_sendstr(u2str(the_conf.minvoltage));
     USB_sendstr("\nworkvoltage="); USB_sendstr(u2str(the_conf.workvoltage));
+    USB_sendstr("\nshuttertime="); USB_sendstr(u2str(the_conf.shutterrime));
+    USB_sendstr("\nwaitingtime="); USB_sendstr(u2str(the_conf.waitingtime));
+    USB_sendstr("\nshtrvmul="); USB_sendstr(u2str(the_conf.shtrVmul));
+    USB_sendstr("\nshtrdiv="); USB_sendstr(u2str(the_conf.shtrVdiv));
     newline();
 }

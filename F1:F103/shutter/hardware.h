@@ -57,10 +57,7 @@ typedef enum{
 #define CHKHALL()   ((HALLPIN == (BTNPORT->IDR & HALLPIN)) == the_conf.hallactive)
 #define CHKCCD()    ((CCDPIN == (BTNPORT->IDR & CCDPIN)) == the_conf.ccdactive)
 
-// multiplyer of shutter voltage (due to R divider)
-#define SHTRVMUL    (13)
-
 extern volatile uint32_t Tms;
 
 void hw_setup();
-
+uint32_t getShutterVoltage();

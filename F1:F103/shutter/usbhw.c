@@ -23,7 +23,6 @@
 void USB_setup(){
     NVIC_DisableIRQ(USB_LP_CAN1_RX0_IRQn);
     NVIC_DisableIRQ(USB_HP_CAN1_TX_IRQn);
-    USBPU_OFF();
     RCC->APB1ENR |= RCC_APB1ENR_USBEN;
     RCC->APB2ENR |= USB_RCC;
     USB->CNTR   = USB_CNTR_FRES; // Force USB Reset
@@ -35,7 +34,6 @@ void USB_setup(){
     USB->ISTR   = 0;
     USB->CNTR   = USB_CNTR_RESETM | USB_CNTR_WKUPM; // allow only wakeup & reset interrupts
     NVIC_EnableIRQ(USB_LP_CAN1_RX0_IRQn);
-    USBPU_ON();
 }
 
 static uint16_t lastaddr = LASTADDR_DEFAULT;

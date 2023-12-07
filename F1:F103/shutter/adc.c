@@ -44,8 +44,11 @@ void adc_setup(){
     ADC1->SQR3 = (3 << 0) | (16<<5) | (17 << 10);
     ADC1->SQR1 = (NUMBER_OF_ADC_CHANNELS - 1) << 20; // amount of conversions
     ADC1->CR1 = ADC_CR1_SCAN; // scan mode
-    // continuous mode & DMA; enable vref & Tsens; wake up ADC
-    ADC1->CR2 = ADC_CR2_DMA | ADC_CR2_TSVREFE | ADC_CR2_CONT | ADC_CR2_ADON;
+    // DMA, continuous mode; enable vref & Tsens; enable SWSTART as trigger
+    ADC1->CR2 = ADC_CR2_DMA | ADC_CR2_TSVREFE | ADC_CR2_CONT | ADC_CR2_EXTSEL | ADC_CR2_EXTTRIG;
+    // wake up ADC
+    ADC1->CR2 |= ADC_CR2_ADON;
+    __DSB();
     // wait for Tstab - at least 1us
     while(++ctr < 0xff) nop();
     // calibration
@@ -53,12 +56,9 @@ void adc_setup(){
     ctr = 0; while((ADC1->CR2 & ADC_CR2_RSTCAL) && ++ctr < 0xfffff);
     ADC1->CR2 |= ADC_CR2_CAL;
     ctr = 0; while((ADC1->CR2 & ADC_CR2_CAL) && ++ctr < 0xfffff);
-    // turn ON ADC
-    //ADC1->CR2 |= ADC_CR2_ADON;
-    __DSB();
+    // clear possible errors and start
     ADC1->SR = 0;
     ADC1->CR2 |= ADC_CR2_SWSTART;
-
 }
 
 

@@ -30,7 +30,12 @@ static const char *states[SHUTTER_STATE_AMOUNT] = {
     [SHUTTER_EXPOSE] = "exposing",
 };
 
-static const char *regstates[4] = {"open", "close", "off", "hiZ"};
+static const char *regstates[4] = {
+    [REG_OPEN] = "open",
+    [REG_CLOSE] = "close",
+    [REG_OFF] = "off",
+    [REG_HIZ] = "hiZ"
+};
 
 static const char *opcl[2] = {"closed", "opened"};
 
@@ -39,13 +44,18 @@ static shutter_state nextstate = SHUTTER_RELAX;
 
 static uint32_t Tstart = 0, Texp = 0, Topened = 0;
 
+/**
+ * @brief changestate - open/close shutter and set next state to nxt
+ * @return TRUE if success
+ */
 static int changestate(int open, shutter_state nxt){
+    if(shutterstate != SHUTTER_RELAX && shutterstate != SHUTTER_EXPOSE) return FALSE; // don't ready
     if(open == CHKHALL()){
-        shutterstate = SHUTTER_RELAX;
+        //shutterstate = SHUTTER_RELAX;
         return TRUE; // already opened or closed
     }
-    if(getADCvoltage(CHSHTR) < the_conf.workvoltage / SHTRVMUL) return FALSE;
-    if(shutterstate == SHUTTER_ERROR) return FALSE;
+    if(getShutterVoltage() < the_conf.workvoltage) return FALSE;
+    //if(shutterstate == SHUTTER_ERROR) return FALSE;
     if(open) SHTROPEN();
     else SHTRCLOSE();
     shutterstate = SHUTTER_PROCESS;
@@ -74,12 +84,23 @@ int expose_shutter(uint32_t exptime){
 
 void process_shutter(){
     static uint32_t T = 0;
-    uint32_t V = getADCvoltage(CHSHTR)*SHTRVMUL;
+    uint32_t V = getShutterVoltage();
     switch(shutterstate){
-        case SHUTTER_ERROR: // error state: no shutter?
-            SHTROFF();
-            shutterstate = SHUTTER_WAIT;
-            Tstart = Tms;
+        case SHUTTER_ERROR: // error state: no shutter? - switch HIZ/OFF each 10ms
+            if(SHTRSTATE() == REG_HIZ){ // check in HiZ state: if the error still occurs?
+                if(!CHKFB()){
+                    shutterstate = SHUTTER_RELAX;
+                    nextstate = SHUTTER_RELAX;
+                }else if(Tms - T > 10){
+                    T = Tms;
+                    SHTROFF(); // turn off for 10ms
+                }
+            }else{
+                if(Tms - T > 10){
+                    T = Tms;
+                    SHTRHIZ(); // and check error again
+                }
+            }
         break;
         case SHUTTER_PROCESS: // process opening or closing
 #ifdef EBUG
@@ -89,21 +110,21 @@ void process_shutter(){
                 USB_putbyte('\n');
             }
 #endif
-            if(Tms - Tstart > SHUTTER_TIME || V < the_conf.minvoltage){
+            if(Tms - Tstart > the_conf.shutterrime || V < the_conf.minvoltage){
                 SHTROFF();
                 shutterstate = SHUTTER_WAIT;
                 Tstart = Tms;
             }
         break;
         case SHUTTER_WAIT: // wait for mechanical work done
-            if(Tms - Tstart > WAITING_TIME){
+            if(Tms - Tstart > the_conf.waitingtime){
                 SHTRHIZ();
                 shutterstate = nextstate;
                 int h = CHKHALL();
                 if(h) Topened = Tms;
                 else{
                     USB_sendstr("exptime=");
-                    USB_sendstr(u2str(Tms - Topened - SHUTTER_TIME));
+                    USB_sendstr(u2str(Tms - Topened - the_conf.shutterrime));
                     USB_putbyte('\n');
                 }
                 USB_sendstr("shutter=");
@@ -115,10 +136,18 @@ void process_shutter(){
             // now Tstart is time when shutter was opened; wait until Tms - Tstart >= Texp
             if(Tms - Tstart < Texp || T == Tms) break; // once per 1ms
             T = Tms;
-            if(!close_shutter()) USB_sendstr("exp=cantclose\n");
+            if(!close_shutter()){
+                if(Tms - Tstart > Texp + the_conf.waitingtime){ // try to close not more than `waitingtime` ms
+                    USB_sendstr("exp=cantclose\n");
+                    shutterstate = SHUTTER_ERROR;
+                }
+            }
         break;
         default:
-            if(CHKFB()) shutterstate = SHUTTER_ERROR;
+            if(CHKFB()){
+                shutterstate = SHUTTER_ERROR;
+                T = Tms;
+            }
         break;
     }
     static uint8_t oldbtnstate = 0;
@@ -141,6 +170,9 @@ void print_shutter_state(){
     if(shutterstate != SHUTTER_RELAX) add2buf(states[shutterstate]);
     else add2buf(opcl[CHKHALL()]);
     if(CHKHALL()){
+        if(shutterstate == SHUTTER_EXPOSE){
+            add2buf("\nexpfor="); add2buf(u2str(Texp));
+        }
         add2buf("\nexptime=");
         add2buf(u2str(Tms - Topened));
     }

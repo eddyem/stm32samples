@@ -17,6 +17,7 @@
  */
 
 #include "adc.h"
+#include "flash.h"
 #include "hardware.h"
 
 static inline void iwdg_setup(){
@@ -67,12 +68,13 @@ static inline void gpio_setup(){
     // ADC (PA3), OD out (PA5,6), PU in (PA7)
     GPIOA->ODR = 1 << 7;
     SHTROFF();
-    GPIOA->CRL = CRL(3, CNF_ANALOG|MODE_INPUT) | CRL(5, CNF_PPOUTPUT|MODE_SLOW) | CRL(6, CNF_PPOUTPUT|MODE_SLOW) |
+    GPIOA->CRL = CRL(3, CNF_ANALOG | MODE_INPUT) | CRL(5, CNF_PPOUTPUT|MODE_SLOW) | CRL(6, CNF_PPOUTPUT|MODE_SLOW) |
                  CRL(7, CNF_PUDINPUT | MODE_INPUT);
     // USB pullup (PA10) - pushpull output
     GPIOA->CRH = CRH(8, CNF_PPOUTPUT | MODE_SLOW) | CRH(10, CNF_PPOUTPUT | MODE_SLOW);
-    // hall/ccd
-    GPIOB->ODR = 1 | 1<<11;
+    // hall/ccd: pulled up or down depending on settings
+    // if ccdactive==0 - shutter is closed when no output signals
+    GPIOB->ODR = ((the_conf.hallactive) ? 0: 1) | ((the_conf.ccdactive) ? 0 : 1<<11);
     GPIOB->CRL = CRL(0, CNF_PUDINPUT | MODE_INPUT);
     GPIOB->CRH = CRH(11, CNF_PUDINPUT | MODE_INPUT);
 }
@@ -83,3 +85,8 @@ void hw_setup(){
     adc_setup();
 }
 
+uint32_t getShutterVoltage(){
+    uint32_t val = getADCvoltage(CHSHTR);
+    val *= the_conf.shtrVmul;
+    return val / the_conf.shtrVdiv;
+}

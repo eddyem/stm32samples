@@ -32,6 +32,10 @@ typedef struct __attribute__((packed, aligned(4))){
     uint8_t hallactive : 1;     // hall sensor active (shutter is opened when): 0 - low, 1 - high
     uint16_t minvoltage;        // minimal voltage on C (*100)
     uint16_t workvoltage;       // working voltage (*100)
+    uint16_t shutterrime;       // opening/closing time (ms)
+    uint16_t waitingtime;       // time to wait for mechanical work done (ms)
+    uint16_t shtrVmul;          // multiplier of shutter voltage calculation
+    uint16_t shtrVdiv;          // divider -//-
 } user_conf;
 
 extern user_conf the_conf;

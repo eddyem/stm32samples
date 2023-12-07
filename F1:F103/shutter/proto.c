@@ -156,16 +156,7 @@ char *getnum(const char *txt, uint32_t *N){
 
 const char* helpmsg =
     "https://github.com/eddyem/stm32samples/tree/master/F1:F103/shutter build#" BUILD_NUMBER " @ " BUILD_DATE "\n"
-    "'0' - shutter CLO\n"
-    "'1' - shutter OPE\n"
-    "'2' - shutter HIZ\n"
-    "'< n' - voltage on discharged capacitor (*100)\n"
-    "'> n' - voltage on fully charged capacitor (*100)\n"
-    "'c n' - open shutter when CCD ext level is n (0/1)\n"
-    "'d' - dump current config\n"
-    "'e' - erase flash storage\n"
-    "'h n' - shutter is opened when hall level is n (0/1)\n"
-    "'s' - save configuration into flash\n"
+    "    common control:\n"
     "'A' - get raw ADC values\n"
     "'C' - close shutter / abort exposition\n"
     "'E n' - expose for n milliseconds\n"
@@ -176,6 +167,23 @@ const char* helpmsg =
     "'T' - get Tms\n"
     "'v' - get Vdd (/100V)\n"
     "'V' - get shutter voltage (/100V)\n"
+    "    configuration:\n"
+    "'< n' - voltage on discharged capacitor (*100)\n"
+    "'> n' - voltage on fully charged capacitor (*100)\n"
+    "'# n' - duration of electrical pulse to open/close shutter (ms)\n"
+    "'$ n' - duration of mechanical work to completely open/close shutter (ms)\n"
+    "'* n' - shutter voltage multiplier\n"
+    "'/ n' - shutter voltage divider (V=Vadc*M/D)\n"
+    "'c n' - open shutter when CCD ext level is n (0/1)\n"
+    "'d' - dump current config\n"
+    "'e' - erase flash storage\n"
+    "'h n' - shutter is opened when hall level is n (0/1)\n"
+    "'s' - save configuration into flash\n"
+    "    debugging options:\n"
+    "'0' - shutter OPE\n"
+    "'1' - shutter CLO\n"
+    "'2' - shutter OFF\n"
+    "'3' - shutter HIZ\n"
     "'W' - test watchdog\n"
 ;
 
@@ -198,19 +206,22 @@ void bufputchar(char c){
 
 static const char *OK = "OK", *ERR = "ERR";
 const char *parse_cmd(const char *buf){
-    uint32_t u3;
     initbuf();
     if(buf[1] == '\n' || buf[1] == '\r' || !buf[1]){ // one symbol commands
         switch(*buf){
             case '0':
-                SHTRCLOSE();
-                add2buf("regstate=close");
-            break;
-            case '1':
                 SHTROPEN();
                 add2buf("regstate=open");
             break;
+            case '1':
+                SHTRCLOSE();
+                add2buf("regstate=close");
+            break;
             case '2':
+                SHTROFF();
+                add2buf("regstate=off");
+            break;
+            case '3':
                 SHTRHIZ();
                 add2buf("regstate=hiz");
             break;
@@ -267,9 +278,8 @@ const char *parse_cmd(const char *buf){
                 add2buf(u2str(getVdd()));
             break;
             case 'V':
-                u3 = getADCvoltage(CHSHTR) * SHTRVMUL;
                 add2buf("voltage=");
-                add2buf(u2str(u3));
+                add2buf(u2str(getShutterVoltage()));
             break;
             case 'W':
                 USB_sendstr("Wait for reboot\n");
@@ -300,6 +310,30 @@ const char *parse_cmd(const char *buf){
                 if(Num < 500 || Num > 10000) return "ERRVAL\n";
                 the_conf.workvoltage = Num;
                 add2buf("workvoltage="); add2buf(u2str(the_conf.workvoltage));
+            break;
+            case '#': // shuttertime
+                if(errnum) break;
+                if(Num < 5 || Num > 1000) return "ERRVAL\n";
+                the_conf.shutterrime = Num;
+                add2buf("shuttertime="); add2buf(u2str(the_conf.shutterrime));
+            break;
+            case '$': // waitingtime
+                if(errnum) break;
+                if(Num < 5 || Num > 1000) return "ERRVAL\n";
+                the_conf.waitingtime = Num;
+                add2buf("waitingtime="); add2buf(u2str(the_conf.waitingtime));
+            break;
+            case '*': // mult
+                if(errnum) break;
+                if(Num < 1) return "ERRVAL\n"; // avoid zeroing
+                the_conf.shtrVmul = Num;
+                add2buf("shtrvmul="); add2buf(u2str(the_conf.shtrVmul));
+            break;
+            case '/': // div
+                if(errnum) break;
+                if(Num < 1) return "ERRVAL\n"; // avoid zero dividing
+                the_conf.shtrVdiv = Num;
+                add2buf("shtrvdiv="); add2buf(u2str(the_conf.shtrVdiv));
             break;
             case 'c': // CCD active @
                 if(errnum) break;
