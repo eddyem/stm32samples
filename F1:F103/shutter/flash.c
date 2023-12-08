@@ -187,6 +187,6 @@ void dump_userconf(){
     USB_sendstr("\nshuttertime="); USB_sendstr(u2str(the_conf.shutterrime));
     USB_sendstr("\nwaitingtime="); USB_sendstr(u2str(the_conf.waitingtime));
     USB_sendstr("\nshtrvmul="); USB_sendstr(u2str(the_conf.shtrVmul));
-    USB_sendstr("\nshtrdiv="); USB_sendstr(u2str(the_conf.shtrVdiv));
+    USB_sendstr("\nshtrvdiv="); USB_sendstr(u2str(the_conf.shtrVdiv));
     newline();
 }

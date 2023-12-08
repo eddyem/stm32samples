@@ -39,7 +39,7 @@ static const char *regstates[4] = {
 
 static const char *opcl[2] = {"closed", "opened"};
 
-shutter_state shutterstate = SHUTTER_ERROR;
+shutter_state shutterstate = SHUTTER_RELAX;
 static shutter_state nextstate = SHUTTER_RELAX;
 
 static uint32_t Tstart = 0, Texp = 0, Topened = 0;
@@ -117,7 +117,7 @@ void process_shutter(){
             }
         break;
         case SHUTTER_WAIT: // wait for mechanical work done
-            if(Tms - Tstart > the_conf.waitingtime){
+            if(Tms - Tstart >= the_conf.waitingtime){
                 SHTRHIZ();
                 shutterstate = nextstate;
                 int h = CHKHALL();

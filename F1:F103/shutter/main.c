@@ -41,7 +41,7 @@ int main(void){
     hw_setup();
     USB_setup();
     // close shutter and only after that turn on USB pullup
-    while(!close_shutter() && Tms < the_conf.waitingtime) IWDG->KR = IWDG_REFRESH;
+    while(!close_shutter() && Tms < 1000) IWDG->KR = IWDG_REFRESH;
     USBPU_ON();
 
     uint32_t Terr = Tms + 2*ERRPERIOD;
