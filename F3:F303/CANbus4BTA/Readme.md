@@ -7,7 +7,7 @@ PP - push-pull, OD - open drain, I - floating input, A - analog input, AFn - alt
 1 - active high, 0 - active low.
 ### Sorted by pin number
 
-|**Pin #**|**Pin name **| **function**| **settings**|**comment **      |
+|**Pin #**|**Pin name** | **function**| **settings**| **comment**      |
 |---------|-------------|-------------|-------------|------------------|
 |   1     | VBAT        |  3v3        |             |                  |
 |   2     | PC13        | buzzer      | PP1         |                  |
@@ -63,7 +63,7 @@ PP - push-pull, OD - open drain, I - floating input, A - analog input, AFn - alt
 ### Sorted by port
 // sort -Vk4 Readme.md 
 
-|**Pin #**|**Pin name **| **function**| **settings**|**comment **      |
+|**Pin #**|**Pin name** | **function**| **settings**| **comment**      |
 |---------|-------------|-------------|-------------|------------------|
 |  44     | BOOT0       |  boot       |             |                  |
 |   7     | NRST        |  reset      |             |                  |
@@ -118,6 +118,7 @@ PP - push-pull, OD - open drain, I - floating input, A - analog input, AFn - alt
 ## DMA usage
 ### DMA1
 
+Channel1 - ADC1.
 
 ### DMA2
 
