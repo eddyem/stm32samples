@@ -115,10 +115,35 @@ PP - push-pull, OD - open drain, I - floating input, A - analog input, AFn - alt
 |  47     | VSS         |  gnd        |             |                  |
 |---------|-------------|-------------|-------------|------------------|
 
-## DMA usage
-### DMA1
+# DMA usage
+## DMA1
 
 Channel1 - ADC1.
 
-### DMA2
+## DMA2
 
+# Text command protocol
+Text commands have format of `parameter[number][=setter]`. Where
+- *parameter* is any possible command,
+- *number* is its number (if need, like esw5),
+- *setter* is new value to set parameter.
+
+Without setter command works like getter or run some routine.
+
+**All commands should have codes more than '@'.**
+
+## Text commands list
+
+
+# CAN bus command protocol
+All commands have variable length format: e.g. you don't need to send 8 random data bytes for commands like 
+`reset`, which needs no arguments and couldn't be a setter. So, starting from 1st byte in data packet:
+
+**0** - command code (L)  
+**1** - command code (H) - uint16_t  
+**2** - command parameter, 0..127 (setter have 1 in MSB)  
+**3** - error code (only in answers)  
+**4..7** - data (int32_t, little endian)
+
+
+## CAN bus command codes

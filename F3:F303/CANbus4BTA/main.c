@@ -16,8 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "can.h"
+#include "flash.h"
 #include "hardware.h"
-#include "proto.h"
+#include "textfunctions.h"
 #include "usart.h"
 #include "usb.h"
 
@@ -38,24 +40,30 @@ int main(void){
         StartHSI();
         SysTick_Config((uint32_t)48000); // 1ms
     }
+    flashstorage_init();
     hw_setup();
     usart_setup();
     USB_setup();
+    CAN_setup(the_conf.CANspeed);
     USBPU_ON();
     while(1){
+        CAN_proc();
+        if(CAN_get_status() == CAN_FIFO_OVERRUN){
+            USB_sendstr("CAN bus fifo overrun occured!\n");
+        }
         if(bufovr){
             bufovr = 0;
             usart_send("bufovr\n");
         }
         char *txt = NULL;
         if(usart_getline(&txt)){
-            const char *ans = parse_cmd(txt);
+            const char *ans = run_text_cmd(txt);
             if(ans) usart_send(ans);
         }
         int l = USB_receivestr(inbuff, MAXSTRLEN);
-        if(l < 0) USB_sendstr("ERROR: USB buffer overflow or string was too long\n");
+        if(l < 0) USB_sendstr("error=overflow\n");
         else if(l){
-            const char *ans = parse_cmd(inbuff);
+            const char *ans = run_text_cmd(inbuff);
             if(ans) USB_sendstr(ans);
         }
     }

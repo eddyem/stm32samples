@@ -19,14 +19,42 @@
 #pragma once
 
 #include <stdint.h>
-#include <string.h>
 
-void hexdump(int (*sendfun)(const char *s), uint8_t *arr, uint16_t len);
-char *u2str(uint32_t val);
-char *i2str(int32_t i);
-char *uhex2str(uint32_t val);
-char *float2str(float x, uint8_t prec);
-const char *getnum(const char *txt, uint32_t *N);
-const char *omit_spaces(const char *buf);
-const char *getint(const char *txt, int32_t *I);
+// amount of filter banks in STM32F0
+#define STM32F0FBANKNO      28
+// flood period in milliseconds
+#define FLOOD_PERIOD_MS     5
 
+// incoming message buffer size
+#define CAN_INMESSAGE_SIZE  (8)
+extern uint32_t floodT;
+
+// CAN message
+typedef struct{
+    uint8_t data[8];    // up to 8 bytes of data
+    uint8_t length;     // data length
+    uint16_t ID;        // ID of receiver
+} CAN_message;
+
+typedef enum{
+    CAN_STOP,
+    CAN_READY,
+    CAN_BUSY,
+    CAN_OK,
+    CAN_ERR,
+    CAN_FIFO_OVERRUN
+} CAN_status;
+
+CAN_status CAN_get_status();
+
+void CAN_reinit(uint16_t speed);
+void CAN_setup(uint32_t speed);
+
+CAN_status CAN_send(CAN_message *message);
+void CAN_proc();
+void CAN_printerr();
+
+CAN_message *CAN_messagebuf_pop();
+
+void CAN_flood(CAN_message *msg, int incr);
+uint32_t CAN_speed();

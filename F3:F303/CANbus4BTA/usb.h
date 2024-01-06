@@ -47,3 +47,11 @@ int USB_putbyte(uint8_t byte);
 int USB_sendstr(const char *string);
 int USB_receive(uint8_t *buf, int len);
 int USB_receivestr(char *buf, int len);
+
+#ifdef EBUG
+#include "strfunc.h"
+#define printu(x)       do{USB_sendstr(u2str(x));}while(0)
+#define printi(x)       do{USB_sendstr(i2str(x));}while(0)
+#define printuhex(x)    do{USB_sendstr(uhex2str(x));}while(0)
+#define printf(x)       do{USB_sendstr(float2str(x, 2));}while(0)
+#endif

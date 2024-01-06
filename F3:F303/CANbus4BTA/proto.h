@@ -16,9 +16,50 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * USB-only and common (CAN/USB) protocol functions parser
+ */
+
 #pragma once
 
 #include <stm32f3.h>
 
-const char *parse_cmd(const char *buf);
+#ifndef _U_
+#define _U_ __attribute__((__unused__))
+#endif
+
+// command parameter flag means this is a setter
+#define SETTER_FLAG     (0x80)
+#define ISSETTER(data)  ((data[2] & SETTER_FLAG))
+// parameter number 127 means there no parameter number at all (don't need paremeter or get all)
+#define NO_PARNO        (0x1f)
+
+// make error for CAN answer
+#define FORMERR(data, err) do{data[3] = err;}while(0)
+
+// error codes for answer message
+typedef enum{
+    ERR_OK,         // 0 - all OK
+    ERR_BADPAR,     // 1 - parameter number is wrong
+    ERR_BADVAL,     // 2 - wrong parameter's value
+    ERR_WRONGLEN,   // 3 - wrong message length
+    ERR_BADCMD,     // 4 - unknown command
+    ERR_CANTRUN,    // 5 - can't run given command due to bad parameters or other problems
+    ERR_AMOUNT      // amount of error codes
+} errcodes;
+
+// CAN commands indexes
+typedef enum{
+    CMD_RESET,      // 0 - reset MCU
+    CMD_TIME,       // 1 - get/set Tms
+    CMD_MCUTEMP,    // 2 - get MCU temperature (*10)
+    CMD_ADCRAW,     // 3 - get ADC raw values
+    CMD_ADCV,       // 4 - get ADC voltage (*100)
+    CMD_CANSPEED,   // 5 - get/set CAN speed (kbps)
+    CMD_CANID,      // 6 - get/set CAN ID
+    CMD_ADCMUL,     // 7 - get/set ADC multipliers 0..4
+    CMD_SAVECONF,   // 8 - save configuration
+    CMD_ERASESTOR,  // 9 - erase all flash storage
+    CMD_AMOUNT      // amount of CAN commands
+} can_cmd;
 
