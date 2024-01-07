@@ -19,6 +19,7 @@
 #include <string.h>
 #include <strings.h>
 
+#include "can.h"
 #include "commonfunctions.h"
 #include "flash.h"
 #include "proto.h"
@@ -32,10 +33,12 @@
 
 // text-only commans indexes (0 is prohibited)
 typedef enum{
-    TCMD_PROHIBITED
-    ,TCMD_WDTEST
-    ,TCMD_DUMPCONF
-    ,TCMD_AMOUNT
+    TCMD_PROHIBITED,    // prohibited
+    TCMD_WDTEST,        // test watchdog
+    TCMD_DUMPCONF,      // dump configuration
+    TCMD_CANSNIF,       // CAN sniffer/normal
+    TCMD_CANSEND,       // send CAN message
+    TCMD_AMOUNT
 } text_cmd;
 
 
@@ -47,15 +50,17 @@ typedef struct{
 
 // list of all text functions; should be sorted and can be grouped
 static const funcdescr funclist[] = {
-    {"adcmul", CMD_ADCMUL, "get/set ADC multipliers 0..4 (*1000)"},
+    {"adcmul", CMD_ADCMUL, "get/set ADC multipliers 0..3 (*1000)"},
     {"adcraw", CMD_ADCRAW, "get raw ADC values of channel 0..4"},
     {"adcv", CMD_ADCV,  "get ADC voltage of channel 0..3 (*100V)"},
     {"canid", CMD_CANID, "get/set CAN ID"},
+    {"cansnif", -TCMD_CANSNIF, "get/change sniffer state (0 - normal, 1 - sniffer)"},
     {"canspeed", CMD_CANSPEED, "get/set CAN speed (bps)"},
     {"dumpconf", -TCMD_DUMPCONF, "dump current configuration"},
     {"eraseflash", CMD_ERASESTOR, "erase all flash storage"},
     {"mcutemp", CMD_MCUTEMP, "get MCU temperature (*10degrC)"},
     {"reset", CMD_RESET, "reset MCU"},
+    {"s", -TCMD_CANSEND, "send CAN message: ID 0..8 data bytes"},
     {"saveconf", CMD_SAVECONF, "save configuration"},
     {"time", CMD_TIME, "get/set time (ms)"},
     {"wdtest", -TCMD_WDTEST, "test watchdog"},
@@ -72,9 +77,10 @@ static errcodes wdtest(const char _U_ *str){
 
 static errcodes dumpconf(const char _U_ *str){
 #ifdef EBUG
-    USB_sendstr("flashsize="); printu(FLASH_SIZE); USB_putbyte('*');
-    printu(FLASH_blocksize); USB_putbyte('='); printu(FLASH_SIZE*FLASH_blocksize);
-    newline();
+    uint32_t sz = FLASH_SIZE*1024;
+    USB_sendstr("flashsize="); printu(sz); USB_putbyte('/');
+    printu(FLASH_blocksize); USB_putbyte('='); printu(sz/FLASH_blocksize);
+    USB_sendstr(" blocks\n");
 #endif
     USB_sendstr("userconf_addr="); printuhex((uint32_t)Flash_Data);
     USB_sendstr("\nuserconf_idx="); printi(currentconfidx);
@@ -91,19 +97,75 @@ static errcodes dumpconf(const char _U_ *str){
     return ERR_OK;
 }
 
+static errcodes cansnif(const char *str){
+    uint32_t U;
+    if(str){
+        if(*str == '=') str = omit_spaces(str + 1);
+        const char *nxt = getnum(str, &U);
+        if(nxt != str){ // setter
+            CAN_sniffer((uint8_t)U);
+        }
+    }
+    USB_sendstr("cansnif="); USB_putbyte('0' + cansniffer); newline();
+    return ERR_OK;
+}
+
+static errcodes cansend(const char *txt){
+    CAN_message canmsg;
+    bzero(&canmsg, sizeof(canmsg));
+    int ctr = -1;
+    canmsg.ID = 0xffff;
+    do{
+        txt = omit_spaces(txt);
+        uint32_t N;
+        const char *n = getnum(txt, &N);
+        if(txt == n) break;
+        txt = n;
+        if(ctr == -1){
+            if(N > 0x7ff){
+                return ERR_BADPAR;
+            }
+            canmsg.ID = (uint16_t)(N&0x7ff);
+            ctr = 0;
+            continue;
+        }
+        if(ctr > 7){
+            return ERR_WRONGLEN;
+        }
+        if(N > 0xff){
+            return ERR_BADVAL;
+        }
+        canmsg.data[ctr++] = (uint8_t) N;
+    }while(1);
+    if(canmsg.ID == 0xffff){
+        return ERR_BADPAR;
+    }
+    canmsg.length = (uint8_t) ctr;
+    uint32_t Tstart = Tms;
+    while(Tms - Tstart < SEND_TIMEOUT_MS){
+        if(CAN_OK == CAN_send(&canmsg)){
+            USB_sendstr("OK\n");
+            return ERR_OK;
+        }
+    }
+    return ERR_CANTRUN;
+}
+
 /************ END of all common functions list (for `textfunctions`) ************/
 
 // in `textfn` arg `str` is rest of input string (spaces-omitted) after command
 typedef errcodes (*textfn)(const char *str);
 // array of text-only functions
 static textfn textfunctions[TCMD_AMOUNT] = {
-     [TCMD_PROHIBITED] = NULL
-    ,[TCMD_WDTEST] = wdtest
-    ,[TCMD_DUMPCONF] = dumpconf
+    [TCMD_PROHIBITED] = NULL,
+    [TCMD_WDTEST] = wdtest,
+    [TCMD_DUMPCONF] = dumpconf,
+    [TCMD_CANSNIF] = cansnif,
+    [TCMD_CANSEND] = cansend,
 };
 
-static char stbuf[256], *bptr = NULL;
-static int blen = 0;
+static char stbuf[256], *bptr = stbuf;
+static int blen = 255;
 static void initbuf(){bptr = stbuf; blen = 255; *bptr = 0;}
 static void bufputchar(char c){
     if(blen == 0) return;
@@ -111,6 +173,7 @@ static void bufputchar(char c){
     *bptr = 0;
 }
 static void add2buf(const char *s){
+    if(!s) return;
     while(blen && *s){
         *bptr++ = *s++;
         --blen;
@@ -121,7 +184,7 @@ static void add2buf(const char *s){
 static void printhelp(){
     const funcdescr *c = funclist;
     USB_sendstr("https://github.com/eddyem/stm32samples/tree/master/F3:F303/CANbus4BTA build#" BUILD_NUMBER " @ " BUILD_DATE "\n");
-    USB_sendstr("commands format: parameter[number][=setter]");
+    USB_sendstr("commands format: parameter[number][=setter]\n");
     USB_sendstr("parameter [CAN idx] - help\n");
     USB_sendstr("--------------------------\n");
     while(c->help){
@@ -168,9 +231,10 @@ static void errtext(errcodes e){
  * WARNING! Sending help works only for USB!
  */
 char *run_text_cmd(const char *str){
+    if(!str || !*str) goto ret;
     char cmd[MAXCMDLEN + 1];
     errcodes ecode = ERR_BADCMD;
-    if(!str || !*str) goto ret;
+    initbuf();
     int idx = CMD_AMOUNT;
     const funcdescr *c = funclist;
     int l = 0;
@@ -185,13 +249,13 @@ char *run_text_cmd(const char *str){
             idx = c->idx;
             break;
         }
+        ++c;
     }
     if(idx == CMD_AMOUNT){ // didn't found
         // send help over USB
         printhelp();
         goto ret;
     }
-    initbuf();
     str = omit_spaces(ptr);
     if(idx < 0){ // text-only function
         ecode = textfunctions[-idx](str);
@@ -216,6 +280,7 @@ char *run_text_cmd(const char *str){
     }
     str = omit_spaces(str);
     if(*str == '='){ // setter
+        ++str;
         ptr = getint(str, ((int32_t*)&data[4]));
         if(str == ptr){
             ecode = ERR_BADVAL;
@@ -234,7 +299,7 @@ ret:
         if(msg.length != 8){
             return "OK\n"; // non setters/getters will just print "OK" if all OK
         }else{
-            add2buf(funclist[idx].cmd);
+            add2buf(cmd);
             data[2] &= ~SETTER_FLAG;
             if(data[2] != NO_PARNO) add2buf(u2str(data[2]));
             bufputchar('=');

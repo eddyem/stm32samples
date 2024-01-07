@@ -33,4 +33,4 @@
 void adc_setup();
 float getMCUtemp();
 uint16_t getADCval(int nch);
-float getADCvoltage(uint16_t ADCval);
+float getADCvoltage(int nch);

@@ -25,11 +25,11 @@
 static volatile uint8_t usbbuff[USB_TXBUFSZ]; // temporary buffer for sending data
 // ring buffers for incoming and outgoing data
 static uint8_t obuf[RBOUTSZ], ibuf[RBINSZ];
-volatile ringbuffer rbout = {.data = obuf, .length = RBOUTSZ, .head = 0, .tail = 0};
-volatile ringbuffer rbin = {.data = ibuf, .length = RBINSZ, .head = 0, .tail = 0};
+static volatile ringbuffer rbout = {.data = obuf, .length = RBOUTSZ, .head = 0, .tail = 0};
+volatile ringbuffer rbin = {.data = ibuf, .length = RBINSZ, .head = 0, .tail = 0}; // used in usblib.c
 // transmission is succesfull
-volatile uint8_t bufisempty = 1;
-volatile uint8_t bufovrfl = 0;
+static volatile uint8_t bufisempty = 1;
+volatile uint8_t bufovrfl = 0; // used in usblib.c
 
 void send_next(){
     if(bufisempty) return;

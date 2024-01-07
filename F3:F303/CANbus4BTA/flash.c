@@ -35,8 +35,8 @@ static uint32_t maxCnum = 1024 / sizeof(user_conf); // can't use blocksize here
      .userconf_sz = sizeof(user_conf)       \
     ,.CANspeed = 100000                     \
     ,.CANID = 0xaa                          \
-    ,.adcmul[0] = 1.f                       \
-    ,.adcmul[1] = 1.f                       \
+    ,.adcmul[0] = 10.930f                   \
+    ,.adcmul[1] = 2.028f                    \
     ,.adcmul[2] = 1.f                       \
     ,.adcmul[3] = 1.f                       \
     }
@@ -145,12 +145,11 @@ static int write2flash(const void *start, const void *wrdata, uint32_t stor_size
 // erase Nth page of flash storage (flash should be prepared!)
 static int erase_pageN(int N){
     int ret = 0;
-#ifdef EBUG
-    USB_sendstr("Erase block #"); printu(N); newline();
-#endif
     FLASH->AR = (uint32_t)Flash_Data + N*FLASH_blocksize;
     FLASH->CR |= FLASH_CR_STRT;
-    while(FLASH->SR & FLASH_SR_BSY) IWDG->KR = IWDG_REFRESH;
+    uint32_t xx = 100000;
+    while((FLASH->SR & FLASH_SR_BSY) && --xx) IWDG->KR = IWDG_REFRESH;
+    if(xx == 0) return 1;
     FLASH->SR = FLASH_SR_EOP;
     if(FLASH->SR & FLASH_SR_WRPERR){ /* Check Write protection error */
         ret = 1;
@@ -167,8 +166,9 @@ int erase_storage(int npage){
         flsz = FLASH_SIZE * 1024; // size in bytes
         flsz -= (uint32_t)Flash_Data - FLASH_BASE;
     }
+    DBG("total free blocks: "); printu(flsz / FLASH_blocksize);
     end = flsz / FLASH_blocksize;
-    if(end == 0 || end >= FLASH_SIZE) return 1;
+    if(end == 0) return 1;
     if(npage > -1){ // erase only one page
         if((uint32_t)npage >= end) return 1;
         start = npage;
@@ -184,12 +184,15 @@ int erase_storage(int npage){
     while(FLASH->SR & FLASH_SR_BSY) IWDG->KR = IWDG_REFRESH;
     FLASH->SR = FLASH_SR_EOP | FLASH_SR_PGERR | FLASH_SR_WRPERR;
     FLASH->CR |= FLASH_CR_PER;
+    __disable_irq();
     for(uint32_t i = start; i < end; ++i){
+        IWDG->KR = IWDG_REFRESH;
         if(erase_pageN(i)){
             ret = 1;
             break;
         }
     }
+    __enable_irq();
     FLASH->CR &= ~FLASH_CR_PER;
     return ret;
 }

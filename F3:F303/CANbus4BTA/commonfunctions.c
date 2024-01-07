@@ -49,7 +49,7 @@ static errcodes mcut(CAN_message *msg){
 // get ADC raw values
 static errcodes adcraw(CAN_message *msg){
     FIXDL(msg);
-    register uint8_t no = msg->data[2] & ~SETTER_FLAG;
+    uint8_t no = msg->data[2] & ~SETTER_FLAG;
     if(no >= NUMBER_OF_ADC_CHANNELS) return ERR_BADPAR;
     *(uint32_t*)&msg->data[4] = getADCval(no);
     return ERR_OK;
@@ -57,7 +57,7 @@ static errcodes adcraw(CAN_message *msg){
 // get ADC voltage
 static errcodes adcv(CAN_message *msg){
     FIXDL(msg);
-    register uint8_t no = msg->data[2] & ~SETTER_FLAG;
+    uint8_t no = msg->data[2] & ~SETTER_FLAG;
     if(no >= ADC_TSENS) return ERR_BADPAR;
     float v = getADCvoltage(no) * the_conf.adcmul[no] * 100.f;
     *(uint32_t*)&msg->data[4] = (uint32_t) v; // or float??
@@ -67,7 +67,7 @@ static errcodes adcv(CAN_message *msg){
 static errcodes canspeed(CAN_message *msg){
     if(ISSETTER(msg->data)){
         uint32_t spd = *(uint32_t*)&msg->data[4];
-        CAN_setup(spd);
+        CAN_reinit(spd);
         the_conf.CANspeed = CAN_speed();
     }else FIXDL(msg);
     *(uint32_t*)&msg->data[4] = CAN_speed();
@@ -77,7 +77,7 @@ static errcodes canspeed(CAN_message *msg){
 static errcodes canid(CAN_message *msg){
     if(ISSETTER(msg->data)){
         the_conf.CANID = *(uint32_t*)&msg->data[4];
-        // CAN_setup(0); // setup with new ID
+        CAN_reinit(0); // setup with new ID
     }else FIXDL(msg);
     *(uint32_t*)&msg->data[4] = the_conf.CANID;
     return ERR_OK;
@@ -121,7 +121,7 @@ static const commonfunction funclist[CMD_AMOUNT] = {
     [CMD_MCUTEMP] = {mcut, 0, 0, 0},
     [CMD_ADCRAW] = {adcraw, 0, 0, 3}, // need parno: 0..4
     [CMD_ADCV] = {adcv, 0, 0, 3}, // need parno: 0..3
-    [CMD_CANSPEED] = {canspeed, 50, 3000, 0},
+    [CMD_CANSPEED] = {canspeed, CAN_MIN_SPEED, CAN_MAX_SPEED, 0},
     [CMD_CANID] = {canid, 1, 0x7ff, 0},
     [CMD_ADCMUL] = {adcmul, 0, 0, 3}, // at least parno
     [CMD_SAVECONF] = {saveconf, 0, 0, 0},
@@ -148,33 +148,39 @@ void run_can_cmd(CAN_message *msg){
     for(int i = 0; i < msg->length; ++i){
         USB_sendstr(uhex2str(msg->data[i])); USB_putbyte(' ');
     }
-    for(int i = msg->length-1; i < 8; ++i) msg->data[i] = 0;
+    //for(int i = msg->length-1; i < 8; ++i) msg->data[i] = 0;
     newline();
 #endif
     if(datalen < 2){
-        FORMERR(data, ERR_WRONGLEN);
+        FORMERR(msg, ERR_WRONGLEN);
         return;
     }
     uint16_t idx = *(uint16_t*)data;
     if(idx >= CMD_AMOUNT || funclist[idx].fn == NULL){ // bad command index
-        FORMERR(data, ERR_BADCMD);
-        return;
+        FORMERR(msg, ERR_BADCMD); return;
     }
     // check minimal length (2 or 3)
     if(funclist[idx].datalen > datalen){
-        FORMERR(data, ERR_WRONGLEN); return;
+        FORMERR(msg, ERR_WRONGLEN); return;
     }
     if(datalen > 3 && (data[2] & SETTER_FLAG)){
         // check setter's length
-        if(datalen != 8){ FORMERR(data, ERR_WRONGLEN); return; }
+        if(datalen != 8){ FORMERR(msg, ERR_WRONGLEN); return; }
         // check setter's values
         if(funclist[idx].maxval != funclist[idx].minval){
             int32_t newval = *(int32_t*)&data[4];
             if(newval < funclist[idx].minval || newval > funclist[idx].maxval){
-                FORMERR(data, ERR_BADVAL); return;
+                FORMERR(msg, ERR_BADVAL); return;
             }
         }
     }
     data[3] = funclist[idx].fn(msg); // set error field as result of function
     data[2] &= ~SETTER_FLAG; // and clear setter flag
+#ifdef EBUG
+    DBG("Return data: ");
+    for(int i = 0; i < msg->length; ++i){
+        USB_sendstr(uhex2str(msg->data[i])); USB_putbyte(' ');
+    }
+    newline();
+#endif
 }

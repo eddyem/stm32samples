@@ -47,7 +47,7 @@ LIB_DIR		:= $(INC_DIR)/ld
 
 ###############################################################################
 # C flags
-CFLAGS		+= -O2 -D__thumb2__=1 -MD
+CFLAGS		+= -D__thumb2__=1 -MD
 CFLAGS		+= -Wall -Wextra -Wshadow -Wdouble-promotion
 CFLAGS		+= -fshort-enums -ffunction-sections -fdata-sections
 #CFLAGS		+= -fno-common -fno-stack-protector
@@ -91,12 +91,12 @@ endif
 BUILDDATE := $(shell date +%Y-%m-%d)
 
 # release: add LTO
-release: CFLAGS += -flto
+release: CFLAGS += -O2 -flto
 release: LDFLAGS += -flto
 release: $(TARGFILE) bin list size
 
 #debug: add debug flags
-debug: CFLAGS += -DEBUG -Werror -g3 -gdwarf-2
+debug: CFLAGS += -O0 -DEBUG -Werror -g3 -gdwarf-2
 debug: TARGET := DEBUG
 debug: $(TARGFILE) bin list size
 
@@ -123,6 +123,7 @@ $(VERSION_FILE): *.[ch]
 	@[ -f $(VERSION_FILE) ] || echo -e "#define BUILD_NUMBER \"0\"\n#define BUILD_DATE \"none\"" > $(VERSION_FILE)
 	@echo "  Generate version: $(NEXTVER) for date $(BUILDDATE)"
 	@sed -i "s/#define BUILD_NUMBER.*/#define BUILD_NUMBER \"$(NEXTVER)\"/" $(VERSION_FILE)
+	@sed -i "s/#define BUILDNO.*/#define BUILDNO $(NEXTVER)/" $(VERSION_FILE)
 	@sed -i "s/#define BUILD_DATE.*/#define BUILD_DATE \"$(BUILDDATE)\"/" $(VERSION_FILE)
 
 $(OBJDIR)/proto.o: proto.c $(VERSION_FILE)

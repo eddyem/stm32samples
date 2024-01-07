@@ -19,6 +19,8 @@
 #include "adc.h"
 #include "hardware.h" // ADCvals
 
+#include "usb.h"
+
 /**
  * @brief ADCx_array - arrays for ADC channels with median filtering:
  * ADC1:
@@ -73,6 +75,7 @@ void adc_setup(){
     ADC1->SQR2 = (16<<0);
     ADC2->SMPR1 = ADC_SMPR1_SMP1;
     // configure DMA for ADC
+    RCC->AHBENR |= RCC_AHBENR_DMA1EN;
     ADC1->CFGR = ADC_CFGR_CONT | ADC_CFGR_DMAEN | ADC_CFGR_DMACFG;
     DMA1_Channel1->CPAR = (uint32_t) (&(ADC1->DR));
     DMA1_Channel1->CMAR = (uint32_t)(ADC_array);
@@ -104,18 +107,19 @@ uint16_t getADCval(int nch){
     PIX_SORT(p[4], p[2]) ;
 #undef PIX_SORT
 #undef PIX_SWAP
+    DBG("nch="); printu(nch); USB_sendstr("; data="); printu(p[4]); newline();
     return p[4];
 }
 
 // get voltage @input nch (V)
-float getADCvoltage(uint16_t ADCval){
-    float v = (float)ADCval * 3.3;
+float getADCvoltage(int nch){
+    float v = getADCval(nch) * 3.3f;
     return v/4096.f; // 12bit ADC
 }
 
 // return MCU temperature (degrees of celsius)
 float getMCUtemp(){
-    float temperature = ADC_array[ADC_TSENS] - (float) *TEMP30_CAL_ADDR;
+    float temperature = getADCval(ADC_TSENS) - (float) *TEMP30_CAL_ADDR;
     temperature *= (110.f - 30.f);
     temperature /= (float)(*TEMP110_CAL_ADDR - *TEMP30_CAL_ADDR);
     temperature += 30.f;

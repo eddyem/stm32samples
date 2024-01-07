@@ -24,9 +24,15 @@
 #include "strfunc.h"
 #include "usb.h"
 
+#ifdef EBUG
+#undef EBUG
+#endif
+
 // PD1 - Tx, PD0 - Rx !!!
 
 #include <string.h> // memcpy
+
+uint8_t cansniffer = 0; // 0 - receive only 0 and myID, 1 - receive all
 
 // circular buffer for  received messages
 static CAN_message messages[CAN_INMESSAGE_SIZE];
@@ -45,8 +51,9 @@ static CAN_message loc_flood_msg;
 static CAN_message *flood_msg = NULL; // == loc_flood_msg - to flood
 
 CAN_status CAN_get_status(){
-    int st = can_status;
-    can_status = CAN_OK;
+    CAN_status st = can_status;
+    //can_status = CAN_OK;
+    if(st == CAN_FIFO_OVERRUN) can_status = CAN_READY;
     return st;
 }
 
@@ -95,7 +102,7 @@ CAN_message *CAN_messagebuf_pop(){
     return msg;
 }
 
-void CAN_reinit(uint16_t speed){
+void CAN_reinit(uint32_t speed){
     CAN->TSR |= CAN_TSR_ABRQ0 | CAN_TSR_ABRQ1 | CAN_TSR_ABRQ2;
     RCC->APB1RSTR |= RCC_APB1RSTR_CANRST;
     RCC->APB1RSTR &= ~RCC_APB1RSTR_CANRST;
@@ -127,8 +134,8 @@ so if TBS1=4 and TBS2=3, sum=8, bit sampling freq is 36/8 = 4.5MHz
 // GPIO configured in hw_setup
 void CAN_setup(uint32_t speed){
     if(speed == 0) speed = oldspeed;
-    else if(speed < 50) speed = 50;
-    else if(speed > 3000) speed = 3000;
+    else if(speed < CAN_MIN_SPEED) speed = CAN_MIN_SPEED;
+    else if(speed > CAN_MAX_SPEED) speed = CAN_MAX_SPEED;
     uint32_t tmout = 10000;
     /* Enable the peripheral clock CAN */
     RCC->APB1ENR |= RCC_APB1ENR_CANEN;
@@ -141,7 +148,7 @@ void CAN_setup(uint32_t speed){
     /* (6) Wait the init mode leaving */
     /* (7) Enter filter init mode, (16-bit + mask, bank 0 for FIFO 0) */
     /* (8) Acivate filter 0 for two IDs */
-    /* (9) Identifier list mode */
+    /* (9)  Identifier mode for bank#0, mask mode for #1  */
     /* (10) Set the Id list */
     /* (12) Leave filter init */
     /* (13) Set error interrupts enable (& bus off) */
@@ -151,21 +158,28 @@ void CAN_setup(uint32_t speed){
     if(tmout==0){ DBG("timeout!\n");}
     CAN->MCR &=~ CAN_MCR_SLEEP; /* (3) */
     CAN->MCR |= CAN_MCR_ABOM; /* allow automatically bus-off */
-
-    CAN->BTR =  2 << 20 | 3 << 16 | (4500000/speed - 1); //| CAN_BTR_SILM | CAN_BTR_LBKM; /* (4) */
-    oldspeed = 4500000/((CAN->BTR & CAN_BTR_BRP) + 1);
+    CAN->BTR =  2 << 20 | 3 << 16 | (((uint32_t)4500000UL)/speed - 1); //| CAN_BTR_SILM | CAN_BTR_LBKM; /* (4) */
+    oldspeed = ((uint32_t)4500000UL)/(uint32_t)((CAN->BTR & CAN_BTR_BRP) + 1);
     CAN->MCR &= ~CAN_MCR_INRQ; /* (5) */
     tmout = 10000;
     while(CAN->MSR & CAN_MSR_INAK) /* (6) */
         if(--tmout == 0) break;
     if(tmout==0){ DBG("timeout!\n");}
-    // accept ALL
+    // accept only 0 & ID or ALL depending on `cansniffer` value
     CAN->FMR = CAN_FMR_FINIT; /* (7) */
-    CAN->FA1R = CAN_FA1R_FACT0 | CAN_FA1R_FACT1; /* (8) */
-    // set to 1 all needed bits of CAN->FFA1R to switch given filters to FIFO1
-    CAN->sFilterRegister[0].FR1 = (1<<21)|(1<<5); // all odd IDs
-    CAN->FFA1R = 2; // filter 1 for FIFO1, filter 0 - for FIFO0
-    CAN->sFilterRegister[1].FR1 = (1<<21); // all even IDs
+    CAN->FA1R = CAN_FA1R_FACT0; /* (8) */
+    CAN->FM1R = CAN_FM1R_FBM0; /* (9) */
+    // CAN->FSCx = 0 -> dual 16-bit scale configuration
+    // filter 0 for FIFO0
+    CAN->sFilterRegister[0].FR1 = the_conf.CANID << 5; // (10) CANID and 0
+    if(cansniffer){ /* (11) */
+        CAN->FA1R |= CAN_FA1R_FACT1; // activate filter1
+        CAN->sFilterRegister[1].FR1 = 0; // all packets
+        // mask mode, all odd and even IDs
+        //CAN->sFilterRegister[1].FR1 = (1<<21)|(1<<5); // all odd IDs, mask mode
+        //CAN->sFilterRegister[1].FR2 = (1<<21)|(0<<5); // all even IDs, mask mode
+        CAN->FFA1R = 2; // filter 1 for FIFO1
+    }
     CAN->FMR &= ~CAN_FMR_FINIT; /* (12) */
     CAN->IER |= CAN_IER_ERRIE | CAN_IER_FOVIE0 | CAN_IER_FOVIE1 | CAN_IER_BOFIE; /* (13) */
 
@@ -178,6 +192,15 @@ void CAN_setup(uint32_t speed){
     NVIC_EnableIRQ(CAN_SCE_IRQn);
     CAN->MSR = 0; // clear SLAKI, WKUI, ERRI
     can_status = CAN_READY;
+}
+
+/**
+ * @brief CAN_sniffer - reconfigure CAN in sniffer or normal mode
+ * @param issniffer - ==0 for normal mode
+ */
+void CAN_sniffer(uint8_t issniffer){
+    cansniffer = issniffer;
+    CAN_reinit(0);
 }
 
 void CAN_printerr(){
@@ -228,14 +251,9 @@ void CAN_proc(){
     }
     IWDG->KR = IWDG_REFRESH;
     if(CAN->ESR & (CAN_ESR_BOFF | CAN_ESR_EPVF | CAN_ESR_EWGF)){ // much errors - restart CAN BUS
-        USB_sendstr("\nToo much errors, restarting CAN!\n");
+        USB_sendstr("error=canbuserr\n");
         CAN_printerr();
-        // request abort for all mailboxes
-        CAN->TSR |= CAN_TSR_ABRQ0 | CAN_TSR_ABRQ1 | CAN_TSR_ABRQ2;
-        // reset CAN bus
-        RCC->APB1RSTR |= RCC_APB1RSTR_CANRST;
-        RCC->APB1RSTR &= ~RCC_APB1RSTR_CANRST;
-        CAN_setup(0);
+        CAN_reinit(0);
     }
     static uint32_t lastFloodTime = 0;
     static uint32_t incrmessagectr = 0;
@@ -255,11 +273,17 @@ CAN_status CAN_send(CAN_message *message){
     uint8_t *msg = message->data;
     uint8_t len = message->length;
     uint16_t target_id = message->ID;
-    uint8_t mailbox = 0;
+    uint8_t mailbox = 0xff;
     // check first free mailbox
-    if(CAN->TSR & (CAN_TSR_TME)){
-        mailbox = (CAN->TSR & CAN_TSR_CODE) >> 24;
-    }else{ // no free mailboxes
+    uint32_t Tstart = Tms;
+    while(Tms - Tstart < SEND_TIMEOUT_MS/10){
+        IWDG->KR = IWDG_REFRESH;
+        if(CAN->TSR & (CAN_TSR_TME)){
+            mailbox = (CAN->TSR & CAN_TSR_CODE) >> 24;
+            break;
+        }
+    }
+    if(mailbox == 0xff){// no free mailboxes
 #ifdef EBUG
         USB_sendstr("No free mailboxes\n");
 #endif
@@ -336,9 +360,13 @@ TRUE_INLINE void parseCANcommand(CAN_message *msg){
     msg->ID = the_conf.CANID; // set own ID for broadcast messages
     // check PING
     if(msg->length != 0) run_can_cmd(msg);
-    int N = 1000;
-    while(CAN_BUSY == CAN_send(msg))
-        if(--N == 0) break;
+    uint32_t Tstart = Tms;
+    while(Tms - Tstart < SEND_TIMEOUT_MS){
+        if(CAN_OK == CAN_send(msg)) return;
+        IWDG->KR = IWDG_REFRESH;
+    }
+    // TODO: buzzer error can't send
+    USB_sendstr("error=canbusy\n");
 }
 
 static void can_process_fifo(uint8_t fifo_num){
@@ -354,6 +382,7 @@ static void can_process_fifo(uint8_t fifo_num){
         // CAN_RDTxR: (16-31) - timestamp, (8-15) - filter match index, (0-3) - data length
         /* TODO: check filter match index if more than one ID can receive */
         CAN_message msg;
+        bzero(&msg, sizeof(msg));
         uint8_t *dat = msg.data;
         uint8_t len = box->RDTR & 0x0f;
         msg.length = len;
@@ -389,7 +418,7 @@ static void can_process_fifo(uint8_t fifo_num){
             }
         }
         if(msg.ID == the_conf.CANID || msg.ID == 0) parseCANcommand(&msg);
-        if(CAN_messagebuf_push(&msg)) return; // error: buffer is full, try later
+        if(cansniffer && CAN_messagebuf_push(&msg)) return; // error: buffer is full, try later
         *RFxR |= CAN_RF0R_RFOM0; // release fifo for access to next message
     }
     //if(*RFxR & CAN_RF0R_FULL0) *RFxR &= ~CAN_RF0R_FULL0;

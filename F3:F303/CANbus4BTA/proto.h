@@ -35,7 +35,7 @@
 #define NO_PARNO        (0x1f)
 
 // make error for CAN answer
-#define FORMERR(data, err) do{data[3] = err;}while(0)
+#define FORMERR(m, err) do{m->data[3] = err; if(m->length < 4) m->length = 4;}while(0)
 
 // error codes for answer message
 typedef enum{

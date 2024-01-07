@@ -31,6 +31,21 @@ void sys_tick_handler(void){
     ++Tms;
 }
 
+TRUE_INLINE void showCANmessages(){
+    CAN_message *can_mesg = NULL;
+    while((can_mesg = CAN_messagebuf_pop())){
+        IWDG->KR = IWDG_REFRESH;
+        printu(Tms);
+        USB_sendstr(" #");
+        printuhex(can_mesg->ID);
+        for(int ctr = 0; ctr < can_mesg->length; ++ctr){
+            USB_putbyte(' ');
+            printuhex(can_mesg->data[ctr]);
+        }
+        newline();
+    }
+}
+
 int main(void){
     char inbuff[MAXSTRLEN+1];
     USBPU_OFF();
@@ -42,26 +57,31 @@ int main(void){
     }
     flashstorage_init();
     hw_setup();
-    usart_setup();
-    USB_setup();
     CAN_setup(the_conf.CANspeed);
     USBPU_ON();
     while(1){
+        IWDG->KR = IWDG_REFRESH;
         CAN_proc();
-        if(CAN_get_status() == CAN_FIFO_OVERRUN){
+        CAN_status stat = CAN_get_status();
+        if(stat == CAN_FIFO_OVERRUN){
             USB_sendstr("CAN bus fifo overrun occured!\n");
+            // TODO: buzzer short
+        }else if(stat == CAN_ERR){
+            // TODO: buzzer errors
+            CAN_reinit(0);
         }
-        if(bufovr){
+        if(cansniffer) showCANmessages();
+        /*if(bufovr){
             bufovr = 0;
-            usart_send("bufovr\n");
-        }
+            USB_sendstr("error=uartoverflow\n");
+        }*/
         char *txt = NULL;
         if(usart_getline(&txt)){
             const char *ans = run_text_cmd(txt);
             if(ans) usart_send(ans);
         }
         int l = USB_receivestr(inbuff, MAXSTRLEN);
-        if(l < 0) USB_sendstr("error=overflow\n");
+        if(l < 0) USB_sendstr("error=usboverflow\n");
         else if(l){
             const char *ans = run_text_cmd(inbuff);
             if(ans) USB_sendstr(ans);
