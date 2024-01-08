@@ -35,6 +35,7 @@ typedef struct __attribute__((packed, aligned(4))){
     uint16_t userconf_sz;           // "magick number"
     uint16_t CANID;                 // identifier
     uint32_t CANspeed;              // default CAN speed
+    uint32_t bounce_ms;              // a
     float adcmul[ADC_TSENS];        // ADC voltage multipliers
 } user_conf;
 

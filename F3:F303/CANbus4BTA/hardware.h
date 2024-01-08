@@ -20,10 +20,24 @@
 
 #include <stm32f3.h>
 
+// USB pullup
 #define USBPU_port  GPIOC
 #define USBPU_pin   (1<<15)
 #define USBPU_ON()  pin_set(USBPU_port, USBPU_pin)
 #define USBPU_OFF() pin_clear(USBPU_port, USBPU_pin)
+
+// relay
+#define RELAY_port  GPIOC
+#define RELAY_pin   (1<<14)
+#define RELAY_ON()  pin_set(RELAY_port, RELAY_pin)
+#define RELAY_OFF() pin_clear(RELAY_port, RELAY_pin)
+#define RELAY_GET() pin_read(RELAY_port, RELAY_pin)
+
+// GPIO end-switches multiplexer (addr - PB0..2, ~DEN0 - PA5, ~DEN1 - PA6) and input (PA4)
+#define ESW_GET()   (GPIOA->IDR & (1<<4) ? 0 : 1)
+#define MULADDR_set(x)  do{GPIOB->BSRR = (x&7) | (((~x)&7) << 16);}while(0)
+#define MUL_ON(x)   pin_clear(GPIOA, 1<<(5+x))
+#define MUL_OFF(x)  pin_set(GPIOA, 1<<(5+x))
 
 extern volatile uint32_t Tms;
 

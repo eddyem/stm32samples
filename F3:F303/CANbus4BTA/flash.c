@@ -35,6 +35,7 @@ static uint32_t maxCnum = 1024 / sizeof(user_conf); // can't use blocksize here
      .userconf_sz = sizeof(user_conf)       \
     ,.CANspeed = 100000                     \
     ,.CANID = 0xaa                          \
+    ,.bounce = 50                           \
     ,.adcmul[0] = 10.930f                   \
     ,.adcmul[1] = 2.028f                    \
     ,.adcmul[2] = 1.f                       \

@@ -53,12 +53,16 @@ static const funcdescr funclist[] = {
     {"adcmul", CMD_ADCMUL, "get/set ADC multipliers 0..3 (*1000)"},
     {"adcraw", CMD_ADCRAW, "get raw ADC values of channel 0..4"},
     {"adcv", CMD_ADCV,  "get ADC voltage of channel 0..3 (*100V)"},
+    {"bounce", CMD_BOUNCE, "get/set bounce constant (ms)"},
     {"canid", CMD_CANID, "get/set CAN ID"},
     {"cansnif", -TCMD_CANSNIF, "get/change sniffer state (0 - normal, 1 - sniffer)"},
     {"canspeed", CMD_CANSPEED, "get/set CAN speed (bps)"},
     {"dumpconf", -TCMD_DUMPCONF, "dump current configuration"},
+    {"esw", CMD_GETESW, "anti-bounce read ESW of channel 0 or 1"},
+    {"eswblk", CMD_GETESW_BLK, "blocking read ESW of channel 0 or 1"},
     {"eraseflash", CMD_ERASESTOR, "erase all flash storage"},
     {"mcutemp", CMD_MCUTEMP, "get MCU temperature (*10degrC)"},
+    {"relay", CMD_RELAY, "get/set relay state (0 - off, 1 - on)"},
     {"reset", CMD_RESET, "reset MCU"},
     {"s", -TCMD_CANSEND, "send CAN message: ID 0..8 data bytes"},
     {"saveconf", CMD_SAVECONF, "save configuration"},
@@ -144,7 +148,7 @@ static errcodes cansend(const char *txt){
     uint32_t Tstart = Tms;
     while(Tms - Tstart < SEND_TIMEOUT_MS){
         if(CAN_OK == CAN_send(&canmsg)){
-            USB_sendstr("OK\n");
+            //USB_sendstr("OK\n"); - don't send OK, as after sending might be an error
             return ERR_OK;
         }
     }

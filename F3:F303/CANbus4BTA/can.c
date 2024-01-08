@@ -32,6 +32,15 @@
 
 #include <string.h> // memcpy
 
+// CAN bus oscillator frequency: 36MHz
+#define CAN_F_OSC       (36000000UL)
+// timing values TBS1 and TBS2 (in BTR [TBS1-1] and [TBS2-1])
+// use 3 and 2 to get 6MHz
+#define CAN_TBS1    (3)
+#define CAN_TBS2    (2)
+// bitrate oscillator frequency
+#define CAN_BIT_OSC (CAN_F_OSC / (1+CAN_TBS1+CAN_TBS2))
+
 uint8_t cansniffer = 0; // 0 - receive only 0 and myID, 1 - receive all
 
 // circular buffer for  received messages
@@ -143,7 +152,7 @@ void CAN_setup(uint32_t speed){
     /* (1) Enter CAN init mode to write the configuration */
     /* (2) Wait the init mode entering */
     /* (3) Exit sleep mode */
-    /* (4) Normal mode, set timing to 100kb/s: TBS1 = 4, TBS2 = 3, prescaler = 60 */
+    /* (4) Normal mode, set timing : TBS1 = 4, TBS2 = 3 */
     /* (5) Leave init mode */
     /* (6) Wait the init mode leaving */
     /* (7) Enter filter init mode, (16-bit + mask, bank 0 for FIFO 0) */
@@ -158,8 +167,8 @@ void CAN_setup(uint32_t speed){
     if(tmout==0){ DBG("timeout!\n");}
     CAN->MCR &=~ CAN_MCR_SLEEP; /* (3) */
     CAN->MCR |= CAN_MCR_ABOM; /* allow automatically bus-off */
-    CAN->BTR =  2 << 20 | 3 << 16 | (((uint32_t)4500000UL)/speed - 1); //| CAN_BTR_SILM | CAN_BTR_LBKM; /* (4) */
-    oldspeed = ((uint32_t)4500000UL)/(uint32_t)((CAN->BTR & CAN_BTR_BRP) + 1);
+    CAN->BTR =  (CAN_TBS2-1) << 20 | (CAN_TBS1-1) << 16 | (CAN_BIT_OSC/speed - 1); //| CAN_BTR_SILM | CAN_BTR_LBKM; /* (4) */
+    oldspeed = CAN_BIT_OSC/(uint32_t)((CAN->BTR & CAN_BTR_BRP) + 1);
     CAN->MCR &= ~CAN_MCR_INRQ; /* (5) */
     tmout = 10000;
     while(CAN->MSR & CAN_MSR_INAK) /* (6) */

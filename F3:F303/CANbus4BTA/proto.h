@@ -60,6 +60,10 @@ typedef enum{
     CMD_ADCMUL,     // 7 - get/set ADC multipliers 0..4
     CMD_SAVECONF,   // 8 - save configuration
     CMD_ERASESTOR,  // 9 - erase all flash storage
+    CMD_RELAY,      // 10 - switch relay ON/OFF
+    CMD_GETESW_BLK, // 11 - blocking read of ESW
+    CMD_GETESW,     // 12 - current ESW state, bounce-free
+    CMD_BOUNCE,     // 13 - get/set bounce constant (ms)
     CMD_AMOUNT      // amount of CAN commands
 } can_cmd;
 

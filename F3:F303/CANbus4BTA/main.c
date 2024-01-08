@@ -18,6 +18,7 @@
 
 #include "can.h"
 #include "flash.h"
+#include "gpio.h"
 #include "hardware.h"
 #include "textfunctions.h"
 #include "usart.h"
@@ -57,6 +58,7 @@ int main(void){
     }
     flashstorage_init();
     hw_setup();
+    // getSwitches() and set module role & CAN ID
     CAN_setup(the_conf.CANspeed);
     USBPU_ON();
     while(1){
@@ -85,6 +87,16 @@ int main(void){
         else if(l){
             const char *ans = run_text_cmd(inbuff);
             if(ans) USB_sendstr(ans);
+        }
+        ESW_process();
+        static uint8_t oldswitches[2] = {0};
+        for(int i = 0; i < 2; ++i){
+            uint8_t new = getESW(i);
+            if(oldswitches[i] != new){
+                oldswitches[i] = new;
+                USB_sendstr("ESW changed @"); printu(Tms);
+                USB_sendstr(" to "); printuhex(new); newline();
+            }
         }
     }
 }

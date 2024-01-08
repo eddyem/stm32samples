@@ -20,6 +20,7 @@
 #include "can.h"
 #include "commonfunctions.h"
 #include "flash.h"
+#include "gpio.h"
 #include "proto.h"
 #include "usb.h"
 
@@ -102,7 +103,39 @@ static errcodes erasestor(CAN_message _U_ *msg){
     if(0 == erase_storage(-1)) return ERR_OK;
     return ERR_CANTRUN;
 }
-
+// relay management
+static errcodes relay(CAN_message *msg){
+    if(ISSETTER(msg->data)){
+        if(msg->data[4] == 1) RELAY_ON();
+        else RELAY_OFF();
+    }else FIXDL(msg);
+    *(uint32_t*)&msg->data[4] = RELAY_GET();
+    return ERR_OK;
+}
+// blocking ESW get status
+static errcodes eswblk(CAN_message *msg){
+    uint8_t no = msg->data[2] & ~SETTER_FLAG;
+    if(no > 1) return ERR_BADPAR;
+    FIXDL(msg);
+    *(uint32_t*)&msg->data[4] = getSwitches(no);
+    return ERR_OK;
+}
+// bounce-free ESW get status
+static errcodes esw(CAN_message *msg){
+    uint8_t no = msg->data[2] & ~SETTER_FLAG;
+    if(no > 1) return ERR_BADPAR;
+    FIXDL(msg);
+    *(uint32_t*)&msg->data[4] = getESW(no);
+    return ERR_OK;
+}
+// bounce constant, ms
+static errcodes bounce(CAN_message *msg){
+    if(ISSETTER(msg->data)){
+        the_conf.bounce_ms = *(uint32_t*)&msg->data[4];
+    }else FIXDL(msg);
+    *(uint32_t*)&msg->data[4] = the_conf.bounce_ms;
+    return ERR_OK;
+}
 /************ END of all common functions list (for `funclist`) ************/
 
 
@@ -126,6 +159,10 @@ static const commonfunction funclist[CMD_AMOUNT] = {
     [CMD_ADCMUL] = {adcmul, 0, 0, 3}, // at least parno
     [CMD_SAVECONF] = {saveconf, 0, 0, 0},
     [CMD_ERASESTOR] = {erasestor, 0, 0, 0},
+    [CMD_RELAY] = {relay, 0, 1, 0},
+    [CMD_GETESW_BLK] = {eswblk, 0, 0, 3},
+    [CMD_GETESW] = {esw, 0, 0, 3},
+    [CMD_BOUNCE] = {bounce, 0, 300, 0},
 };
 
 
