@@ -32,3 +32,6 @@
 - **USB_SPI** - work with SPI over USB
 - **ws2815** - running rainbow on LED strip WS2815
 
+- **STM32F103C.md** - markdown table for 48-pin STM32F103, use it as template in Readme.md, to format 
+pretty looking table [use](https://josh.fail/2022/pure-bash-markdown-table-generator/) `markdown-table -5 -s"|" < STM32F103C.md >> Readme.md` 
+after filling it with your data. 
