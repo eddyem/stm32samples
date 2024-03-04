@@ -16,6 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "buttons.h"
 #include "hardware.h"
 
 /* pinout:
@@ -42,23 +43,24 @@
  */
 
 // last incr/decr time and minimal time between incr/decr CCRx
-static uint32_t PWM_lasttime = 0, PWM_deltat = 1;
-static int direction = 0, accel = 0; // rotation direction and acceleration/deceleration
+static uint32_t PWM_lasttime = 0, PWM_deltat = 1; // PWM_deltat should be more than timer period
+static int accel = 0; // rotation direction and acceleration/deceleration
+static motdir_t direction = MOTDIR_NONE; // current moving direction
 
 void gpio_setup(void){
-    // PB8 & PB9 (CAN) setup in can.c; PA9 & PA10 (USART) in usart.c; PA6 & PA7 will be configured later
+    // PB8 & PB9 (CAN) setup in can.c; PA9 & PA10 (USART) in usart.c; PA6 & PA7 - TIM3 PWM ch1/2
     RCC->APB2ENR |= RCC_APB2ENR_IOPAEN | RCC_APB2ENR_IOPBEN | RCC_APB2ENR_IOPCEN | RCC_APB2ENR_AFIOEN;
     // pullups & initial values
-    GPIOA->ODR = (1<<11) | (1<<11) | (1<<12);
+    GPIOA->ODR = (1<<11) | (1<<12);
     GPIOB->ODR = (1<<14) | (1<<15);
     GPIOA->CRL = CRL(0, CNF_ANALOG) | CRL(1, CNF_PPOUTPUT|MODE_SLOW) | CRL(2, CNF_PPOUTPUT|MODE_SLOW) |
-                 CRL(3, CNF_PPOUTPUT|MODE_SLOW);
+                 CRL(3, CNF_PPOUTPUT|MODE_SLOW) | CRL(6, CNF_AFPP|MODE_FAST) | CRL(7, CNF_AFPP|MODE_FAST);
     GPIOA->CRH = CRH(11, CNF_PUDINPUT) | CRH(12, CNF_PUDINPUT);
     GPIOB->CRH = CRH(12, CNF_PUDINPUT) | CRH(13, CNF_PUDINPUT) | CRH(14, CNF_PUDINPUT) | CRH(15, CNF_PUDINPUT);
     // setup timer: 100 ticks per full PWM range, 2kHz -> 200kHz timer frequency
     RCC->APB1ENR |= RCC_APB1ENR_TIM3EN; // enable TIM3 clocking
     TIM3->CR1 = 0;
-    TIM3->PSC = (TIM3FREQ/PWMFREQ) - 1;  // 359 ticks for 200kHz
+    TIM3->PSC = (TIM3FREQ/(PWMFREQ*PWMMAX)) - 1;  // 359 ticks for 200kHz
     TIM3->ARR = PWMMAX - 1;
     TIM3->CCR1 = 0;   // inactive
     TIM3->CCR2 = 0;
@@ -72,29 +74,32 @@ void gpio_setup(void){
 // set minimal pause between successive CCRx increments or decrements; return TRUE if OK
 int set_dT(uint32_t d){
     if(d > 1000) return FALSE;
-    PWM_deltat = d;
+    PWM_deltat = d + 1;
     return TRUE;
 }
 
 // stop or start rotation in given direction (only if motor stops); return TRUE if OK
-// dir == 0 to stop; > 0 to rotate CW (L_UP, R_DOWN), < 0 to rotate CCW (L_DOWN, R_UP)
 int motor_ctl(int32_t dir){
+    if(dir < MOTDIR_STOP || dir > MOTDIR_DOWN) return FALSE;
+    if(dir == MOTDIR_NONE) return TRUE;
+    if(direction == dir) return TRUE; // already do this
     if(TIM3->CR1 & TIM_CR1_CEN){
-        if(direction && dir) return FALSE; // motor is moving while trying to move it
-        if(direction == 0 && dir == 0) return TRUE; // already stopped
+        if(direction > MOTDIR_NONE && dir > MOTDIR_NONE) return FALSE; // motor is moving while trying to move it into another dir
+        if(direction == MOTDIR_BREAK && dir < MOTDIR_NONE) return TRUE; // already stopped
     }
-    if(dir == 0){ // stop motor -> deceleration
-        accel = -1;
-        PWM_lasttime = Tms;
+    if(dir == MOTDIR_STOP){ // stop motor -> deceleration
+        if(direction == MOTDIR_UP || direction == MOTDIR_DOWN) accel = -1;
+        return TRUE;
+    }else if(dir == MOTDIR_BREAK){ // emergency stop
+        if(TIM3->CR1 & TIM_CR1_CEN) motor_break(); // break only if is moving
         return TRUE;
     }
     accel = 1;
-    if(dir > 0){ // start in positive direction
-        direction = 1;
+    direction = dir;
+    if(dir == MOTDIR_UP){ // start in positive direction (move UP)
         set_up(UP_LEFT);
         set_pwm(PWM_RIGHT, 1);
-    }else{ // negative
-        direction = -1;
+    }else{ // negative (move DOWN)
         set_up(UP_RIGHT);
         set_pwm(PWM_LEFT, 1);
     }
@@ -106,33 +111,83 @@ int motor_ctl(int32_t dir){
 // extremal stop
 void motor_break(){
     up_off();
-    direction = 0; accel = 0;
+    direction = MOTDIR_BREAK;
+    accel = 0;
     stop_pwm();
+    PWM_lasttime = Tms;
 }
 
 // simplest state machine of motor control
 void motor_process(){
-    if(!direction) return; // motor isn't moving
-    if(Tms - PWM_lasttime < PWM_deltat) return;
+    if(process_keys()){ // check buttons
+        keyevent evt;
+        motdir_t newdir = MOTDIR_NONE; // new moving direction (-2 - do nothing, 2 - emerg. stop)
+        // first, check HALL sensors if motor is moving
+        if(direction){
+            if(keystate(HALL_D, &evt)){ // HALL DOWN
+                if(direction < 0 && (evt == EVT_PRESS || evt == EVT_HOLD)){
+                    newdir = MOTDIR_BREAK;
+                }
+            }else if(keystate(HALL_U, &evt)){
+                if(direction > 0 && (evt == EVT_PRESS || evt == EVT_HOLD)){
+                    newdir = MOTDIR_BREAK;
+                }
+            }
+        }
+        keyevent uh = keyevt(HALL_U), dh = keyevt(HALL_D); // current hall states - if we cannot move upper or lower
+        // short key pressed - full open/close; long - move with stop after release
+        if(MOTDIR_BREAK != newdir){ // process keys if don't need to break
+            evt = EVT_NONE;
+            if(keystate(KEY_U, &evt)){
+                if(evt == EVT_PRESS){ // move up (don't mind EVT_HOLD - it's already moving)
+                    if(uh != EVT_HOLD && uh != EVT_PRESS) newdir = MOTDIR_UP;
+                }
+            }else if(keystate(KEY_D, &evt)){
+                if(evt == EVT_PRESS){
+                    if(dh != EVT_HOLD && dh != EVT_PRESS) newdir = MOTDIR_DOWN;
+                }
+            }
+            if(evt == EVT_RELEASE) newdir = MOTDIR_STOP;
+            evt = EVT_NONE;
+            int extsig = FALSE;
+            // now chech external signals, they have an advantage over local keys
+            if(keystate(DIR_U, &evt)){ // react on PRESS and both NONE/RELEASE
+                extsig = TRUE;
+                if(evt == EVT_PRESS && uh != EVT_PRESS && uh != EVT_HOLD) newdir = MOTDIR_UP;
+            }else if(keystate(DIR_D, &evt)){
+                extsig = TRUE;
+                if(evt == EVT_PRESS && dh != EVT_PRESS && dh != EVT_HOLD) newdir = MOTDIR_DOWN;
+            }
+            if(evt == EVT_RELEASE || (extsig && evt == EVT_NONE)){ // EVT_NONE - released after short press - do nothing; EVT_RELEASE - after hold, stop
+                newdir = MOTDIR_STOP;
+            }
+        }
+        motor_ctl(newdir);
+        clear_events();
+    }
+    if(direction == MOTDIR_NONE) return; // motor isn't moving
+    else if(direction == MOTDIR_BREAK && 0 == (TIM3->CR1 & TIM_CR1_CEN)){ // motor stopped
+        direction = MOTDIR_NONE;
+        accel = 0;
+        return;
+    }
+    if(Tms < PWM_lasttime + PWM_deltat) return;
     volatile uint16_t *CCRx = (direction > 0) ? &TIM3->CCR1 : &TIM3->CCR2; // current CCRx
-    if(accel < 0){ // decrement
+    PWM_lasttime = Tms;
+    if(accel < 0){ // deceleration
         if(*CCRx == 0){ // stopped
-            up_off();
-            direction = 0;
-            accel = 0;
-            stop_pwm();
+            motor_break(); // wait for another cycle
             return;
         }
         // TODO: here we should check currents and if failure turn off immediatelly
         --*CCRx;
-    }else{
+    }else{ // constant speed or acceleration
         // TODO: here we should check currents and increment only if all OK; decrement and change to accel if fail
         if(accel){ // acceleration
             if(*CCRx == PWMMAX) accel = 0;
             else ++*CCRx;
         } // else do nothing - moving with constant speed
     }
-    PWM_lasttime = Tms;
 }
 
 void iwdg_setup(){

@@ -114,7 +114,7 @@ void usart_setup(){
     NVIC_EnableIRQ(DMA1_Channel4_IRQn);
     NVIC_SetPriority(USART1_IRQn, 0);
     // setup usart1
-    USART1->BRR = 72000000 / 921600;
+    USART1->BRR = 72000000 / 115200;
     USART1->CR1 = USART_CR1_TE | USART_CR1_RE | USART_CR1_UE; // 1start,8data,nstop; enable Rx,Tx,USART
     while(!(USART1->SR & USART_SR_TC)){if(--tmout == 0) break;} // polling idle frame Transmission
     USART1->SR = 0; // clear flags

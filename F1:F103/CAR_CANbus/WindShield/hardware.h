@@ -23,7 +23,7 @@
 // frequency of TIM3 clocking
 #define TIM3FREQ    (72000000)
 // PWM frequency
-#define PWMFREQ     (200000)
+#define PWMFREQ     (2000)
 // max PWM value
 #define PWMMAX      (100)
 
@@ -44,7 +44,7 @@
 // turn off upper shoulders
 #define up_off()  do{pin_clear(GPIOA, (1<<2)|(1<<3));}while(0)
 #define start_pwm() do{ TIM3->CR1 = TIM_CR1_CEN; TIM3->EGR |= TIM_EGR_UG; }while(0)
-#define stop_pwm()  do{ TIM3->CCR1 = 0; TIM3->CCR2 = 0; TIM3->CR1 = 0; }while(0)
+#define stop_pwm()  do{ TIM3->CCR1 = 0; TIM3->CCR2 = 0; TIM3->CR1 = TIM_CR1_OPM | TIM_CR1_CEN; }while(0)
 #define PWM_LEFT    2
 #define PWM_RIGHT   1
 // set PWM value (0..100), x==1 - R_DOWN, x==2 - L_DOWN
@@ -52,6 +52,33 @@
 #define set_pwm(x, n) _set_pwm(x, n)
 #define _get_pwm(x)    (TIM3->CCR ## x)
 #define get_pwm(x) _get_pwm(x)
+
+// buttons, dir, hall:
+#define HALL_PORT       GPIOA
+#define HALL_U_PIN      (1<<12)
+#define HALL_D_PIN      (1<<11)
+#define BUTTON_PORT     GPIOB
+#define BUTTON_U_PIN    (1<<14)
+#define BUTTON_D_PIN    (1<<15)
+#define DIR_PORT        GPIOB
+#define DIR_U_PIN       (1<12)
+#define DIR_D_PIN       (1<13)
+
+// define BUTTONS_NEGATIVE if button pressed when ==1
+#ifdef BUTTONS_NEGATIVE
+#define PRESSED(port, pin)      ((port->IDR & pin) == pin)
+#else
+#define PRESSED(port, pin)      ((port->IDR & pin) == 0)
+#endif
+
+// moving when > NONE, stopped when < NONE
+typedef enum{
+    MOTDIR_STOP = -2,   // stop with deceleration
+    MOTDIR_BREAK = -1,  // emergency stop
+    MOTDIR_NONE = 0,    // do nothing
+    MOTDIR_UP = 1,      // move up
+    MOTDIR_DOWN = 2,    // move down
+} motdir_t;
 
 int set_dT(uint32_t d);
 

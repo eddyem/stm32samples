@@ -1,5 +1,7 @@
 adc.c
 adc.h
+buttons.c
+buttons.h
 can.c
 can.h
 flash.c

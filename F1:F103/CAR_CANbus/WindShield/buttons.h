@@ -18,17 +18,33 @@
 
 #pragma once
 
-// input and output buffers size
-#define UARTBUFSZI  (64)
-#define UARTBUFSZO  (128)
+#include <stm32f1.h>
 
-#define usartrx()  (usart_linerdy)
-#define usartovr() (usart_bufovr)
+// long press detector (>99ms)
+#define KEY_HOLDTIME    (99)
 
-extern volatile int usart_txrdy;
+// keycode for press/release
+typedef enum{
+    HALL_D,     // hall sensor DOWN
+    HALL_U,     // -//- UP
+    KEY_D,      // user key DOWN
+    KEY_U,      // -//- UP
+    DIR_D,      // ext signal (direct motor cables) DOWN
+    DIR_U,      // -//- UP
+    KEY_AMOUNT  // amount of keys connected
+} keycode;
 
-int usart_transmit();
-void usart_setup();
-int usart_getline(char **line);
-int usart_send(const char *str);
-int usart_putchar(const char ch);
+// events
+typedef enum{
+    EVT_NONE,   // no events with given key
+    EVT_PRESS,  // pressed
+    EVT_HOLD,   // hold more than KEY_HOLDTIME ms
+    EVT_RELEASE // released
+} keyevent;
+
+//extern uint32_t lastUnsleep; // last keys activity time
+
+int process_keys();
+void clear_events();
+uint8_t keystate(keycode k, keyevent *evt);
+keyevent keyevt(keycode k);

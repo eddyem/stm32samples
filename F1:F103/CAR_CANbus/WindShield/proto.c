@@ -32,10 +32,12 @@ const char *helpmsg =
     "https://github.com/eddyem/stm32samples/tree/master/F1:F103/CAR_CANbus/WindShield build#" BUILD_NUMBER " @ " BUILD_DATE "\n"
     "'0' - stop PWM\n"
     "'1' - start PWM\n"
+    "'a' - RAW ADC values\n"
     "'b' - break motor (extremal stop)\n"
+    "'f' - set PWM freq (Hz)\n"
     "'d xx' - set dT to xx ms\n"
-    "'m xx' - move motor right (1), left (-1) or stop (0)\n"
-    "'p y xx' - set PWM y (l/r) to xx (0..100)"
+    "'m xx' - move motor up (1), down (2), stop (-2) or emerg stop (-1)\n"
+    "'p y xx' - set PWM y (l/r) to xx (0..100)\n"
     "'s' - get raw VSEN value\n"
     "'t' - get MCU temperature (*10)\n"
     "'u y xx' - turn on (xx==1) or off (xx==0) y (l/r) MOSFET\n"
@@ -115,27 +117,38 @@ static int startPWM(){
  */
 void cmd_parser(char *txt){
     char _1st = txt[0];
-    txt = (char*)omit_spaces(txt + 1);
+ /* usart_send("Got: '");
+  usart_send(txt);
+  usart_send("'\n");*/
+    char *nxtsym = (char*)omit_spaces(txt + 1);
+    uint32_t N = 0;
     int proc = 1;
     switch(_1st){ // parse long commands here
         case 'd':
-            usetter(set_dT, txt);
+            usetter(set_dT, nxtsym);
+        break;
+        case 'f':
+            if(nxtsym != getnum(nxtsym, &N)){
+                if(N < 100 || N > 100000) usart_send("100 <= F <= 100000");
+                else TIM3->PSC = (TIM3FREQ/(N*PWMMAX)) - 1;
+            }
+            usart_send("TIM3->PSC="); usart_send(u2str(TIM3->PSC));
         break;
         case 'm':
-            isetter(motor_ctl, txt);
+            isetter(motor_ctl, nxtsym);
         break;
         case 'p':
-            if(setdir(*txt)){
-                txt = (char*)omit_spaces(txt + 1);
-                usetter(pwmvalsetter, txt); newline();
+            if(setdir(*nxtsym)){
+                nxtsym = (char*)omit_spaces(nxtsym + 1);
+                usetter(pwmvalsetter, nxtsym); newline();
             }
             usart_send("PWM1="); usart_send(u2str(get_pwm(PWM_RIGHT)));
             usart_send("\nPWM2="); usart_send(u2str(get_pwm(PWM_LEFT)));
         break;
         case 'u':
-            if(setdir(*txt)){
-                txt = (char*)omit_spaces(txt + 1);
-                usetter(upsetter, txt); newline();
+            if(setdir(*nxtsym)){
+                nxtsym = (char*)omit_spaces(nxtsym + 1);
+                usetter(upsetter, nxtsym); newline();
             }
             usart_send("UPL="); usart_putchar('0' + read_upL());
             usart_send("\nUPR="); usart_putchar('0' + read_upR());
@@ -152,6 +165,13 @@ void cmd_parser(char *txt){
         break;
         case '1':
             printans(startPWM());
+        break;
+        case 'a':
+            for(int i = 0; i < NUMBER_OF_ADC_CHANNELS; ++i){
+                usart_send("ADC"); usart_putchar('0' + i);
+                usart_putchar('='); usart_send(u2str(getADCval(i)));
+                newline();
+            }
         break;
         case 'b':
             motor_break(); printans(TRUE);
@@ -172,11 +192,11 @@ void cmd_parser(char *txt){
             else usart_send("OFF");
         break;
         case 'R':
-            usart_send("Soft reset\n");
+            usart_send("Soft reset\n\n");
             usart_transmit();
             // wait until DMA & USART done
             while(!usart_txrdy);
-            while(!(USART1->SR & USART_SR_TXE));
+            while(!(USART1->SR & USART_SR_TC));
             USART1->CR1 = 0; // stop USART
             NVIC_SystemReset();
         break;
