@@ -96,10 +96,13 @@ int motor_ctl(int32_t dir){
     }
     accel = 1;
     direction = dir;
+    keyevent uh = keyevt(HALL_U), dh = keyevt(HALL_D);
     if(dir == MOTDIR_UP){ // start in positive direction (move UP)
+        if(uh == EVT_PRESS || uh == EVT_HOLD) return FALSE; // can't move in given direction
         set_up(UP_LEFT);
         set_pwm(PWM_RIGHT, 1);
     }else{ // negative (move DOWN)
+        if(dh == EVT_PRESS || dh == EVT_HOLD) return FALSE;
         set_up(UP_RIGHT);
         set_pwm(PWM_LEFT, 1);
     }
@@ -134,29 +137,30 @@ void motor_process(){
                 }
             }
         }
-        keyevent uh = keyevt(HALL_U), dh = keyevt(HALL_D); // current hall states - if we cannot move upper or lower
-        // short key pressed - full open/close; long - move with stop after release
+        // short key pressed - full open/close (or stop while moving); long - move with stop after release
         if(MOTDIR_BREAK != newdir){ // process keys if don't need to break
             evt = EVT_NONE;
             if(keystate(KEY_U, &evt)){
-                if(evt == EVT_PRESS){ // move up (don't mind EVT_HOLD - it's already moving)
-                    if(uh != EVT_HOLD && uh != EVT_PRESS) newdir = MOTDIR_UP;
+                if(evt == EVT_PRESS){
+                    if(direction == MOTDIR_UP || direction == MOTDIR_DOWN) newdir = MOTDIR_STOP;
+                    else newdir = MOTDIR_UP;
                 }
             }else if(keystate(KEY_D, &evt)){
                 if(evt == EVT_PRESS){
-                    if(dh != EVT_HOLD && dh != EVT_PRESS) newdir = MOTDIR_DOWN;
+                    if(direction == MOTDIR_UP || direction == MOTDIR_DOWN) newdir = MOTDIR_STOP;
+                    else newdir = MOTDIR_DOWN;
                 }
             }
-            if(evt == EVT_RELEASE) newdir = MOTDIR_STOP;
+            if(evt == EVT_RELEASE) newdir = MOTDIR_STOP; // stop after long press
             evt = EVT_NONE;
             int extsig = FALSE;
             // now chech external signals, they have an advantage over local keys
             if(keystate(DIR_U, &evt)){ // react on PRESS and both NONE/RELEASE
                 extsig = TRUE;
-                if(evt == EVT_PRESS && uh != EVT_PRESS && uh != EVT_HOLD) newdir = MOTDIR_UP;
+                if(evt == EVT_PRESS) newdir = MOTDIR_UP;
             }else if(keystate(DIR_D, &evt)){
                 extsig = TRUE;
-                if(evt == EVT_PRESS && dh != EVT_PRESS && dh != EVT_HOLD) newdir = MOTDIR_DOWN;
+                if(evt == EVT_PRESS) newdir = MOTDIR_DOWN;
             }
             if(evt == EVT_RELEASE || (extsig && evt == EVT_NONE)){ // EVT_NONE - released after short press - do nothing; EVT_RELEASE - after hold, stop
                 newdir = MOTDIR_STOP;

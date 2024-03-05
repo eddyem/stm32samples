@@ -64,7 +64,8 @@
 #define DIR_U_PIN       (1<12)
 #define DIR_D_PIN       (1<13)
 
-// define BUTTONS_NEGATIVE if button pressed when ==1
+// define BUTTONS_NEGATIVE if ALL button pressed when ==1
+// (inversion of common buttons - by flag `inverted`)
 #ifdef BUTTONS_NEGATIVE
 #define PRESSED(port, pin)      ((port->IDR & pin) == pin)
 #else

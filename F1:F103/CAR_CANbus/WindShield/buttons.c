@@ -20,6 +20,9 @@
 
 #include "buttons.h"
 #include "hardware.h"
+#ifdef EBUG
+#include "usart.h"
+#endif
 
 extern volatile uint32_t Tms;
 //uint32_t lastUnsleep = 0;
@@ -28,22 +31,24 @@ extern volatile uint32_t Tms;
 #define PRESSTHRESHOLD  (29)
 // HOLDTHRESHOLD = PRESSTHRESHOLD + hold time
 #define HOLDTHRESHOLD   (329)
-
+/*
 typedef struct{
     keyevent event;         // current key event
     int16_t counter;        // press/release milliseconds counter
     GPIO_TypeDef *port;     // key port
     uint16_t pin;           // key pin
-    uint8_t changed;        // the event have been changed
+    uint8_t changed : 1;    // the event have been changed
+    uint8_t inverted : 1;   // button inverted: 0 - passive, 1 - active
 } keybase;
-
+*/
+// HALLs are inverted as disconnected when active
 keybase allkeys[KEY_AMOUNT] = {
-    [HALL_D] = {.port = HALL_PORT, .pin = HALL_D_PIN},
-    [HALL_U] = {.port = HALL_PORT, .pin = HALL_U_PIN},
+    [HALL_D] = {.port = HALL_PORT, .pin = HALL_D_PIN, .inverted = 1},
+    [HALL_U] = {.port = HALL_PORT, .pin = HALL_U_PIN, .inverted = 1},
     [KEY_D] = {.port = BUTTON_PORT, .pin = BUTTON_D_PIN},
     [KEY_U] = {.port = BUTTON_PORT, .pin = BUTTON_U_PIN},
-    [DIR_D] = {.port = DIR_PORT, .pin = DIR_U_PIN},
-    [DIR_U] = {.port = DIR_PORT, .pin = DIR_U_PIN}
+    [DIR_D] = {.port = DIR_PORT, .pin = DIR_D_PIN, .inverted = 1},
+    [DIR_U] = {.port = DIR_PORT, .pin = DIR_U_PIN, .inverted = 1}
 };
 
 // return 1 if something was changed
@@ -56,7 +61,7 @@ int process_keys(){
     for(int i = 0; i < KEY_AMOUNT; ++i){
         keybase *k = &allkeys[i];
         keyevent e = k->event;
-        if(PRESSED(k->port, k->pin)){ // key is in pressed state
+        if(PRESSED(k->port, k->pin) != k->inverted){ // key is in pressed state
             //lastUnsleep = Tms; // update activity time (any key is in pressed state)
             switch(e){
                 case EVT_NONE: // just pressed

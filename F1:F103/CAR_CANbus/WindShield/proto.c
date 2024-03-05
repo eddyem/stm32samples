@@ -17,6 +17,7 @@
  */
 
 #include "adc.h"
+#include "buttons.h"
 #include "can.h"
 #include "hardware.h"
 #include "proto.h"
@@ -42,6 +43,7 @@ const char *helpmsg =
     "'t' - get MCU temperature (*10)\n"
     "'u y xx' - turn on (xx==1) or off (xx==0) y (l/r) MOSFET\n"
     "'v' - get Vdd (*100)\n"
+    "'B' - current buttons state\n"
     "'M' - CAN bus monitoring on/off\n"
     "'R' - software reset\n"
     "'T' - get time from start (ms)\n"
@@ -109,6 +111,46 @@ static int startPWM(){
     if((l && L) || (r && R)) return FALSE; // shortened
     start_pwm();
     return TRUE;
+}
+
+static const char* keyz[KEY_AMOUNT] = {
+    [HALL_D] = "Hall down",
+    [HALL_U] = "Hall up",
+    [KEY_D] = "Key down",
+    [KEY_U] = "Key up",
+    [DIR_D] = "Ext down",
+    [DIR_U] = "Ext up"
+};
+
+
+extern keybase allkeys[];
+TRUE_INLINE void showbtnstate(){
+    for(int i = 0; i < KEY_AMOUNT; ++i){
+        usart_send(keyz[i]); usart_send(": ");
+        switch(keyevt(i)){
+        case EVT_PRESS:
+            usart_send("pressed");
+        break;
+        case EVT_HOLD:
+            usart_send("holded");
+        break;
+        case EVT_RELEASE:
+            usart_send("released after hold");
+        break;
+        default:
+            usart_send("none");
+        }
+        newline();
+    }
+    for(int i = 0; i < KEY_AMOUNT; ++i){
+        usart_send(keyz[i]); usart_send(": ");
+        keybase *k = &allkeys[i];
+        if(!PRESSED(k->port, k->pin)) usart_send("not ");
+        usart_send("pressed, ");
+        if(!k->inverted) usart_send("not ");
+        usart_send("inverted");
+        newline();
+    }
 }
 
 /**
@@ -184,6 +226,9 @@ void cmd_parser(char *txt){
         break;
         case 'v':
             usart_send("VDD="); usart_send(u2str(getVdd()));
+        break;
+        case 'B':
+            showbtnstate();
         break;
         case 'M':
             flags.can_monitor = !flags.can_monitor;

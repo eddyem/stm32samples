@@ -42,6 +42,15 @@ typedef enum{
     EVT_RELEASE // released
 } keyevent;
 
+typedef struct{
+    keyevent event;         // current key event
+    int16_t counter;        // press/release milliseconds counter
+    GPIO_TypeDef *port;     // key port
+    uint16_t pin;           // key pin
+    uint8_t changed : 1;    // the event have been changed
+    uint8_t inverted : 1;   // button inverted: 0 - passive, 1 - active
+} keybase;
+
 //extern uint32_t lastUnsleep; // last keys activity time
 
 int process_keys();
