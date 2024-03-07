@@ -64,6 +64,11 @@ typedef enum{
     CMD_GETESW_BLK, // 11 - blocking read of ESW
     CMD_GETESW,     // 12 - current ESW state, bounce-free
     CMD_BOUNCE,     // 13 - get/set bounce constant (ms)
+    CMD_USARTSPEED, // 14 - get/set USART1 speed (if encoder on RS-422)
+    CMD_ENCISSSI,   // 15 - encoder is SSI (1) or RS-422 (0)
+    CMD_SPIINIT,    // 16 - init SPI2
+    CMD_SPISEND,    // 17 - send 1..4 bytes over SPI
+    CMD_ENCGET,     // 18 - get encoder value
     CMD_AMOUNT      // amount of CAN commands
 } can_cmd;
 

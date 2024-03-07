@@ -19,9 +19,11 @@
 #include "adc.h"
 #include "can.h"
 #include "commonfunctions.h"
+#include "encoder.h"
 #include "flash.h"
 #include "gpio.h"
 #include "proto.h"
+#include "spi.h"
 #include "usb.h"
 
 #define FIXDL(m)     do{m->length = 8;}while(0)
@@ -62,16 +64,6 @@ static errcodes adcv(CAN_message *msg){
     if(no >= ADC_TSENS) return ERR_BADPAR;
     float v = getADCvoltage(no) * the_conf.adcmul[no] * 100.f;
     *(uint32_t*)&msg->data[4] = (uint32_t) v; // or float??
-    return ERR_OK;
-}
-// get/set CAN speed
-static errcodes canspeed(CAN_message *msg){
-    if(ISSETTER(msg->data)){
-        uint32_t spd = *(uint32_t*)&msg->data[4];
-        CAN_reinit(spd);
-        the_conf.CANspeed = CAN_speed();
-    }else FIXDL(msg);
-    *(uint32_t*)&msg->data[4] = CAN_speed();
     return ERR_OK;
 }
 // get/set CAN ID
@@ -128,12 +120,56 @@ static errcodes esw(CAN_message *msg){
     *(uint32_t*)&msg->data[4] = getESW(no);
     return ERR_OK;
 }
-// bounce constant, ms
-static errcodes bounce(CAN_message *msg){
+// init SPI2
+static errcodes initspi2(CAN_message _U_ *msg){
+    spi_setup(2);
+    return ERR_OK;
+}
+// send/read 1..4 bytes
+static errcodes sendspi2(CAN_message *msg){
+    int n = msg->length - 4;
+    if(n < 1) return ERR_BADVAL;
+    if(spi_writeread(2, msg->data + 4, n)) return ERR_OK;
+    return ERR_CANTRUN;
+}
+// read encoder value and send over CAN
+static errcodes encget(CAN_message *msg){
+    FIXDL(msg);
+    if(read_encoder(msg->data + 4)) return ERR_OK;
+    return ERR_CANTRUN;
+}
+
+// common uint32_t setter/getter
+static errcodes u32setget(CAN_message *msg){
+    uint16_t idx = *(uint16_t*)msg->data;
+    uint32_t *ptr = NULL;
+    switch(idx){
+        case CMD_CANSPEED: ptr = &the_conf.CANspeed; break;
+        case CMD_BOUNCE: ptr = &the_conf.bounce_ms; break;
+        case CMD_USARTSPEED: ptr = &the_conf.usartspeed; break;
+        default: break;
+    }
+    if(!ptr) return ERR_CANTRUN; // unknown error
     if(ISSETTER(msg->data)){
-        the_conf.bounce_ms = *(uint32_t*)&msg->data[4];
+        *ptr = *(uint32_t*)&msg->data[4];
     }else FIXDL(msg);
-    *(uint32_t*)&msg->data[4] = the_conf.bounce_ms;
+    *(uint32_t*)&msg->data[4] = *ptr;
+    return ERR_OK;
+}
+// common bitflag setter/getter
+static errcodes flagsetget(CAN_message *msg){
+    uint16_t idx = *(uint16_t*)msg->data;
+    uint8_t bit = 32;
+    switch(idx){
+        case CMD_ENCISSSI: bit = FLAGBIT(ENC_IS_SSI); break;
+        default: break;
+    }
+    if(bit > 31) return ERR_CANTRUN; // unknown error
+    if(ISSETTER(msg->data)){
+        if(msg->data[4])  the_conf.flags |= 1<<bit;
+        else the_conf.flags &= ~(1<<bit);
+    }else FIXDL(msg);
+    *(uint32_t*)&msg->data[4] = (the_conf.flags & (1<<bit)) ? 1 : 0;
     return ERR_OK;
 }
 /************ END of all common functions list (for `funclist`) ************/
@@ -143,7 +179,7 @@ typedef struct{
     errcodes (*fn)(CAN_message *msg); // function to run with can packet `msg`
     int32_t minval;  // minimal/maximal values of *(int32_t*)(&data[4]) - if minval != maxval
     int32_t maxval;
-    uint8_t datalen; // nominal data length
+    uint8_t datalen; // minimal data length (full CAN packet, bytes)
 } commonfunction;
 
 // list of common (CAN/USB) functions
@@ -154,7 +190,7 @@ static const commonfunction funclist[CMD_AMOUNT] = {
     [CMD_MCUTEMP] = {mcut, 0, 0, 0},
     [CMD_ADCRAW] = {adcraw, 0, 0, 3}, // need parno: 0..4
     [CMD_ADCV] = {adcv, 0, 0, 3}, // need parno: 0..3
-    [CMD_CANSPEED] = {canspeed, CAN_MIN_SPEED, CAN_MAX_SPEED, 0},
+    [CMD_CANSPEED] = {u32setget, CAN_MIN_SPEED, CAN_MAX_SPEED, 0},
     [CMD_CANID] = {canid, 1, 0x7ff, 0},
     [CMD_ADCMUL] = {adcmul, 0, 0, 3}, // at least parno
     [CMD_SAVECONF] = {saveconf, 0, 0, 0},
@@ -162,7 +198,12 @@ static const commonfunction funclist[CMD_AMOUNT] = {
     [CMD_RELAY] = {relay, 0, 1, 0},
     [CMD_GETESW_BLK] = {eswblk, 0, 0, 3},
     [CMD_GETESW] = {esw, 0, 0, 3},
-    [CMD_BOUNCE] = {bounce, 0, 300, 0},
+    [CMD_BOUNCE] = {u32setget, 0, 300, 0},
+    [CMD_USARTSPEED] = {u32setget, 1200, 3000000, 0},
+    [CMD_ENCISSSI] = {flagsetget, 0, 0, 0},
+    [CMD_SPIINIT] = {initspi2, 0, 0, 0},
+    [CMD_SPISEND] = {sendspi2, 0, 0, 5},
+    [CMD_ENCGET] = {encget, 0, 0, 0},
 };
 
 
@@ -196,7 +237,7 @@ void run_can_cmd(CAN_message *msg){
     if(idx >= CMD_AMOUNT || funclist[idx].fn == NULL){ // bad command index
         FORMERR(msg, ERR_BADCMD); return;
     }
-    // check minimal length (2 or 3)
+    // check minimal length
     if(funclist[idx].datalen > datalen){
         FORMERR(msg, ERR_WRONGLEN); return;
     }

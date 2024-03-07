@@ -17,6 +17,7 @@
  */
 
 #include "can.h"
+#include "encoder.h"
 #include "flash.h"
 #include "gpio.h"
 #include "hardware.h"
@@ -60,6 +61,7 @@ int main(void){
     hw_setup();
     // getSwitches() and set module role & CAN ID
     CAN_setup(the_conf.CANspeed);
+    encoder_setup();
     USBPU_ON();
     while(1){
         IWDG->KR = IWDG_REFRESH;

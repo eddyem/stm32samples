@@ -4,6 +4,8 @@ can.c
 can.h
 commonfunctions.c
 commonfunctions.h
+encoder.c
+encoder.h
 flash.c
 flash.h
 gpio.c
@@ -14,6 +16,8 @@ main.c
 proto.h
 ringbuffer.c
 ringbuffer.h
+spi.c
+spi.h
 strfunc.c
 strfunc.h
 textfunctions.c

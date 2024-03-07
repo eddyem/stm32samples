@@ -31,23 +31,23 @@ const uint32_t FLASH_blocksize = (uint32_t)&_BLOCKSIZE;
 static uint32_t maxCnum = 1024 / sizeof(user_conf); // can't use blocksize here
 
 
-#define USERCONF_INITIALIZER  {             \
-     .userconf_sz = sizeof(user_conf)       \
-    ,.CANspeed = 100000                     \
-    ,.CANID = 0xaa                          \
-    ,.bounce_ms = 50                        \
-    ,.adcmul[0] = 10.930f                   \
-    ,.adcmul[1] = 2.028f                    \
-    ,.adcmul[2] = 1.f                       \
-    ,.adcmul[3] = 1.f                       \
-    }
-
 static int write2flash(const void*, const void*, uint32_t);
 // don't write `static` here, or get error:
 //      'memcpy' forming offset 8 is out of the bounds [0, 4] of object '__varsstart' with type 'uint32_t'
 const user_conf *Flash_Data = (const user_conf *)(&__varsstart);
 
-user_conf the_conf = USERCONF_INITIALIZER;
+user_conf the_conf = {
+    .userconf_sz = sizeof(user_conf),
+    .CANspeed = 100000,
+    .CANID = 0xaa,
+    .bounce_ms = 50,
+    .adcmul[0] = 10.930f,
+    .adcmul[1] = 2.028f,
+    .adcmul[2] = 1.f,
+    .adcmul[3] = 1.f,
+    .usartspeed = 115200,
+    .flags = FLAGP(ENC_IS_SSI),
+};
 
 int currentconfidx = -1; // index of current configuration
 
@@ -179,9 +179,6 @@ int erase_storage(int npage){
         FLASH->KEYR = FLASH_KEY1;
         FLASH->KEYR = FLASH_KEY2;
     }
-    /*USB_sendstr("size/block size/nblocks/FLASH_SIZE: "); printu(flsz);
-    USB_putbyte('/'); printu(FLASH_blocksize); USB_putbyte('/');
-    printu(nblocks); USB_putbyte('/'); printu(FLASH_SIZE); newline(); USB_sendall();*/
     while(FLASH->SR & FLASH_SR_BSY) IWDG->KR = IWDG_REFRESH;
     FLASH->SR = FLASH_SR_EOP | FLASH_SR_PGERR | FLASH_SR_WRPERR;
     FLASH->CR |= FLASH_CR_PER;

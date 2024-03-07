@@ -66,6 +66,7 @@ static const funcdescr funclist[] = {
     {"reset", CMD_RESET, "reset MCU"},
     {"s", -TCMD_CANSEND, "send CAN message: ID 0..8 data bytes"},
     {"saveconf", CMD_SAVECONF, "save configuration"},
+    {"spiinit", CMD_SPIINIT, "init SPI2"},
     {"time", CMD_TIME, "get/set time (ms)"},
     {"wdtest", -TCMD_WDTEST, "test watchdog"},
     {NULL, 0, NULL} // last record
@@ -78,6 +79,12 @@ static errcodes wdtest(const char _U_ *str){
     while(1){nop();}
     return ERR_OK;
 }
+
+// names of bit flags (ordered from LSE of[0])
+static const char * const bitfields[] = {
+    "encisSSI",
+    NULL
+};
 
 static errcodes dumpconf(const char _U_ *str){
 #ifdef EBUG
@@ -94,6 +101,15 @@ static errcodes dumpconf(const char _U_ *str){
     for(int i = 0; i < ADC_TSENS; ++i){
         USB_sendstr("\nadcmul"); USB_putbyte('0'+i); USB_putbyte('=');
         USB_sendstr(float2str(the_conf.adcmul[i], 3));
+    }
+    USB_sendstr("\nusartspeed="); printu(the_conf.usartspeed);
+    const char * const *p = bitfields;
+    int bit = 0;
+    while(p){
+        newline();
+        USB_sendstr(*p); USB_putbyte('='); USB_putbyte((the_conf.flags & (1<<bit)) ? '1' : '0');
+        if(++bit > 31) break;
+        ++p;
     }
 //#define PROPNAME(nm)    do{newline(); USB_sendstr(nm); USB_putbyte(cur); USB_putbyte('=');}while(0)
 //#undef PROPNAME

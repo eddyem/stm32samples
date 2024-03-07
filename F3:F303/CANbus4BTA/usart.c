@@ -16,8 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "stm32f3.h"
+#include <stm32f3.h>
 #include "hardware.h"
+#include "flash.h"
 #include "usart.h"
 #include <string.h>
 
@@ -64,11 +65,16 @@ void usart_send(const char *str){
     usart_sendn(str, L);
 }
 
+// USART1: PA10(Rx, pullup), PA9(Tx); USART1 = AF7 @PA9/10;
 void usart_setup(){
     // clock
+    GPIOA->MODER = (GPIOA->MODER & ~(GPIO_MODER_MODER9 | GPIO_MODER_MODER10)) |
+                   MODER_AF(9)  | MODER_AF(10);
+    GPIOA->AFR[1] = (GPIOA->AFR[1] & ~(GPIO_AFRH_AFRH1 | GPIO_AFRH_AFRH2)) |
+                    AFRf(7, 9) | AFRf(7, 10);
     RCC->APB2ENR |= RCC_APB2ENR_USART1EN;
     USART1->ICR = 0xffffffff; // clear all flags
-    USART1->BRR = SysFreq / 115200;
+    USART1->BRR = SysFreq / the_conf.usartspeed;
     USART1->CR1 = USART_CR1_TE | USART_CR1_RE | USART_CR1_UE | USART_CR1_RXNEIE; // 1start,8data,nstop; enable Rx,Tx,USART
     uint32_t tmout = 16000000;
     while(!(USART1->ISR & USART_ISR_TC)){if(--tmout == 0) break;} // polling idle frame Transmission

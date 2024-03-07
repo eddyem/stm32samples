@@ -41,4 +41,7 @@
 
 extern volatile uint32_t Tms;
 
+// SPI1 is encoder, SPI2 is ext
+#define ENCODER_SPI     (1)
+
 void hw_setup();

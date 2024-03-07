@@ -28,6 +28,21 @@
 
 #define FLASH_SIZE          *((uint16_t*)FLASH_SIZE_BASE)
 
+// bit flags positions
+// encoder have SSI (1) or RS-422 (0)
+#define ENC_IS_SSI_BIT      0
+
+// bit number
+#define FLAGBIT(f)      (f ## _BIT)
+// flag position
+#define FLAGP(f)        (1 << FLAGBIT(f))
+// flag value
+#define FLAG(f)         ((the_conf.flags & FLAGP(f)) ? 1 : 0)
+// set flag
+#define FLAGS(f)        do{the_conf.flags |= FLAGP(f);}while(0)
+// reset flag
+#define FLAGR(f)        do{the_conf.flags &= ~FLAGP(f);}while(0)
+
 /*
  * struct to save user configurations
  */
@@ -35,8 +50,10 @@ typedef struct __attribute__((packed, aligned(4))){
     uint16_t userconf_sz;           // "magick number"
     uint16_t CANID;                 // identifier
     uint32_t CANspeed;              // default CAN speed
-    uint32_t bounce_ms;              // a
+    uint32_t bounce_ms;             // debounce wait
     float adcmul[ADC_TSENS];        // ADC voltage multipliers
+    uint32_t usartspeed;            // USART1 speed (baud/s)
+    uint32_t flags;                 // bit flags
 } user_conf;
 
 extern user_conf the_conf; // global user config (read from FLASH to RAM)
