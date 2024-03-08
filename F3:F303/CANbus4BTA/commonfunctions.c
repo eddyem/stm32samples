@@ -43,6 +43,14 @@ static errcodes time_getset(CAN_message *msg){
     *(uint32_t*)&msg->data[4] = Tms;
     return ERR_OK;
 }
+// get/set timestamp
+static errcodes timestamp_getset(CAN_message *msg){
+    if(ISSETTER(msg->data)){
+        TIM2->CNT = *(uint32_t*)&msg->data[4];
+    }else FIXDL(msg);
+    *(uint32_t*)&msg->data[4] = TIM2->CNT;
+    return ERR_OK;
+}
 // get MCU T
 static errcodes mcut(CAN_message *msg){
     FIXDL(msg);
@@ -138,6 +146,11 @@ static errcodes encget(CAN_message *msg){
     if(read_encoder(msg->data + 4)) return ERR_OK;
     return ERR_CANTRUN;
 }
+// reinit encoder
+static errcodes encreinit(CAN_message _U_ *msg){
+    encoder_setup();
+    return ERR_OK;
+}
 
 // common uint32_t setter/getter
 static errcodes u32setget(CAN_message *msg){
@@ -204,6 +217,9 @@ static const commonfunction funclist[CMD_AMOUNT] = {
     [CMD_SPIINIT] = {initspi2, 0, 0, 0},
     [CMD_SPISEND] = {sendspi2, 0, 0, 5},
     [CMD_ENCGET] = {encget, 0, 0, 0},
+    [CMD_EMULPEP] = {flagsetget, 0, 0, 0},
+    [CMD_ENCREINIT] = {encreinit, 0, 0, 0},
+    [CMD_TIMESTAMP] = {timestamp_getset, 0, 0xffffff, 0},
 };
 
 

@@ -23,9 +23,8 @@
 // input buffers size
 #define UARTBUFSZ  (80)
 
-extern volatile int linerdy, bufovr;
-
 void usart_setup();
+void usart_deinit();
 int usart_getline(char **line);
 void usart_send(const char *str);
 void usart_sendn(const char *str, int L);

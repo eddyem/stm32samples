@@ -46,7 +46,9 @@ user_conf the_conf = {
     .adcmul[2] = 1.f,
     .adcmul[3] = 1.f,
     .usartspeed = 115200,
-    .flags = FLAGP(ENC_IS_SSI),
+    .encoderID = 8,
+    .limitsID = 0xe,
+    .flags = FLAGP(ENC_IS_SSI) /*| FLAGP(EMULATE_PEP)*/,
 };
 
 int currentconfidx = -1; // index of current configuration

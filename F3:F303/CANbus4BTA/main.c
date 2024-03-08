@@ -50,6 +50,7 @@ TRUE_INLINE void showCANmessages(){
 
 int main(void){
     char inbuff[MAXSTRLEN+1];
+    uint32_t encT = 0; // time of ENC and LIM data sent (PEP emulation)
     USBPU_OFF();
     if(StartHSE()){
         SysTick_Config((uint32_t)72000); // 1ms
@@ -75,15 +76,6 @@ int main(void){
             CAN_reinit(0);
         }
         if(cansniffer) showCANmessages();
-        /*if(bufovr){
-            bufovr = 0;
-            USB_sendstr("error=uartoverflow\n");
-        }*/
-        char *txt = NULL;
-        if(usart_getline(&txt)){
-            const char *ans = run_text_cmd(txt);
-            if(ans) usart_send(ans);
-        }
         int l = USB_receivestr(inbuff, MAXSTRLEN);
         if(l < 0) USB_sendstr("error=usboverflow\n");
         else if(l){
@@ -92,13 +84,22 @@ int main(void){
         }
         ESW_process();
         static uint8_t oldswitches[2] = {0};
+        int send = 0;
         for(int i = 0; i < 2; ++i){
             uint8_t new = getESW(i);
             if(oldswitches[i] != new){
+                send = 1;
                 oldswitches[i] = new;
-                USB_sendstr("ESW changed @"); printu(Tms);
+                USB_sendstr("ESW"); USB_putbyte('0' + i);
+                USB_sendstr(" changed @"); printu(Tms);
                 USB_sendstr(" to "); printuhex(new); newline();
             }
+        }
+        if(FLAG(EMULATE_PEP)){
+            if(Tms - encT > ENCODER_PERIOD){
+                encT = Tms;
+                CANsendEnc();
+            } else if(send) CANsendLim();
         }
     }
 }

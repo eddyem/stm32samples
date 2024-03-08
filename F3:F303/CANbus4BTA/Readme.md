@@ -122,6 +122,59 @@ Channel1 - ADC1.
 
 ## DMA2
 
+# Other resources usage
+## Timers
+
+- SysTick is 1ms system time counter (`Tms`).
+- TIM2 is 32bit timer with 2mks period (system timestamp for PEP emulation).
+
+## CAN
+
+CAN bus is primary interface.
+
+## USB
+
+USB (PL2303 emulation with iINTERFACE="canbusbta") used as alternate managing interface and for debugging.
+
+## USART
+
+USART1 can be used to operate with external encoder or other device over RS-422.
+
+## SPI
+
+- SPI1 used to work with external SSI encoder.
+- SPI2 used with some external things.
+
+## I2C
+
+not implemented yet
+
+## ADC
+
+ADC1 used to measure internal temperature (CH16) and external:
+
+- CH1 - external power supply (raw value approx Uext/10).
+- CH2 - onboard 5V supply after DC-DC (raw value approx V/2).
+- CH3, CH4 - external inputs through dividers on RV1/R14 and RV2/R15.
+
+## GPIO
+
+GPIOA:
+
+- PA4 - DIN - input of multiplexers U1 and U2.
+- PA5 - DEN0 - enable multiplexer U1.
+- PA6 - DEN1 - enable multiplexer U2.
+
+GPIOB:
+
+- PB0..PB2 - 3bit input address on multiplexer.
+
+GPIOC:
+
+- PC13 - buzzer (not implemented yet).
+- PC14 - relay.
+- PC15 - USB pullup.
+
 # Text command protocol
 Text commands have format of `parameter[number][=setter]`. Where
 - *parameter* is any possible command,

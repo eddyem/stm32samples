@@ -29,6 +29,7 @@ typedef enum{
 
 extern spiStatus spi_status[AMOUNT_OF_SPI+1];
 
+void spi_deinit(uint8_t idx);
 void spi_setup(uint8_t idx);
 int spi_waitbsy(uint8_t idx);
 int spi_writeread(uint8_t idx, uint8_t *data, uint32_t n);

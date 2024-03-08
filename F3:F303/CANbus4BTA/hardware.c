@@ -46,7 +46,17 @@ TRUE_INLINE void iwdg_setup(){
 }
 #endif
 
-static inline void gpio_setup(){
+// setup TIM2 as 24-bit 2mks timestamp counter
+TRUE_INLINE void tim2_setup(){
+    TIM2->CR1 = 0; // turn off timer
+    RCC->APB1ENR |= RCC_APB1ENR_TIM2EN; // enable clocking
+    TIM2->PSC = 143; // 500kHz
+    TIM2->ARR = 0xffffff; // 24 bit counter from 0xffffff to 0
+    // turn it on, downcounting
+    TIM2->CR1 = TIM_CR1_CEN | TIM_CR1_DIR;
+}
+
+TRUE_INLINE void gpio_setup(){
     RELAY_OFF(); MUL_OFF(0); MUL_OFF(1);
     RCC->AHBENR |= RCC_AHBENR_GPIOAEN | RCC_AHBENR_GPIOBEN | RCC_AHBENR_GPIOCEN;
     // PWM - AF1 @PA7; USB - alternate function 14 @ pins PA11/PA12; SWD - AF0 @PA13/14
@@ -73,6 +83,7 @@ static inline void gpio_setup(){
 }
 
 void hw_setup(){
+    tim2_setup();
     gpio_setup();
     adc_setup();
     USB_setup();

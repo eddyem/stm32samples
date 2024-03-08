@@ -22,3 +22,5 @@
 
 void encoder_setup();
 int read_encoder(uint8_t outbuf[4]);
+void CANsendEnc();
+void CANsendLim();

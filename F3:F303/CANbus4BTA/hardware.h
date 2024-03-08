@@ -20,6 +20,9 @@
 
 #include <stm32f3.h>
 
+// PEP emulation - period of encoder/esw data send - 70ms
+#define ENCODER_PERIOD  (69)
+
 // USB pullup
 #define USBPU_port  GPIOC
 #define USBPU_pin   (1<<15)

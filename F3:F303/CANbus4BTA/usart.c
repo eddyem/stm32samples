@@ -24,7 +24,7 @@
 
 static volatile int idatalen = 0; // received data line length (including '\n')
 
-volatile int linerdy = 0,   // received data ready
+static volatile int linerdy = 0,   // received data ready
     dlen    = 0,            // length of data (including '\n') in current buffer
     bufovr  = 0;            // input buffer overfull
 
@@ -65,9 +65,17 @@ void usart_send(const char *str){
     usart_sendn(str, L);
 }
 
+// turn off USART1 and deinit GPIO
+void usart_deinit(){
+    USART1->ICR = 0xffffffff;
+    USART1->CR1 = 0;
+    RCC->APB2ENR &= ~RCC_APB2ENR_USART1EN;
+    GPIOA->AFR[1] = GPIOA->AFR[1] & ~(GPIO_AFRH_AFRH1 | GPIO_AFRH_AFRH2);
+    GPIOA->MODER = GPIOA->MODER & ~(GPIO_MODER_MODER9 | GPIO_MODER_MODER10);
+}
+
 // USART1: PA10(Rx, pullup), PA9(Tx); USART1 = AF7 @PA9/10;
 void usart_setup(){
-    // clock
     GPIOA->MODER = (GPIOA->MODER & ~(GPIO_MODER_MODER9 | GPIO_MODER_MODER10)) |
                    MODER_AF(9)  | MODER_AF(10);
     GPIOA->AFR[1] = (GPIOA->AFR[1] & ~(GPIO_AFRH_AFRH1 | GPIO_AFRH_AFRH2)) |

@@ -69,6 +69,9 @@ typedef enum{
     CMD_SPIINIT,    // 16 - init SPI2
     CMD_SPISEND,    // 17 - send 1..4 bytes over SPI
     CMD_ENCGET,     // 18 - get encoder value
+    CMD_EMULPEP,    // 19 - emulate (1) / not (0) PEP
+    CMD_ENCREINIT,  // 20 - reinit encoder
+    CMD_TIMESTAMP,  // 21 - 2mks 24-bit timestamp
     CMD_AMOUNT      // amount of CAN commands
 } can_cmd;
 

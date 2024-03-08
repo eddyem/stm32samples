@@ -16,15 +16,23 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "can.h"
 #include "encoder.h"
 #include "flash.h"
+#include "gpio.h"
 #include "spi.h"
 #include "usart.h"
 
+#include <string.h>
 
 void encoder_setup(){
-    if(FLAG(ENC_IS_SSI)) spi_setup(ENCODER_SPI);
-    else usart_setup();
+    if(FLAG(ENC_IS_SSI)){
+        usart_deinit();
+        spi_setup(ENCODER_SPI);
+    }else{
+        spi_deinit(ENCODER_SPI);
+        usart_setup();
+    }
 }
 
 // read encoder value into buffer `outbuf`
@@ -33,4 +41,23 @@ int read_encoder(uint8_t outbuf[4]){
     if(!FLAG(ENC_IS_SSI)) return FALSE;
     *((uint32_t*)outbuf) = 0;
     return spi_writeread(ENCODER_SPI, outbuf, 4);
+}
+
+// send encoder data
+void CANsendEnc(){
+    CAN_message msg = {.data = {0}, .ID = the_conf.encoderID, .length = 8};
+    if(!read_encoder(msg.data)) return;
+    uint32_t ctr = TIM2->CNT;
+    //msg.data[4] = 0;
+    msg.data[5] = (ctr >> 16) & 0xff;
+    msg.data[6] = (ctr >> 8 ) & 0xff;
+    msg.data[7] = (ctr >> 0 ) & 0xff;
+    CAN_send(&msg);
+}
+// send limit-switches data
+void CANsendLim(){
+    CAN_message msg = {.data = {0}, .ID = the_conf.limitsID, .length = 8};
+    msg.data[2] = getESW(0);
+    msg.data[3] = getESW(1);
+    CAN_send(&msg);
 }

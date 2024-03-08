@@ -31,6 +31,8 @@
 // bit flags positions
 // encoder have SSI (1) or RS-422 (0)
 #define ENC_IS_SSI_BIT      0
+// old PEP behaviour
+#define EMULATE_PEP_BIT     1
 
 // bit number
 #define FLAGBIT(f)      (f ## _BIT)
@@ -53,6 +55,8 @@ typedef struct __attribute__((packed, aligned(4))){
     uint32_t bounce_ms;             // debounce wait
     float adcmul[ADC_TSENS];        // ADC voltage multipliers
     uint32_t usartspeed;            // USART1 speed (baud/s)
+    uint16_t encoderID;             // CANbus encoders' ID (PEP emulation)
+    uint16_t limitsID;              // CANbus limits' ID (PEP emulation)
     uint32_t flags;                 // bit flags
 } user_conf;
 

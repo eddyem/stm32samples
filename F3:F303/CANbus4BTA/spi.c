@@ -26,6 +26,9 @@
 
 //#define SPIDR   *((volatile uint8_t*)&SPI2->DR)
 
+#define CHKIDX(idx) do{if(idx == 0 || idx > AMOUNT_OF_SPI) return;}while(0)
+#define CHKIDXR(idx) do{if(idx == 0 || idx > AMOUNT_OF_SPI) return 0;}while(0)
+
 spiStatus spi_status[AMOUNT_OF_SPI+1] = {0, SPI_NOTREADY, SPI_NOTREADY};
 static volatile SPI_TypeDef* const SPIs[AMOUNT_OF_SPI+1] = {NULL, SPI1, SPI2};
 #define WAITX(x)  do{volatile uint32_t  wctr = 0; while((x) && (++wctr < 360000)) IWDG->KR = IWDG_REFRESH; if(wctr==360000){ DBG("timeout"); return 0;}}while(0)
@@ -38,7 +41,7 @@ static volatile SPI_TypeDef* const SPIs[AMOUNT_OF_SPI+1] = {NULL, SPI1, SPI2};
 // Channel 4 - SPI2 Rx
 // Channel 5 - SPI2 Tx
 void spi_setup(uint8_t idx){
-    if(idx > AMOUNT_OF_SPI) return;
+    CHKIDX(idx);
     volatile SPI_TypeDef *SPI = SPIs[idx];
     SPI->CR1 = 0; // clear EN
     SPI->CR2 = 0;
@@ -59,9 +62,9 @@ void spi_setup(uint8_t idx){
         RCC->APB1RSTR = RCC_APB1RSTR_SPI2RST; // reset SPI
         RCC->APB1RSTR = 0; // clear reset
         RCC->APB1ENR |= RCC_APB1ENR_SPI2EN;
-        RCC->AHBENR |= RCC_AHBENR_DMA1EN;
         SPI->CR2 = SPI_CR2_SSOE; // hardware NSS management
         // setup SPI2 DMA
+        //RCC->AHBENR |= RCC_AHBENR_DMA1EN;
         //SPI->CR2 |= SPI_CR2_TXDMAEN | SPI_CR2_RXDMAEN;
         // Tx
         /*DMA1_Channel5->CPAR = (uint32_t)&(SPI2->DR); // hardware
@@ -82,8 +85,25 @@ void spi_setup(uint8_t idx){
     DBG("SPI works");
 }
 
+// turn off given SPI channel and release GPIO
+void spi_deinit(uint8_t idx){
+    CHKIDX(idx);
+    volatile SPI_TypeDef *SPI = SPIs[idx];
+    SPI->CR1 = 0;
+    SPI->CR2 = 0;
+    if(idx == 1){
+        RCC->APB2ENR &= ~RCC_APB2ENR_SPI1EN;
+        GPIOB->AFR[0] = GPIOB->AFR[0] & ~(GPIO_AFRL_AFRL3 | GPIO_AFRL_AFRL4);
+        GPIOB->MODER = GPIOB->MODER & ~(GPIO_MODER_MODER3 | GPIO_MODER_MODER4);
+    }else if(idx == 2){
+        RCC->APB1ENR &= ~RCC_APB1ENR_SPI2EN;
+        GPIOB->AFR[1] = GPIOB->AFR[1] & ~(GPIO_AFRH_AFRH4 | GPIO_AFRH_AFRH5 | GPIO_AFRH_AFRH6 | GPIO_AFRH_AFRH7);
+        GPIOB->MODER = GPIOB->MODER & ~(GPIO_MODER_MODER12 | GPIO_MODER_MODER13 | GPIO_MODER_MODER14 | GPIO_MODER_MODER15);
+    }
+}
+
 int spi_waitbsy(uint8_t idx){
-    if(idx > AMOUNT_OF_SPI) return 0;
+    CHKIDXR(idx);
     WAITX(SPIs[idx]->SR & SPI_SR_BSY);
     return 1;
 }
@@ -95,7 +115,7 @@ int spi_waitbsy(uint8_t idx){
  * @return 0 if failed
  */
 int spi_writeread(uint8_t idx, uint8_t *data, uint32_t n){
-    if(idx > AMOUNT_OF_SPI) return 0;
+    CHKIDXR(idx);
     if(spi_status[idx] != SPI_READY || !data || !n){
         DBG("not ready");
         return 0;
@@ -146,7 +166,7 @@ int spi_writeread(uint8_t idx, uint8_t *data, uint32_t n){
  */
 /*
 int spi_read(uint8_t idx, uint8_t *data, uint32_t n){
-    if(idx > AMOUNT_OF_SPI) return 0;
+    CHKIDXR(idx);
     if(spi_status[idx] != SPI_READY){
         DBG("not ready");
         return 0;
