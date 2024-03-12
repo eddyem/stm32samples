@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <export version="E">
   <design>
-    <source>/Big/Data/00__Electronics/STM32/F303-nolib/Multistepper/kicad/multistepper.kicad_sch</source>
-    <date>Вт 14 мар 2023 21:19:34</date>
-    <tool>Eeschema 6.0.10</tool>
+    <source>/home/eddy/Docs/SAO/ELECTRONICS/STM32/F3-srcs/Multistepper/kicad/multistepper.kicad_sch</source>
+    <date>Ср 28 фев 2024 09:24:57</date>
+    <tool>Eeschema 7.0.5</tool>
     <sheet number="1" name="/" tstamps="/">
       <title_block>
         <title/>
@@ -264,6 +264,8 @@
       <libsource lib="Device" part="D_Schottky" description="Schottky diode"/>
       <property name="Sheetname" value=""/>
       <property name="Sheetfile" value="multistepper.kicad_sch"/>
+      <property name="ki_description" value="Schottky diode"/>
+      <property name="ki_keywords" value="diode Schottky"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamps>e9fbe82b-fcb1-4261-abd2-e4c2843614e0</tstamps>
     </comp>
@@ -273,6 +275,8 @@
       <libsource lib="elements" part="PESD1CAN" description="CAN bus ESD protection"/>
       <property name="Sheetname" value=""/>
       <property name="Sheetfile" value="multistepper.kicad_sch"/>
+      <property name="ki_description" value="CAN bus ESD protection"/>
+      <property name="ki_keywords" value="diode"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamps>5ed10622-94cf-423d-9a51-52cf61561ac7</tstamps>
     </comp>
@@ -282,6 +286,8 @@
       <libsource lib="Mechanical" part="MountingHole" description="Mounting Hole without connection"/>
       <property name="Sheetname" value=""/>
       <property name="Sheetfile" value="multistepper.kicad_sch"/>
+      <property name="ki_description" value="Mounting Hole without connection"/>
+      <property name="ki_keywords" value="mounting hole"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamps>ee0ae3bb-f0ed-4639-a952-7963f9431658</tstamps>
     </comp>
@@ -291,6 +297,8 @@
       <libsource lib="Mechanical" part="MountingHole" description="Mounting Hole without connection"/>
       <property name="Sheetname" value=""/>
       <property name="Sheetfile" value="multistepper.kicad_sch"/>
+      <property name="ki_description" value="Mounting Hole without connection"/>
+      <property name="ki_keywords" value="mounting hole"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamps>16a098bb-b128-4d8b-83fc-d0bf18b74db9</tstamps>
     </comp>
@@ -300,6 +308,8 @@
       <libsource lib="Mechanical" part="MountingHole" description="Mounting Hole without connection"/>
       <property name="Sheetname" value=""/>
       <property name="Sheetfile" value="multistepper.kicad_sch"/>
+      <property name="ki_description" value="Mounting Hole without connection"/>
+      <property name="ki_keywords" value="mounting hole"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamps>2c2695e8-2a38-4d96-b43e-1a8685de9f5b</tstamps>
     </comp>
@@ -309,6 +319,8 @@
       <libsource lib="Mechanical" part="MountingHole" description="Mounting Hole without connection"/>
       <property name="Sheetname" value=""/>
       <property name="Sheetfile" value="multistepper.kicad_sch"/>
+      <property name="ki_description" value="Mounting Hole without connection"/>
+      <property name="ki_keywords" value="mounting hole"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamps>f383d83f-2902-45d1-bd91-5b9020a1d85d</tstamps>
     </comp>
@@ -319,6 +331,8 @@
       <libsource lib="Connector" part="USB_B" description="USB Type B connector"/>
       <property name="Sheetname" value=""/>
       <property name="Sheetfile" value="multistepper.kicad_sch"/>
+      <property name="ki_description" value="USB Type B connector"/>
+      <property name="ki_keywords" value="connector USB"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamps>0fd87c97-8042-4653-abdd-7019b1430685</tstamps>
     </comp>
@@ -328,6 +342,8 @@
       <libsource lib="Connector" part="Screw_Terminal_01x03" description="Generic screw terminal, single row, 01x03, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
       <property name="Sheetname" value=""/>
       <property name="Sheetfile" value="multistepper.kicad_sch"/>
+      <property name="ki_description" value="Generic screw terminal, single row, 01x03, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <property name="ki_keywords" value="screw terminal"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamps>c18d30ba-062a-4c1a-a3c4-21121fa32a82</tstamps>
     </comp>
@@ -337,6 +353,8 @@
       <libsource lib="Jumper" part="SolderJumper_2_Bridged" description="Solder Jumper, 2-pole, closed/bridged"/>
       <property name="Sheetname" value=""/>
       <property name="Sheetfile" value="multistepper.kicad_sch"/>
+      <property name="ki_description" value="Solder Jumper, 2-pole, closed/bridged"/>
+      <property name="ki_keywords" value="solder jumper SPST"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamps>e07df136-9c14-457d-8c74-2e7051ea67ac</tstamps>
     </comp>
@@ -346,6 +364,8 @@
       <libsource lib="Jumper" part="SolderJumper_2_Bridged" description="Solder Jumper, 2-pole, closed/bridged"/>
       <property name="Sheetname" value=""/>
       <property name="Sheetfile" value="multistepper.kicad_sch"/>
+      <property name="ki_description" value="Solder Jumper, 2-pole, closed/bridged"/>
+      <property name="ki_keywords" value="solder jumper SPST"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamps>7a91a246-2481-4e07-a1c0-1ae5ef0535af</tstamps>
     </comp>
@@ -355,6 +375,7 @@
       <libsource lib="elements" part="B0505S" description="isolated DC-DC"/>
       <property name="Sheetname" value=""/>
       <property name="Sheetfile" value="multistepper.kicad_sch"/>
+      <property name="ki_description" value="isolated DC-DC"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamps>ee41cd78-7f53-492a-98ec-88380d09eb03</tstamps>
     </comp>
@@ -391,6 +412,8 @@
       <libsource lib="Switch" part="SW_DIP_x01" description="1x DIP Switch, Single Pole Single Throw (SPST) switch, small symbol"/>
       <property name="Sheetname" value=""/>
       <property name="Sheetfile" value="multistepper.kicad_sch"/>
+      <property name="ki_description" value="1x DIP Switch, Single Pole Single Throw (SPST) switch, small symbol"/>
+      <property name="ki_keywords" value="dip switch"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamps>b27ea6a0-a572-46ba-ba2a-053475cc4a03</tstamps>
     </comp>
@@ -400,6 +423,8 @@
       <libsource lib="Connector" part="TestPoint" description="test point"/>
       <property name="Sheetname" value=""/>
       <property name="Sheetfile" value="multistepper.kicad_sch"/>
+      <property name="ki_description" value="test point"/>
+      <property name="ki_keywords" value="test point tp"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamps>fa927120-76d0-4789-86fa-35db42ec6d7f</tstamps>
     </comp>
@@ -410,6 +435,8 @@
       <libsource lib="Interface_CAN_LIN" part="ISO1050DUB" description="Isolated CAN Transceiver, SOP-8"/>
       <property name="Sheetname" value=""/>
       <property name="Sheetfile" value="multistepper.kicad_sch"/>
+      <property name="ki_description" value="Isolated CAN Transceiver, SOP-8"/>
+      <property name="ki_keywords" value="CAN Isolated"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamps>ce3651f6-be6a-4f19-939a-e930b4d3a8b4</tstamps>
     </comp>
@@ -420,6 +447,8 @@
       <libsource lib="Power_Protection" part="USBLC6-2SC6" description="Very low capacitance ESD protection diode, 2 data-line, SOT-23-6"/>
       <property name="Sheetname" value=""/>
       <property name="Sheetfile" value="multistepper.kicad_sch"/>
+      <property name="ki_description" value="Very low capacitance ESD protection diode, 2 data-line, SOT-23-6"/>
+      <property name="ki_keywords" value="usb ethernet video"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamps>84e99c61-20c0-46f9-9cda-b4afa636b27e</tstamps>
     </comp>
@@ -438,6 +467,8 @@
       <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
       <property name="Sheetname" value="MCU base"/>
       <property name="Sheetfile" value="mcubase.kicad_sch"/>
+      <property name="ki_description" value="Unpolarized capacitor"/>
+      <property name="ki_keywords" value="cap capacitor"/>
       <sheetpath names="/MCU base/" tstamps="/076c38b6-e164-46bb-9d96-26f8bdfeca37/"/>
       <tstamps>50e7f85a-114b-4113-a2ea-4ba86ee8a5ed</tstamps>
     </comp>
@@ -447,6 +478,8 @@
       <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
       <property name="Sheetname" value="MCU base"/>
       <property name="Sheetfile" value="mcubase.kicad_sch"/>
+      <property name="ki_description" value="Unpolarized capacitor"/>
+      <property name="ki_keywords" value="cap capacitor"/>
       <sheetpath names="/MCU base/" tstamps="/076c38b6-e164-46bb-9d96-26f8bdfeca37/"/>
       <tstamps>4be042a4-35ef-476b-895d-242188eea08d</tstamps>
     </comp>
@@ -465,6 +498,8 @@
       <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
       <property name="Sheetname" value="MCU base"/>
       <property name="Sheetfile" value="mcubase.kicad_sch"/>
+      <property name="ki_description" value="Unpolarized capacitor"/>
+      <property name="ki_keywords" value="cap capacitor"/>
       <sheetpath names="/MCU base/" tstamps="/076c38b6-e164-46bb-9d96-26f8bdfeca37/"/>
       <tstamps>ea8b5774-1ddd-4b9b-b6c1-15584ec4adde</tstamps>
     </comp>
@@ -474,6 +509,8 @@
       <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
       <property name="Sheetname" value="MCU base"/>
       <property name="Sheetfile" value="mcubase.kicad_sch"/>
+      <property name="ki_description" value="Unpolarized capacitor"/>
+      <property name="ki_keywords" value="cap capacitor"/>
       <sheetpath names="/MCU base/" tstamps="/076c38b6-e164-46bb-9d96-26f8bdfeca37/"/>
       <tstamps>a30d7e2b-7e9a-44c6-82ce-94d7e72153d0</tstamps>
     </comp>
@@ -483,6 +520,8 @@
       <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
       <property name="Sheetname" value="MCU base"/>
       <property name="Sheetfile" value="mcubase.kicad_sch"/>
+      <property name="ki_description" value="Unpolarized capacitor"/>
+      <property name="ki_keywords" value="cap capacitor"/>
       <sheetpath names="/MCU base/" tstamps="/076c38b6-e164-46bb-9d96-26f8bdfeca37/"/>
       <tstamps>02b76c3c-8fee-4ca7-8828-f584930c3aff</tstamps>
     </comp>
@@ -492,6 +531,8 @@
       <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
       <property name="Sheetname" value="MCU base"/>
       <property name="Sheetfile" value="mcubase.kicad_sch"/>
+      <property name="ki_description" value="Unpolarized capacitor"/>
+      <property name="ki_keywords" value="cap capacitor"/>
       <sheetpath names="/MCU base/" tstamps="/076c38b6-e164-46bb-9d96-26f8bdfeca37/"/>
       <tstamps>2769e1f0-06ea-4a52-894a-cff3ce9cce85</tstamps>
     </comp>
@@ -501,6 +542,8 @@
       <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
       <property name="Sheetname" value="MCU base"/>
       <property name="Sheetfile" value="mcubase.kicad_sch"/>
+      <property name="ki_description" value="Unpolarized capacitor"/>
+      <property name="ki_keywords" value="cap capacitor"/>
       <sheetpath names="/MCU base/" tstamps="/076c38b6-e164-46bb-9d96-26f8bdfeca37/"/>
       <tstamps>4d00f487-3298-4816-baff-611b98274abe</tstamps>
     </comp>
@@ -511,6 +554,8 @@
       <libsource lib="Power_Protection" part="SP0505BAHT" description="TVS Diode Array, 5.5V Standoff, 5 Channels, SOT-23-6 package"/>
       <property name="Sheetname" value="MCU base"/>
       <property name="Sheetfile" value="mcubase.kicad_sch"/>
+      <property name="ki_description" value="TVS Diode Array, 5.5V Standoff, 5 Channels, SOT-23-6 package"/>
+      <property name="ki_keywords" value="usb esd protection suppression transient"/>
       <sheetpath names="/MCU base/" tstamps="/076c38b6-e164-46bb-9d96-26f8bdfeca37/"/>
       <tstamps>8cbf497e-63b5-44a6-810a-643efbacf71d</tstamps>
     </comp>
@@ -521,6 +566,8 @@
       <libsource lib="Power_Protection" part="SP0505BAHT" description="TVS Diode Array, 5.5V Standoff, 5 Channels, SOT-23-6 package"/>
       <property name="Sheetname" value="MCU base"/>
       <property name="Sheetfile" value="mcubase.kicad_sch"/>
+      <property name="ki_description" value="TVS Diode Array, 5.5V Standoff, 5 Channels, SOT-23-6 package"/>
+      <property name="ki_keywords" value="usb esd protection suppression transient"/>
       <sheetpath names="/MCU base/" tstamps="/076c38b6-e164-46bb-9d96-26f8bdfeca37/"/>
       <tstamps>8875c917-4e24-4fa4-8987-224569a5a0fd</tstamps>
     </comp>
@@ -531,6 +578,8 @@
       <libsource lib="Power_Protection" part="SP0505BAHT" description="TVS Diode Array, 5.5V Standoff, 5 Channels, SOT-23-6 package"/>
       <property name="Sheetname" value="MCU base"/>
       <property name="Sheetfile" value="mcubase.kicad_sch"/>
+      <property name="ki_description" value="TVS Diode Array, 5.5V Standoff, 5 Channels, SOT-23-6 package"/>
+      <property name="ki_keywords" value="usb esd protection suppression transient"/>
       <sheetpath names="/MCU base/" tstamps="/076c38b6-e164-46bb-9d96-26f8bdfeca37/"/>
       <tstamps>ac459abb-962f-40f6-906b-96818657e81e</tstamps>
     </comp>
@@ -541,6 +590,8 @@
       <libsource lib="Power_Protection" part="SP0505BAHT" description="TVS Diode Array, 5.5V Standoff, 5 Channels, SOT-23-6 package"/>
       <property name="Sheetname" value="MCU base"/>
       <property name="Sheetfile" value="mcubase.kicad_sch"/>
+      <property name="ki_description" value="TVS Diode Array, 5.5V Standoff, 5 Channels, SOT-23-6 package"/>
+      <property name="ki_keywords" value="usb esd protection suppression transient"/>
       <sheetpath names="/MCU base/" tstamps="/076c38b6-e164-46bb-9d96-26f8bdfeca37/"/>
       <tstamps>8d4d43dd-bcef-4c92-b862-52161036bfba</tstamps>
     </comp>
@@ -551,6 +602,8 @@
       <libsource lib="Power_Protection" part="SP0505BAHT" description="TVS Diode Array, 5.5V Standoff, 5 Channels, SOT-23-6 package"/>
       <property name="Sheetname" value="MCU base"/>
       <property name="Sheetfile" value="mcubase.kicad_sch"/>
+      <property name="ki_description" value="TVS Diode Array, 5.5V Standoff, 5 Channels, SOT-23-6 package"/>
+      <property name="ki_keywords" value="usb esd protection suppression transient"/>
       <sheetpath names="/MCU base/" tstamps="/076c38b6-e164-46bb-9d96-26f8bdfeca37/"/>
       <tstamps>602c5dbf-4133-46f8-b675-a59b80bbeeb0</tstamps>
     </comp>
@@ -561,6 +614,8 @@
       <libsource lib="Power_Protection" part="SP0505BAHT" description="TVS Diode Array, 5.5V Standoff, 5 Channels, SOT-23-6 package"/>
       <property name="Sheetname" value="MCU base"/>
       <property name="Sheetfile" value="mcubase.kicad_sch"/>
+      <property name="ki_description" value="TVS Diode Array, 5.5V Standoff, 5 Channels, SOT-23-6 package"/>
+      <property name="ki_keywords" value="usb esd protection suppression transient"/>
       <sheetpath names="/MCU base/" tstamps="/076c38b6-e164-46bb-9d96-26f8bdfeca37/"/>
       <tstamps>c76de9d2-b868-4198-a558-91c9e662e305</tstamps>
     </comp>
@@ -571,6 +626,8 @@
       <libsource lib="Power_Protection" part="SP0505BAHT" description="TVS Diode Array, 5.5V Standoff, 5 Channels, SOT-23-6 package"/>
       <property name="Sheetname" value="MCU base"/>
       <property name="Sheetfile" value="mcubase.kicad_sch"/>
+      <property name="ki_description" value="TVS Diode Array, 5.5V Standoff, 5 Channels, SOT-23-6 package"/>
+      <property name="ki_keywords" value="usb esd protection suppression transient"/>
       <sheetpath names="/MCU base/" tstamps="/076c38b6-e164-46bb-9d96-26f8bdfeca37/"/>
       <tstamps>86f3a6fb-c854-4b84-a948-5fdcfbfa655b</tstamps>
     </comp>
@@ -581,6 +638,8 @@
       <libsource lib="Power_Protection" part="SP0505BAHT" description="TVS Diode Array, 5.5V Standoff, 5 Channels, SOT-23-6 package"/>
       <property name="Sheetname" value="MCU base"/>
       <property name="Sheetfile" value="mcubase.kicad_sch"/>
+      <property name="ki_description" value="TVS Diode Array, 5.5V Standoff, 5 Channels, SOT-23-6 package"/>
+      <property name="ki_keywords" value="usb esd protection suppression transient"/>
       <sheetpath names="/MCU base/" tstamps="/076c38b6-e164-46bb-9d96-26f8bdfeca37/"/>
       <tstamps>4699b52d-1c6f-4423-bb4a-fd647a456ec4</tstamps>
     </comp>
@@ -590,6 +649,8 @@
       <libsource lib="Device" part="D_Schottky" description="Schottky diode"/>
       <property name="Sheetname" value="MCU base"/>
       <property name="Sheetfile" value="mcubase.kicad_sch"/>
+      <property name="ki_description" value="Schottky diode"/>
+      <property name="ki_keywords" value="diode Schottky"/>
       <sheetpath names="/MCU base/" tstamps="/076c38b6-e164-46bb-9d96-26f8bdfeca37/"/>
       <tstamps>ed024363-2e6a-4547-bade-9427b7b3c039</tstamps>
     </comp>
@@ -599,6 +660,8 @@
       <libsource lib="Device" part="D_Schottky" description="Schottky diode"/>
       <property name="Sheetname" value="MCU base"/>
       <property name="Sheetfile" value="mcubase.kicad_sch"/>
+      <property name="ki_description" value="Schottky diode"/>
+      <property name="ki_keywords" value="diode Schottky"/>
       <sheetpath names="/MCU base/" tstamps="/076c38b6-e164-46bb-9d96-26f8bdfeca37/"/>
       <tstamps>c5d0b63f-3136-4445-b53e-d2c1aa223f17</tstamps>
     </comp>
@@ -608,6 +671,8 @@
       <libsource lib="Device" part="D_Schottky" description="Schottky diode"/>
       <property name="Sheetname" value="MCU base"/>
       <property name="Sheetfile" value="mcubase.kicad_sch"/>
+      <property name="ki_description" value="Schottky diode"/>
+      <property name="ki_keywords" value="diode Schottky"/>
       <sheetpath names="/MCU base/" tstamps="/076c38b6-e164-46bb-9d96-26f8bdfeca37/"/>
       <tstamps>61c48ae4-a3ca-4166-8536-3ebee3b2e55f</tstamps>
     </comp>
@@ -617,6 +682,8 @@
       <libsource lib="Device" part="D_Schottky" description="Schottky diode"/>
       <property name="Sheetname" value="MCU base"/>
       <property name="Sheetfile" value="mcubase.kicad_sch"/>
+      <property name="ki_description" value="Schottky diode"/>
+      <property name="ki_keywords" value="diode Schottky"/>
       <sheetpath names="/MCU base/" tstamps="/076c38b6-e164-46bb-9d96-26f8bdfeca37/"/>
       <tstamps>25f61d2f-f368-45bb-a685-3e1765023e7f</tstamps>
     </comp>
@@ -626,6 +693,8 @@
       <libsource lib="Device" part="D_Schottky" description="Schottky diode"/>
       <property name="Sheetname" value="MCU base"/>
       <property name="Sheetfile" value="mcubase.kicad_sch"/>
+      <property name="ki_description" value="Schottky diode"/>
+      <property name="ki_keywords" value="diode Schottky"/>
       <sheetpath names="/MCU base/" tstamps="/076c38b6-e164-46bb-9d96-26f8bdfeca37/"/>
       <tstamps>fdf2d369-2f69-4fb0-8787-f708b5599829</tstamps>
     </comp>
@@ -635,6 +704,8 @@
       <libsource lib="Device" part="D_Schottky" description="Schottky diode"/>
       <property name="Sheetname" value="MCU base"/>
       <property name="Sheetfile" value="mcubase.kicad_sch"/>
+      <property name="ki_description" value="Schottky diode"/>
+      <property name="ki_keywords" value="diode Schottky"/>
       <sheetpath names="/MCU base/" tstamps="/076c38b6-e164-46bb-9d96-26f8bdfeca37/"/>
       <tstamps>c4fae247-c8d3-4114-ace2-1491f1aff2d0</tstamps>
     </comp>
@@ -644,6 +715,8 @@
       <libsource lib="Device" part="D_Schottky" description="Schottky diode"/>
       <property name="Sheetname" value="MCU base"/>
       <property name="Sheetfile" value="mcubase.kicad_sch"/>
+      <property name="ki_description" value="Schottky diode"/>
+      <property name="ki_keywords" value="diode Schottky"/>
       <sheetpath names="/MCU base/" tstamps="/076c38b6-e164-46bb-9d96-26f8bdfeca37/"/>
       <tstamps>37691fcc-52b3-451d-b3dc-8b41ee9e1811</tstamps>
     </comp>
@@ -653,6 +726,8 @@
       <libsource lib="Device" part="D_Schottky" description="Schottky diode"/>
       <property name="Sheetname" value="MCU base"/>
       <property name="Sheetfile" value="mcubase.kicad_sch"/>
+      <property name="ki_description" value="Schottky diode"/>
+      <property name="ki_keywords" value="diode Schottky"/>
       <sheetpath names="/MCU base/" tstamps="/076c38b6-e164-46bb-9d96-26f8bdfeca37/"/>
       <tstamps>7b9b4792-8d2e-42ed-bf27-ac30f396d675</tstamps>
     </comp>
@@ -662,6 +737,8 @@
       <libsource lib="Device" part="D_Schottky" description="Schottky diode"/>
       <property name="Sheetname" value="MCU base"/>
       <property name="Sheetfile" value="mcubase.kicad_sch"/>
+      <property name="ki_description" value="Schottky diode"/>
+      <property name="ki_keywords" value="diode Schottky"/>
       <sheetpath names="/MCU base/" tstamps="/076c38b6-e164-46bb-9d96-26f8bdfeca37/"/>
       <tstamps>8b16cc74-a665-49cd-838b-2bfac622ef63</tstamps>
     </comp>
@@ -671,6 +748,8 @@
       <libsource lib="Device" part="D_Schottky" description="Schottky diode"/>
       <property name="Sheetname" value="MCU base"/>
       <property name="Sheetfile" value="mcubase.kicad_sch"/>
+      <property name="ki_description" value="Schottky diode"/>
+      <property name="ki_keywords" value="diode Schottky"/>
       <sheetpath names="/MCU base/" tstamps="/076c38b6-e164-46bb-9d96-26f8bdfeca37/"/>
       <tstamps>18a585d3-c546-4f40-af3d-cbcc49f330d7</tstamps>
     </comp>
@@ -680,6 +759,8 @@
       <libsource lib="Device" part="D_Schottky" description="Schottky diode"/>
       <property name="Sheetname" value="MCU base"/>
       <property name="Sheetfile" value="mcubase.kicad_sch"/>
+      <property name="ki_description" value="Schottky diode"/>
+      <property name="ki_keywords" value="diode Schottky"/>
       <sheetpath names="/MCU base/" tstamps="/076c38b6-e164-46bb-9d96-26f8bdfeca37/"/>
       <tstamps>b81d49a6-5b98-49f5-93c9-5d8089cb5dd8</tstamps>
     </comp>
@@ -689,6 +770,8 @@
       <libsource lib="Device" part="D_Schottky" description="Schottky diode"/>
       <property name="Sheetname" value="MCU base"/>
       <property name="Sheetfile" value="mcubase.kicad_sch"/>
+      <property name="ki_description" value="Schottky diode"/>
+      <property name="ki_keywords" value="diode Schottky"/>
       <sheetpath names="/MCU base/" tstamps="/076c38b6-e164-46bb-9d96-26f8bdfeca37/"/>
       <tstamps>fd169d0b-42b4-46e2-91dd-54a2b8914abc</tstamps>
     </comp>
@@ -698,6 +781,8 @@
       <libsource lib="Device" part="D_Schottky" description="Schottky diode"/>
       <property name="Sheetname" value="MCU base"/>
       <property name="Sheetfile" value="mcubase.kicad_sch"/>
+      <property name="ki_description" value="Schottky diode"/>
+      <property name="ki_keywords" value="diode Schottky"/>
       <sheetpath names="/MCU base/" tstamps="/076c38b6-e164-46bb-9d96-26f8bdfeca37/"/>
       <tstamps>54c89486-65ba-4bb4-bf2c-dde6ff3f13c2</tstamps>
     </comp>
@@ -707,6 +792,8 @@
       <libsource lib="Device" part="D_Schottky" description="Schottky diode"/>
       <property name="Sheetname" value="MCU base"/>
       <property name="Sheetfile" value="mcubase.kicad_sch"/>
+      <property name="ki_description" value="Schottky diode"/>
+      <property name="ki_keywords" value="diode Schottky"/>
       <sheetpath names="/MCU base/" tstamps="/076c38b6-e164-46bb-9d96-26f8bdfeca37/"/>
       <tstamps>fe9e596c-fd11-492c-ada3-05835ab1e825</tstamps>
     </comp>
@@ -716,6 +803,8 @@
       <libsource lib="Connector" part="Conn_01x06_Female" description="Generic connector, single row, 01x06, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
       <property name="Sheetname" value="MCU base"/>
       <property name="Sheetfile" value="mcubase.kicad_sch"/>
+      <property name="ki_description" value="Generic connector, single row, 01x06, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <property name="ki_keywords" value="connector"/>
       <sheetpath names="/MCU base/" tstamps="/076c38b6-e164-46bb-9d96-26f8bdfeca37/"/>
       <tstamps>0a2164e6-1008-49c9-8dcc-35ec48848c75</tstamps>
     </comp>
@@ -725,6 +814,8 @@
       <libsource lib="Connector_Generic" part="Conn_02x05_Odd_Even" description="Generic connector, double row, 02x05, odd/even pin numbering scheme (row 1 odd numbers, row 2 even numbers), script generated (kicad-library-utils/schlib/autogen/connector/)"/>
       <property name="Sheetname" value="MCU base"/>
       <property name="Sheetfile" value="mcubase.kicad_sch"/>
+      <property name="ki_description" value="Generic connector, double row, 02x05, odd/even pin numbering scheme (row 1 odd numbers, row 2 even numbers), script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <property name="ki_keywords" value="connector"/>
       <sheetpath names="/MCU base/" tstamps="/076c38b6-e164-46bb-9d96-26f8bdfeca37/"/>
       <tstamps>9eb0e3e4-2412-4862-9254-ebfae0e788ab</tstamps>
     </comp>
@@ -734,6 +825,8 @@
       <libsource lib="Connector_Generic" part="Conn_02x05_Odd_Even" description="Generic connector, double row, 02x05, odd/even pin numbering scheme (row 1 odd numbers, row 2 even numbers), script generated (kicad-library-utils/schlib/autogen/connector/)"/>
       <property name="Sheetname" value="MCU base"/>
       <property name="Sheetfile" value="mcubase.kicad_sch"/>
+      <property name="ki_description" value="Generic connector, double row, 02x05, odd/even pin numbering scheme (row 1 odd numbers, row 2 even numbers), script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <property name="ki_keywords" value="connector"/>
       <sheetpath names="/MCU base/" tstamps="/076c38b6-e164-46bb-9d96-26f8bdfeca37/"/>
       <tstamps>3b30193d-b3cb-42a8-a75c-e3cbeadeeead</tstamps>
     </comp>
@@ -743,6 +836,8 @@
       <libsource lib="Connector" part="Conn_01x05_Male" description="Generic connector, single row, 01x05, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
       <property name="Sheetname" value="MCU base"/>
       <property name="Sheetfile" value="mcubase.kicad_sch"/>
+      <property name="ki_description" value="Generic connector, single row, 01x05, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <property name="ki_keywords" value="connector"/>
       <sheetpath names="/MCU base/" tstamps="/076c38b6-e164-46bb-9d96-26f8bdfeca37/"/>
       <tstamps>ccb77252-a30a-4e35-966a-bc81f22467e9</tstamps>
     </comp>
@@ -752,6 +847,8 @@
       <libsource lib="Connector" part="Conn_01x04_Female" description="Generic connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
       <property name="Sheetname" value="MCU base"/>
       <property name="Sheetfile" value="mcubase.kicad_sch"/>
+      <property name="ki_description" value="Generic connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <property name="ki_keywords" value="connector"/>
       <sheetpath names="/MCU base/" tstamps="/076c38b6-e164-46bb-9d96-26f8bdfeca37/"/>
       <tstamps>23242767-ce55-4623-97c5-9de9c42c2a3f</tstamps>
     </comp>
@@ -761,6 +858,8 @@
       <libsource lib="Connector" part="Conn_01x03_Male" description="Generic connector, single row, 01x03, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
       <property name="Sheetname" value="MCU base"/>
       <property name="Sheetfile" value="mcubase.kicad_sch"/>
+      <property name="ki_description" value="Generic connector, single row, 01x03, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <property name="ki_keywords" value="connector"/>
       <sheetpath names="/MCU base/" tstamps="/076c38b6-e164-46bb-9d96-26f8bdfeca37/"/>
       <tstamps>8a056ff3-5fc5-445e-813f-5479481ae2be</tstamps>
     </comp>
@@ -770,6 +869,8 @@
       <libsource lib="Jumper" part="SolderJumper_2_Bridged" description="Solder Jumper, 2-pole, closed/bridged"/>
       <property name="Sheetname" value="MCU base"/>
       <property name="Sheetfile" value="mcubase.kicad_sch"/>
+      <property name="ki_description" value="Solder Jumper, 2-pole, closed/bridged"/>
+      <property name="ki_keywords" value="solder jumper SPST"/>
       <sheetpath names="/MCU base/" tstamps="/076c38b6-e164-46bb-9d96-26f8bdfeca37/"/>
       <tstamps>f76210b5-67e6-490d-8965-5af4553121d1</tstamps>
     </comp>
@@ -779,6 +880,8 @@
       <libsource lib="Device" part="Q_PMOS_GSD" description="P-MOSFET transistor, gate/source/drain"/>
       <property name="Sheetname" value="MCU base"/>
       <property name="Sheetfile" value="mcubase.kicad_sch"/>
+      <property name="ki_description" value="P-MOSFET transistor, gate/source/drain"/>
+      <property name="ki_keywords" value="transistor PMOS P-MOS P-MOSFET"/>
       <sheetpath names="/MCU base/" tstamps="/076c38b6-e164-46bb-9d96-26f8bdfeca37/"/>
       <tstamps>4aaed31f-871b-477f-80f7-78eb56ece162</tstamps>
     </comp>
@@ -788,6 +891,8 @@
       <libsource lib="Device" part="R" description="Resistor"/>
       <property name="Sheetname" value="MCU base"/>
       <property name="Sheetfile" value="mcubase.kicad_sch"/>
+      <property name="ki_description" value="Resistor"/>
+      <property name="ki_keywords" value="R res resistor"/>
       <sheetpath names="/MCU base/" tstamps="/076c38b6-e164-46bb-9d96-26f8bdfeca37/"/>
       <tstamps>d5a51180-2476-4d7a-9ddb-ac12fd28a395</tstamps>
     </comp>
@@ -797,6 +902,8 @@
       <libsource lib="Device" part="R" description="Resistor"/>
       <property name="Sheetname" value="MCU base"/>
       <property name="Sheetfile" value="mcubase.kicad_sch"/>
+      <property name="ki_description" value="Resistor"/>
+      <property name="ki_keywords" value="R res resistor"/>
       <sheetpath names="/MCU base/" tstamps="/076c38b6-e164-46bb-9d96-26f8bdfeca37/"/>
       <tstamps>0a91a0cf-5d2c-49b6-9b9f-5c9869c48aa7</tstamps>
     </comp>
@@ -806,6 +913,8 @@
       <libsource lib="Device" part="R" description="Resistor"/>
       <property name="Sheetname" value="MCU base"/>
       <property name="Sheetfile" value="mcubase.kicad_sch"/>
+      <property name="ki_description" value="Resistor"/>
+      <property name="ki_keywords" value="R res resistor"/>
       <sheetpath names="/MCU base/" tstamps="/076c38b6-e164-46bb-9d96-26f8bdfeca37/"/>
       <tstamps>41ba9fe3-fda3-4c5a-b5ed-45ddc9637d82</tstamps>
     </comp>
@@ -815,6 +924,8 @@
       <libsource lib="Device" part="R" description="Resistor"/>
       <property name="Sheetname" value="MCU base"/>
       <property name="Sheetfile" value="mcubase.kicad_sch"/>
+      <property name="ki_description" value="Resistor"/>
+      <property name="ki_keywords" value="R res resistor"/>
       <sheetpath names="/MCU base/" tstamps="/076c38b6-e164-46bb-9d96-26f8bdfeca37/"/>
       <tstamps>28263919-0a6d-4435-9164-6012adfd9ef0</tstamps>
     </comp>
@@ -824,6 +935,8 @@
       <libsource lib="Device" part="R" description="Resistor"/>
       <property name="Sheetname" value="MCU base"/>
       <property name="Sheetfile" value="mcubase.kicad_sch"/>
+      <property name="ki_description" value="Resistor"/>
+      <property name="ki_keywords" value="R res resistor"/>
       <sheetpath names="/MCU base/" tstamps="/076c38b6-e164-46bb-9d96-26f8bdfeca37/"/>
       <tstamps>94c62fc5-7755-4bfc-9497-cb4908571986</tstamps>
     </comp>
@@ -833,6 +946,8 @@
       <libsource lib="Device" part="R" description="Resistor"/>
       <property name="Sheetname" value="MCU base"/>
       <property name="Sheetfile" value="mcubase.kicad_sch"/>
+      <property name="ki_description" value="Resistor"/>
+      <property name="ki_keywords" value="R res resistor"/>
       <sheetpath names="/MCU base/" tstamps="/076c38b6-e164-46bb-9d96-26f8bdfeca37/"/>
       <tstamps>a6fb37af-0bb7-4472-8159-c1606391d1de</tstamps>
     </comp>
@@ -842,6 +957,8 @@
       <libsource lib="Device" part="R" description="Resistor"/>
       <property name="Sheetname" value="MCU base"/>
       <property name="Sheetfile" value="mcubase.kicad_sch"/>
+      <property name="ki_description" value="Resistor"/>
+      <property name="ki_keywords" value="R res resistor"/>
       <sheetpath names="/MCU base/" tstamps="/076c38b6-e164-46bb-9d96-26f8bdfeca37/"/>
       <tstamps>f840e73b-4cf8-490d-819e-4202b6817fe3</tstamps>
     </comp>
@@ -851,6 +968,8 @@
       <libsource lib="Device" part="R" description="Resistor"/>
       <property name="Sheetname" value="MCU base"/>
       <property name="Sheetfile" value="mcubase.kicad_sch"/>
+      <property name="ki_description" value="Resistor"/>
+      <property name="ki_keywords" value="R res resistor"/>
       <sheetpath names="/MCU base/" tstamps="/076c38b6-e164-46bb-9d96-26f8bdfeca37/"/>
       <tstamps>9b6370ae-0598-4b22-8a87-8cc130436062</tstamps>
     </comp>
@@ -860,6 +979,8 @@
       <libsource lib="Device" part="R" description="Resistor"/>
       <property name="Sheetname" value="MCU base"/>
       <property name="Sheetfile" value="mcubase.kicad_sch"/>
+      <property name="ki_description" value="Resistor"/>
+      <property name="ki_keywords" value="R res resistor"/>
       <sheetpath names="/MCU base/" tstamps="/076c38b6-e164-46bb-9d96-26f8bdfeca37/"/>
       <tstamps>078c76f4-83a4-4ca4-bdbf-0821524cb395</tstamps>
     </comp>
@@ -869,6 +990,8 @@
       <libsource lib="Device" part="R" description="Resistor"/>
       <property name="Sheetname" value="MCU base"/>
       <property name="Sheetfile" value="mcubase.kicad_sch"/>
+      <property name="ki_description" value="Resistor"/>
+      <property name="ki_keywords" value="R res resistor"/>
       <sheetpath names="/MCU base/" tstamps="/076c38b6-e164-46bb-9d96-26f8bdfeca37/"/>
       <tstamps>bc23561a-f181-464e-9935-ed1c39fa670e</tstamps>
     </comp>
@@ -878,6 +1001,8 @@
       <libsource lib="Device" part="R" description="Resistor"/>
       <property name="Sheetname" value="MCU base"/>
       <property name="Sheetfile" value="mcubase.kicad_sch"/>
+      <property name="ki_description" value="Resistor"/>
+      <property name="ki_keywords" value="R res resistor"/>
       <sheetpath names="/MCU base/" tstamps="/076c38b6-e164-46bb-9d96-26f8bdfeca37/"/>
       <tstamps>d42c91a2-1307-4ab7-930f-7f9359c5d693</tstamps>
     </comp>
@@ -887,6 +1012,8 @@
       <libsource lib="Device" part="R" description="Resistor"/>
       <property name="Sheetname" value="MCU base"/>
       <property name="Sheetfile" value="mcubase.kicad_sch"/>
+      <property name="ki_description" value="Resistor"/>
+      <property name="ki_keywords" value="R res resistor"/>
       <sheetpath names="/MCU base/" tstamps="/076c38b6-e164-46bb-9d96-26f8bdfeca37/"/>
       <tstamps>a8f0ad58-076a-43bc-8bc2-4c8514b9f66a</tstamps>
     </comp>
@@ -905,6 +1032,8 @@
       <libsource lib="Device" part="R" description="Resistor"/>
       <property name="Sheetname" value="MCU base"/>
       <property name="Sheetfile" value="mcubase.kicad_sch"/>
+      <property name="ki_description" value="Resistor"/>
+      <property name="ki_keywords" value="R res resistor"/>
       <sheetpath names="/MCU base/" tstamps="/076c38b6-e164-46bb-9d96-26f8bdfeca37/"/>
       <tstamps>e6c5f93a-f087-442b-a5b7-aa75431da7f7</tstamps>
     </comp>
@@ -932,6 +1061,8 @@
       <libsource lib="Device" part="R_Pack04" description="4 resistor network, parallel topology"/>
       <property name="Sheetname" value="MCU base"/>
       <property name="Sheetfile" value="mcubase.kicad_sch"/>
+      <property name="ki_description" value="4 resistor network, parallel topology"/>
+      <property name="ki_keywords" value="R network parallel topology isolated"/>
       <sheetpath names="/MCU base/" tstamps="/076c38b6-e164-46bb-9d96-26f8bdfeca37/"/>
       <tstamps>c2620a21-1c3d-4233-bbce-d374c7c78b67</tstamps>
     </comp>
@@ -941,6 +1072,8 @@
       <libsource lib="Device" part="R_Pack04" description="4 resistor network, parallel topology"/>
       <property name="Sheetname" value="MCU base"/>
       <property name="Sheetfile" value="mcubase.kicad_sch"/>
+      <property name="ki_description" value="4 resistor network, parallel topology"/>
+      <property name="ki_keywords" value="R network parallel topology isolated"/>
       <sheetpath names="/MCU base/" tstamps="/076c38b6-e164-46bb-9d96-26f8bdfeca37/"/>
       <tstamps>42e2b246-968e-4a2d-a97f-f01ae2fef3c1</tstamps>
     </comp>
@@ -950,6 +1083,8 @@
       <libsource lib="Device" part="R_Pack04" description="4 resistor network, parallel topology"/>
       <property name="Sheetname" value="MCU base"/>
       <property name="Sheetfile" value="mcubase.kicad_sch"/>
+      <property name="ki_description" value="4 resistor network, parallel topology"/>
+      <property name="ki_keywords" value="R network parallel topology isolated"/>
       <sheetpath names="/MCU base/" tstamps="/076c38b6-e164-46bb-9d96-26f8bdfeca37/"/>
       <tstamps>4b11cc55-c6db-4a6b-8c07-496e85eff810</tstamps>
     </comp>
@@ -959,6 +1094,8 @@
       <libsource lib="Device" part="R_Pack04" description="4 resistor network, parallel topology"/>
       <property name="Sheetname" value="MCU base"/>
       <property name="Sheetfile" value="mcubase.kicad_sch"/>
+      <property name="ki_description" value="4 resistor network, parallel topology"/>
+      <property name="ki_keywords" value="R network parallel topology isolated"/>
       <sheetpath names="/MCU base/" tstamps="/076c38b6-e164-46bb-9d96-26f8bdfeca37/"/>
       <tstamps>d33706cd-de17-4cb7-9689-e6bb89b9886c</tstamps>
     </comp>
@@ -968,6 +1105,8 @@
       <libsource lib="Device" part="R_Pack04" description="4 resistor network, parallel topology"/>
       <property name="Sheetname" value="MCU base"/>
       <property name="Sheetfile" value="mcubase.kicad_sch"/>
+      <property name="ki_description" value="4 resistor network, parallel topology"/>
+      <property name="ki_keywords" value="R network parallel topology isolated"/>
       <sheetpath names="/MCU base/" tstamps="/076c38b6-e164-46bb-9d96-26f8bdfeca37/"/>
       <tstamps>39e2bcae-d3eb-4029-b120-65030c0af0d0</tstamps>
     </comp>
@@ -977,6 +1116,8 @@
       <libsource lib="Device" part="R_Pack04" description="4 resistor network, parallel topology"/>
       <property name="Sheetname" value="MCU base"/>
       <property name="Sheetfile" value="mcubase.kicad_sch"/>
+      <property name="ki_description" value="4 resistor network, parallel topology"/>
+      <property name="ki_keywords" value="R network parallel topology isolated"/>
       <sheetpath names="/MCU base/" tstamps="/076c38b6-e164-46bb-9d96-26f8bdfeca37/"/>
       <tstamps>0f6a8d74-f1b3-458b-aef1-ebb3734f0cf9</tstamps>
     </comp>
@@ -986,6 +1127,8 @@
       <libsource lib="Switch" part="SW_Push" description="Push button switch, generic, two pins"/>
       <property name="Sheetname" value="MCU base"/>
       <property name="Sheetfile" value="mcubase.kicad_sch"/>
+      <property name="ki_description" value="Push button switch, generic, two pins"/>
+      <property name="ki_keywords" value="switch normally-open pushbutton push-button"/>
       <sheetpath names="/MCU base/" tstamps="/076c38b6-e164-46bb-9d96-26f8bdfeca37/"/>
       <tstamps>28ab1d00-5dcf-4df3-bb52-f6a6fa59c5a0</tstamps>
     </comp>
@@ -995,6 +1138,8 @@
       <libsource lib="Switch" part="SW_Push" description="Push button switch, generic, two pins"/>
       <property name="Sheetname" value="MCU base"/>
       <property name="Sheetfile" value="mcubase.kicad_sch"/>
+      <property name="ki_description" value="Push button switch, generic, two pins"/>
+      <property name="ki_keywords" value="switch normally-open pushbutton push-button"/>
       <sheetpath names="/MCU base/" tstamps="/076c38b6-e164-46bb-9d96-26f8bdfeca37/"/>
       <tstamps>7c777c8b-6b38-45e7-b24d-d876b91caf36</tstamps>
     </comp>
@@ -1005,6 +1150,8 @@
       <libsource lib="MCU_ST_STM32F3" part="STM32F303VDTx" description="ARM Cortex-M4 MCU, 384KB flash, 64KB RAM, 72MHz, 2-3.6V, 86 GPIO, LQFP-100"/>
       <property name="Sheetname" value="MCU base"/>
       <property name="Sheetfile" value="mcubase.kicad_sch"/>
+      <property name="ki_description" value="ARM Cortex-M4 MCU, 384KB flash, 64KB RAM, 72MHz, 2-3.6V, 86 GPIO, LQFP-100"/>
+      <property name="ki_keywords" value="ARM Cortex-M4 STM32F3 STM32F303"/>
       <sheetpath names="/MCU base/" tstamps="/076c38b6-e164-46bb-9d96-26f8bdfeca37/"/>
       <tstamps>21425c49-ac44-4122-b7ce-63ba87cc6fc2</tstamps>
     </comp>
@@ -1014,6 +1161,8 @@
       <libsource lib="Device" part="Crystal" description="Two pin crystal"/>
       <property name="Sheetname" value="MCU base"/>
       <property name="Sheetfile" value="mcubase.kicad_sch"/>
+      <property name="ki_description" value="Two pin crystal"/>
+      <property name="ki_keywords" value="quartz ceramic resonator oscillator"/>
       <sheetpath names="/MCU base/" tstamps="/076c38b6-e164-46bb-9d96-26f8bdfeca37/"/>
       <tstamps>cf1a0820-422f-4448-8389-85e8375748ee</tstamps>
     </comp>
@@ -1023,6 +1172,8 @@
       <libsource lib="Connector" part="Conn_01x04_Female" description="Generic connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
       <property name="Sheetname" value="ADC"/>
       <property name="Sheetfile" value="ADC.kicad_sch"/>
+      <property name="ki_description" value="Generic connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <property name="ki_keywords" value="connector"/>
       <sheetpath names="/ADC/" tstamps="/beac4271-940a-4bcd-9fa5-ece775a07d41/"/>
       <tstamps>ad1d252e-a412-4fd5-af6f-3bf5db8aac83</tstamps>
     </comp>
@@ -1032,6 +1183,8 @@
       <libsource lib="Connector" part="Conn_01x04_Female" description="Generic connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
       <property name="Sheetname" value="ADC"/>
       <property name="Sheetfile" value="ADC.kicad_sch"/>
+      <property name="ki_description" value="Generic connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <property name="ki_keywords" value="connector"/>
       <sheetpath names="/ADC/" tstamps="/beac4271-940a-4bcd-9fa5-ece775a07d41/"/>
       <tstamps>9e54bb8f-8004-4485-abcd-bddd34c044b9</tstamps>
     </comp>
@@ -1041,6 +1194,8 @@
       <libsource lib="Device" part="R" description="Resistor"/>
       <property name="Sheetname" value="ADC"/>
       <property name="Sheetfile" value="ADC.kicad_sch"/>
+      <property name="ki_description" value="Resistor"/>
+      <property name="ki_keywords" value="R res resistor"/>
       <sheetpath names="/ADC/" tstamps="/beac4271-940a-4bcd-9fa5-ece775a07d41/"/>
       <tstamps>19ccff39-e801-44bd-8a1d-5a2bd6fbd40e</tstamps>
     </comp>
@@ -1050,6 +1205,8 @@
       <libsource lib="Device" part="R" description="Resistor"/>
       <property name="Sheetname" value="ADC"/>
       <property name="Sheetfile" value="ADC.kicad_sch"/>
+      <property name="ki_description" value="Resistor"/>
+      <property name="ki_keywords" value="R res resistor"/>
       <sheetpath names="/ADC/" tstamps="/beac4271-940a-4bcd-9fa5-ece775a07d41/"/>
       <tstamps>2f49138b-8ef5-4493-9ff3-891131593d39</tstamps>
     </comp>
@@ -1059,6 +1216,8 @@
       <libsource lib="Device" part="R" description="Resistor"/>
       <property name="Sheetname" value="ADC"/>
       <property name="Sheetfile" value="ADC.kicad_sch"/>
+      <property name="ki_description" value="Resistor"/>
+      <property name="ki_keywords" value="R res resistor"/>
       <sheetpath names="/ADC/" tstamps="/beac4271-940a-4bcd-9fa5-ece775a07d41/"/>
       <tstamps>4d89874d-da84-4c32-9e78-831565e5a1a7</tstamps>
     </comp>
@@ -1068,6 +1227,8 @@
       <libsource lib="Device" part="R" description="Resistor"/>
       <property name="Sheetname" value="ADC"/>
       <property name="Sheetfile" value="ADC.kicad_sch"/>
+      <property name="ki_description" value="Resistor"/>
+      <property name="ki_keywords" value="R res resistor"/>
       <sheetpath names="/ADC/" tstamps="/beac4271-940a-4bcd-9fa5-ece775a07d41/"/>
       <tstamps>d1655416-6034-4a52-bb5b-5d98d8ac33e8</tstamps>
     </comp>
@@ -1077,6 +1238,8 @@
       <libsource lib="Device" part="R" description="Resistor"/>
       <property name="Sheetname" value="ADC"/>
       <property name="Sheetfile" value="ADC.kicad_sch"/>
+      <property name="ki_description" value="Resistor"/>
+      <property name="ki_keywords" value="R res resistor"/>
       <sheetpath names="/ADC/" tstamps="/beac4271-940a-4bcd-9fa5-ece775a07d41/"/>
       <tstamps>92a3049a-e49c-49ab-a4cd-1fb853ad7008</tstamps>
     </comp>
@@ -1095,6 +1258,8 @@
       <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
       <property name="Sheetname" value="Power"/>
       <property name="Sheetfile" value="power.kicad_sch"/>
+      <property name="ki_description" value="Unpolarized capacitor"/>
+      <property name="ki_keywords" value="cap capacitor"/>
       <sheetpath names="/Power/" tstamps="/916f71ef-9b2f-424f-a64d-0b6af99b627f/"/>
       <tstamps>598d53d9-784b-48eb-9909-f0e2a296b8a7</tstamps>
     </comp>
@@ -1104,6 +1269,8 @@
       <libsource lib="Device" part="C_Polarized" description="Polarized capacitor"/>
       <property name="Sheetname" value="Power"/>
       <property name="Sheetfile" value="power.kicad_sch"/>
+      <property name="ki_description" value="Polarized capacitor"/>
+      <property name="ki_keywords" value="cap capacitor"/>
       <sheetpath names="/Power/" tstamps="/916f71ef-9b2f-424f-a64d-0b6af99b627f/"/>
       <tstamps>9398e845-e14c-4a24-8d6f-b43cbfc06d8e</tstamps>
     </comp>
@@ -1131,6 +1298,8 @@
       <libsource lib="Device" part="C_Polarized" description="Polarized capacitor"/>
       <property name="Sheetname" value="Power"/>
       <property name="Sheetfile" value="power.kicad_sch"/>
+      <property name="ki_description" value="Polarized capacitor"/>
+      <property name="ki_keywords" value="cap capacitor"/>
       <sheetpath names="/Power/" tstamps="/916f71ef-9b2f-424f-a64d-0b6af99b627f/"/>
       <tstamps>1afdeb68-547c-40b7-b6c5-75e7b32641f5</tstamps>
     </comp>
@@ -1176,6 +1345,8 @@
       <libsource lib="Device" part="D_Zener" description="Zener diode"/>
       <property name="Sheetname" value="Power"/>
       <property name="Sheetfile" value="power.kicad_sch"/>
+      <property name="ki_description" value="Zener diode"/>
+      <property name="ki_keywords" value="diode"/>
       <sheetpath names="/Power/" tstamps="/916f71ef-9b2f-424f-a64d-0b6af99b627f/"/>
       <tstamps>7adaf68e-0caa-4b3f-836f-ec4cbaaa1683</tstamps>
     </comp>
@@ -1185,6 +1356,8 @@
       <libsource lib="Device" part="D" description="Diode"/>
       <property name="Sheetname" value="Power"/>
       <property name="Sheetfile" value="power.kicad_sch"/>
+      <property name="ki_description" value="Diode"/>
+      <property name="ki_keywords" value="diode"/>
       <sheetpath names="/Power/" tstamps="/916f71ef-9b2f-424f-a64d-0b6af99b627f/"/>
       <tstamps>0a1b7fdf-1b86-4467-a43d-aa9c6c3f3bab</tstamps>
     </comp>
@@ -1194,6 +1367,8 @@
       <libsource lib="Device" part="D_Schottky" description="Schottky diode"/>
       <property name="Sheetname" value="Power"/>
       <property name="Sheetfile" value="power.kicad_sch"/>
+      <property name="ki_description" value="Schottky diode"/>
+      <property name="ki_keywords" value="diode Schottky"/>
       <sheetpath names="/Power/" tstamps="/916f71ef-9b2f-424f-a64d-0b6af99b627f/"/>
       <tstamps>b1989c5e-6bbd-41dd-a585-12508aad30a0</tstamps>
     </comp>
@@ -1203,6 +1378,8 @@
       <libsource lib="Connector" part="Screw_Terminal_01x02" description="Generic screw terminal, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
       <property name="Sheetname" value="Power"/>
       <property name="Sheetfile" value="power.kicad_sch"/>
+      <property name="ki_description" value="Generic screw terminal, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <property name="ki_keywords" value="screw terminal"/>
       <sheetpath names="/Power/" tstamps="/916f71ef-9b2f-424f-a64d-0b6af99b627f/"/>
       <tstamps>4969e4cf-43c7-42f7-8f97-88c60e1eba9a</tstamps>
     </comp>
@@ -1212,6 +1389,8 @@
       <libsource lib="Jumper" part="SolderJumper_2_Bridged" description="Solder Jumper, 2-pole, closed/bridged"/>
       <property name="Sheetname" value="Power"/>
       <property name="Sheetfile" value="power.kicad_sch"/>
+      <property name="ki_description" value="Solder Jumper, 2-pole, closed/bridged"/>
+      <property name="ki_keywords" value="solder jumper SPST"/>
       <sheetpath names="/Power/" tstamps="/916f71ef-9b2f-424f-a64d-0b6af99b627f/"/>
       <tstamps>63aad572-a4de-4195-ba4d-26a8a1ab251f</tstamps>
     </comp>
@@ -1221,6 +1400,8 @@
       <libsource lib="Jumper" part="SolderJumper_2_Bridged" description="Solder Jumper, 2-pole, closed/bridged"/>
       <property name="Sheetname" value="Power"/>
       <property name="Sheetfile" value="power.kicad_sch"/>
+      <property name="ki_description" value="Solder Jumper, 2-pole, closed/bridged"/>
+      <property name="ki_keywords" value="solder jumper SPST"/>
       <sheetpath names="/Power/" tstamps="/916f71ef-9b2f-424f-a64d-0b6af99b627f/"/>
       <tstamps>12aa83d3-a80c-4756-8c16-f6b57797f884</tstamps>
     </comp>
@@ -1230,6 +1411,8 @@
       <libsource lib="Jumper" part="SolderJumper_2_Bridged" description="Solder Jumper, 2-pole, closed/bridged"/>
       <property name="Sheetname" value="Power"/>
       <property name="Sheetfile" value="power.kicad_sch"/>
+      <property name="ki_description" value="Solder Jumper, 2-pole, closed/bridged"/>
+      <property name="ki_keywords" value="solder jumper SPST"/>
       <sheetpath names="/Power/" tstamps="/916f71ef-9b2f-424f-a64d-0b6af99b627f/"/>
       <tstamps>2e5bd9af-f2b0-4d16-8e1d-8c609e753215</tstamps>
     </comp>
@@ -1239,6 +1422,8 @@
       <libsource lib="Device" part="L" description="Inductor"/>
       <property name="Sheetname" value="Power"/>
       <property name="Sheetfile" value="power.kicad_sch"/>
+      <property name="ki_description" value="Inductor"/>
+      <property name="ki_keywords" value="inductor choke coil reactor magnetic"/>
       <sheetpath names="/Power/" tstamps="/916f71ef-9b2f-424f-a64d-0b6af99b627f/"/>
       <tstamps>b3fc53d8-12ed-4d5b-adca-e33d10eb8430</tstamps>
     </comp>
@@ -1248,6 +1433,8 @@
       <libsource lib="elements" part="IRF9310" description="P-MOSFET transistor, gate/drain/source, drain connected to mounting plane"/>
       <property name="Sheetname" value="Power"/>
       <property name="Sheetfile" value="power.kicad_sch"/>
+      <property name="ki_description" value="P-MOSFET transistor, gate/drain/source, drain connected to mounting plane"/>
+      <property name="ki_keywords" value="transistor PMOS P-MOS P-MOSFET"/>
       <sheetpath names="/Power/" tstamps="/916f71ef-9b2f-424f-a64d-0b6af99b627f/"/>
       <tstamps>0445b6a2-e52c-4c18-ae7c-d82d9e54417b</tstamps>
     </comp>
@@ -1257,6 +1444,8 @@
       <libsource lib="Device" part="R" description="Resistor"/>
       <property name="Sheetname" value="Power"/>
       <property name="Sheetfile" value="power.kicad_sch"/>
+      <property name="ki_description" value="Resistor"/>
+      <property name="ki_keywords" value="R res resistor"/>
       <sheetpath names="/Power/" tstamps="/916f71ef-9b2f-424f-a64d-0b6af99b627f/"/>
       <tstamps>79959fd5-9304-4dde-b8d4-43474c0763f1</tstamps>
     </comp>
@@ -1266,6 +1455,8 @@
       <libsource lib="Device" part="R" description="Resistor"/>
       <property name="Sheetname" value="Power"/>
       <property name="Sheetfile" value="power.kicad_sch"/>
+      <property name="ki_description" value="Resistor"/>
+      <property name="ki_keywords" value="R res resistor"/>
       <sheetpath names="/Power/" tstamps="/916f71ef-9b2f-424f-a64d-0b6af99b627f/"/>
       <tstamps>ad495bac-c773-4490-88eb-25eb865e4511</tstamps>
     </comp>
@@ -1275,6 +1466,8 @@
       <libsource lib="Connector" part="TestPoint" description="test point"/>
       <property name="Sheetname" value="Power"/>
       <property name="Sheetfile" value="power.kicad_sch"/>
+      <property name="ki_description" value="test point"/>
+      <property name="ki_keywords" value="test point tp"/>
       <sheetpath names="/Power/" tstamps="/916f71ef-9b2f-424f-a64d-0b6af99b627f/"/>
       <tstamps>84be84b6-c711-4dd0-ad57-498504d82650</tstamps>
     </comp>
@@ -1284,6 +1477,8 @@
       <libsource lib="Connector" part="TestPoint" description="test point"/>
       <property name="Sheetname" value="Power"/>
       <property name="Sheetfile" value="power.kicad_sch"/>
+      <property name="ki_description" value="test point"/>
+      <property name="ki_keywords" value="test point tp"/>
       <sheetpath names="/Power/" tstamps="/916f71ef-9b2f-424f-a64d-0b6af99b627f/"/>
       <tstamps>c179a91f-3f57-4f20-b4e5-738f724ee34c</tstamps>
     </comp>
@@ -1293,6 +1488,8 @@
       <libsource lib="Connector" part="TestPoint" description="test point"/>
       <property name="Sheetname" value="Power"/>
       <property name="Sheetfile" value="power.kicad_sch"/>
+      <property name="ki_description" value="test point"/>
+      <property name="ki_keywords" value="test point tp"/>
       <sheetpath names="/Power/" tstamps="/916f71ef-9b2f-424f-a64d-0b6af99b627f/"/>
       <tstamps>4f20a6b4-6c14-4945-92ad-9fe018c4d72a</tstamps>
     </comp>
@@ -1302,6 +1499,8 @@
       <libsource lib="Connector" part="TestPoint" description="test point"/>
       <property name="Sheetname" value="Power"/>
       <property name="Sheetfile" value="power.kicad_sch"/>
+      <property name="ki_description" value="test point"/>
+      <property name="ki_keywords" value="test point tp"/>
       <sheetpath names="/Power/" tstamps="/916f71ef-9b2f-424f-a64d-0b6af99b627f/"/>
       <tstamps>7f91b56f-ea8e-41e3-b4c0-4300562556fc</tstamps>
     </comp>
@@ -1311,6 +1510,8 @@
       <libsource lib="Connector" part="TestPoint" description="test point"/>
       <property name="Sheetname" value="Power"/>
       <property name="Sheetfile" value="power.kicad_sch"/>
+      <property name="ki_description" value="test point"/>
+      <property name="ki_keywords" value="test point tp"/>
       <sheetpath names="/Power/" tstamps="/916f71ef-9b2f-424f-a64d-0b6af99b627f/"/>
       <tstamps>fa414898-3d10-4308-a77e-a40145ccf67b</tstamps>
     </comp>
@@ -1320,6 +1521,8 @@
       <libsource lib="Connector" part="TestPoint" description="test point"/>
       <property name="Sheetname" value="Power"/>
       <property name="Sheetfile" value="power.kicad_sch"/>
+      <property name="ki_description" value="test point"/>
+      <property name="ki_keywords" value="test point tp"/>
       <sheetpath names="/Power/" tstamps="/916f71ef-9b2f-424f-a64d-0b6af99b627f/"/>
       <tstamps>72aea673-01e1-40af-9225-1fdca99869bc</tstamps>
     </comp>
@@ -1329,6 +1532,8 @@
       <libsource lib="Connector" part="TestPoint" description="test point"/>
       <property name="Sheetname" value="Power"/>
       <property name="Sheetfile" value="power.kicad_sch"/>
+      <property name="ki_description" value="test point"/>
+      <property name="ki_keywords" value="test point tp"/>
       <sheetpath names="/Power/" tstamps="/916f71ef-9b2f-424f-a64d-0b6af99b627f/"/>
       <tstamps>71f89b92-bddb-401e-8f20-b3ca95d786ee</tstamps>
     </comp>
@@ -1339,6 +1544,8 @@
       <libsource lib="Reference_Voltage" part="LM4040DBZ-3" description="3.000V Precision Micropower Shunt Voltage Reference, SOT-23"/>
       <property name="Sheetname" value="Power"/>
       <property name="Sheetfile" value="power.kicad_sch"/>
+      <property name="ki_description" value="3.000V Precision Micropower Shunt Voltage Reference, SOT-23"/>
+      <property name="ki_keywords" value="diode device voltage reference shunt"/>
       <sheetpath names="/Power/" tstamps="/916f71ef-9b2f-424f-a64d-0b6af99b627f/"/>
       <tstamps>11e679cb-d7b3-4dbd-9129-98f59437a9a4</tstamps>
     </comp>
@@ -1352,6 +1559,8 @@
       <property name="Manufacturer" value="Texas Instruments"/>
       <property name="Sheetname" value="Power"/>
       <property name="Sheetfile" value="power.kicad_sch"/>
+      <property name="ki_description" value="SIMPLE SWITCHER 3A Step-Down Voltage Regulator"/>
+      <property name="ki_keywords" value="spms vreg 2594 LM2594"/>
       <sheetpath names="/Power/" tstamps="/916f71ef-9b2f-424f-a64d-0b6af99b627f/"/>
       <tstamps>2ab6af4d-7210-4d87-b2c1-df917fe0401d</tstamps>
     </comp>
@@ -1362,6 +1571,8 @@
       <libsource lib="Regulator_Linear" part="LM1117-3.3" description="800mA Low-Dropout Linear Regulator, 3.3V fixed output, TO-220/TO-252/TO-263/SOT-223"/>
       <property name="Sheetname" value="Power"/>
       <property name="Sheetfile" value="power.kicad_sch"/>
+      <property name="ki_description" value="800mA Low-Dropout Linear Regulator, 3.3V fixed output, TO-220/TO-252/TO-263/SOT-223"/>
+      <property name="ki_keywords" value="linear regulator ldo fixed positive"/>
       <sheetpath names="/Power/" tstamps="/916f71ef-9b2f-424f-a64d-0b6af99b627f/"/>
       <tstamps>b7b2016f-7585-4f0b-ba49-985978271b9e</tstamps>
     </comp>
@@ -1372,6 +1583,8 @@
       <libsource lib="Regulator_Linear" part="LM1117-3.3" description="800mA Low-Dropout Linear Regulator, 3.3V fixed output, TO-220/TO-252/TO-263/SOT-223"/>
       <property name="Sheetname" value="Power"/>
       <property name="Sheetfile" value="power.kicad_sch"/>
+      <property name="ki_description" value="800mA Low-Dropout Linear Regulator, 3.3V fixed output, TO-220/TO-252/TO-263/SOT-223"/>
+      <property name="ki_keywords" value="linear regulator ldo fixed positive"/>
       <sheetpath names="/Power/" tstamps="/916f71ef-9b2f-424f-a64d-0b6af99b627f/"/>
       <tstamps>e3067f98-4828-498b-a137-71461aaf86c4</tstamps>
     </comp>
@@ -1381,6 +1594,8 @@
       <libsource lib="Jumper" part="SolderJumper_2_Bridged" description="Solder Jumper, 2-pole, closed/bridged"/>
       <property name="Sheetname" value="Motors"/>
       <property name="Sheetfile" value="motors.kicad_sch"/>
+      <property name="ki_description" value="Solder Jumper, 2-pole, closed/bridged"/>
+      <property name="ki_keywords" value="solder jumper SPST"/>
       <sheetpath names="/Motors/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/"/>
       <tstamps>31d41378-66cb-457d-9fdf-10d522f2da0c</tstamps>
     </comp>
@@ -1390,6 +1605,8 @@
       <libsource lib="Device" part="R" description="Resistor"/>
       <property name="Sheetname" value="Motors"/>
       <property name="Sheetfile" value="motors.kicad_sch"/>
+      <property name="ki_description" value="Resistor"/>
+      <property name="ki_keywords" value="R res resistor"/>
       <sheetpath names="/Motors/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/"/>
       <tstamps>b8e88e85-d0ba-43df-8ec9-545359f6b94c</tstamps>
     </comp>
@@ -1399,6 +1616,8 @@
       <libsource lib="Device" part="R" description="Resistor"/>
       <property name="Sheetname" value="Motors"/>
       <property name="Sheetfile" value="motors.kicad_sch"/>
+      <property name="ki_description" value="Resistor"/>
+      <property name="ki_keywords" value="R res resistor"/>
       <sheetpath names="/Motors/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/"/>
       <tstamps>3f7c24bb-e00b-463b-b665-e2a70a26f3fd</tstamps>
     </comp>
@@ -1408,6 +1627,8 @@
       <libsource lib="Device" part="R" description="Resistor"/>
       <property name="Sheetname" value="Motors"/>
       <property name="Sheetfile" value="motors.kicad_sch"/>
+      <property name="ki_description" value="Resistor"/>
+      <property name="ki_keywords" value="R res resistor"/>
       <sheetpath names="/Motors/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/"/>
       <tstamps>e5d5729d-499e-4e5d-9ee6-b813631221cf</tstamps>
     </comp>
@@ -1417,6 +1638,8 @@
       <libsource lib="Device" part="R" description="Resistor"/>
       <property name="Sheetname" value="Motors"/>
       <property name="Sheetfile" value="motors.kicad_sch"/>
+      <property name="ki_description" value="Resistor"/>
+      <property name="ki_keywords" value="R res resistor"/>
       <sheetpath names="/Motors/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/"/>
       <tstamps>45072f84-fef4-4069-9b3a-570d1e5fce19</tstamps>
     </comp>
@@ -1426,6 +1649,8 @@
       <libsource lib="Device" part="R_Pack04" description="4 resistor network, parallel topology"/>
       <property name="Sheetname" value="Motors"/>
       <property name="Sheetfile" value="motors.kicad_sch"/>
+      <property name="ki_description" value="4 resistor network, parallel topology"/>
+      <property name="ki_keywords" value="R network parallel topology isolated"/>
       <sheetpath names="/Motors/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/"/>
       <tstamps>c77c97f9-d5c6-4042-8368-c5ef5c409217</tstamps>
     </comp>
@@ -1444,15 +1669,19 @@
       <libsource lib="Device" part="C_Polarized" description="Polarized capacitor"/>
       <property name="Sheetname" value="stepper_M1"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Polarized capacitor"/>
+      <property name="ki_keywords" value="cap capacitor"/>
       <sheetpath names="/Motors/stepper_M1/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/610893b8-7125-40df-867c-22854f8efd58/"/>
       <tstamps>028c2f35-a9b0-4aaf-988c-ea6dbc478016</tstamps>
     </comp>
     <comp ref="J11">
       <value>LimS</value>
-      <footprint>Connector_JST:JST_EH_B4B-EH-A_1x04_P2.50mm_Vertical</footprint>
+      <footprint>Connector_JST:JST_PH_B4B-PH-K_1x04_P2.00mm_Vertical</footprint>
       <libsource lib="Connector" part="Conn_01x04_Male" description="Generic connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
       <property name="Sheetname" value="stepper_M1"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Generic connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <property name="ki_keywords" value="connector"/>
       <sheetpath names="/Motors/stepper_M1/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/610893b8-7125-40df-867c-22854f8efd58/"/>
       <tstamps>0f3f2180-6e00-4de5-8d6d-bb200c241b76</tstamps>
     </comp>
@@ -1462,6 +1691,8 @@
       <libsource lib="Connector" part="Conn_01x04_Male" description="Generic connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
       <property name="Sheetname" value="stepper_M1"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Generic connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <property name="ki_keywords" value="connector"/>
       <sheetpath names="/Motors/stepper_M1/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/610893b8-7125-40df-867c-22854f8efd58/"/>
       <tstamps>e602956b-fb1a-48e1-af9c-9935214ce0ab</tstamps>
     </comp>
@@ -1471,6 +1702,8 @@
       <libsource lib="Jumper" part="SolderJumper_3_Open" description="Solder Jumper, 3-pole, open"/>
       <property name="Sheetname" value="stepper_M1"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Solder Jumper, 3-pole, open"/>
+      <property name="ki_keywords" value="Solder Jumper SPDT"/>
       <sheetpath names="/Motors/stepper_M1/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/610893b8-7125-40df-867c-22854f8efd58/"/>
       <tstamps>f874e67a-2487-4ace-9fad-fb16d91b853b</tstamps>
     </comp>
@@ -1480,6 +1713,8 @@
       <libsource lib="Jumper" part="SolderJumper_3_Open" description="Solder Jumper, 3-pole, open"/>
       <property name="Sheetname" value="stepper_M1"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Solder Jumper, 3-pole, open"/>
+      <property name="ki_keywords" value="Solder Jumper SPDT"/>
       <sheetpath names="/Motors/stepper_M1/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/610893b8-7125-40df-867c-22854f8efd58/"/>
       <tstamps>bb73a185-3fdb-44a5-9403-b416b4facc16</tstamps>
     </comp>
@@ -1489,6 +1724,8 @@
       <libsource lib="Jumper" part="SolderJumper_3_Open" description="Solder Jumper, 3-pole, open"/>
       <property name="Sheetname" value="stepper_M1"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Solder Jumper, 3-pole, open"/>
+      <property name="ki_keywords" value="Solder Jumper SPDT"/>
       <sheetpath names="/Motors/stepper_M1/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/610893b8-7125-40df-867c-22854f8efd58/"/>
       <tstamps>cc2e8eb9-2c1e-4436-9115-eeffb8e65f2d</tstamps>
     </comp>
@@ -1498,6 +1735,8 @@
       <libsource lib="Jumper" part="SolderJumper_3_Open" description="Solder Jumper, 3-pole, open"/>
       <property name="Sheetname" value="stepper_M1"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Solder Jumper, 3-pole, open"/>
+      <property name="ki_keywords" value="Solder Jumper SPDT"/>
       <sheetpath names="/Motors/stepper_M1/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/610893b8-7125-40df-867c-22854f8efd58/"/>
       <tstamps>c11fb58d-5381-4907-95b3-86b9d0fc19a4</tstamps>
     </comp>
@@ -1507,6 +1746,8 @@
       <libsource lib="Jumper" part="SolderJumper_3_Open" description="Solder Jumper, 3-pole, open"/>
       <property name="Sheetname" value="stepper_M1"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Solder Jumper, 3-pole, open"/>
+      <property name="ki_keywords" value="Solder Jumper SPDT"/>
       <sheetpath names="/Motors/stepper_M1/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/610893b8-7125-40df-867c-22854f8efd58/"/>
       <tstamps>d9a1e753-a9eb-4868-88a1-15ce6bc0f4e6</tstamps>
     </comp>
@@ -1516,6 +1757,8 @@
       <libsource lib="Jumper" part="SolderJumper_2_Open" description="Solder Jumper, 2-pole, open"/>
       <property name="Sheetname" value="stepper_M1"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Solder Jumper, 2-pole, open"/>
+      <property name="ki_keywords" value="solder jumper SPST"/>
       <sheetpath names="/Motors/stepper_M1/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/610893b8-7125-40df-867c-22854f8efd58/"/>
       <tstamps>6e5d5af7-e1f6-42d1-8099-e11be41bbff3</tstamps>
     </comp>
@@ -1525,6 +1768,8 @@
       <libsource lib="Jumper" part="SolderJumper_2_Open" description="Solder Jumper, 2-pole, open"/>
       <property name="Sheetname" value="stepper_M1"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Solder Jumper, 2-pole, open"/>
+      <property name="ki_keywords" value="solder jumper SPST"/>
       <sheetpath names="/Motors/stepper_M1/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/610893b8-7125-40df-867c-22854f8efd58/"/>
       <tstamps>27e67388-d115-4cdd-a0a2-e7b2f3efdf1f</tstamps>
     </comp>
@@ -1534,6 +1779,8 @@
       <libsource lib="Jumper" part="SolderJumper_2_Open" description="Solder Jumper, 2-pole, open"/>
       <property name="Sheetname" value="stepper_M1"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Solder Jumper, 2-pole, open"/>
+      <property name="ki_keywords" value="solder jumper SPST"/>
       <sheetpath names="/Motors/stepper_M1/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/610893b8-7125-40df-867c-22854f8efd58/"/>
       <tstamps>269af695-a894-4436-83b9-a395596a6e3e</tstamps>
     </comp>
@@ -1543,6 +1790,8 @@
       <libsource lib="Device" part="R" description="Resistor"/>
       <property name="Sheetname" value="stepper_M1"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Resistor"/>
+      <property name="ki_keywords" value="R res resistor"/>
       <sheetpath names="/Motors/stepper_M1/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/610893b8-7125-40df-867c-22854f8efd58/"/>
       <tstamps>23a0a54f-5dde-4f5b-bb5c-2b097300b395</tstamps>
     </comp>
@@ -1552,6 +1801,8 @@
       <libsource lib="Device" part="R_Pack04" description="4 resistor network, parallel topology"/>
       <property name="Sheetname" value="stepper_M1"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="4 resistor network, parallel topology"/>
+      <property name="ki_keywords" value="R network parallel topology isolated"/>
       <sheetpath names="/Motors/stepper_M1/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/610893b8-7125-40df-867c-22854f8efd58/"/>
       <tstamps>ba52d8b2-11df-4205-b94c-522b28a5b309</tstamps>
     </comp>
@@ -1570,15 +1821,19 @@
       <libsource lib="Device" part="C_Polarized" description="Polarized capacitor"/>
       <property name="Sheetname" value="stepper_M2"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Polarized capacitor"/>
+      <property name="ki_keywords" value="cap capacitor"/>
       <sheetpath names="/Motors/stepper_M2/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/b972f8ca-7e49-4ce3-95f0-4eb1ac53975d/"/>
       <tstamps>028c2f35-a9b0-4aaf-988c-ea6dbc478016</tstamps>
     </comp>
     <comp ref="J14">
       <value>LimS</value>
-      <footprint>Connector_JST:JST_EH_B4B-EH-A_1x04_P2.50mm_Vertical</footprint>
+      <footprint>Connector_JST:JST_PH_B4B-PH-K_1x04_P2.00mm_Vertical</footprint>
       <libsource lib="Connector" part="Conn_01x04_Male" description="Generic connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
       <property name="Sheetname" value="stepper_M2"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Generic connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <property name="ki_keywords" value="connector"/>
       <sheetpath names="/Motors/stepper_M2/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/b972f8ca-7e49-4ce3-95f0-4eb1ac53975d/"/>
       <tstamps>0f3f2180-6e00-4de5-8d6d-bb200c241b76</tstamps>
     </comp>
@@ -1588,6 +1843,8 @@
       <libsource lib="Connector" part="Conn_01x04_Male" description="Generic connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
       <property name="Sheetname" value="stepper_M2"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Generic connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <property name="ki_keywords" value="connector"/>
       <sheetpath names="/Motors/stepper_M2/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/b972f8ca-7e49-4ce3-95f0-4eb1ac53975d/"/>
       <tstamps>e602956b-fb1a-48e1-af9c-9935214ce0ab</tstamps>
     </comp>
@@ -1597,6 +1854,8 @@
       <libsource lib="Jumper" part="SolderJumper_3_Open" description="Solder Jumper, 3-pole, open"/>
       <property name="Sheetname" value="stepper_M2"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Solder Jumper, 3-pole, open"/>
+      <property name="ki_keywords" value="Solder Jumper SPDT"/>
       <sheetpath names="/Motors/stepper_M2/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/b972f8ca-7e49-4ce3-95f0-4eb1ac53975d/"/>
       <tstamps>f874e67a-2487-4ace-9fad-fb16d91b853b</tstamps>
     </comp>
@@ -1606,6 +1865,8 @@
       <libsource lib="Jumper" part="SolderJumper_3_Open" description="Solder Jumper, 3-pole, open"/>
       <property name="Sheetname" value="stepper_M2"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Solder Jumper, 3-pole, open"/>
+      <property name="ki_keywords" value="Solder Jumper SPDT"/>
       <sheetpath names="/Motors/stepper_M2/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/b972f8ca-7e49-4ce3-95f0-4eb1ac53975d/"/>
       <tstamps>bb73a185-3fdb-44a5-9403-b416b4facc16</tstamps>
     </comp>
@@ -1615,6 +1876,8 @@
       <libsource lib="Jumper" part="SolderJumper_3_Open" description="Solder Jumper, 3-pole, open"/>
       <property name="Sheetname" value="stepper_M2"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Solder Jumper, 3-pole, open"/>
+      <property name="ki_keywords" value="Solder Jumper SPDT"/>
       <sheetpath names="/Motors/stepper_M2/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/b972f8ca-7e49-4ce3-95f0-4eb1ac53975d/"/>
       <tstamps>cc2e8eb9-2c1e-4436-9115-eeffb8e65f2d</tstamps>
     </comp>
@@ -1624,6 +1887,8 @@
       <libsource lib="Jumper" part="SolderJumper_3_Open" description="Solder Jumper, 3-pole, open"/>
       <property name="Sheetname" value="stepper_M2"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Solder Jumper, 3-pole, open"/>
+      <property name="ki_keywords" value="Solder Jumper SPDT"/>
       <sheetpath names="/Motors/stepper_M2/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/b972f8ca-7e49-4ce3-95f0-4eb1ac53975d/"/>
       <tstamps>c11fb58d-5381-4907-95b3-86b9d0fc19a4</tstamps>
     </comp>
@@ -1633,6 +1898,8 @@
       <libsource lib="Jumper" part="SolderJumper_3_Open" description="Solder Jumper, 3-pole, open"/>
       <property name="Sheetname" value="stepper_M2"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Solder Jumper, 3-pole, open"/>
+      <property name="ki_keywords" value="Solder Jumper SPDT"/>
       <sheetpath names="/Motors/stepper_M2/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/b972f8ca-7e49-4ce3-95f0-4eb1ac53975d/"/>
       <tstamps>d9a1e753-a9eb-4868-88a1-15ce6bc0f4e6</tstamps>
     </comp>
@@ -1642,6 +1909,8 @@
       <libsource lib="Jumper" part="SolderJumper_2_Open" description="Solder Jumper, 2-pole, open"/>
       <property name="Sheetname" value="stepper_M2"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Solder Jumper, 2-pole, open"/>
+      <property name="ki_keywords" value="solder jumper SPST"/>
       <sheetpath names="/Motors/stepper_M2/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/b972f8ca-7e49-4ce3-95f0-4eb1ac53975d/"/>
       <tstamps>6e5d5af7-e1f6-42d1-8099-e11be41bbff3</tstamps>
     </comp>
@@ -1651,6 +1920,8 @@
       <libsource lib="Jumper" part="SolderJumper_2_Open" description="Solder Jumper, 2-pole, open"/>
       <property name="Sheetname" value="stepper_M2"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Solder Jumper, 2-pole, open"/>
+      <property name="ki_keywords" value="solder jumper SPST"/>
       <sheetpath names="/Motors/stepper_M2/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/b972f8ca-7e49-4ce3-95f0-4eb1ac53975d/"/>
       <tstamps>27e67388-d115-4cdd-a0a2-e7b2f3efdf1f</tstamps>
     </comp>
@@ -1660,6 +1931,8 @@
       <libsource lib="Jumper" part="SolderJumper_2_Open" description="Solder Jumper, 2-pole, open"/>
       <property name="Sheetname" value="stepper_M2"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Solder Jumper, 2-pole, open"/>
+      <property name="ki_keywords" value="solder jumper SPST"/>
       <sheetpath names="/Motors/stepper_M2/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/b972f8ca-7e49-4ce3-95f0-4eb1ac53975d/"/>
       <tstamps>269af695-a894-4436-83b9-a395596a6e3e</tstamps>
     </comp>
@@ -1669,6 +1942,8 @@
       <libsource lib="Device" part="R" description="Resistor"/>
       <property name="Sheetname" value="stepper_M2"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Resistor"/>
+      <property name="ki_keywords" value="R res resistor"/>
       <sheetpath names="/Motors/stepper_M2/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/b972f8ca-7e49-4ce3-95f0-4eb1ac53975d/"/>
       <tstamps>23a0a54f-5dde-4f5b-bb5c-2b097300b395</tstamps>
     </comp>
@@ -1678,6 +1953,8 @@
       <libsource lib="Device" part="R_Pack04" description="4 resistor network, parallel topology"/>
       <property name="Sheetname" value="stepper_M2"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="4 resistor network, parallel topology"/>
+      <property name="ki_keywords" value="R network parallel topology isolated"/>
       <sheetpath names="/Motors/stepper_M2/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/b972f8ca-7e49-4ce3-95f0-4eb1ac53975d/"/>
       <tstamps>ba52d8b2-11df-4205-b94c-522b28a5b309</tstamps>
     </comp>
@@ -1696,15 +1973,19 @@
       <libsource lib="Device" part="C_Polarized" description="Polarized capacitor"/>
       <property name="Sheetname" value="stepper_M3"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Polarized capacitor"/>
+      <property name="ki_keywords" value="cap capacitor"/>
       <sheetpath names="/Motors/stepper_M3/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/db69c12d-b6fb-4fe1-9d53-7484d42c675e/"/>
       <tstamps>028c2f35-a9b0-4aaf-988c-ea6dbc478016</tstamps>
     </comp>
     <comp ref="J16">
       <value>LimS</value>
-      <footprint>Connector_JST:JST_EH_B4B-EH-A_1x04_P2.50mm_Vertical</footprint>
+      <footprint>Connector_JST:JST_PH_B4B-PH-K_1x04_P2.00mm_Vertical</footprint>
       <libsource lib="Connector" part="Conn_01x04_Male" description="Generic connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
       <property name="Sheetname" value="stepper_M3"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Generic connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <property name="ki_keywords" value="connector"/>
       <sheetpath names="/Motors/stepper_M3/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/db69c12d-b6fb-4fe1-9d53-7484d42c675e/"/>
       <tstamps>0f3f2180-6e00-4de5-8d6d-bb200c241b76</tstamps>
     </comp>
@@ -1714,6 +1995,8 @@
       <libsource lib="Connector" part="Conn_01x04_Male" description="Generic connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
       <property name="Sheetname" value="stepper_M3"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Generic connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <property name="ki_keywords" value="connector"/>
       <sheetpath names="/Motors/stepper_M3/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/db69c12d-b6fb-4fe1-9d53-7484d42c675e/"/>
       <tstamps>e602956b-fb1a-48e1-af9c-9935214ce0ab</tstamps>
     </comp>
@@ -1723,6 +2006,8 @@
       <libsource lib="Jumper" part="SolderJumper_3_Open" description="Solder Jumper, 3-pole, open"/>
       <property name="Sheetname" value="stepper_M3"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Solder Jumper, 3-pole, open"/>
+      <property name="ki_keywords" value="Solder Jumper SPDT"/>
       <sheetpath names="/Motors/stepper_M3/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/db69c12d-b6fb-4fe1-9d53-7484d42c675e/"/>
       <tstamps>f874e67a-2487-4ace-9fad-fb16d91b853b</tstamps>
     </comp>
@@ -1732,6 +2017,8 @@
       <libsource lib="Jumper" part="SolderJumper_3_Open" description="Solder Jumper, 3-pole, open"/>
       <property name="Sheetname" value="stepper_M3"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Solder Jumper, 3-pole, open"/>
+      <property name="ki_keywords" value="Solder Jumper SPDT"/>
       <sheetpath names="/Motors/stepper_M3/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/db69c12d-b6fb-4fe1-9d53-7484d42c675e/"/>
       <tstamps>bb73a185-3fdb-44a5-9403-b416b4facc16</tstamps>
     </comp>
@@ -1741,6 +2028,8 @@
       <libsource lib="Jumper" part="SolderJumper_3_Open" description="Solder Jumper, 3-pole, open"/>
       <property name="Sheetname" value="stepper_M3"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Solder Jumper, 3-pole, open"/>
+      <property name="ki_keywords" value="Solder Jumper SPDT"/>
       <sheetpath names="/Motors/stepper_M3/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/db69c12d-b6fb-4fe1-9d53-7484d42c675e/"/>
       <tstamps>cc2e8eb9-2c1e-4436-9115-eeffb8e65f2d</tstamps>
     </comp>
@@ -1750,6 +2039,8 @@
       <libsource lib="Jumper" part="SolderJumper_3_Open" description="Solder Jumper, 3-pole, open"/>
       <property name="Sheetname" value="stepper_M3"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Solder Jumper, 3-pole, open"/>
+      <property name="ki_keywords" value="Solder Jumper SPDT"/>
       <sheetpath names="/Motors/stepper_M3/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/db69c12d-b6fb-4fe1-9d53-7484d42c675e/"/>
       <tstamps>c11fb58d-5381-4907-95b3-86b9d0fc19a4</tstamps>
     </comp>
@@ -1759,6 +2050,8 @@
       <libsource lib="Jumper" part="SolderJumper_3_Open" description="Solder Jumper, 3-pole, open"/>
       <property name="Sheetname" value="stepper_M3"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Solder Jumper, 3-pole, open"/>
+      <property name="ki_keywords" value="Solder Jumper SPDT"/>
       <sheetpath names="/Motors/stepper_M3/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/db69c12d-b6fb-4fe1-9d53-7484d42c675e/"/>
       <tstamps>d9a1e753-a9eb-4868-88a1-15ce6bc0f4e6</tstamps>
     </comp>
@@ -1768,6 +2061,8 @@
       <libsource lib="Jumper" part="SolderJumper_2_Open" description="Solder Jumper, 2-pole, open"/>
       <property name="Sheetname" value="stepper_M3"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Solder Jumper, 2-pole, open"/>
+      <property name="ki_keywords" value="solder jumper SPST"/>
       <sheetpath names="/Motors/stepper_M3/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/db69c12d-b6fb-4fe1-9d53-7484d42c675e/"/>
       <tstamps>6e5d5af7-e1f6-42d1-8099-e11be41bbff3</tstamps>
     </comp>
@@ -1777,6 +2072,8 @@
       <libsource lib="Jumper" part="SolderJumper_2_Open" description="Solder Jumper, 2-pole, open"/>
       <property name="Sheetname" value="stepper_M3"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Solder Jumper, 2-pole, open"/>
+      <property name="ki_keywords" value="solder jumper SPST"/>
       <sheetpath names="/Motors/stepper_M3/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/db69c12d-b6fb-4fe1-9d53-7484d42c675e/"/>
       <tstamps>27e67388-d115-4cdd-a0a2-e7b2f3efdf1f</tstamps>
     </comp>
@@ -1786,6 +2083,8 @@
       <libsource lib="Jumper" part="SolderJumper_2_Open" description="Solder Jumper, 2-pole, open"/>
       <property name="Sheetname" value="stepper_M3"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Solder Jumper, 2-pole, open"/>
+      <property name="ki_keywords" value="solder jumper SPST"/>
       <sheetpath names="/Motors/stepper_M3/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/db69c12d-b6fb-4fe1-9d53-7484d42c675e/"/>
       <tstamps>269af695-a894-4436-83b9-a395596a6e3e</tstamps>
     </comp>
@@ -1795,6 +2094,8 @@
       <libsource lib="Device" part="R" description="Resistor"/>
       <property name="Sheetname" value="stepper_M3"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Resistor"/>
+      <property name="ki_keywords" value="R res resistor"/>
       <sheetpath names="/Motors/stepper_M3/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/db69c12d-b6fb-4fe1-9d53-7484d42c675e/"/>
       <tstamps>23a0a54f-5dde-4f5b-bb5c-2b097300b395</tstamps>
     </comp>
@@ -1804,6 +2105,8 @@
       <libsource lib="Device" part="R_Pack04" description="4 resistor network, parallel topology"/>
       <property name="Sheetname" value="stepper_M3"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="4 resistor network, parallel topology"/>
+      <property name="ki_keywords" value="R network parallel topology isolated"/>
       <sheetpath names="/Motors/stepper_M3/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/db69c12d-b6fb-4fe1-9d53-7484d42c675e/"/>
       <tstamps>ba52d8b2-11df-4205-b94c-522b28a5b309</tstamps>
     </comp>
@@ -1822,15 +2125,19 @@
       <libsource lib="Device" part="C_Polarized" description="Polarized capacitor"/>
       <property name="Sheetname" value="stepper_M4"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Polarized capacitor"/>
+      <property name="ki_keywords" value="cap capacitor"/>
       <sheetpath names="/Motors/stepper_M4/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/b01b77c6-0bd2-4b81-bd36-95ec39c21cb2/"/>
       <tstamps>028c2f35-a9b0-4aaf-988c-ea6dbc478016</tstamps>
     </comp>
     <comp ref="J18">
       <value>LimS</value>
-      <footprint>Connector_JST:JST_EH_B4B-EH-A_1x04_P2.50mm_Vertical</footprint>
+      <footprint>Connector_JST:JST_PH_B4B-PH-K_1x04_P2.00mm_Vertical</footprint>
       <libsource lib="Connector" part="Conn_01x04_Male" description="Generic connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
       <property name="Sheetname" value="stepper_M4"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Generic connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <property name="ki_keywords" value="connector"/>
       <sheetpath names="/Motors/stepper_M4/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/b01b77c6-0bd2-4b81-bd36-95ec39c21cb2/"/>
       <tstamps>0f3f2180-6e00-4de5-8d6d-bb200c241b76</tstamps>
     </comp>
@@ -1840,6 +2147,8 @@
       <libsource lib="Connector" part="Conn_01x04_Male" description="Generic connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
       <property name="Sheetname" value="stepper_M4"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Generic connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <property name="ki_keywords" value="connector"/>
       <sheetpath names="/Motors/stepper_M4/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/b01b77c6-0bd2-4b81-bd36-95ec39c21cb2/"/>
       <tstamps>e602956b-fb1a-48e1-af9c-9935214ce0ab</tstamps>
     </comp>
@@ -1849,6 +2158,8 @@
       <libsource lib="Jumper" part="SolderJumper_3_Open" description="Solder Jumper, 3-pole, open"/>
       <property name="Sheetname" value="stepper_M4"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Solder Jumper, 3-pole, open"/>
+      <property name="ki_keywords" value="Solder Jumper SPDT"/>
       <sheetpath names="/Motors/stepper_M4/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/b01b77c6-0bd2-4b81-bd36-95ec39c21cb2/"/>
       <tstamps>f874e67a-2487-4ace-9fad-fb16d91b853b</tstamps>
     </comp>
@@ -1858,6 +2169,8 @@
       <libsource lib="Jumper" part="SolderJumper_3_Open" description="Solder Jumper, 3-pole, open"/>
       <property name="Sheetname" value="stepper_M4"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Solder Jumper, 3-pole, open"/>
+      <property name="ki_keywords" value="Solder Jumper SPDT"/>
       <sheetpath names="/Motors/stepper_M4/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/b01b77c6-0bd2-4b81-bd36-95ec39c21cb2/"/>
       <tstamps>bb73a185-3fdb-44a5-9403-b416b4facc16</tstamps>
     </comp>
@@ -1867,6 +2180,8 @@
       <libsource lib="Jumper" part="SolderJumper_3_Open" description="Solder Jumper, 3-pole, open"/>
       <property name="Sheetname" value="stepper_M4"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Solder Jumper, 3-pole, open"/>
+      <property name="ki_keywords" value="Solder Jumper SPDT"/>
       <sheetpath names="/Motors/stepper_M4/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/b01b77c6-0bd2-4b81-bd36-95ec39c21cb2/"/>
       <tstamps>cc2e8eb9-2c1e-4436-9115-eeffb8e65f2d</tstamps>
     </comp>
@@ -1876,6 +2191,8 @@
       <libsource lib="Jumper" part="SolderJumper_3_Open" description="Solder Jumper, 3-pole, open"/>
       <property name="Sheetname" value="stepper_M4"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Solder Jumper, 3-pole, open"/>
+      <property name="ki_keywords" value="Solder Jumper SPDT"/>
       <sheetpath names="/Motors/stepper_M4/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/b01b77c6-0bd2-4b81-bd36-95ec39c21cb2/"/>
       <tstamps>c11fb58d-5381-4907-95b3-86b9d0fc19a4</tstamps>
     </comp>
@@ -1885,6 +2202,8 @@
       <libsource lib="Jumper" part="SolderJumper_3_Open" description="Solder Jumper, 3-pole, open"/>
       <property name="Sheetname" value="stepper_M4"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Solder Jumper, 3-pole, open"/>
+      <property name="ki_keywords" value="Solder Jumper SPDT"/>
       <sheetpath names="/Motors/stepper_M4/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/b01b77c6-0bd2-4b81-bd36-95ec39c21cb2/"/>
       <tstamps>d9a1e753-a9eb-4868-88a1-15ce6bc0f4e6</tstamps>
     </comp>
@@ -1894,6 +2213,8 @@
       <libsource lib="Jumper" part="SolderJumper_2_Open" description="Solder Jumper, 2-pole, open"/>
       <property name="Sheetname" value="stepper_M4"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Solder Jumper, 2-pole, open"/>
+      <property name="ki_keywords" value="solder jumper SPST"/>
       <sheetpath names="/Motors/stepper_M4/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/b01b77c6-0bd2-4b81-bd36-95ec39c21cb2/"/>
       <tstamps>6e5d5af7-e1f6-42d1-8099-e11be41bbff3</tstamps>
     </comp>
@@ -1903,6 +2224,8 @@
       <libsource lib="Jumper" part="SolderJumper_2_Open" description="Solder Jumper, 2-pole, open"/>
       <property name="Sheetname" value="stepper_M4"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Solder Jumper, 2-pole, open"/>
+      <property name="ki_keywords" value="solder jumper SPST"/>
       <sheetpath names="/Motors/stepper_M4/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/b01b77c6-0bd2-4b81-bd36-95ec39c21cb2/"/>
       <tstamps>27e67388-d115-4cdd-a0a2-e7b2f3efdf1f</tstamps>
     </comp>
@@ -1912,6 +2235,8 @@
       <libsource lib="Jumper" part="SolderJumper_2_Open" description="Solder Jumper, 2-pole, open"/>
       <property name="Sheetname" value="stepper_M4"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Solder Jumper, 2-pole, open"/>
+      <property name="ki_keywords" value="solder jumper SPST"/>
       <sheetpath names="/Motors/stepper_M4/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/b01b77c6-0bd2-4b81-bd36-95ec39c21cb2/"/>
       <tstamps>269af695-a894-4436-83b9-a395596a6e3e</tstamps>
     </comp>
@@ -1921,6 +2246,8 @@
       <libsource lib="Device" part="R" description="Resistor"/>
       <property name="Sheetname" value="stepper_M4"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Resistor"/>
+      <property name="ki_keywords" value="R res resistor"/>
       <sheetpath names="/Motors/stepper_M4/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/b01b77c6-0bd2-4b81-bd36-95ec39c21cb2/"/>
       <tstamps>23a0a54f-5dde-4f5b-bb5c-2b097300b395</tstamps>
     </comp>
@@ -1930,6 +2257,8 @@
       <libsource lib="Device" part="R_Pack04" description="4 resistor network, parallel topology"/>
       <property name="Sheetname" value="stepper_M4"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="4 resistor network, parallel topology"/>
+      <property name="ki_keywords" value="R network parallel topology isolated"/>
       <sheetpath names="/Motors/stepper_M4/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/b01b77c6-0bd2-4b81-bd36-95ec39c21cb2/"/>
       <tstamps>ba52d8b2-11df-4205-b94c-522b28a5b309</tstamps>
     </comp>
@@ -1948,15 +2277,19 @@
       <libsource lib="Device" part="C_Polarized" description="Polarized capacitor"/>
       <property name="Sheetname" value="stepper_M5"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Polarized capacitor"/>
+      <property name="ki_keywords" value="cap capacitor"/>
       <sheetpath names="/Motors/stepper_M5/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/f8c6e88c-0183-4d2e-a3ca-39251d1701fb/"/>
       <tstamps>028c2f35-a9b0-4aaf-988c-ea6dbc478016</tstamps>
     </comp>
     <comp ref="J20">
       <value>LimS</value>
-      <footprint>Connector_JST:JST_EH_B4B-EH-A_1x04_P2.50mm_Vertical</footprint>
+      <footprint>Connector_JST:JST_PH_B4B-PH-K_1x04_P2.00mm_Vertical</footprint>
       <libsource lib="Connector" part="Conn_01x04_Male" description="Generic connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
       <property name="Sheetname" value="stepper_M5"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Generic connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <property name="ki_keywords" value="connector"/>
       <sheetpath names="/Motors/stepper_M5/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/f8c6e88c-0183-4d2e-a3ca-39251d1701fb/"/>
       <tstamps>0f3f2180-6e00-4de5-8d6d-bb200c241b76</tstamps>
     </comp>
@@ -1966,6 +2299,8 @@
       <libsource lib="Connector" part="Conn_01x04_Male" description="Generic connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
       <property name="Sheetname" value="stepper_M5"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Generic connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <property name="ki_keywords" value="connector"/>
       <sheetpath names="/Motors/stepper_M5/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/f8c6e88c-0183-4d2e-a3ca-39251d1701fb/"/>
       <tstamps>e602956b-fb1a-48e1-af9c-9935214ce0ab</tstamps>
     </comp>
@@ -1975,6 +2310,8 @@
       <libsource lib="Jumper" part="SolderJumper_3_Open" description="Solder Jumper, 3-pole, open"/>
       <property name="Sheetname" value="stepper_M5"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Solder Jumper, 3-pole, open"/>
+      <property name="ki_keywords" value="Solder Jumper SPDT"/>
       <sheetpath names="/Motors/stepper_M5/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/f8c6e88c-0183-4d2e-a3ca-39251d1701fb/"/>
       <tstamps>f874e67a-2487-4ace-9fad-fb16d91b853b</tstamps>
     </comp>
@@ -1984,6 +2321,8 @@
       <libsource lib="Jumper" part="SolderJumper_3_Open" description="Solder Jumper, 3-pole, open"/>
       <property name="Sheetname" value="stepper_M5"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Solder Jumper, 3-pole, open"/>
+      <property name="ki_keywords" value="Solder Jumper SPDT"/>
       <sheetpath names="/Motors/stepper_M5/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/f8c6e88c-0183-4d2e-a3ca-39251d1701fb/"/>
       <tstamps>bb73a185-3fdb-44a5-9403-b416b4facc16</tstamps>
     </comp>
@@ -1993,6 +2332,8 @@
       <libsource lib="Jumper" part="SolderJumper_3_Open" description="Solder Jumper, 3-pole, open"/>
       <property name="Sheetname" value="stepper_M5"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Solder Jumper, 3-pole, open"/>
+      <property name="ki_keywords" value="Solder Jumper SPDT"/>
       <sheetpath names="/Motors/stepper_M5/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/f8c6e88c-0183-4d2e-a3ca-39251d1701fb/"/>
       <tstamps>cc2e8eb9-2c1e-4436-9115-eeffb8e65f2d</tstamps>
     </comp>
@@ -2002,6 +2343,8 @@
       <libsource lib="Jumper" part="SolderJumper_3_Open" description="Solder Jumper, 3-pole, open"/>
       <property name="Sheetname" value="stepper_M5"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Solder Jumper, 3-pole, open"/>
+      <property name="ki_keywords" value="Solder Jumper SPDT"/>
       <sheetpath names="/Motors/stepper_M5/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/f8c6e88c-0183-4d2e-a3ca-39251d1701fb/"/>
       <tstamps>c11fb58d-5381-4907-95b3-86b9d0fc19a4</tstamps>
     </comp>
@@ -2011,6 +2354,8 @@
       <libsource lib="Jumper" part="SolderJumper_3_Open" description="Solder Jumper, 3-pole, open"/>
       <property name="Sheetname" value="stepper_M5"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Solder Jumper, 3-pole, open"/>
+      <property name="ki_keywords" value="Solder Jumper SPDT"/>
       <sheetpath names="/Motors/stepper_M5/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/f8c6e88c-0183-4d2e-a3ca-39251d1701fb/"/>
       <tstamps>d9a1e753-a9eb-4868-88a1-15ce6bc0f4e6</tstamps>
     </comp>
@@ -2020,6 +2365,8 @@
       <libsource lib="Jumper" part="SolderJumper_2_Open" description="Solder Jumper, 2-pole, open"/>
       <property name="Sheetname" value="stepper_M5"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Solder Jumper, 2-pole, open"/>
+      <property name="ki_keywords" value="solder jumper SPST"/>
       <sheetpath names="/Motors/stepper_M5/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/f8c6e88c-0183-4d2e-a3ca-39251d1701fb/"/>
       <tstamps>6e5d5af7-e1f6-42d1-8099-e11be41bbff3</tstamps>
     </comp>
@@ -2029,6 +2376,8 @@
       <libsource lib="Jumper" part="SolderJumper_2_Open" description="Solder Jumper, 2-pole, open"/>
       <property name="Sheetname" value="stepper_M5"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Solder Jumper, 2-pole, open"/>
+      <property name="ki_keywords" value="solder jumper SPST"/>
       <sheetpath names="/Motors/stepper_M5/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/f8c6e88c-0183-4d2e-a3ca-39251d1701fb/"/>
       <tstamps>27e67388-d115-4cdd-a0a2-e7b2f3efdf1f</tstamps>
     </comp>
@@ -2038,6 +2387,8 @@
       <libsource lib="Jumper" part="SolderJumper_2_Open" description="Solder Jumper, 2-pole, open"/>
       <property name="Sheetname" value="stepper_M5"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Solder Jumper, 2-pole, open"/>
+      <property name="ki_keywords" value="solder jumper SPST"/>
       <sheetpath names="/Motors/stepper_M5/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/f8c6e88c-0183-4d2e-a3ca-39251d1701fb/"/>
       <tstamps>269af695-a894-4436-83b9-a395596a6e3e</tstamps>
     </comp>
@@ -2047,6 +2398,8 @@
       <libsource lib="Device" part="R" description="Resistor"/>
       <property name="Sheetname" value="stepper_M5"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Resistor"/>
+      <property name="ki_keywords" value="R res resistor"/>
       <sheetpath names="/Motors/stepper_M5/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/f8c6e88c-0183-4d2e-a3ca-39251d1701fb/"/>
       <tstamps>23a0a54f-5dde-4f5b-bb5c-2b097300b395</tstamps>
     </comp>
@@ -2056,6 +2409,8 @@
       <libsource lib="Device" part="R_Pack04" description="4 resistor network, parallel topology"/>
       <property name="Sheetname" value="stepper_M5"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="4 resistor network, parallel topology"/>
+      <property name="ki_keywords" value="R network parallel topology isolated"/>
       <sheetpath names="/Motors/stepper_M5/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/f8c6e88c-0183-4d2e-a3ca-39251d1701fb/"/>
       <tstamps>ba52d8b2-11df-4205-b94c-522b28a5b309</tstamps>
     </comp>
@@ -2074,15 +2429,19 @@
       <libsource lib="Device" part="C_Polarized" description="Polarized capacitor"/>
       <property name="Sheetname" value="stepper_M6"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Polarized capacitor"/>
+      <property name="ki_keywords" value="cap capacitor"/>
       <sheetpath names="/Motors/stepper_M6/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/196d299d-b6ee-4d60-aeee-9540c185cbf4/"/>
       <tstamps>028c2f35-a9b0-4aaf-988c-ea6dbc478016</tstamps>
     </comp>
     <comp ref="J22">
       <value>LimS</value>
-      <footprint>Connector_JST:JST_EH_B4B-EH-A_1x04_P2.50mm_Vertical</footprint>
+      <footprint>Connector_JST:JST_PH_B4B-PH-K_1x04_P2.00mm_Vertical</footprint>
       <libsource lib="Connector" part="Conn_01x04_Male" description="Generic connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
       <property name="Sheetname" value="stepper_M6"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Generic connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <property name="ki_keywords" value="connector"/>
       <sheetpath names="/Motors/stepper_M6/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/196d299d-b6ee-4d60-aeee-9540c185cbf4/"/>
       <tstamps>0f3f2180-6e00-4de5-8d6d-bb200c241b76</tstamps>
     </comp>
@@ -2092,6 +2451,8 @@
       <libsource lib="Connector" part="Conn_01x04_Male" description="Generic connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
       <property name="Sheetname" value="stepper_M6"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Generic connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <property name="ki_keywords" value="connector"/>
       <sheetpath names="/Motors/stepper_M6/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/196d299d-b6ee-4d60-aeee-9540c185cbf4/"/>
       <tstamps>e602956b-fb1a-48e1-af9c-9935214ce0ab</tstamps>
     </comp>
@@ -2101,6 +2462,8 @@
       <libsource lib="Jumper" part="SolderJumper_3_Open" description="Solder Jumper, 3-pole, open"/>
       <property name="Sheetname" value="stepper_M6"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Solder Jumper, 3-pole, open"/>
+      <property name="ki_keywords" value="Solder Jumper SPDT"/>
       <sheetpath names="/Motors/stepper_M6/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/196d299d-b6ee-4d60-aeee-9540c185cbf4/"/>
       <tstamps>f874e67a-2487-4ace-9fad-fb16d91b853b</tstamps>
     </comp>
@@ -2110,6 +2473,8 @@
       <libsource lib="Jumper" part="SolderJumper_3_Open" description="Solder Jumper, 3-pole, open"/>
       <property name="Sheetname" value="stepper_M6"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Solder Jumper, 3-pole, open"/>
+      <property name="ki_keywords" value="Solder Jumper SPDT"/>
       <sheetpath names="/Motors/stepper_M6/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/196d299d-b6ee-4d60-aeee-9540c185cbf4/"/>
       <tstamps>bb73a185-3fdb-44a5-9403-b416b4facc16</tstamps>
     </comp>
@@ -2119,6 +2484,8 @@
       <libsource lib="Jumper" part="SolderJumper_3_Open" description="Solder Jumper, 3-pole, open"/>
       <property name="Sheetname" value="stepper_M6"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Solder Jumper, 3-pole, open"/>
+      <property name="ki_keywords" value="Solder Jumper SPDT"/>
       <sheetpath names="/Motors/stepper_M6/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/196d299d-b6ee-4d60-aeee-9540c185cbf4/"/>
       <tstamps>cc2e8eb9-2c1e-4436-9115-eeffb8e65f2d</tstamps>
     </comp>
@@ -2128,6 +2495,8 @@
       <libsource lib="Jumper" part="SolderJumper_3_Open" description="Solder Jumper, 3-pole, open"/>
       <property name="Sheetname" value="stepper_M6"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Solder Jumper, 3-pole, open"/>
+      <property name="ki_keywords" value="Solder Jumper SPDT"/>
       <sheetpath names="/Motors/stepper_M6/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/196d299d-b6ee-4d60-aeee-9540c185cbf4/"/>
       <tstamps>c11fb58d-5381-4907-95b3-86b9d0fc19a4</tstamps>
     </comp>
@@ -2137,6 +2506,8 @@
       <libsource lib="Jumper" part="SolderJumper_3_Open" description="Solder Jumper, 3-pole, open"/>
       <property name="Sheetname" value="stepper_M6"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Solder Jumper, 3-pole, open"/>
+      <property name="ki_keywords" value="Solder Jumper SPDT"/>
       <sheetpath names="/Motors/stepper_M6/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/196d299d-b6ee-4d60-aeee-9540c185cbf4/"/>
       <tstamps>d9a1e753-a9eb-4868-88a1-15ce6bc0f4e6</tstamps>
     </comp>
@@ -2146,6 +2517,8 @@
       <libsource lib="Jumper" part="SolderJumper_2_Open" description="Solder Jumper, 2-pole, open"/>
       <property name="Sheetname" value="stepper_M6"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Solder Jumper, 2-pole, open"/>
+      <property name="ki_keywords" value="solder jumper SPST"/>
       <sheetpath names="/Motors/stepper_M6/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/196d299d-b6ee-4d60-aeee-9540c185cbf4/"/>
       <tstamps>6e5d5af7-e1f6-42d1-8099-e11be41bbff3</tstamps>
     </comp>
@@ -2155,6 +2528,8 @@
       <libsource lib="Jumper" part="SolderJumper_2_Open" description="Solder Jumper, 2-pole, open"/>
       <property name="Sheetname" value="stepper_M6"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Solder Jumper, 2-pole, open"/>
+      <property name="ki_keywords" value="solder jumper SPST"/>
       <sheetpath names="/Motors/stepper_M6/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/196d299d-b6ee-4d60-aeee-9540c185cbf4/"/>
       <tstamps>27e67388-d115-4cdd-a0a2-e7b2f3efdf1f</tstamps>
     </comp>
@@ -2164,6 +2539,8 @@
       <libsource lib="Jumper" part="SolderJumper_2_Open" description="Solder Jumper, 2-pole, open"/>
       <property name="Sheetname" value="stepper_M6"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Solder Jumper, 2-pole, open"/>
+      <property name="ki_keywords" value="solder jumper SPST"/>
       <sheetpath names="/Motors/stepper_M6/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/196d299d-b6ee-4d60-aeee-9540c185cbf4/"/>
       <tstamps>269af695-a894-4436-83b9-a395596a6e3e</tstamps>
     </comp>
@@ -2173,6 +2550,8 @@
       <libsource lib="Device" part="R" description="Resistor"/>
       <property name="Sheetname" value="stepper_M6"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Resistor"/>
+      <property name="ki_keywords" value="R res resistor"/>
       <sheetpath names="/Motors/stepper_M6/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/196d299d-b6ee-4d60-aeee-9540c185cbf4/"/>
       <tstamps>23a0a54f-5dde-4f5b-bb5c-2b097300b395</tstamps>
     </comp>
@@ -2182,6 +2561,8 @@
       <libsource lib="Device" part="R_Pack04" description="4 resistor network, parallel topology"/>
       <property name="Sheetname" value="stepper_M6"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="4 resistor network, parallel topology"/>
+      <property name="ki_keywords" value="R network parallel topology isolated"/>
       <sheetpath names="/Motors/stepper_M6/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/196d299d-b6ee-4d60-aeee-9540c185cbf4/"/>
       <tstamps>ba52d8b2-11df-4205-b94c-522b28a5b309</tstamps>
     </comp>
@@ -2200,15 +2581,19 @@
       <libsource lib="Device" part="C_Polarized" description="Polarized capacitor"/>
       <property name="Sheetname" value="stepper_M7"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Polarized capacitor"/>
+      <property name="ki_keywords" value="cap capacitor"/>
       <sheetpath names="/Motors/stepper_M7/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/94a117f3-a8fd-4a4e-9f53-f4f999343994/"/>
       <tstamps>028c2f35-a9b0-4aaf-988c-ea6dbc478016</tstamps>
     </comp>
     <comp ref="J24">
       <value>LimS</value>
-      <footprint>Connector_JST:JST_EH_B4B-EH-A_1x04_P2.50mm_Vertical</footprint>
+      <footprint>Connector_JST:JST_PH_B4B-PH-K_1x04_P2.00mm_Vertical</footprint>
       <libsource lib="Connector" part="Conn_01x04_Male" description="Generic connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
       <property name="Sheetname" value="stepper_M7"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Generic connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <property name="ki_keywords" value="connector"/>
       <sheetpath names="/Motors/stepper_M7/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/94a117f3-a8fd-4a4e-9f53-f4f999343994/"/>
       <tstamps>0f3f2180-6e00-4de5-8d6d-bb200c241b76</tstamps>
     </comp>
@@ -2218,6 +2603,8 @@
       <libsource lib="Connector" part="Conn_01x04_Male" description="Generic connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
       <property name="Sheetname" value="stepper_M7"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Generic connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <property name="ki_keywords" value="connector"/>
       <sheetpath names="/Motors/stepper_M7/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/94a117f3-a8fd-4a4e-9f53-f4f999343994/"/>
       <tstamps>e602956b-fb1a-48e1-af9c-9935214ce0ab</tstamps>
     </comp>
@@ -2227,6 +2614,8 @@
       <libsource lib="Jumper" part="SolderJumper_3_Open" description="Solder Jumper, 3-pole, open"/>
       <property name="Sheetname" value="stepper_M7"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Solder Jumper, 3-pole, open"/>
+      <property name="ki_keywords" value="Solder Jumper SPDT"/>
       <sheetpath names="/Motors/stepper_M7/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/94a117f3-a8fd-4a4e-9f53-f4f999343994/"/>
       <tstamps>f874e67a-2487-4ace-9fad-fb16d91b853b</tstamps>
     </comp>
@@ -2236,6 +2625,8 @@
       <libsource lib="Jumper" part="SolderJumper_3_Open" description="Solder Jumper, 3-pole, open"/>
       <property name="Sheetname" value="stepper_M7"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Solder Jumper, 3-pole, open"/>
+      <property name="ki_keywords" value="Solder Jumper SPDT"/>
       <sheetpath names="/Motors/stepper_M7/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/94a117f3-a8fd-4a4e-9f53-f4f999343994/"/>
       <tstamps>bb73a185-3fdb-44a5-9403-b416b4facc16</tstamps>
     </comp>
@@ -2245,6 +2636,8 @@
       <libsource lib="Jumper" part="SolderJumper_3_Open" description="Solder Jumper, 3-pole, open"/>
       <property name="Sheetname" value="stepper_M7"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Solder Jumper, 3-pole, open"/>
+      <property name="ki_keywords" value="Solder Jumper SPDT"/>
       <sheetpath names="/Motors/stepper_M7/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/94a117f3-a8fd-4a4e-9f53-f4f999343994/"/>
       <tstamps>cc2e8eb9-2c1e-4436-9115-eeffb8e65f2d</tstamps>
     </comp>
@@ -2254,6 +2647,8 @@
       <libsource lib="Jumper" part="SolderJumper_3_Open" description="Solder Jumper, 3-pole, open"/>
       <property name="Sheetname" value="stepper_M7"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Solder Jumper, 3-pole, open"/>
+      <property name="ki_keywords" value="Solder Jumper SPDT"/>
       <sheetpath names="/Motors/stepper_M7/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/94a117f3-a8fd-4a4e-9f53-f4f999343994/"/>
       <tstamps>c11fb58d-5381-4907-95b3-86b9d0fc19a4</tstamps>
     </comp>
@@ -2263,6 +2658,8 @@
       <libsource lib="Jumper" part="SolderJumper_3_Open" description="Solder Jumper, 3-pole, open"/>
       <property name="Sheetname" value="stepper_M7"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Solder Jumper, 3-pole, open"/>
+      <property name="ki_keywords" value="Solder Jumper SPDT"/>
       <sheetpath names="/Motors/stepper_M7/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/94a117f3-a8fd-4a4e-9f53-f4f999343994/"/>
       <tstamps>d9a1e753-a9eb-4868-88a1-15ce6bc0f4e6</tstamps>
     </comp>
@@ -2272,6 +2669,8 @@
       <libsource lib="Jumper" part="SolderJumper_2_Open" description="Solder Jumper, 2-pole, open"/>
       <property name="Sheetname" value="stepper_M7"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Solder Jumper, 2-pole, open"/>
+      <property name="ki_keywords" value="solder jumper SPST"/>
       <sheetpath names="/Motors/stepper_M7/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/94a117f3-a8fd-4a4e-9f53-f4f999343994/"/>
       <tstamps>6e5d5af7-e1f6-42d1-8099-e11be41bbff3</tstamps>
     </comp>
@@ -2281,6 +2680,8 @@
       <libsource lib="Jumper" part="SolderJumper_2_Open" description="Solder Jumper, 2-pole, open"/>
       <property name="Sheetname" value="stepper_M7"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Solder Jumper, 2-pole, open"/>
+      <property name="ki_keywords" value="solder jumper SPST"/>
       <sheetpath names="/Motors/stepper_M7/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/94a117f3-a8fd-4a4e-9f53-f4f999343994/"/>
       <tstamps>27e67388-d115-4cdd-a0a2-e7b2f3efdf1f</tstamps>
     </comp>
@@ -2290,6 +2691,8 @@
       <libsource lib="Jumper" part="SolderJumper_2_Open" description="Solder Jumper, 2-pole, open"/>
       <property name="Sheetname" value="stepper_M7"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Solder Jumper, 2-pole, open"/>
+      <property name="ki_keywords" value="solder jumper SPST"/>
       <sheetpath names="/Motors/stepper_M7/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/94a117f3-a8fd-4a4e-9f53-f4f999343994/"/>
       <tstamps>269af695-a894-4436-83b9-a395596a6e3e</tstamps>
     </comp>
@@ -2299,6 +2702,8 @@
       <libsource lib="Device" part="R" description="Resistor"/>
       <property name="Sheetname" value="stepper_M7"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Resistor"/>
+      <property name="ki_keywords" value="R res resistor"/>
       <sheetpath names="/Motors/stepper_M7/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/94a117f3-a8fd-4a4e-9f53-f4f999343994/"/>
       <tstamps>23a0a54f-5dde-4f5b-bb5c-2b097300b395</tstamps>
     </comp>
@@ -2308,6 +2713,8 @@
       <libsource lib="Device" part="R_Pack04" description="4 resistor network, parallel topology"/>
       <property name="Sheetname" value="stepper_M7"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="4 resistor network, parallel topology"/>
+      <property name="ki_keywords" value="R network parallel topology isolated"/>
       <sheetpath names="/Motors/stepper_M7/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/94a117f3-a8fd-4a4e-9f53-f4f999343994/"/>
       <tstamps>ba52d8b2-11df-4205-b94c-522b28a5b309</tstamps>
     </comp>
@@ -2326,15 +2733,19 @@
       <libsource lib="Device" part="C_Polarized" description="Polarized capacitor"/>
       <property name="Sheetname" value="stepper_M8"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Polarized capacitor"/>
+      <property name="ki_keywords" value="cap capacitor"/>
       <sheetpath names="/Motors/stepper_M8/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/798c74da-0af9-46c8-8e27-5dd5c3baf2c3/"/>
       <tstamps>028c2f35-a9b0-4aaf-988c-ea6dbc478016</tstamps>
     </comp>
     <comp ref="J26">
       <value>LimS</value>
-      <footprint>Connector_JST:JST_EH_B4B-EH-A_1x04_P2.50mm_Vertical</footprint>
+      <footprint>Connector_JST:JST_PH_B4B-PH-K_1x04_P2.00mm_Vertical</footprint>
       <libsource lib="Connector" part="Conn_01x04_Male" description="Generic connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
       <property name="Sheetname" value="stepper_M8"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Generic connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <property name="ki_keywords" value="connector"/>
       <sheetpath names="/Motors/stepper_M8/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/798c74da-0af9-46c8-8e27-5dd5c3baf2c3/"/>
       <tstamps>0f3f2180-6e00-4de5-8d6d-bb200c241b76</tstamps>
     </comp>
@@ -2344,6 +2755,8 @@
       <libsource lib="Connector" part="Conn_01x04_Male" description="Generic connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
       <property name="Sheetname" value="stepper_M8"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Generic connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <property name="ki_keywords" value="connector"/>
       <sheetpath names="/Motors/stepper_M8/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/798c74da-0af9-46c8-8e27-5dd5c3baf2c3/"/>
       <tstamps>e602956b-fb1a-48e1-af9c-9935214ce0ab</tstamps>
     </comp>
@@ -2353,6 +2766,8 @@
       <libsource lib="Jumper" part="SolderJumper_3_Open" description="Solder Jumper, 3-pole, open"/>
       <property name="Sheetname" value="stepper_M8"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Solder Jumper, 3-pole, open"/>
+      <property name="ki_keywords" value="Solder Jumper SPDT"/>
       <sheetpath names="/Motors/stepper_M8/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/798c74da-0af9-46c8-8e27-5dd5c3baf2c3/"/>
       <tstamps>f874e67a-2487-4ace-9fad-fb16d91b853b</tstamps>
     </comp>
@@ -2362,6 +2777,8 @@
       <libsource lib="Jumper" part="SolderJumper_3_Open" description="Solder Jumper, 3-pole, open"/>
       <property name="Sheetname" value="stepper_M8"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Solder Jumper, 3-pole, open"/>
+      <property name="ki_keywords" value="Solder Jumper SPDT"/>
       <sheetpath names="/Motors/stepper_M8/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/798c74da-0af9-46c8-8e27-5dd5c3baf2c3/"/>
       <tstamps>bb73a185-3fdb-44a5-9403-b416b4facc16</tstamps>
     </comp>
@@ -2371,6 +2788,8 @@
       <libsource lib="Jumper" part="SolderJumper_3_Open" description="Solder Jumper, 3-pole, open"/>
       <property name="Sheetname" value="stepper_M8"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Solder Jumper, 3-pole, open"/>
+      <property name="ki_keywords" value="Solder Jumper SPDT"/>
       <sheetpath names="/Motors/stepper_M8/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/798c74da-0af9-46c8-8e27-5dd5c3baf2c3/"/>
       <tstamps>cc2e8eb9-2c1e-4436-9115-eeffb8e65f2d</tstamps>
     </comp>
@@ -2380,6 +2799,8 @@
       <libsource lib="Jumper" part="SolderJumper_3_Open" description="Solder Jumper, 3-pole, open"/>
       <property name="Sheetname" value="stepper_M8"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Solder Jumper, 3-pole, open"/>
+      <property name="ki_keywords" value="Solder Jumper SPDT"/>
       <sheetpath names="/Motors/stepper_M8/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/798c74da-0af9-46c8-8e27-5dd5c3baf2c3/"/>
       <tstamps>c11fb58d-5381-4907-95b3-86b9d0fc19a4</tstamps>
     </comp>
@@ -2389,6 +2810,8 @@
       <libsource lib="Jumper" part="SolderJumper_3_Open" description="Solder Jumper, 3-pole, open"/>
       <property name="Sheetname" value="stepper_M8"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Solder Jumper, 3-pole, open"/>
+      <property name="ki_keywords" value="Solder Jumper SPDT"/>
       <sheetpath names="/Motors/stepper_M8/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/798c74da-0af9-46c8-8e27-5dd5c3baf2c3/"/>
       <tstamps>d9a1e753-a9eb-4868-88a1-15ce6bc0f4e6</tstamps>
     </comp>
@@ -2398,6 +2821,8 @@
       <libsource lib="Jumper" part="SolderJumper_2_Open" description="Solder Jumper, 2-pole, open"/>
       <property name="Sheetname" value="stepper_M8"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Solder Jumper, 2-pole, open"/>
+      <property name="ki_keywords" value="solder jumper SPST"/>
       <sheetpath names="/Motors/stepper_M8/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/798c74da-0af9-46c8-8e27-5dd5c3baf2c3/"/>
       <tstamps>6e5d5af7-e1f6-42d1-8099-e11be41bbff3</tstamps>
     </comp>
@@ -2407,6 +2832,8 @@
       <libsource lib="Jumper" part="SolderJumper_2_Open" description="Solder Jumper, 2-pole, open"/>
       <property name="Sheetname" value="stepper_M8"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Solder Jumper, 2-pole, open"/>
+      <property name="ki_keywords" value="solder jumper SPST"/>
       <sheetpath names="/Motors/stepper_M8/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/798c74da-0af9-46c8-8e27-5dd5c3baf2c3/"/>
       <tstamps>27e67388-d115-4cdd-a0a2-e7b2f3efdf1f</tstamps>
     </comp>
@@ -2416,6 +2843,8 @@
       <libsource lib="Jumper" part="SolderJumper_2_Open" description="Solder Jumper, 2-pole, open"/>
       <property name="Sheetname" value="stepper_M8"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Solder Jumper, 2-pole, open"/>
+      <property name="ki_keywords" value="solder jumper SPST"/>
       <sheetpath names="/Motors/stepper_M8/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/798c74da-0af9-46c8-8e27-5dd5c3baf2c3/"/>
       <tstamps>269af695-a894-4436-83b9-a395596a6e3e</tstamps>
     </comp>
@@ -2425,6 +2854,8 @@
       <libsource lib="Device" part="R" description="Resistor"/>
       <property name="Sheetname" value="stepper_M8"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="Resistor"/>
+      <property name="ki_keywords" value="R res resistor"/>
       <sheetpath names="/Motors/stepper_M8/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/798c74da-0af9-46c8-8e27-5dd5c3baf2c3/"/>
       <tstamps>23a0a54f-5dde-4f5b-bb5c-2b097300b395</tstamps>
     </comp>
@@ -2434,6 +2865,8 @@
       <libsource lib="Device" part="R_Pack04" description="4 resistor network, parallel topology"/>
       <property name="Sheetname" value="stepper_M8"/>
       <property name="Sheetfile" value="stepper_M.kicad_sch"/>
+      <property name="ki_description" value="4 resistor network, parallel topology"/>
+      <property name="ki_keywords" value="R network parallel topology isolated"/>
       <sheetpath names="/Motors/stepper_M8/" tstamps="/cf2c4fa9-a57e-4812-ae0c-3db57f6071a5/798c74da-0af9-46c8-8e27-5dd5c3baf2c3/"/>
       <tstamps>ba52d8b2-11df-4205-b94c-522b28a5b309</tstamps>
     </comp>
@@ -3322,7 +3755,7 @@
       <uri>/usr/share/kicad/kicad-symbols/Switch.kicad_sym</uri>
     </library>
     <library logical="stepper_module">
-      <uri>/Big/Data/00__Electronics/STM32/F303-nolib/Multistepper/kicad/stepper_module.kicad_sym</uri>
+      <uri>/home/eddy/Docs/SAO/ELECTRONICS/STM32/F3-srcs/Multistepper/kicad/stepper_module.kicad_sym</uri>
     </library>
   </libraries>
   <nets>
@@ -4303,416 +4736,416 @@
       <node ref="U1" pin="5" pinfunction="PE6" pintype="bidirectional"/>
       <node ref="U7" pin="6" pinfunction="~{E}" pintype="input"/>
     </net>
-    <net code="176" name="Net-(C10-Pad1)">
-      <node ref="C10" pin="1" pintype="passive"/>
-      <node ref="JP1" pin="2" pinfunction="B" pintype="passive"/>
-      <node ref="Q1" pin="2" pinfunction="Vin" pintype="power_in"/>
-      <node ref="U2" pin="1" pinfunction="VCC1" pintype="power_in"/>
+    <net code="176" name="Net-(D22-K)">
+      <node ref="D22" pin="1" pinfunction="K" pintype="passive"/>
+      <node ref="JP2" pin="2" pinfunction="B" pintype="passive"/>
+      <node ref="TP1" pin="1" pinfunction="1" pintype="passive"/>
     </net>
-    <net code="177" name="Net-(C11-Pad1)">
-      <node ref="C11" pin="1" pintype="passive"/>
-      <node ref="Q1" pin="4" pinfunction="+Vo" pintype="power_out"/>
-      <node ref="U2" pin="8" pinfunction="VCC2" pintype="power_in"/>
+    <net code="177" name="Net-(D25-A)">
+      <node ref="D25" pin="2" pinfunction="A" pintype="passive"/>
+      <node ref="Q2" pin="4" pinfunction="G" pintype="input"/>
+      <node ref="R19" pin="1" pintype="passive"/>
     </net>
-    <net code="178" name="Net-(C15-Pad1)">
-      <node ref="C15" pin="1" pintype="passive"/>
-      <node ref="JP5" pin="2" pinfunction="B" pintype="passive"/>
-      <node ref="U6" pin="3" pinfunction="VI" pintype="power_in"/>
+    <net code="178" name="Net-(D26-K)">
+      <node ref="D26" pin="1" pinfunction="K" pintype="passive"/>
+      <node ref="L1" pin="2" pinfunction="2" pintype="passive"/>
+      <node ref="U5" pin="2" pinfunction="VOUT" pintype="power_out"/>
     </net>
-    <net code="179" name="Net-(C17-Pad1)">
+    <net code="179" name="Net-(D27-A)">
       <node ref="C17" pin="1" pintype="passive"/>
       <node ref="D27" pin="2" pinfunction="A" pintype="passive"/>
       <node ref="L1" pin="1" pinfunction="1" pintype="passive"/>
       <node ref="TP4" pin="1" pinfunction="1" pintype="passive"/>
       <node ref="U5" pin="4" pinfunction="FB" pintype="input"/>
     </net>
-    <net code="180" name="Net-(C27-Pad1)">
-      <node ref="C27" pin="1" pintype="passive"/>
-      <node ref="JP7" pin="2" pinfunction="B" pintype="passive"/>
-      <node ref="U8" pin="3" pinfunction="VI" pintype="power_in"/>
-    </net>
-    <net code="181" name="Net-(D22-Pad1)">
-      <node ref="D22" pin="1" pinfunction="K" pintype="passive"/>
-      <node ref="JP2" pin="2" pinfunction="B" pintype="passive"/>
-      <node ref="TP1" pin="1" pinfunction="1" pintype="passive"/>
-    </net>
-    <net code="182" name="Net-(D25-Pad2)">
-      <node ref="D25" pin="2" pinfunction="A" pintype="passive"/>
-      <node ref="Q2" pin="4" pinfunction="G" pintype="input"/>
-      <node ref="R19" pin="1" pintype="passive"/>
-    </net>
-    <net code="183" name="Net-(D26-Pad1)">
-      <node ref="D26" pin="1" pinfunction="K" pintype="passive"/>
-      <node ref="L1" pin="2" pinfunction="2" pintype="passive"/>
-      <node ref="U5" pin="2" pinfunction="VOUT" pintype="power_out"/>
-    </net>
-    <net code="184" name="Net-(J1-Pad4)">
+    <net code="180" name="Net-(J1-Pin_4)">
       <node ref="J1" pin="4" pinfunction="Pin_4" pintype="passive"/>
       <node ref="R2" pin="2" pintype="passive"/>
     </net>
-    <net code="185" name="Net-(J2-Pad2)">
+    <net code="181" name="Net-(J2-Pin_2)">
       <node ref="J2" pin="2" pinfunction="Pin_2" pintype="passive"/>
       <node ref="R3" pin="1" pintype="passive"/>
     </net>
-    <net code="186" name="Net-(J2-Pad3)">
+    <net code="182" name="Net-(J2-Pin_3)">
       <node ref="J2" pin="3" pinfunction="Pin_3" pintype="passive"/>
       <node ref="RN1" pin="1" pinfunction="R1.1" pintype="passive"/>
     </net>
-    <net code="187" name="Net-(J2-Pad4)">
+    <net code="183" name="Net-(J2-Pin_4)">
       <node ref="J2" pin="4" pinfunction="Pin_4" pintype="passive"/>
       <node ref="R34" pin="1" pintype="passive"/>
     </net>
-    <net code="188" name="Net-(J2-Pad5)">
+    <net code="184" name="Net-(J2-Pin_5)">
       <node ref="J2" pin="5" pinfunction="Pin_5" pintype="passive"/>
       <node ref="RN1" pin="2" pinfunction="R2.1" pintype="passive"/>
     </net>
-    <net code="189" name="Net-(J2-Pad6)">
+    <net code="185" name="Net-(J2-Pin_6)">
       <node ref="J2" pin="6" pinfunction="Pin_6" pintype="passive"/>
       <node ref="RN3" pin="7" pinfunction="R2.2" pintype="passive"/>
     </net>
-    <net code="190" name="Net-(J2-Pad7)">
+    <net code="186" name="Net-(J2-Pin_7)">
       <node ref="J2" pin="7" pinfunction="Pin_7" pintype="passive"/>
       <node ref="RN1" pin="3" pinfunction="R3.1" pintype="passive"/>
     </net>
-    <net code="191" name="Net-(J2-Pad8)">
+    <net code="187" name="Net-(J2-Pin_8)">
       <node ref="J2" pin="8" pinfunction="Pin_8" pintype="passive"/>
       <node ref="RN3" pin="6" pinfunction="R3.2" pintype="passive"/>
     </net>
-    <net code="192" name="Net-(J2-Pad10)">
+    <net code="188" name="Net-(J2-Pin_10)">
       <node ref="J2" pin="10" pinfunction="Pin_10" pintype="passive"/>
       <node ref="RN3" pin="5" pinfunction="R4.2" pintype="passive"/>
     </net>
-    <net code="193" name="Net-(J3-Pad1)">
+    <net code="189" name="Net-(J3-Pin_1)">
       <node ref="J3" pin="1" pinfunction="Pin_1" pintype="passive"/>
       <node ref="R4" pin="1" pintype="passive"/>
     </net>
-    <net code="194" name="Net-(J3-Pad3)">
+    <net code="190" name="Net-(J3-Pin_3)">
       <node ref="J3" pin="3" pinfunction="Pin_3" pintype="passive"/>
       <node ref="RN4" pin="5" pinfunction="R4.2" pintype="passive"/>
     </net>
-    <net code="195" name="Net-(J3-Pad4)">
+    <net code="191" name="Net-(J3-Pin_4)">
       <node ref="J3" pin="4" pinfunction="Pin_4" pintype="passive"/>
       <node ref="R5" pin="2" pintype="passive"/>
     </net>
-    <net code="196" name="Net-(J3-Pad5)">
+    <net code="192" name="Net-(J3-Pin_5)">
       <node ref="J3" pin="5" pinfunction="Pin_5" pintype="passive"/>
       <node ref="RN4" pin="6" pinfunction="R3.2" pintype="passive"/>
     </net>
-    <net code="197" name="Net-(J3-Pad6)">
+    <net code="193" name="Net-(J3-Pin_6)">
       <node ref="J3" pin="6" pinfunction="Pin_6" pintype="passive"/>
       <node ref="R15" pin="2" pintype="passive"/>
     </net>
-    <net code="198" name="Net-(J3-Pad7)">
+    <net code="194" name="Net-(J3-Pin_7)">
       <node ref="J3" pin="7" pinfunction="Pin_7" pintype="passive"/>
       <node ref="RN4" pin="7" pinfunction="R2.2" pintype="passive"/>
     </net>
-    <net code="199" name="Net-(J3-Pad8)">
+    <net code="195" name="Net-(J3-Pin_8)">
       <node ref="J3" pin="8" pinfunction="Pin_8" pintype="passive"/>
       <node ref="R14" pin="2" pintype="passive"/>
     </net>
-    <net code="200" name="Net-(J3-Pad9)">
+    <net code="196" name="Net-(J3-Pin_9)">
       <node ref="J3" pin="9" pinfunction="Pin_9" pintype="passive"/>
       <node ref="RN4" pin="8" pinfunction="R1.2" pintype="passive"/>
     </net>
-    <net code="201" name="Net-(J4-Pad1)">
+    <net code="197" name="Net-(J4-Pin_1)">
       <node ref="J4" pin="1" pinfunction="Pin_1" pintype="passive"/>
       <node ref="J5" pin="1" pinfunction="Pin_1" pintype="passive"/>
       <node ref="R9" pin="2" pintype="passive"/>
     </net>
-    <net code="202" name="Net-(J6-Pad2)">
+    <net code="198" name="Net-(J6-Pin_2)">
       <node ref="J6" pin="2" pinfunction="Pin_2" pintype="passive"/>
       <node ref="RN6" pin="4" pinfunction="R4.1" pintype="passive"/>
     </net>
-    <net code="203" name="Net-(J6-Pad3)">
+    <net code="199" name="Net-(J6-Pin_3)">
       <node ref="J6" pin="3" pinfunction="Pin_3" pintype="passive"/>
       <node ref="RN6" pin="3" pinfunction="R3.1" pintype="passive"/>
     </net>
-    <net code="204" name="Net-(J6-Pad4)">
+    <net code="200" name="Net-(J6-Pin_4)">
       <node ref="J6" pin="4" pinfunction="Pin_4" pintype="passive"/>
       <node ref="RN6" pin="2" pinfunction="R2.1" pintype="passive"/>
     </net>
-    <net code="205" name="Net-(J6-Pad5)">
+    <net code="201" name="Net-(J6-Pin_5)">
       <node ref="J6" pin="5" pinfunction="Pin_5" pintype="passive"/>
       <node ref="RN6" pin="1" pinfunction="R1.1" pintype="passive"/>
     </net>
-    <net code="206" name="Net-(J7-Pad2)">
+    <net code="202" name="Net-(J7-Pin_2)">
       <node ref="J7" pin="2" pinfunction="Pin_2" pintype="passive"/>
       <node ref="RN2" pin="3" pinfunction="R3.1" pintype="passive"/>
     </net>
-    <net code="207" name="Net-(J7-Pad3)">
+    <net code="203" name="Net-(J7-Pin_3)">
       <node ref="J7" pin="3" pinfunction="Pin_3" pintype="passive"/>
       <node ref="RN2" pin="2" pinfunction="R2.1" pintype="passive"/>
     </net>
-    <net code="208" name="Net-(J7-Pad4)">
+    <net code="204" name="Net-(J7-Pin_4)">
       <node ref="J7" pin="4" pinfunction="Pin_4" pintype="passive"/>
       <node ref="RN2" pin="1" pinfunction="R1.1" pintype="passive"/>
     </net>
-    <net code="209" name="Net-(J8-Pad2)">
-      <node ref="J8" pin="2" pinfunction="D-" pintype="bidirectional"/>
-      <node ref="R16" pin="1" pintype="passive"/>
-    </net>
-    <net code="210" name="Net-(J8-Pad3)">
+    <net code="205" name="Net-(J8-D+)">
       <node ref="J8" pin="3" pinfunction="D+" pintype="bidirectional"/>
       <node ref="R17" pin="1" pintype="passive"/>
     </net>
-    <net code="211" name="Net-(J10-Pad2)">
+    <net code="206" name="Net-(J8-D-)">
+      <node ref="J8" pin="2" pinfunction="D-" pintype="bidirectional"/>
+      <node ref="R16" pin="1" pintype="passive"/>
+    </net>
+    <net code="207" name="Net-(J10-Pin_2)">
       <node ref="J10" pin="2" pinfunction="Pin_2" pintype="passive"/>
       <node ref="Q2" pin="5" pinfunction="D" pintype="passive"/>
       <node ref="Q2" pin="6" pinfunction="D" pintype="passive"/>
       <node ref="Q2" pin="7" pinfunction="D" pintype="passive"/>
       <node ref="Q2" pin="8" pinfunction="D" pintype="passive"/>
     </net>
-    <net code="212" name="Net-(J11-Pad1)">
+    <net code="208" name="Net-(J11-Pin_1)">
       <node ref="J11" pin="1" pinfunction="Pin_1" pintype="passive"/>
       <node ref="R23" pin="2" pintype="passive"/>
     </net>
-    <net code="213" name="Net-(J12-Pad1)">
+    <net code="209" name="Net-(J12-Pin_1)">
       <node ref="J12" pin="1" pinfunction="Pin_1" pintype="passive"/>
       <node ref="XX1" pin="11" pinfunction="M1B" pintype="passive"/>
     </net>
-    <net code="214" name="Net-(J12-Pad2)">
+    <net code="210" name="Net-(J12-Pin_2)">
       <node ref="J12" pin="2" pinfunction="Pin_2" pintype="passive"/>
       <node ref="XX1" pin="12" pinfunction="M1A" pintype="passive"/>
     </net>
-    <net code="215" name="Net-(J12-Pad3)">
+    <net code="211" name="Net-(J12-Pin_3)">
       <node ref="J12" pin="3" pinfunction="Pin_3" pintype="passive"/>
       <node ref="XX1" pin="13" pinfunction="M2A" pintype="passive"/>
     </net>
-    <net code="216" name="Net-(J12-Pad4)">
+    <net code="212" name="Net-(J12-Pin_4)">
       <node ref="J12" pin="4" pinfunction="Pin_4" pintype="passive"/>
       <node ref="XX1" pin="14" pinfunction="M2B" pintype="passive"/>
     </net>
-    <net code="217" name="Net-(J13-Pad1)">
+    <net code="213" name="Net-(J13-Pin_1)">
       <node ref="J13" pin="1" pinfunction="Pin_1" pintype="passive"/>
       <node ref="R24" pin="2" pintype="passive"/>
     </net>
-    <net code="218" name="Net-(J13-Pad2)">
+    <net code="214" name="Net-(J13-Pin_2)">
       <node ref="J13" pin="2" pinfunction="Pin_2" pintype="passive"/>
       <node ref="R25" pin="2" pintype="passive"/>
     </net>
-    <net code="219" name="Net-(J14-Pad1)">
+    <net code="215" name="Net-(J14-Pin_1)">
       <node ref="J14" pin="1" pinfunction="Pin_1" pintype="passive"/>
       <node ref="R26" pin="2" pintype="passive"/>
     </net>
-    <net code="220" name="Net-(J15-Pad1)">
+    <net code="216" name="Net-(J15-Pin_1)">
       <node ref="J15" pin="1" pinfunction="Pin_1" pintype="passive"/>
       <node ref="XX2" pin="11" pinfunction="M1B" pintype="passive"/>
     </net>
-    <net code="221" name="Net-(J15-Pad2)">
+    <net code="217" name="Net-(J15-Pin_2)">
       <node ref="J15" pin="2" pinfunction="Pin_2" pintype="passive"/>
       <node ref="XX2" pin="12" pinfunction="M1A" pintype="passive"/>
     </net>
-    <net code="222" name="Net-(J15-Pad3)">
+    <net code="218" name="Net-(J15-Pin_3)">
       <node ref="J15" pin="3" pinfunction="Pin_3" pintype="passive"/>
       <node ref="XX2" pin="13" pinfunction="M2A" pintype="passive"/>
     </net>
-    <net code="223" name="Net-(J15-Pad4)">
+    <net code="219" name="Net-(J15-Pin_4)">
       <node ref="J15" pin="4" pinfunction="Pin_4" pintype="passive"/>
       <node ref="XX2" pin="14" pinfunction="M2B" pintype="passive"/>
     </net>
-    <net code="224" name="Net-(J16-Pad1)">
+    <net code="220" name="Net-(J16-Pin_1)">
       <node ref="J16" pin="1" pinfunction="Pin_1" pintype="passive"/>
       <node ref="R27" pin="2" pintype="passive"/>
     </net>
-    <net code="225" name="Net-(J17-Pad1)">
+    <net code="221" name="Net-(J17-Pin_1)">
       <node ref="J17" pin="1" pinfunction="Pin_1" pintype="passive"/>
       <node ref="XX3" pin="11" pinfunction="M1B" pintype="passive"/>
     </net>
-    <net code="226" name="Net-(J17-Pad2)">
+    <net code="222" name="Net-(J17-Pin_2)">
       <node ref="J17" pin="2" pinfunction="Pin_2" pintype="passive"/>
       <node ref="XX3" pin="12" pinfunction="M1A" pintype="passive"/>
     </net>
-    <net code="227" name="Net-(J17-Pad3)">
+    <net code="223" name="Net-(J17-Pin_3)">
       <node ref="J17" pin="3" pinfunction="Pin_3" pintype="passive"/>
       <node ref="XX3" pin="13" pinfunction="M2A" pintype="passive"/>
     </net>
-    <net code="228" name="Net-(J17-Pad4)">
+    <net code="224" name="Net-(J17-Pin_4)">
       <node ref="J17" pin="4" pinfunction="Pin_4" pintype="passive"/>
       <node ref="XX3" pin="14" pinfunction="M2B" pintype="passive"/>
     </net>
-    <net code="229" name="Net-(J18-Pad1)">
+    <net code="225" name="Net-(J18-Pin_1)">
       <node ref="J18" pin="1" pinfunction="Pin_1" pintype="passive"/>
       <node ref="R28" pin="2" pintype="passive"/>
     </net>
-    <net code="230" name="Net-(J19-Pad1)">
+    <net code="226" name="Net-(J19-Pin_1)">
       <node ref="J19" pin="1" pinfunction="Pin_1" pintype="passive"/>
       <node ref="XX4" pin="11" pinfunction="M1B" pintype="passive"/>
     </net>
-    <net code="231" name="Net-(J19-Pad2)">
+    <net code="227" name="Net-(J19-Pin_2)">
       <node ref="J19" pin="2" pinfunction="Pin_2" pintype="passive"/>
       <node ref="XX4" pin="12" pinfunction="M1A" pintype="passive"/>
     </net>
-    <net code="232" name="Net-(J19-Pad3)">
+    <net code="228" name="Net-(J19-Pin_3)">
       <node ref="J19" pin="3" pinfunction="Pin_3" pintype="passive"/>
       <node ref="XX4" pin="13" pinfunction="M2A" pintype="passive"/>
     </net>
-    <net code="233" name="Net-(J19-Pad4)">
+    <net code="229" name="Net-(J19-Pin_4)">
       <node ref="J19" pin="4" pinfunction="Pin_4" pintype="passive"/>
       <node ref="XX4" pin="14" pinfunction="M2B" pintype="passive"/>
     </net>
-    <net code="234" name="Net-(J20-Pad1)">
+    <net code="230" name="Net-(J20-Pin_1)">
       <node ref="J20" pin="1" pinfunction="Pin_1" pintype="passive"/>
       <node ref="R29" pin="2" pintype="passive"/>
     </net>
-    <net code="235" name="Net-(J21-Pad1)">
+    <net code="231" name="Net-(J21-Pin_1)">
       <node ref="J21" pin="1" pinfunction="Pin_1" pintype="passive"/>
       <node ref="XX5" pin="11" pinfunction="M1B" pintype="passive"/>
     </net>
-    <net code="236" name="Net-(J21-Pad2)">
+    <net code="232" name="Net-(J21-Pin_2)">
       <node ref="J21" pin="2" pinfunction="Pin_2" pintype="passive"/>
       <node ref="XX5" pin="12" pinfunction="M1A" pintype="passive"/>
     </net>
-    <net code="237" name="Net-(J21-Pad3)">
+    <net code="233" name="Net-(J21-Pin_3)">
       <node ref="J21" pin="3" pinfunction="Pin_3" pintype="passive"/>
       <node ref="XX5" pin="13" pinfunction="M2A" pintype="passive"/>
     </net>
-    <net code="238" name="Net-(J21-Pad4)">
+    <net code="234" name="Net-(J21-Pin_4)">
       <node ref="J21" pin="4" pinfunction="Pin_4" pintype="passive"/>
       <node ref="XX5" pin="14" pinfunction="M2B" pintype="passive"/>
     </net>
-    <net code="239" name="Net-(J22-Pad1)">
+    <net code="235" name="Net-(J22-Pin_1)">
       <node ref="J22" pin="1" pinfunction="Pin_1" pintype="passive"/>
       <node ref="R30" pin="2" pintype="passive"/>
     </net>
-    <net code="240" name="Net-(J23-Pad1)">
+    <net code="236" name="Net-(J23-Pin_1)">
       <node ref="J23" pin="1" pinfunction="Pin_1" pintype="passive"/>
       <node ref="XX6" pin="11" pinfunction="M1B" pintype="passive"/>
     </net>
-    <net code="241" name="Net-(J23-Pad2)">
+    <net code="237" name="Net-(J23-Pin_2)">
       <node ref="J23" pin="2" pinfunction="Pin_2" pintype="passive"/>
       <node ref="XX6" pin="12" pinfunction="M1A" pintype="passive"/>
     </net>
-    <net code="242" name="Net-(J23-Pad3)">
+    <net code="238" name="Net-(J23-Pin_3)">
       <node ref="J23" pin="3" pinfunction="Pin_3" pintype="passive"/>
       <node ref="XX6" pin="13" pinfunction="M2A" pintype="passive"/>
     </net>
-    <net code="243" name="Net-(J23-Pad4)">
+    <net code="239" name="Net-(J23-Pin_4)">
       <node ref="J23" pin="4" pinfunction="Pin_4" pintype="passive"/>
       <node ref="XX6" pin="14" pinfunction="M2B" pintype="passive"/>
     </net>
-    <net code="244" name="Net-(J24-Pad1)">
+    <net code="240" name="Net-(J24-Pin_1)">
       <node ref="J24" pin="1" pinfunction="Pin_1" pintype="passive"/>
       <node ref="R31" pin="2" pintype="passive"/>
     </net>
-    <net code="245" name="Net-(J25-Pad1)">
+    <net code="241" name="Net-(J25-Pin_1)">
       <node ref="J25" pin="1" pinfunction="Pin_1" pintype="passive"/>
       <node ref="XX7" pin="11" pinfunction="M1B" pintype="passive"/>
     </net>
-    <net code="246" name="Net-(J25-Pad2)">
+    <net code="242" name="Net-(J25-Pin_2)">
       <node ref="J25" pin="2" pinfunction="Pin_2" pintype="passive"/>
       <node ref="XX7" pin="12" pinfunction="M1A" pintype="passive"/>
     </net>
-    <net code="247" name="Net-(J25-Pad3)">
+    <net code="243" name="Net-(J25-Pin_3)">
       <node ref="J25" pin="3" pinfunction="Pin_3" pintype="passive"/>
       <node ref="XX7" pin="13" pinfunction="M2A" pintype="passive"/>
     </net>
-    <net code="248" name="Net-(J25-Pad4)">
+    <net code="244" name="Net-(J25-Pin_4)">
       <node ref="J25" pin="4" pinfunction="Pin_4" pintype="passive"/>
       <node ref="XX7" pin="14" pinfunction="M2B" pintype="passive"/>
     </net>
-    <net code="249" name="Net-(J26-Pad1)">
+    <net code="245" name="Net-(J26-Pin_1)">
       <node ref="J26" pin="1" pinfunction="Pin_1" pintype="passive"/>
       <node ref="R32" pin="2" pintype="passive"/>
     </net>
-    <net code="250" name="Net-(J27-Pad1)">
+    <net code="246" name="Net-(J27-Pin_1)">
       <node ref="J27" pin="1" pinfunction="Pin_1" pintype="passive"/>
       <node ref="XX8" pin="11" pinfunction="M1B" pintype="passive"/>
     </net>
-    <net code="251" name="Net-(J27-Pad2)">
+    <net code="247" name="Net-(J27-Pin_2)">
       <node ref="J27" pin="2" pinfunction="Pin_2" pintype="passive"/>
       <node ref="XX8" pin="12" pinfunction="M1A" pintype="passive"/>
     </net>
-    <net code="252" name="Net-(J27-Pad3)">
+    <net code="248" name="Net-(J27-Pin_3)">
       <node ref="J27" pin="3" pinfunction="Pin_3" pintype="passive"/>
       <node ref="XX8" pin="13" pinfunction="M2A" pintype="passive"/>
     </net>
-    <net code="253" name="Net-(J27-Pad4)">
+    <net code="249" name="Net-(J27-Pin_4)">
       <node ref="J27" pin="4" pinfunction="Pin_4" pintype="passive"/>
       <node ref="XX8" pin="14" pinfunction="M2B" pintype="passive"/>
     </net>
-    <net code="254" name="Net-(JP4-Pad2)">
+    <net code="250" name="Net-(JP1-B)">
+      <node ref="C10" pin="1" pintype="passive"/>
+      <node ref="JP1" pin="2" pinfunction="B" pintype="passive"/>
+      <node ref="Q1" pin="2" pinfunction="Vin" pintype="power_in"/>
+      <node ref="U2" pin="1" pinfunction="VCC1" pintype="power_in"/>
+    </net>
+    <net code="251" name="Net-(JP4-B)">
       <node ref="JP4" pin="2" pinfunction="B" pintype="passive"/>
       <node ref="R20" pin="2" pintype="passive"/>
     </net>
-    <net code="255" name="Net-(JP8-Pad1)">
+    <net code="252" name="Net-(JP5-B)">
+      <node ref="C15" pin="1" pintype="passive"/>
+      <node ref="JP5" pin="2" pinfunction="B" pintype="passive"/>
+      <node ref="U6" pin="3" pinfunction="VI" pintype="power_in"/>
+    </net>
+    <net code="253" name="Net-(JP7-B)">
+      <node ref="C27" pin="1" pintype="passive"/>
+      <node ref="JP7" pin="2" pinfunction="B" pintype="passive"/>
+      <node ref="U8" pin="3" pinfunction="VI" pintype="power_in"/>
+    </net>
+    <net code="254" name="Net-(JP8-A)">
       <node ref="JP8" pin="1" pinfunction="A" pintype="passive"/>
       <node ref="JP9" pin="2" pinfunction="C" pintype="passive"/>
     </net>
-    <net code="256" name="Net-(JP13-Pad1)">
+    <net code="255" name="Net-(JP13-A)">
       <node ref="JP13" pin="1" pinfunction="A" pintype="passive"/>
       <node ref="JP14" pin="1" pinfunction="A" pintype="passive"/>
       <node ref="JP15" pin="1" pinfunction="A" pintype="passive"/>
     </net>
-    <net code="257" name="Net-(JP16-Pad1)">
+    <net code="256" name="Net-(JP16-A)">
       <node ref="JP16" pin="1" pinfunction="A" pintype="passive"/>
       <node ref="JP17" pin="2" pinfunction="C" pintype="passive"/>
     </net>
-    <net code="258" name="Net-(JP21-Pad1)">
+    <net code="257" name="Net-(JP21-A)">
       <node ref="JP21" pin="1" pinfunction="A" pintype="passive"/>
       <node ref="JP22" pin="1" pinfunction="A" pintype="passive"/>
       <node ref="JP23" pin="1" pinfunction="A" pintype="passive"/>
     </net>
-    <net code="259" name="Net-(JP24-Pad1)">
+    <net code="258" name="Net-(JP24-A)">
       <node ref="JP24" pin="1" pinfunction="A" pintype="passive"/>
       <node ref="JP25" pin="2" pinfunction="C" pintype="passive"/>
     </net>
-    <net code="260" name="Net-(JP29-Pad1)">
+    <net code="259" name="Net-(JP29-A)">
       <node ref="JP29" pin="1" pinfunction="A" pintype="passive"/>
       <node ref="JP30" pin="1" pinfunction="A" pintype="passive"/>
       <node ref="JP31" pin="1" pinfunction="A" pintype="passive"/>
     </net>
-    <net code="261" name="Net-(JP32-Pad1)">
+    <net code="260" name="Net-(JP32-A)">
       <node ref="JP32" pin="1" pinfunction="A" pintype="passive"/>
       <node ref="JP33" pin="2" pinfunction="C" pintype="passive"/>
     </net>
-    <net code="262" name="Net-(JP37-Pad1)">
+    <net code="261" name="Net-(JP37-A)">
       <node ref="JP37" pin="1" pinfunction="A" pintype="passive"/>
       <node ref="JP38" pin="1" pinfunction="A" pintype="passive"/>
       <node ref="JP39" pin="1" pinfunction="A" pintype="passive"/>
     </net>
-    <net code="263" name="Net-(JP40-Pad1)">
+    <net code="262" name="Net-(JP40-A)">
       <node ref="JP40" pin="1" pinfunction="A" pintype="passive"/>
       <node ref="JP41" pin="2" pinfunction="C" pintype="passive"/>
     </net>
-    <net code="264" name="Net-(JP45-Pad1)">
+    <net code="263" name="Net-(JP45-A)">
       <node ref="JP45" pin="1" pinfunction="A" pintype="passive"/>
       <node ref="JP46" pin="1" pinfunction="A" pintype="passive"/>
       <node ref="JP47" pin="1" pinfunction="A" pintype="passive"/>
     </net>
-    <net code="265" name="Net-(JP48-Pad1)">
+    <net code="264" name="Net-(JP48-A)">
       <node ref="JP48" pin="1" pinfunction="A" pintype="passive"/>
       <node ref="JP49" pin="2" pinfunction="C" pintype="passive"/>
     </net>
-    <net code="266" name="Net-(JP53-Pad1)">
+    <net code="265" name="Net-(JP53-A)">
       <node ref="JP53" pin="1" pinfunction="A" pintype="passive"/>
       <node ref="JP54" pin="1" pinfunction="A" pintype="passive"/>
       <node ref="JP55" pin="1" pinfunction="A" pintype="passive"/>
     </net>
-    <net code="267" name="Net-(JP56-Pad1)">
+    <net code="266" name="Net-(JP56-A)">
       <node ref="JP56" pin="1" pinfunction="A" pintype="passive"/>
       <node ref="JP57" pin="2" pinfunction="C" pintype="passive"/>
     </net>
-    <net code="268" name="Net-(JP61-Pad1)">
+    <net code="267" name="Net-(JP61-A)">
       <node ref="JP61" pin="1" pinfunction="A" pintype="passive"/>
       <node ref="JP62" pin="1" pinfunction="A" pintype="passive"/>
       <node ref="JP63" pin="1" pinfunction="A" pintype="passive"/>
     </net>
-    <net code="269" name="Net-(JP64-Pad1)">
+    <net code="268" name="Net-(JP64-A)">
       <node ref="JP64" pin="1" pinfunction="A" pintype="passive"/>
       <node ref="JP65" pin="2" pinfunction="C" pintype="passive"/>
     </net>
-    <net code="270" name="Net-(JP69-Pad1)">
+    <net code="269" name="Net-(JP69-A)">
       <node ref="JP69" pin="1" pinfunction="A" pintype="passive"/>
       <node ref="JP70" pin="1" pinfunction="A" pintype="passive"/>
       <node ref="JP71" pin="1" pinfunction="A" pintype="passive"/>
     </net>
-    <net code="271" name="Net-(Q3-Pad1)">
-      <node ref="Q3" pin="1" pinfunction="G" pintype="input"/>
-      <node ref="R36" pin="2" pintype="passive"/>
+    <net code="270" name="Net-(Q1-+Vo)">
+      <node ref="C11" pin="1" pintype="passive"/>
+      <node ref="Q1" pin="4" pinfunction="+Vo" pintype="power_out"/>
+      <node ref="U2" pin="8" pinfunction="VCC2" pintype="power_in"/>
     </net>
-    <net code="272" name="Net-(Q3-Pad3)">
+    <net code="271" name="Net-(Q3-D)">
       <node ref="Q3" pin="3" pinfunction="D" pintype="passive"/>
       <node ref="R33" pin="1" pintype="passive"/>
+    </net>
+    <net code="272" name="Net-(Q3-G)">
+      <node ref="Q3" pin="1" pinfunction="G" pintype="input"/>
+      <node ref="R36" pin="2" pintype="passive"/>
     </net>
     <net code="273" name="Net-(R16-Pad2)">
       <node ref="R16" pin="2" pintype="passive"/>
@@ -4824,103 +5257,103 @@
       <node ref="XX7" pin="10" pinfunction="VIO" pintype="passive"/>
       <node ref="XX8" pin="10" pinfunction="VIO" pintype="passive"/>
     </net>
-    <net code="285" name="unconnected-(D1-Pad4)">
+    <net code="285" name="unconnected-(D1-K-Pad4)">
       <node ref="D1" pin="4" pinfunction="K" pintype="passive+no_connect"/>
     </net>
-    <net code="286" name="unconnected-(RN1-Pad4)">
+    <net code="286" name="unconnected-(RN1-R4.1-Pad4)">
       <node ref="RN1" pin="4" pinfunction="R4.1" pintype="passive+no_connect"/>
     </net>
-    <net code="287" name="unconnected-(RN1-Pad5)">
+    <net code="287" name="unconnected-(RN1-R4.2-Pad5)">
       <node ref="RN1" pin="5" pinfunction="R4.2" pintype="passive+no_connect"/>
     </net>
-    <net code="288" name="unconnected-(RN2-Pad4)">
+    <net code="288" name="unconnected-(RN2-R4.1-Pad4)">
       <node ref="RN2" pin="4" pinfunction="R4.1" pintype="passive+no_connect"/>
     </net>
-    <net code="289" name="unconnected-(RN2-Pad5)">
+    <net code="289" name="unconnected-(RN2-R4.2-Pad5)">
       <node ref="RN2" pin="5" pinfunction="R4.2" pintype="passive+no_connect"/>
     </net>
-    <net code="290" name="unconnected-(RN3-Pad1)">
+    <net code="290" name="unconnected-(RN3-R1.1-Pad1)">
       <node ref="RN3" pin="1" pinfunction="R1.1" pintype="passive+no_connect"/>
     </net>
-    <net code="291" name="unconnected-(RN3-Pad8)">
+    <net code="291" name="unconnected-(RN3-R1.2-Pad8)">
       <node ref="RN3" pin="8" pinfunction="R1.2" pintype="passive+no_connect"/>
     </net>
-    <net code="292" name="unconnected-(RN7-Pad4)">
+    <net code="292" name="unconnected-(RN7-R4.1-Pad4)">
       <node ref="RN7" pin="4" pinfunction="R4.1" pintype="passive+no_connect"/>
     </net>
-    <net code="293" name="unconnected-(RN7-Pad5)">
+    <net code="293" name="unconnected-(RN7-R4.2-Pad5)">
       <node ref="RN7" pin="5" pinfunction="R4.2" pintype="passive+no_connect"/>
     </net>
-    <net code="294" name="unconnected-(RN8-Pad1)">
+    <net code="294" name="unconnected-(RN8-R1.1-Pad1)">
       <node ref="RN8" pin="1" pinfunction="R1.1" pintype="passive+no_connect"/>
     </net>
-    <net code="295" name="unconnected-(RN8-Pad8)">
+    <net code="295" name="unconnected-(RN8-R1.2-Pad8)">
       <node ref="RN8" pin="8" pinfunction="R1.2" pintype="passive+no_connect"/>
     </net>
-    <net code="296" name="unconnected-(RN9-Pad1)">
+    <net code="296" name="unconnected-(RN9-R1.1-Pad1)">
       <node ref="RN9" pin="1" pinfunction="R1.1" pintype="passive+no_connect"/>
     </net>
-    <net code="297" name="unconnected-(RN9-Pad8)">
+    <net code="297" name="unconnected-(RN9-R1.2-Pad8)">
       <node ref="RN9" pin="8" pinfunction="R1.2" pintype="passive+no_connect"/>
     </net>
-    <net code="298" name="unconnected-(RN10-Pad1)">
+    <net code="298" name="unconnected-(RN10-R1.1-Pad1)">
       <node ref="RN10" pin="1" pinfunction="R1.1" pintype="passive+no_connect"/>
     </net>
-    <net code="299" name="unconnected-(RN10-Pad8)">
+    <net code="299" name="unconnected-(RN10-R1.2-Pad8)">
       <node ref="RN10" pin="8" pinfunction="R1.2" pintype="passive+no_connect"/>
     </net>
-    <net code="300" name="unconnected-(RN11-Pad1)">
+    <net code="300" name="unconnected-(RN11-R1.1-Pad1)">
       <node ref="RN11" pin="1" pinfunction="R1.1" pintype="passive+no_connect"/>
     </net>
-    <net code="301" name="unconnected-(RN11-Pad8)">
+    <net code="301" name="unconnected-(RN11-R1.2-Pad8)">
       <node ref="RN11" pin="8" pinfunction="R1.2" pintype="passive+no_connect"/>
     </net>
-    <net code="302" name="unconnected-(RN12-Pad1)">
+    <net code="302" name="unconnected-(RN12-R1.1-Pad1)">
       <node ref="RN12" pin="1" pinfunction="R1.1" pintype="passive+no_connect"/>
     </net>
-    <net code="303" name="unconnected-(RN12-Pad8)">
+    <net code="303" name="unconnected-(RN12-R1.2-Pad8)">
       <node ref="RN12" pin="8" pinfunction="R1.2" pintype="passive+no_connect"/>
     </net>
-    <net code="304" name="unconnected-(RN13-Pad1)">
+    <net code="304" name="unconnected-(RN13-R1.1-Pad1)">
       <node ref="RN13" pin="1" pinfunction="R1.1" pintype="passive+no_connect"/>
     </net>
-    <net code="305" name="unconnected-(RN13-Pad8)">
+    <net code="305" name="unconnected-(RN13-R1.2-Pad8)">
       <node ref="RN13" pin="8" pinfunction="R1.2" pintype="passive+no_connect"/>
     </net>
-    <net code="306" name="unconnected-(RN14-Pad1)">
+    <net code="306" name="unconnected-(RN14-R1.1-Pad1)">
       <node ref="RN14" pin="1" pinfunction="R1.1" pintype="passive+no_connect"/>
     </net>
-    <net code="307" name="unconnected-(RN14-Pad8)">
+    <net code="307" name="unconnected-(RN14-R1.2-Pad8)">
       <node ref="RN14" pin="8" pinfunction="R1.2" pintype="passive+no_connect"/>
     </net>
-    <net code="308" name="unconnected-(RN15-Pad1)">
+    <net code="308" name="unconnected-(RN15-R1.1-Pad1)">
       <node ref="RN15" pin="1" pinfunction="R1.1" pintype="passive+no_connect"/>
     </net>
-    <net code="309" name="unconnected-(RN15-Pad8)">
+    <net code="309" name="unconnected-(RN15-R1.2-Pad8)">
       <node ref="RN15" pin="8" pinfunction="R1.2" pintype="passive+no_connect"/>
     </net>
-    <net code="310" name="unconnected-(XX1-Pad18)">
+    <net code="310" name="unconnected-(XX1-INDEX-Pad18)">
       <node ref="XX1" pin="18" pinfunction="INDEX" pintype="passive+no_connect"/>
     </net>
-    <net code="311" name="unconnected-(XX2-Pad18)">
+    <net code="311" name="unconnected-(XX2-INDEX-Pad18)">
       <node ref="XX2" pin="18" pinfunction="INDEX" pintype="passive+no_connect"/>
     </net>
-    <net code="312" name="unconnected-(XX3-Pad18)">
+    <net code="312" name="unconnected-(XX3-INDEX-Pad18)">
       <node ref="XX3" pin="18" pinfunction="INDEX" pintype="passive+no_connect"/>
     </net>
-    <net code="313" name="unconnected-(XX4-Pad18)">
+    <net code="313" name="unconnected-(XX4-INDEX-Pad18)">
       <node ref="XX4" pin="18" pinfunction="INDEX" pintype="passive+no_connect"/>
     </net>
-    <net code="314" name="unconnected-(XX5-Pad18)">
+    <net code="314" name="unconnected-(XX5-INDEX-Pad18)">
       <node ref="XX5" pin="18" pinfunction="INDEX" pintype="passive+no_connect"/>
     </net>
-    <net code="315" name="unconnected-(XX6-Pad18)">
+    <net code="315" name="unconnected-(XX6-INDEX-Pad18)">
       <node ref="XX6" pin="18" pinfunction="INDEX" pintype="passive+no_connect"/>
     </net>
-    <net code="316" name="unconnected-(XX7-Pad18)">
+    <net code="316" name="unconnected-(XX7-INDEX-Pad18)">
       <node ref="XX7" pin="18" pinfunction="INDEX" pintype="passive+no_connect"/>
     </net>
-    <net code="317" name="unconnected-(XX8-Pad18)">
+    <net code="317" name="unconnected-(XX8-INDEX-Pad18)">
       <node ref="XX8" pin="18" pinfunction="INDEX" pintype="passive+no_connect"/>
     </net>
   </nets>
