@@ -81,8 +81,15 @@ void spi_setup(uint8_t idx){
     // DS=8bit; RXNE generates after 8bit of data in FIFO;
     SPI->CR2 |= SPI_CR2_FRXTH | SPI_CR2_DS_2|SPI_CR2_DS_1|SPI_CR2_DS_0;
     spi_status[idx] = SPI_READY;
-    SPI->CR1 |= SPI_CR1_SPE;
+    if(idx == 2) SPI->CR1 |= SPI_CR1_SPE; // turn on SPI1 only when reading data
     DBG("SPI works");
+}
+
+void spi_onoff(uint8_t idx, uint8_t on){
+    CHKIDX(idx);
+    volatile SPI_TypeDef *SPI = SPIs[idx];
+    if(on) SPI->CR1 |= SPI_CR1_SPE;
+    else SPI->CR1 &= ~SPI_CR1_SPE;
 }
 
 // turn off given SPI channel and release GPIO
@@ -100,6 +107,7 @@ void spi_deinit(uint8_t idx){
         GPIOB->AFR[1] = GPIOB->AFR[1] & ~(GPIO_AFRH_AFRH4 | GPIO_AFRH_AFRH5 | GPIO_AFRH_AFRH6 | GPIO_AFRH_AFRH7);
         GPIOB->MODER = GPIOB->MODER & ~(GPIO_MODER_MODER12 | GPIO_MODER_MODER13 | GPIO_MODER_MODER14 | GPIO_MODER_MODER15);
     }
+    spi_status[idx] = SPI_NOTREADY;
 }
 
 int spi_waitbsy(uint8_t idx){
@@ -120,12 +128,34 @@ int spi_writeread(uint8_t idx, uint8_t *data, uint32_t n){
         DBG("not ready");
         return 0;
     }
+    // clear SPI Rx FIFO
+    for(int i = 0; i < 4; ++i) (void) SPI2->DR;
     for(uint32_t x = 0; x < n; ++x){
         WAITX(!(SPIs[idx]->SR & SPI_SR_TXE));
         *((volatile uint8_t*)&SPIs[idx]->DR) = data[x];
         WAITX(!(SPIs[idx]->SR & SPI_SR_RXNE));
         data[x] = *((volatile uint8_t*)&SPIs[idx]->DR);
     }
+    return 1;
+}
+
+// read data through SPI in read-only mode
+int spi_read(uint8_t idx, uint8_t *data, uint32_t n){
+    CHKIDXR(idx);
+    if(spi_status[idx] != SPI_READY || !data || !n){
+        DBG("not ready");
+        return 0;
+    }
+    // clear SPI Rx FIFO
+    for(int i = 0; i < 4; ++i) (void) SPI2->DR;
+    spi_onoff(idx, TRUE);
+    for(uint32_t x = 0; x < n; ++x){
+        if(x == n - 1) SPIs[idx]->CR1 &= ~SPI_CR1_RXONLY;
+        WAITX(!(SPIs[idx]->SR & SPI_SR_RXNE));
+        data[x] = *((volatile uint8_t*)&SPIs[idx]->DR);
+    }
+    spi_onoff(idx, FALSE);
+    SPIs[idx]->CR1 |= SPI_CR1_RXONLY;
     return 1;
 }
 

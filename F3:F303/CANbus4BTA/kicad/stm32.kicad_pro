@@ -565,11 +565,29 @@
           "label": "DNP",
           "name": "${DNP}",
           "show": true
+        },
+        {
+          "group_by": false,
+          "label": "#",
+          "name": "${ITEM_NUMBER}",
+          "show": false
+        },
+        {
+          "group_by": false,
+          "label": "Manufacturer",
+          "name": "Manufacturer",
+          "show": false
+        },
+        {
+          "group_by": false,
+          "label": "Description",
+          "name": "Description",
+          "show": false
         }
       ],
       "filter_string": "",
       "group_symbols": true,
-      "name": "Grouped By Value",
+      "name": "",
       "sort_asc": true,
       "sort_field": "Reference"
     },
@@ -619,8 +637,8 @@
     "spice_save_all_currents": false,
     "spice_save_all_dissipations": false,
     "spice_save_all_voltages": false,
-    "subpart_first_id": 65,
-    "subpart_id_separator": 0
+    "subpart_first_id": 49,
+    "subpart_id_separator": 46
   },
   "sheets": [
     [

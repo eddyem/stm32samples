@@ -32,6 +32,14 @@ static volatile int rbufno = 0; // current rbuf number
 static char rbuf[2][UARTBUFSZ]; // receive buffers
 static volatile char *recvdata = NULL;
 
+// reset incoming buffer
+void usart_rstbuf(){
+    linerdy = 0;
+    dlen = 0;
+    bufovr = 0;
+    recvdata = NULL;
+}
+
 /**
  * return length of received data (without trailing zero)
  */

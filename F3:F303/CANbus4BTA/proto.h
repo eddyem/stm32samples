@@ -72,6 +72,7 @@ typedef enum{
     CMD_EMULPEP,    // 19 - emulate (1) / not (0) PEP
     CMD_ENCREINIT,  // 20 - reinit encoder
     CMD_TIMESTAMP,  // 21 - 2mks 24-bit timestamp
+    CMD_SPIDEINIT,  // 22 - turn off SPI2
     CMD_AMOUNT      // amount of CAN commands
 } can_cmd;
 

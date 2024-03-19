@@ -263,8 +263,11 @@ const char *getint(const char *txt, int32_t *I){
     }
     const char *nxt = getnum(s, &U);
     if(nxt == s) return txt;
-    if(U & 0x80000000) return txt; // overfull
-    *I = sign * (int32_t)U;
+    if(U & 0x80000000){ // uint32_t
+        *I = (int32_t)U;
+    }else{
+        *I = sign * (int32_t)U;
+    }
     return nxt;
 }
 

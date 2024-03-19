@@ -23,6 +23,7 @@
 // input buffers size
 #define UARTBUFSZ  (80)
 
+void usart_rstbuf();
 void usart_setup();
 void usart_deinit();
 int usart_getline(char **line);

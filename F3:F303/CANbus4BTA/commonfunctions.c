@@ -133,6 +133,11 @@ static errcodes initspi2(CAN_message _U_ *msg){
     spi_setup(2);
     return ERR_OK;
 }
+// deinit SPI2
+static errcodes deinitspi2(CAN_message _U_ *msg){
+    spi_deinit(2);
+    return ERR_OK;
+}
 // send/read 1..4 bytes
 static errcodes sendspi2(CAN_message *msg){
     int n = msg->length - 4;
@@ -175,6 +180,7 @@ static errcodes flagsetget(CAN_message *msg){
     uint8_t bit = 32;
     switch(idx){
         case CMD_ENCISSSI: bit = FLAGBIT(ENC_IS_SSI); break;
+        case CMD_EMULPEP: bit = FLAGBIT(EMULATE_PEP); break;
         default: break;
     }
     if(bit > 31) return ERR_CANTRUN; // unknown error
@@ -220,6 +226,7 @@ static const commonfunction funclist[CMD_AMOUNT] = {
     [CMD_EMULPEP] = {flagsetget, 0, 0, 0},
     [CMD_ENCREINIT] = {encreinit, 0, 0, 0},
     [CMD_TIMESTAMP] = {timestamp_getset, 0, 0xffffff, 0},
+    [CMD_SPIDEINIT] = {deinitspi2, 0, 0, 0},
 };
 
 

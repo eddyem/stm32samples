@@ -38,9 +38,24 @@ void encoder_setup(){
 // read encoder value into buffer `outbuf`
 // return TRUE if all OK
 int read_encoder(uint8_t outbuf[4]){
-    if(!FLAG(ENC_IS_SSI)) return FALSE;
     *((uint32_t*)outbuf) = 0;
-    return spi_writeread(ENCODER_SPI, outbuf, 4);
+    if(FLAG(ENC_IS_SSI)){
+        int r = spi_read(ENCODER_SPI, outbuf, 4);
+        return r;
+    }
+    usart_rstbuf();
+    // just send some trash over USART1 if encoder is RS-422
+    usart_send("teststring\n");
+    char *x;
+    uint32_t Tl = Tms;
+    while(Tms - Tl < 10){
+        int l = usart_getline(&x);
+        if(l){
+            for(int i = 0; i < l && i < 4; ++i) outbuf[i] = x[i];
+            return TRUE;
+        }
+    }
+    return FALSE;
 }
 
 // send encoder data
@@ -57,7 +72,6 @@ void CANsendEnc(){
 // send limit-switches data
 void CANsendLim(){
     CAN_message msg = {.data = {0}, .ID = the_conf.limitsID, .length = 8};
-    msg.data[2] = getESW(0);
-    msg.data[3] = getESW(1);
+    msg.data[2] = getESW(1);
     CAN_send(&msg);
 }

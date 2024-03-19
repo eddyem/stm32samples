@@ -70,6 +70,7 @@ static const funcdescr funclist[] = {
     {"reset", CMD_RESET, "reset MCU"},
     {"s", -TCMD_CANSEND, "send CAN message: ID 0..8 data bytes"},
     {"saveconf", CMD_SAVECONF, "save configuration"},
+    {"spideinit", CMD_SPIDEINIT, "turn off SPI2"},
     {"spiinit", CMD_SPIINIT, "init SPI2"},
     {"spisend", CMD_SPISEND, "send 4 bytes over SPI2"},
     {"time", CMD_TIME, "get/set time (1ms, 32bit)"},
@@ -90,6 +91,7 @@ static errcodes wdtest(const char _U_ *str){
 // names of bit flags (ordered from LSE of[0])
 static const char * const bitfields[] = {
     "encisSSI",
+    "emulatePEP",
     NULL
 };
 
@@ -112,7 +114,7 @@ static errcodes dumpconf(const char _U_ *str){
     USB_sendstr("\nusartspeed="); printu(the_conf.usartspeed);
     const char * const *p = bitfields;
     int bit = 0;
-    while(p){
+    while(*p){
         newline();
         USB_sendstr(*p); USB_putbyte('='); USB_putbyte((the_conf.flags & (1<<bit)) ? '1' : '0');
         if(++bit > 31) break;

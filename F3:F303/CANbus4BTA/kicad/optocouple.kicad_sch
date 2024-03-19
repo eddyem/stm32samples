@@ -4,6 +4,11 @@
 	(generator_version "8.99")
 	(uuid "c774fcd8-2321-49e3-82b6-f080291ee83c")
 	(paper "A4")
+	(title_block
+		(date "2024-03-18")
+		(company "SAO RAS")
+		(comment 1 "Instead of PEP controller")
+	)
 	(lib_symbols
 		(symbol "Device:R"
 			(pin_numbers hide)
@@ -518,7 +523,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "360"
+		(property "Value" "3k3"
 			(at 109.093 51.943 90)
 			(effects
 				(font
@@ -527,7 +532,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Resistor_SMD:R_0603_1608Metric_Pad0.98x0.95mm_HandSolder"
+		(property "Footprint" "Resistor_SMD:R_2010_5025Metric_Pad1.40x2.65mm_HandSolder"
 			(at 107.442 50.419 90)
 			(effects
 				(font
