@@ -46,5 +46,7 @@ extern volatile uint32_t Tms;
 
 // SPI1 is encoder, SPI2 is ext
 #define ENCODER_SPI     (1)
+// read encoder each 10ms
+#define ENCODER_RD_INTERVAL (10)
 
 void hw_setup();

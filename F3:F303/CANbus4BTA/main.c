@@ -83,23 +83,20 @@ int main(void){
             if(ans) USB_sendstr(ans);
         }
         ESW_process();
-        static uint8_t oldswitches[2] = {0};
-        int send = 0;
-        for(int i = 0; i < 2; ++i){
-            uint8_t new = getESW(i);
-            if(oldswitches[i] != new){
-                send = 1;
-                oldswitches[i] = new;
-                USB_sendstr("ESW"); USB_putbyte('0' + i);
-                USB_sendstr(" changed @"); printu(Tms);
-                USB_sendstr(" to "); printuhex(new); newline();
-            }
+        static uint8_t oldswitches = 0;
+        uint8_t new = getESW(1);
+        if(oldswitches != new){
+            oldswitches = new;
+            USB_sendstr("ESW changed @"); printu(Tms);
+            USB_sendstr(" to "); printuhex(new); newline();
+            CANsendLim();
         }
+        encoder_process();
         if(FLAG(EMULATE_PEP)){
             if(Tms - encT > ENCODER_PERIOD){
                 encT = Tms;
                 CANsendEnc();
-            } else if(send) CANsendLim();
+            }
         }
     }
 }

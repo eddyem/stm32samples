@@ -18,13 +18,12 @@
 
 #include "hardware.h"
 #include "spi.h"
+#include <string.h> // memcpy
 
 #include "usb.h"
 #ifdef EBUG
 #include "strfunc.h"
 #endif
-
-//#define SPIDR   *((volatile uint8_t*)&SPI2->DR)
 
 #define CHKIDX(idx) do{if(idx == 0 || idx > AMOUNT_OF_SPI) return;}while(0)
 #define CHKIDXR(idx) do{if(idx == 0 || idx > AMOUNT_OF_SPI) return 0;}while(0)
@@ -32,6 +31,8 @@
 spiStatus spi_status[AMOUNT_OF_SPI+1] = {0, SPI_NOTREADY, SPI_NOTREADY};
 static volatile SPI_TypeDef* const SPIs[AMOUNT_OF_SPI+1] = {NULL, SPI1, SPI2};
 #define WAITX(x)  do{volatile uint32_t  wctr = 0; while((x) && (++wctr < 360000)) IWDG->KR = IWDG_REFRESH; if(wctr==360000){ DBG("timeout"); return 0;}}while(0)
+
+static uint8_t encoderbuf[8] = {0};
 
 // SPI DMA Rx buffer (set by spi_write_dma call) for SPI2
 //static uint8_t *rxbufptr = NULL;
@@ -54,6 +55,13 @@ void spi_setup(uint8_t idx){
         RCC->APB1RSTR = 0; // clear reset
         RCC->APB2ENR |= RCC_APB2ENR_SPI1EN;
         SPI->CR1 = SPI_CR1_SSM | SPI_CR1_SSI | SPI_CR1_RXONLY; // software slave management (without hardware NSS pin); RX only
+        // setup SPI2 DMA
+        RCC->AHBENR |= RCC_AHBENR_DMA1EN;
+        SPI1->CR2 = SPI_CR2_RXDMAEN;
+        // Rx
+        DMA1_Channel2->CPAR = (uint32_t)&(SPI1->DR);
+        DMA1_Channel2->CCR = DMA_CCR_MINC | DMA_CCR_TCIE | DMA_CCR_TEIE; // mem inc, hw->mem, Rx complete and error interrupt
+        NVIC_EnableIRQ(DMA1_Channel2_IRQn); // enable Rx interrupt
     }else if(idx == 2){ // PB12..PB15
         GPIOB->AFR[1] = (GPIOB->AFR[1] & ~(GPIO_AFRH_AFRH4 | GPIO_AFRH_AFRH5 | GPIO_AFRH_AFRH6 | GPIO_AFRH_AFRH7)) |
                         AFRf(5, 12) | AFRf(5, 13) | AFRf(5, 14) | AFRf(5, 15);
@@ -62,19 +70,7 @@ void spi_setup(uint8_t idx){
         RCC->APB1RSTR = RCC_APB1RSTR_SPI2RST; // reset SPI
         RCC->APB1RSTR = 0; // clear reset
         RCC->APB1ENR |= RCC_APB1ENR_SPI2EN;
-        SPI->CR2 = SPI_CR2_SSOE; // hardware NSS management
-        // setup SPI2 DMA
-        //RCC->AHBENR |= RCC_AHBENR_DMA1EN;
-        //SPI->CR2 |= SPI_CR2_TXDMAEN | SPI_CR2_RXDMAEN;
-        // Tx
-        /*DMA1_Channel5->CPAR = (uint32_t)&(SPI2->DR); // hardware
-        DMA1_Channel5->CCR = DMA_CCR_MINC | DMA_CCR_DIR | DMA_CCR_TEIE; // memory increment, mem->hw, error interrupt
-        // Rx
-        DMA1_Channel4->CPAR = (uint32_t)&(SPI2->DR);
-        DMA1_Channel4->CCR = DMA_CCR_MINC | DMA_CCR_TCIE | DMA_CCR_TEIE; // mem inc, hw->mem, Rx complete and error interrupt
-        NVIC_EnableIRQ(DMA1_Channel4_IRQn); // enable Rx interrupt
-        NVIC_EnableIRQ(DMA1_Channel5_IRQn); // enable Tx interrupt
-        */
+        SPI->CR2 = SPI_CR2_SSOE | SPI_CR2_FRXTH; // hardware NSS management, RXNE after 8bit; 8bit transfer (default)
     }else return; // err
     // Baudrate = 0b110 - fpclk/128
     SPI->CR1 |= SPI_CR1_MSTR | SPI_CR1_BR_2 | SPI_CR1_BR_1;
@@ -128,13 +124,14 @@ int spi_writeread(uint8_t idx, uint8_t *data, uint32_t n){
         DBG("not ready");
         return 0;
     }
+    volatile SPI_TypeDef *SPI = SPIs[idx];
     // clear SPI Rx FIFO
-    for(int i = 0; i < 4; ++i) (void) SPI2->DR;
+    for(int i = 0; i < 4; ++i) (void) SPI->DR;
     for(uint32_t x = 0; x < n; ++x){
-        WAITX(!(SPIs[idx]->SR & SPI_SR_TXE));
-        *((volatile uint8_t*)&SPIs[idx]->DR) = data[x];
-        WAITX(!(SPIs[idx]->SR & SPI_SR_RXNE));
-        data[x] = *((volatile uint8_t*)&SPIs[idx]->DR);
+        WAITX(!(SPI->SR & SPI_SR_TXE));
+        *((volatile uint8_t*)&SPI->DR) = data[x];
+        WAITX(!(SPI->SR & SPI_SR_RXNE));
+        data[x] = *((volatile uint8_t*)&SPI->DR);
     }
     return 1;
 }
@@ -146,17 +143,48 @@ int spi_read(uint8_t idx, uint8_t *data, uint32_t n){
         DBG("not ready");
         return 0;
     }
+    volatile SPI_TypeDef *SPI = SPIs[idx];
     // clear SPI Rx FIFO
-    for(int i = 0; i < 4; ++i) (void) SPI2->DR;
+    for(int i = 0; i < 4; ++i) (void) SPI->DR;
     spi_onoff(idx, TRUE);
     for(uint32_t x = 0; x < n; ++x){
-        if(x == n - 1) SPIs[idx]->CR1 &= ~SPI_CR1_RXONLY;
-        WAITX(!(SPIs[idx]->SR & SPI_SR_RXNE));
-        data[x] = *((volatile uint8_t*)&SPIs[idx]->DR);
+        if(x == n - 1) SPI->CR1 &= ~SPI_CR1_RXONLY; // clear RXonly bit to stop CLK generation after next byte
+        WAITX(!(SPI->SR & SPI_SR_RXNE));
+        data[x] = *((volatile uint8_t*)&SPI->DR);
     }
-    spi_onoff(idx, FALSE);
-    SPIs[idx]->CR1 |= SPI_CR1_RXONLY;
+    spi_onoff(idx, FALSE); // turn off SPI
+    SPI->CR1 |= SPI_CR1_RXONLY; // and return RXonly bit
     return 1;
+}
+
+// just copy last read encoder value into `buf`
+void spi_read_enc(uint8_t buf[8]){
+    memcpy(buf, encoderbuf, 8);
+}
+
+// start encoder reading over DMA
+// @return FALSE if SPI is busy
+int spi_start_enc(){
+    if(spi_status[1] != SPI_READY) return FALSE;
+    if(!spi_waitbsy(1)) return FALSE;
+    DMA1_Channel2->CMAR = (uint32_t) encoderbuf;
+    DMA1_Channel2->CNDTR = 4;
+    DMA1_Channel2->CCR |= DMA_CCR_EN;
+    spi_onoff(1, 1);
+    return TRUE;
+}
+
+// SSI got fresh data
+void dma1_channel2_isr(){
+    spi_onoff(1, 0);
+    uint32_t ctr = TIM2->CNT;
+    spi_status[1] = SPI_READY; // ready independent on errors or Rx ready
+    DMA1->IFCR = DMA_IFCR_CTCIF2 | DMA_IFCR_CTEIF2;
+    // turn off DMA
+    DMA1_Channel2->CCR &= ~DMA_CCR_EN;
+    encoderbuf[5] = (ctr >> 16) & 0xff;
+    encoderbuf[6] = (ctr >> 8 ) & 0xff;
+    encoderbuf[7] = (ctr >> 0 ) & 0xff;
 }
 
 /**

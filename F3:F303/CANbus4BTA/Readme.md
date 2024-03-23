@@ -119,6 +119,7 @@ PP - push-pull, OD - open drain, I - floating input, A - analog input, AFn - alt
 ## DMA1
 
 Channel1 - ADC1.
+Channel2 - SPI1_Rx (SSI interface).
 
 ## DMA2
 

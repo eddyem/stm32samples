@@ -24,6 +24,21 @@
 #include "usart.h"
 
 #include <string.h>
+#include <strings.h>
+
+static int rdy = 0;
+
+void encoder_process(){
+    if(!FLAG(ENC_IS_SSI)) return;
+    static uint32_t lastT = 0;
+    if(!rdy){
+        encoder_setup();
+        return;
+    }
+    if(Tms - lastT > ENCODER_RD_INTERVAL){
+        if(spi_start_enc()) lastT = Tms; // start rd process
+    }
+}
 
 void encoder_setup(){
     if(FLAG(ENC_IS_SSI)){
@@ -33,15 +48,16 @@ void encoder_setup(){
         spi_deinit(ENCODER_SPI);
         usart_setup();
     }
+    rdy = 1;
 }
 
 // read encoder value into buffer `outbuf`
 // return TRUE if all OK
-int read_encoder(uint8_t outbuf[4]){
-    *((uint32_t*)outbuf) = 0;
+int read_encoder(uint8_t outbuf[8]){
+    bzero(outbuf, 8);
     if(FLAG(ENC_IS_SSI)){
-        int r = spi_read(ENCODER_SPI, outbuf, 4);
-        return r;
+        spi_read_enc(outbuf);
+        return TRUE;
     }
     usart_rstbuf();
     // just send some trash over USART1 if encoder is RS-422
@@ -62,11 +78,6 @@ int read_encoder(uint8_t outbuf[4]){
 void CANsendEnc(){
     CAN_message msg = {.data = {0}, .ID = the_conf.encoderID, .length = 8};
     if(!read_encoder(msg.data)) return;
-    uint32_t ctr = TIM2->CNT;
-    //msg.data[4] = 0;
-    msg.data[5] = (ctr >> 16) & 0xff;
-    msg.data[6] = (ctr >> 8 ) & 0xff;
-    msg.data[7] = (ctr >> 0 ) & 0xff;
     CAN_send(&msg);
 }
 // send limit-switches data

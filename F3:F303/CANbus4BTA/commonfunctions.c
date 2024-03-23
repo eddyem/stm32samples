@@ -148,8 +148,21 @@ static errcodes sendspi2(CAN_message *msg){
 // read encoder value and send over CAN
 static errcodes encget(CAN_message *msg){
     FIXDL(msg);
-    if(read_encoder(msg->data + 4)) return ERR_OK;
-    return ERR_CANTRUN;
+    uint8_t buf[8];
+    if(!read_encoder(buf)) return ERR_CANTRUN;
+    *((uint32_t*)(msg->data+4)) = *((uint32_t*)buf);
+#ifdef EBUG
+    uint32_t val = buf[0] << 24 | buf[1] << 16 | buf[2] << 8 | buf[3];
+    uint32_t timest = *((uint32_t*)(buf + 4));
+    USB_sendstr("\nEncoder=");
+    USB_sendstr(u2str((val & 0x7fffffff)>>5));
+    USB_sendstr(", timest=");
+    USB_sendstr(u2str(timest));
+    USB_sendstr(" (raw: "); USB_sendstr(uhex2str(val));
+    USB_sendstr(", masked: "); USB_sendstr(uhex2str((val & 0x7fffffff)>>5));
+    USB_sendstr(")\n");
+#endif
+    return ERR_OK;
 }
 // reinit encoder
 static errcodes encreinit(CAN_message _U_ *msg){

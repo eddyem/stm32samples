@@ -35,6 +35,5 @@ void spi_setup(uint8_t idx);
 int spi_waitbsy(uint8_t idx);
 int spi_writeread(uint8_t idx, uint8_t *data, uint32_t n);
 int spi_read(uint8_t idx, uint8_t *data, uint32_t n);
-//int spi_write_dma(const uint8_t *data, uint8_t *rxbuf, uint32_t n);
-//int spi_read(uint8_t idx, uint8_t *data, uint32_t n);
-//uint8_t *spi_read_dma(uint32_t *n);
+int spi_start_enc();
+void spi_read_enc(uint8_t buf[8]);

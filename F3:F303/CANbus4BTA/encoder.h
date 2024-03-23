@@ -21,6 +21,7 @@
 #include <stdint.h>
 
 void encoder_setup();
-int read_encoder(uint8_t outbuf[4]);
+void encoder_process();
+int read_encoder(uint8_t outbuf[8]);
 void CANsendEnc();
 void CANsendLim();
