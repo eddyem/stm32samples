@@ -546,24 +546,12 @@
           "group_by": false,
           "label": "Datasheet",
           "name": "Datasheet",
-          "show": true
-        },
-        {
-          "group_by": false,
-          "label": "Footprint",
-          "name": "Footprint",
-          "show": true
+          "show": false
         },
         {
           "group_by": false,
           "label": "Qty",
           "name": "${QUANTITY}",
-          "show": true
-        },
-        {
-          "group_by": true,
-          "label": "DNP",
-          "name": "${DNP}",
           "show": true
         },
         {
@@ -583,6 +571,18 @@
           "label": "Description",
           "name": "Description",
           "show": false
+        },
+        {
+          "group_by": true,
+          "label": "DNP",
+          "name": "${DNP}",
+          "show": true
+        },
+        {
+          "group_by": false,
+          "label": "Footprint",
+          "name": "Footprint",
+          "show": true
         }
       ],
       "filter_string": "",
@@ -644,38 +644,6 @@
     [
       "f40cbe7e-cd25-45e5-a6cb-d92457495048",
       "Root"
-    ],
-    [
-      "311a5cb3-0370-4a86-a5e8-6335fee47f9a",
-      "Optocouple"
-    ],
-    [
-      "737c47dd-2cc5-4c23-ab54-7bef18beb2a3",
-      "Optocouple1"
-    ],
-    [
-      "0ff6ac13-ac49-41f0-9506-376ccd8b8ba4",
-      "Optocouple2"
-    ],
-    [
-      "1cf77ae7-411e-49cc-bbff-6947c0aa32bd",
-      "Optocouple3"
-    ],
-    [
-      "2b18f3bb-219b-4cc5-8bc9-bc122d6e81e9",
-      "Optocouple4"
-    ],
-    [
-      "d7c9ec36-f6b4-4bc2-8e9a-7a0792b9eff0",
-      "Optocouple5"
-    ],
-    [
-      "c51c7789-4b67-42c9-a921-b1066b3f95ba",
-      "Optocouple6"
-    ],
-    [
-      "e5255d96-2d32-432c-bf31-9afa6ac7ec6a",
-      "Optocouple7"
     ]
   ],
   "text_variables": {}
