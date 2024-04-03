@@ -16012,7 +16012,7 @@
 		(uuid "8e3b7173-830b-4064-a0ff-0fc312d67661")
 	)
 	(no_connect
-		(at 38.735 114.935)
+		(at 38.735 71.755)
 		(uuid "a76a1af1-7850-4531-ba0b-3b71d2558f6c")
 	)
 	(no_connect
@@ -16032,7 +16032,7 @@
 		(uuid "dd4417dd-5842-496f-af7a-fb8f480f6645")
 	)
 	(no_connect
-		(at 38.735 117.475)
+		(at 38.735 74.295)
 		(uuid "ed4051bb-eeca-4c80-b2c8-1b67563e18bc")
 	)
 	(no_connect
@@ -19985,7 +19985,7 @@
 		(uuid "1b8ca01f-0ff8-4c67-af5c-0bd557e332d8")
 	)
 	(label "USBpullup"
-		(at 38.735 74.295 180)
+		(at 38.735 117.475 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -20821,7 +20821,7 @@
 		(uuid "ae3ca1ea-8669-48cd-9272-4812cd9e9c19")
 	)
 	(label "Relay"
-		(at 38.735 71.755 180)
+		(at 38.735 114.935 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -33188,7 +33188,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "5V"
+		(property "Value" "24V"
 			(at 171.0182 23.4442 0)
 			(effects
 				(font
