@@ -15096,12 +15096,6 @@
 		(uuid "0b946675-db70-4a3a-8ec2-0f817e92e7e3")
 	)
 	(junction
-		(at 189.865 272.415)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "0bd440fa-645a-40f9-a9f9-43def1185697")
-	)
-	(junction
 		(at 215.265 33.655)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -16932,16 +16926,6 @@
 			(type default)
 		)
 		(uuid "4454b5fb-02c5-43af-b815-ed4b9ab67df4")
-	)
-	(wire
-		(pts
-			(xy 184.15 272.415) (xy 189.865 272.415)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "44d3e742-98e2-4371-81aa-47badefda229")
 	)
 	(wire
 		(pts
@@ -19295,16 +19279,6 @@
 	)
 	(wire
 		(pts
-			(xy 184.15 264.795) (xy 189.865 264.795)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "eedeebe5-6cc3-43d0-999d-dd071afa2f41")
-	)
-	(wire
-		(pts
 			(xy 151.765 197.485) (xy 151.765 205.105)
 		)
 		(stroke
@@ -20194,7 +20168,7 @@
 		(uuid "363f2cf6-dc66-4ea4-9e30-4581cc733629")
 	)
 	(label "AIN1"
-		(at 71.755 81.915 0)
+		(at 71.755 89.535 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -20403,7 +20377,7 @@
 		(uuid "56d704a1-ecc4-4821-8723-d432c43558ee")
 	)
 	(label "AIN4"
-		(at 281.305 86.995 0)
+		(at 281.305 81.915 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -20513,7 +20487,7 @@
 		(uuid "763398b6-8c3b-48d1-ba16-3d69b642dc6e")
 	)
 	(label "AIN2"
-		(at 260.985 86.995 180)
+		(at 260.985 81.915 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -20634,7 +20608,7 @@
 		(uuid "91f8f0bf-0915-4066-a119-bebed2140298")
 	)
 	(label "AIN4"
-		(at 71.755 89.535 0)
+		(at 71.755 81.915 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -20744,7 +20718,7 @@
 		(uuid "a175c46c-d320-476b-b021-572e92346e3c")
 	)
 	(label "AIN3"
-		(at 281.305 81.915 0)
+		(at 281.305 86.995 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -20755,7 +20729,7 @@
 		(uuid "a29e2a54-51c0-4d92-b06e-16327cb93abc")
 	)
 	(label "AIN0"
-		(at 260.985 81.915 180)
+		(at 260.985 86.995 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -36711,83 +36685,6 @@
 		)
 	)
 	(symbol
-		(lib_id "stm32-rescue:C")
-		(at 184.15 268.605 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "9dedd262-2661-4b47-bc6b-d28af02461cd")
-		(property "Reference" "C25"
-			(at 184.785 266.065 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "0.1"
-			(at 184.785 271.145 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric_Pad1.08x0.95mm_HandSolder"
-			(at 185.1152 272.415 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 184.15 268.605 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" ""
-			(at 184.15 268.605 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Manufacturer" ""
-			(at 184.15 268.605 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "d30a466d-b2d2-4138-bbaa-db1fb57efd21")
-		)
-		(pin "2"
-			(uuid "3b9eed18-11a8-4ebe-b4bb-1eb839026f73")
-		)
-		(instances
-			(project "stm32"
-				(path "/f40cbe7e-cd25-45e5-a6cb-d92457495048"
-					(reference "C25")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_name "GND_1")
 		(lib_id "power:GND")
 		(at 170.18 129.54 0)
@@ -38803,7 +38700,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "0.1"
+		(property "Value" "1u"
 			(at 190.5 271.145 0)
 			(effects
 				(font
@@ -38812,7 +38709,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric_Pad1.08x0.95mm_HandSolder"
+		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder"
 			(at 190.8302 272.415 0)
 			(effects
 				(font
