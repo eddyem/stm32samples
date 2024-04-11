@@ -1,4 +1,4 @@
-23134726821228740
+23205657309202594
 Audio_Module
 Reverb_BTDR-1H
 Digital Reverberation Unit, http://www.belton.co.kr/inc/downfile.php?seq=17&file=pdf (footprint from http://www.uk-electronic.de/PDF/BTDR-1.pdf)
@@ -2073,7 +2073,7 @@ NKK NR01 SP3T SP4T SP5T
 7
 Button_Switch_THT
 SW_PUSH-12mm
-SW PUSH 12mm https://www.e-switch.com/system/asset/product_line/data_sheet/143/TL1100.pdf
+Generic SW PUSH 12mm, e.g https://sten-eswitch-13110800-production.s3.amazonaws.com/system/asset/product_line/data_sheet/143/TL1100.pdf
 tact sw push 12mm
 0
 4
@@ -2101,7 +2101,7 @@ PHAP3362A 6mm tact sw THT
 2
 Button_Switch_THT
 SW_PUSH_6mm
-https://www.omron.com/ecb/products/pdf/en-b3f.pdf
+Generic 6mm SW tactile push button
 tact sw push 6mm
 0
 4
@@ -2260,6 +2260,20 @@ IP67 ultra-miniture horizontal
 0
 8
 6
+Button_Switch_THT
+SW_SPST_Omron_B3F-40xx
+SW_THT_Tactile_Omron_B3F-40xx, 12x12 mm, Through hole switch from the B3F Family manufactured by Omron,  https://www.omron.com/ecb/products/pdf/en-b3f.pdf
+tactile switch THT button push B3F-4000 B3F-4050 B3F-4005 B3F-4055  
+0
+4
+2
+Button_Switch_THT
+SW_SPST_Omron_B3F-50xx
+SW_THT_Tactile_Omron_B3F-50xx, 12x12x7,3 mm, Through hole switch from the B3F Family manufactured by Omron,  https://www.omron.com/ecb/products/pdf/en-b3f.pdf
+tactile omron switch tht B3F-5000 B3F-5050 B3F-5001 B3F-5051  
+0
+4
+2
 Button_Switch_THT
 SW_SPST_Omron_B3F-315x_Angled
 tactile switch, 7.3mm x 6.25mm  x 7.4mm, right angle, https://omronfs.omron.com/en_US/ecb/products/pdf/en-b3f.pdf
@@ -8225,6 +8239,20 @@ barreljack switchcraftconxall dc power
 2
 2
 Connector_BarrelJack
+BarrelJack_Wuerth_694102107102_1.0x3.9mm
+Wuerth Elektronik barrel jack connector, SMD, 3.9mm OD, 1.0mm ID, with switch, 18V, 5A, dimensions: 9.3 x 8 x 5.3 mm (L x W x H), datasheet: https://www.farnell.com/datasheets/2130962.pdf
+barrel jack Wuerth Elektronik 694102107102
+0
+4
+3
+Connector_BarrelJack
+BarrelJack_Wuerth_694103107102_1.35x3.9mm
+Wuerth Elektronik barrel jack connector, SMD, 3.9mm OD, 1.35mm ID, with switch, 18V, 5A, dimensions: 9.3 x 8 x 5.3 mm (L x W x H), datasheet: https://www.we-online.com/components/products/datasheet/694103107102.pdf
+barrel jack Wuerth Elektronik 694103107102
+0
+4
+3
+Connector_BarrelJack
 BarrelJack_Wuerth_694106106102_2.0x5.5mm
 Wuerth Elektronik 694106106102 Barrel Jack, 2.0x5.5mm, https://www.we-online.com/components/products/datasheet/694106106102.pdf
 barrel jack Wuerth Elektronik 694106106102
@@ -12313,6 +12341,20 @@ connector Harwin M20 side entry
 40
 40
 Connector_Hirose
+Hirose_BM23FR0.6-16DP-0.35V_2x08_1MP_Vertical
+Hirose BM23 series connector, BM23FR0.6-16DP-0.35V (https://www.hirose.com/fr/product/document?clcode=CL0480-0290-0-95&productname=BM23FR0.6-16DP-0.35V(895)&series=BM23FR&documenttype=2DDrawing&lang=fr&documentid=D164551_en)
+connector Hirose BM23 16pin header
+0
+20
+17
+Connector_Hirose
+Hirose_BM23FR0.6-16DS-0.35V_2x08_P0.35_1MP_Vertical
+Hirose BM23 series connector, BM23FR0.6-16DS-0.35V (https://www.hirose.com/fr/product/document?clcode=CL0480-0295-0-51&productname=BM23FR0.6-16DS-0.35V(51)&series=BM23FR&documenttype=2DDrawing&lang=fr&documentid=D162179_en)
+connector Hirose 16pin receptacle vertical
+0
+20
+17
+Connector_Hirose
 Hirose_BM24_BM24-40DP-2-0.35V_2x20_P0.35mm_PowerPin2_Vertical
 Hirose BM24 series connector, BM24-40DP/2-0.35V (https://www.hirose.com/product/en/download_file/key_name/BM24/category/Catalog/doc_file_id/47680/?file_category_id=4&item_id=50&is_series=1)
 connector Hirose  BM24 40pin header
@@ -13524,6 +13566,27 @@ SMD vertical IDC box header  2x08 2.54mm double row
 16
 16
 Connector_IDC
+IDC-Header_2x09_P2.54mm_Horizontal
+Through hole IDC box header, 2x09, 2.54mm pitch, DIN 41651 / IEC 60603-13, double rows, https://docs.google.com/spreadsheets/d/16SsEcesNF15N3Lb4niX7dcUr-NY5_MFPQhobNuNppn4/edit#gid=0
+Through hole horizontal IDC box header THT 2x09 2.54mm double row
+0
+18
+18
+Connector_IDC
+IDC-Header_2x09_P2.54mm_Vertical
+Through hole IDC box header, 2x09, 2.54mm pitch, DIN 41651 / IEC 60603-13, double rows, https://docs.google.com/spreadsheets/d/16SsEcesNF15N3Lb4niX7dcUr-NY5_MFPQhobNuNppn4/edit#gid=0
+Through hole vertical IDC box header THT 2x09 2.54mm double row
+0
+18
+18
+Connector_IDC
+IDC-Header_2x09_P2.54mm_Vertical_SMD
+SMD IDC box header, 2x09, 2.54mm pitch, DIN 41651 / IEC 60603-13, double rows, https://www.tme.eu/Document/4baa0e952ce73e37bc68cf730b541507/T821M114A1S100CEU-B.pdf
+SMD vertical IDC box header  2x09 2.54mm double row
+0
+18
+18
+Connector_IDC
 IDC-Header_2x10-1MP_P2.54mm_Latch6.5mm_Vertical
 Through hole IDC header, 2x10, 2.54mm pitch, DIN 41651 / IEC 60603-13, double rows, 6.5mm latches, mounting holes, https://docs.google.com/spreadsheets/d/16SsEcesNF15N3Lb4niX7dcUr-NY5_MFPQhobNuNppn4/edit#gid=0
 Through hole vertical IDC header THT 2x10 2.54mm double row
@@ -13614,6 +13677,27 @@ SMD vertical IDC box header  2x10 2.54mm double row
 0
 20
 20
+Connector_IDC
+IDC-Header_2x11_P2.54mm_Horizontal
+Through hole IDC box header, 2x11, 2.54mm pitch, DIN 41651 / IEC 60603-13, double rows, https://docs.google.com/spreadsheets/d/16SsEcesNF15N3Lb4niX7dcUr-NY5_MFPQhobNuNppn4/edit#gid=0
+Through hole horizontal IDC box header THT 2x11 2.54mm double row
+0
+22
+22
+Connector_IDC
+IDC-Header_2x11_P2.54mm_Vertical
+Through hole IDC box header, 2x11, 2.54mm pitch, DIN 41651 / IEC 60603-13, double rows, https://docs.google.com/spreadsheets/d/16SsEcesNF15N3Lb4niX7dcUr-NY5_MFPQhobNuNppn4/edit#gid=0
+Through hole vertical IDC box header THT 2x11 2.54mm double row
+0
+22
+22
+Connector_IDC
+IDC-Header_2x11_P2.54mm_Vertical_SMD
+SMD IDC box header, 2x11, 2.54mm pitch, DIN 41651 / IEC 60603-13, double rows, https://www.tme.eu/Document/4baa0e952ce73e37bc68cf730b541507/T821M114A1S100CEU-B.pdf
+SMD vertical IDC box header  2x11 2.54mm double row
+0
+22
+22
 Connector_IDC
 IDC-Header_2x12-1MP_P2.54mm_Latch6.5mm_Vertical
 Through hole IDC header, 2x12, 2.54mm pitch, DIN 41651 / IEC 60603-13, double rows, 6.5mm latches, mounting holes, https://docs.google.com/spreadsheets/d/16SsEcesNF15N3Lb4niX7dcUr-NY5_MFPQhobNuNppn4/edit#gid=0
@@ -14055,6 +14139,27 @@ SMD vertical IDC box header  2x20 2.54mm double row
 0
 40
 40
+Connector_IDC
+IDC-Header_2x22_P2.54mm_Horizontal
+Through hole IDC box header, 2x22, 2.54mm pitch, DIN 41651 / IEC 60603-13, double rows, https://docs.google.com/spreadsheets/d/16SsEcesNF15N3Lb4niX7dcUr-NY5_MFPQhobNuNppn4/edit#gid=0
+Through hole horizontal IDC box header THT 2x22 2.54mm double row
+0
+44
+44
+Connector_IDC
+IDC-Header_2x22_P2.54mm_Vertical
+Through hole IDC box header, 2x22, 2.54mm pitch, DIN 41651 / IEC 60603-13, double rows, https://docs.google.com/spreadsheets/d/16SsEcesNF15N3Lb4niX7dcUr-NY5_MFPQhobNuNppn4/edit#gid=0
+Through hole vertical IDC box header THT 2x22 2.54mm double row
+0
+44
+44
+Connector_IDC
+IDC-Header_2x22_P2.54mm_Vertical_SMD
+SMD IDC box header, 2x22, 2.54mm pitch, DIN 41651 / IEC 60603-13, double rows, https://www.tme.eu/Document/4baa0e952ce73e37bc68cf730b541507/T821M114A1S100CEU-B.pdf
+SMD vertical IDC box header  2x22 2.54mm double row
+0
+44
+44
 Connector_IDC
 IDC-Header_2x25-1MP_P2.54mm_Latch6.5mm_Vertical
 Through hole IDC header, 2x25, 2.54mm pitch, DIN 41651 / IEC 60603-13, double rows, 6.5mm latches, mounting holes, https://docs.google.com/spreadsheets/d/16SsEcesNF15N3Lb4niX7dcUr-NY5_MFPQhobNuNppn4/edit#gid=0
@@ -52241,6 +52346,20 @@ DCDC-Converter TRACO TMU3 THT SIP-4 3W
 4
 4
 Converter_DCDC
+Converter_DCDC_TRACO_TOS06-05SIL_THT
+DCDC-Converter, TRACO, TOS06-05SIL, 6A, Rev. March 20. 2024 (Script generated with StandardBox.py) (https://www.tracopower.com/products/tos06sil.pdf)
+DCDC-Converter POL TRACO TOS06SIL 2.54MM THT SIP-9 6A
+0
+5
+5
+Converter_DCDC
+Converter_DCDC_TRACO_TOS06-12SIL_THT
+DCDC-Converter, TRACO, TOS06-12SIL, 6A, Rev. March 20. 2024 (Script generated with StandardBox.py) (https://www.tracopower.com/products/tos06sil.pdf)
+DCDC-Converter POL TRACO TOS06SIL 2.54MM THT SIP-9 6A
+0
+5
+5
+Converter_DCDC
 Converter_DCDC_TRACO_TRI1-xxxx_THT
 DCDC-Converter, TRACO, TRI1-xxxx, 1W, Rev. November 13. 2023 (Script generated with StandardBox.py) (https://www.tracopower.com/products/tri1.pdf)
 DCDC-Converter TRACO TRI1 THT SIP-7 1W
@@ -57064,6 +57183,13 @@ Inductor LMLP
 2
 2
 Inductor_SMD
+L_Abracon_ASPI-0425
+Inductor, Abracon, ASPI-0425, 4.0x4.0x2.5mm, https://abracon.com/Magnetics/new/ASPI-0425.pdf
+Inductor power shielded low-profile
+0
+2
+2
+Inductor_SMD
 L_Abracon_ASPI-0630LR
 smd shielded power inductor https://abracon.com/Magnetics/power/ASPI-0630LR.pdf
 inductor abracon smd shielded
@@ -57081,6 +57207,13 @@ Inductor_SMD
 L_Abracon_ASPI-4030S
 smd shielded power inductor 4x4x3mm, Abracon ASPI-4030S, https://abracon.com/Magnetics/power/ASPI-4030S.pdf
 inductor abracon smd shielded
+0
+2
+2
+Inductor_SMD
+L_Abracon_ASPIAIG-F4020
+Inductor, Abracon, ASPIAIG-F4020, 4.4x4.4x1.9mm, https://abracon.com/Magnetics/power/ASPIAIG-F4020.pdf
+Inductor power shielded
 0
 2
 2
@@ -62587,6 +62720,13 @@ dual led smd
 4
 4
 LED_SMD
+LED_Kingbright_APA1606_1.6x0.6mm_Horizontal
+Right angled LED, 1.6x1.2 mm, H0.6 mm
+LED chip right angled vertical
+0
+2
+2
+LED_SMD
 LED_Kingbright_APDA3020VBCD
 LED, SMD, APDA3020VBC/D, https://www.kingbrightusa.com/images/catalog/SPEC/APDA3020VBC-D.pdf
 LED APDA3020VBC/D Kingbright 
@@ -67823,12 +67963,26 @@ BGA 361 0.5
 361
 361
 Package_BGA
+ST_UFBGA-59_5x5mm_Layout8x8_P0.5mm
+ST UFBGA-59, 5.0x5.0mm, 59 Ball, 8x8 Layout, 0.5mm Pitch, https://www.st.com/resource/en/datasheet/stm32wba55ug.pdf
+BGA 59 0.5
+0
+59
+59
+Package_BGA
 ST_UFBGA-73_5x5mm_Layout9x9_P0.5mm
 ST UFBGA-73, 5.0x5.0mm, 73 Ball, 9x9 Layout, 0.5mm Pitch, https://www.st.com/resource/en/datasheet/stm32wl54jc.pdf
 BGA 73 0.5
 0
 73
 73
+Package_BGA
+ST_UFBGA-81_5x5mm_Layout9x9_P0.5mm
+ST UFBGA-81, 5.0x5.0mm, 81 Ball, 9x9 Layout, 0.5mm Pitch, https://www.st.com/resource/en/datasheet/stm32u073mb.pdf
+BGA 81 0.5
+0
+81
+81
 Package_BGA
 ST_UFBGA-121_6x6mm_Layout11x11_P0.5mm
 ST UFBGA-121, 6.0x6.0mm, 121 Ball, 11x11 Layout, 0.5mm Pitch, https://www.st.com/resource/en/datasheet/stm32g473pb.pdf
@@ -68691,6 +68845,13 @@ LFCSP 8pin 2x2mm Pitch 0.5mm
 8
 8
 Package_CSP
+LFCSP-10_2x2mm_P0.5mm
+LFCSP, 10 Pin (https://www.analog.com/media/en/package-pcb-resources/package/pkg_pdf/lfcspcp/cp-10/cp_10_11.pdf), generated with kicad-footprint-generator ipc_noLead_generator.py
+LFCSP NoLead
+0
+10
+10
+Package_CSP
 LFCSP-16-1EP_3x3mm_P0.5mm_EP1.3x1.3mm
 LFCSP, 16 Pin (https://www.analog.com/media/en/package-pcb-resources/package/pkg_pdf/lfcspcp/cp-16/CP_16_21.pdf), generated with kicad-footprint-generator ipc_noLead_generator.py
 LFCSP NoLead
@@ -68703,6 +68864,13 @@ LFCSP, 16 Pin (https://www.analog.com/media/en/package-pcb-resources/package/pkg
 LFCSP NoLead
 0
 26
+17
+Package_CSP
+LFCSP-16-1EP_3x3mm_P0.5mm_EP1.5x1.5mm
+LFCSP, 16 Pin (https://www.analog.com/media/en/package-pcb-resources/package/pkg_pdf/lfcspcp/cp-16/cp_16_27.pdf), generated with kicad-footprint-generator ipc_noLead_generator.py
+LFCSP NoLead
+0
+21
 17
 Package_CSP
 LFCSP-16-1EP_3x3mm_P0.5mm_EP1.6x1.6mm
@@ -69111,6 +69279,20 @@ CSP 25 0.4
 25
 25
 Package_CSP
+ST_WLCSP-27_2.34x2.55mm_P0.40mm_Stagger
+ST WLCSP-27, ST Die ID 459, 2.34x2.55mm, 27 Ball, X-staggered 9x6 Layout, 0.4mm Pitch, https://www.st.com/resource/en/datasheet/stm32u031g6.pdf
+CSP 27 0.4
+0
+27
+27
+Package_CSP
+ST_WLCSP-27_2.55x2.34mm_P0.40mm_Stagger
+ST WLCSP-27, ST Die ID 459, 2.55x2.34mm, 27 Ball, X-staggered 9x6 Layout, 0.4mm Pitch, https://www.st.com/resource/en/datasheet/stm32u031g6.pdf
+CSP 27 0.4
+0
+27
+27
+Package_CSP
 ST_WLCSP-36_2.58x3.07mm_Layout6x6_P0.4mm
 ST WLCSP-36, ST die ID 464, 2.58x3.07mm, 36 Ball, 6x6 Layout, 0.4mm Pitch, https://www.st.com/resource/en/datasheet/stm32l412t8.pdf
 CSP 36 0.4
@@ -69145,6 +69327,20 @@ CSP 36 0.4
 0
 36
 36
+Package_CSP
+ST_WLCSP-42_2.82x2.93mm_P0.40mm_Stagger
+ST WLCSP-42, ST Die ID 489, 2.82x2.93mm, 42 Ball, X-staggered 12x7 Layout, 0.4mm Pitch, https://www.st.com/resource/en/datasheet/stm32u073rc.pdf
+CSP 42 0.4
+0
+42
+42
+Package_CSP
+ST_WLCSP-42_2.93mmx2.82_P0.40mm_Stagger
+ST WLCSP-42, ST Die ID 489, 2.93x2.82mm, 42 Ball, X-staggered 12x7 Layout, 0.4mm Pitch, https://www.st.com/resource/en/datasheet/stm32u073rc.pdf
+CSP 42 0.4
+0
+42
+42
 Package_CSP
 ST_WLCSP-49_3.15x3.13mm_Layout7x7_P0.4mm
 ST WLCSP-49, ST die ID 468, 3.15x3.13mm, 49 Ball, 7x7 Layout, 0.4mm Pitch, https://www.st.com/resource/en/datasheet/stm32g431c6.pdf
@@ -69377,6 +69573,13 @@ CSP 90 0.4
 90
 90
 Package_CSP
+ST_WLCSP-99_4.42x3.77mm_Layout9x11_P0.35mm
+ST WLCSP-99, ST die ID 415, 4.42x3.77mm, 99 Ball, 11x9 Layout, 0.35mm Pitch, https://www.st.com/resource/en/datasheet/stm32l476vg.pdf
+CSP 99 0.35
+0
+99
+99
+Package_CSP
 ST_WLCSP-100_4.40x4.38mm_Layout10x10_P0.4mm_Offcenter
 ST WLCSP-100, off-center ball grid, ST die ID 495, 4.4x4.38mm, 100 Ball, 10x10 Layout, 0.4mm Pitch, https://www.st.com/resource/en/datasheet/stm32wb55vc.pdf
 CSP 100 0.4
@@ -69418,6 +69621,13 @@ CSP 100 0.4
 0
 100
 100
+Package_CSP
+ST_WLCSP-101_3.86x3.79mm_P0.35mm_Stagger
+ST WLCSP-101, ST Die ID 485, 3.86x3.79mm, 101 Ball, Y-staggered 11x19 Layout, 0.35mm Pitch, https://www.st.com/resource/en/datasheet/stm32h7r3v8.pdf
+CSP 101 0.35
+0
+101
+101
 Package_CSP
 ST_WLCSP-104_Die437
 WLCSP-104, 4.095x5.094mm, 104 Ball, 9x12 Layout, 0.4mm Pitch, http://www.st.com/resource/en/datasheet/stm32l152ze.pdf#page=127
@@ -69544,6 +69754,13 @@ CSP 8 0.5
 0
 8
 8
+Package_CSP
+WLCSP-9_1.21x1.22mm_P0.4mm
+WLCSP-9, 1.21x1.22mm, 9 Ball, 3x3 Layout, 0.4mm Pitch, https://www.analog.com/media/en/package-pcb-resources/package/pkg_pdf/wlcspcb/cb_9_3.pdf
+CSP 9 0.4
+0
+9
+9
 Package_CSP
 WLCSP-12_1.56x1.56mm_P0.4mm
 WLCSP 12 1.56x1.56 https://ae-bst.resource.bosch.com/media/_tech/media/datasheets/BST-BMM150-DS001-01.pdf
@@ -69699,6 +69916,13 @@ DFN NoLead
 9
 7
 Package_DFN_QFN
+DFN-6-1EP_2x2mm_P0.5mm_EP0.7x1.6mm
+DFN, 6 Pin (http://www.junmintech.com/UploadFiles/Product/20211129145204_37021.pdf#page=10), generated with kicad-footprint-generator ipc_noLead_generator.py
+DFN NoLead
+0
+9
+7
+Package_DFN_QFN
 DFN-6-1EP_2x2mm_P0.5mm_EP0.61x1.42mm
 DC6 Package; 6-Lead Plastic DFN (2mm x 2mm) (see Linear Technology DFN_6_05-08-1703.pdf)
 DFN 0.5
@@ -69820,6 +70044,13 @@ DFN 0.5
 Package_DFN_QFN
 DFN-8-1EP_3x2mm_P0.5mm_EP1.7x1.4mm
 DFN, 8 Pin (http://ww1.microchip.com/downloads/en/DeviceDoc/8L_DFN_2x3x0_9_MC_C04-123C.pdf), generated with kicad-footprint-generator ipc_noLead_generator.py
+DFN NoLead
+0
+13
+9
+Package_DFN_QFN
+DFN-8-1EP_3x2mm_P0.5mm_EP1.7x1.6mm
+DFN, 8 Pin (https://www.monolithicpower.com/en/documentview/productdocument/index/version/2/document_type/Datasheet/lang/en/sku/MP8904DD/document_id/1244/), generated with kicad-footprint-generator ipc_noLead_generator.py
 DFN NoLead
 0
 13
@@ -70047,13 +70278,6 @@ DFN, 12 Pin (https://www.analog.com/media/en/package-pcb-resources/package/pkg_p
 DFN NoLead
 0
 24
-13
-Package_DFN_QFN
-DFN-12-1EP_3x3mm_P0.45mm_EP1.66x2.38mm
-DD Package; 12-Lead Plastic DFN (3mm x 3mm) (see Linear Technology DFN_12_05-08-1725.pdf)
-DFN 0.45
-0
-17
 13
 Package_DFN_QFN
 DFN-12-1EP_3x4mm_P0.5mm_EP1.7x3.3mm
@@ -72674,6 +72898,20 @@ TQFN NoLead
 55
 41
 Package_DFN_QFN
+TQFN-44-1EP_7x7mm_P0.5mm_EP4.7x4.7mm
+TQFN, 44 Pin (https://www.analog.com/media/en/package-pcb-resources/package/pkg_pdf/tqfn/21-0144.pdf), generated with kicad-footprint-generator ipc_noLead_generator.py
+TQFN NoLead T4477+2 T4477+2C T4477+3
+0
+54
+45
+Package_DFN_QFN
+TQFN-44-1EP_7x7mm_P0.5mm_EP4.7x4.7mm_ThermalVias
+TQFN, 44 Pin (https://www.analog.com/media/en/package-pcb-resources/package/pkg_pdf/tqfn/21-0144.pdf), generated with kicad-footprint-generator ipc_noLead_generator.py
+TQFN NoLead T4477+2 T4477+2C T4477+3
+0
+71
+45
+Package_DFN_QFN
 TQFN-48-1EP_7x7mm_P0.5mm_EP5.1x5.1mm
 TQFN, 48 Pin (https://pdfserv.maximintegrated.com/package_dwgs/21-0144.PDF), generated with kicad-footprint-generator ipc_noLead_generator.py
 TQFN NoLead
@@ -73345,6 +73583,13 @@ QFN 0.65
 0
 21
 17
+Package_DFN_QFN
+UQFN-16_1.8x2.6mm_P0.4mm
+UQFN, 16 Pin (https://www.ti.com/lit/ds/symlink/ts3a5017.pdf#page=28), generated with kicad-footprint-generator ipc_noLead_generator.py
+UQFN NoLead
+0
+16
+16
 Package_DFN_QFN
 UQFN-20-1EP_3x3mm_P0.4mm_EP1.85x1.85mm
 UQFN, 20 Pin (http://ww1.microchip.com/downloads/en/PackagingSpec/00000049BQ.pdf#page=332), generated with kicad-footprint-generator ipc_noLead_generator.py
@@ -77855,8 +78100,8 @@ MSOP SO
 11
 Package_SO
 MSOP-10_3x3mm_P0.5mm
-10-Lead Plastic Micro Small Outline Package (MS) [MSOP] (see Microchip Packaging Specification 00000049BS.pdf)
-SSOP 0.5
+MSOP, 10 Pin (https://www.jedec.org/system/files/docs/mo-187F.pdf variant BA), generated with kicad-footprint-generator ipc_gullwing_generator.py
+MSOP SO
 0
 10
 10
@@ -83880,6 +84125,20 @@ Potentiometer vertical Vishay T73YP
 0
 3
 3
+Potentiometer_THT
+Potentiometer_Vishay_T93XA_Horizontal
+Potentiometer, horizontal, Vishay, https://www.vishay.com/docs/51026/t93.pdf, 3/8" x 3/8" x 3/16" (9.7 x 9.8 x 5mm max.)
+Potentiometer horizontal vishay
+0
+3
+3
+Potentiometer_THT
+Potentiometer_Vishay_T93YA_Vertical
+Potentiometer, vertical, Vishay, https://www.vishay.com/docs/51026/t93.pdf
+Potentiometer vertical vishay
+0
+3
+3
 RF
 Skyworks_SKY13575_639LF
 http://www.skyworksinc.com/uploads/documents/SKY13575_639LF_203270D.pdf
@@ -84686,6 +84945,13 @@ Bluetooth BLE NFC
 39
 39
 RF_Module
+MCU_Seeed_ESP32C3
+ESP32C3 Seeed Xiao RF Wifi Shield (https://www.seeedstudio.com/blog/wp-content/uploads/2022/08/Seeed-Studio-XIAO-Series-Package-and-PCB-Design.pdf)
+wifi bluetooth microcontroller
+0
+27
+23
+RF_Module
 MOD-nRF8001
 BLE module, https://www.olimex.com/Products/Modules/RF/MOD-nRF8001/
 BLE module
@@ -85315,6 +85581,20 @@ Omron G5V-2 Relay DPDT
 0
 8
 8
+Relay_THT
+Relay_DPDT_Omron_G6A
+DPDT signal relay, Omron G6A/G6AU, 20x9.9x8.2mm https://omronfs.omron.com/en_US/ecb/products/pdf/en-g6a.pdf
+Omron G6A Relay DPDT
+0
+8
+8
+Relay_THT
+Relay_DPDT_Omron_G6AK
+DPDT signal relay, double-winding latching, Omron G6AK, 20x9.9x8.2mm https://omronfs.omron.com/en_US/ecb/products/pdf/en-g6a.pdf
+Omron G6AK Relay DPDT
+0
+10
+10
 Relay_THT
 Relay_DPDT_Omron_G6H-2
 Omron relay G6H-2, see http://cdn-reichelt.de/documents/datenblatt/C300/G6H%23OMR.pdf
@@ -94723,6 +95003,13 @@ Hole_3mm
 0
 1
 1
+my_footprints
+QR
+
+
+0
+0
+0
 my_footprints
 VRB2405
 

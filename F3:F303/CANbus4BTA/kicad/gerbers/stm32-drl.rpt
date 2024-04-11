@@ -1,0 +1,35 @@
+Drill report for stm32.kicad_pcb
+Created on 2024-04-11T20:53:22+0300
+
+Copper Layer Stackup:
+    =============================================================
+    L1 :  F.Cu                      front
+    L2 :  B.Cu                      back
+
+
+Drill file 'stm32.drl' contains
+    plated through holes:
+    =============================================================
+    T1  0.400mm  0.0157"  (221 holes)
+    T2  0.500mm  0.0197"  (2 holes)  (with 2 slots)
+    T3  0.600mm  0.0236"  (45 holes)
+    T4  0.600mm  0.0236"  (8 holes)
+    T5  0.700mm  0.0276"  (6 holes)
+    T6  0.800mm  0.0315"  (10 holes)
+    T7  0.800mm  0.0315"  (65 holes)
+    T8  0.920mm  0.0362"  (4 holes)
+    T9  1.000mm  0.0394"  (29 holes)
+    T10  1.200mm  0.0472"  (10 holes)
+    T11  1.300mm  0.0512"  (19 holes)
+    T12  2.330mm  0.0917"  (2 holes)
+    T13  3.000mm  0.1181"  (6 holes)
+    T14  3.200mm  0.1260"  (4 holes)
+
+    Total plated holes count 431
+
+
+Not plated through holes are merged with plated holes
+    unplated through holes:
+    =============================================================
+
+    Total unplated holes count 0
