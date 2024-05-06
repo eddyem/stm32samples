@@ -1,7 +1,7 @@
 (kicad_pcb
-	(version 20240225)
+	(version 20240108)
 	(generator "pcbnew")
-	(generator_version "8.99")
+	(generator_version "8.0")
 	(general
 		(thickness 2.5)
 		(legacy_teardrops no)
@@ -143,6 +143,7 @@
 		(property "Reference" "D4"
 			(at 0.2808 -2.794 180)
 			(layer "F.SilkS")
+			(hide yes)
 			(uuid "74b74403-bba5-4b0b-a7b9-712419909ff2")
 			(effects
 				(font
@@ -154,6 +155,7 @@
 		(property "Value" "PESD1CAN"
 			(at 0 2.5 90)
 			(layer "F.Fab")
+			(hide yes)
 			(uuid "7356f8d1-7aa3-411a-998c-1d45b7c1195c")
 			(effects
 				(font
@@ -162,7 +164,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "TO_SOT_Packages_SMD:SOT-23_Handsoldering"
 			(at 0 0 -90)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -383,6 +385,7 @@
 		(property "Reference" "D5"
 			(at -2.7342 0 180)
 			(layer "F.SilkS")
+			(hide yes)
 			(uuid "f871d63c-7ca1-44c3-80e0-82bddf85844b")
 			(effects
 				(font
@@ -394,6 +397,7 @@
 		(property "Value" "MM3Z7V5"
 			(at 0 1.65 90)
 			(layer "F.Fab")
+			(hide yes)
 			(uuid "eccb9ba3-2e91-456c-aeb6-97ce86014cd0")
 			(effects
 				(font
@@ -402,7 +406,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Diode_SMD:D_0805_2012Metric_Pad1.15x1.40mm_HandSolder"
 			(at 0 0 90)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -630,7 +634,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "MountingHole:MountingHole_3.2mm_M3"
 			(at 0 0 0)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -741,7 +745,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "MountingHole:MountingHole_3.2mm_M3"
 			(at 0 0 0)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -852,7 +856,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "MountingHole:MountingHole_3.2mm_M3"
 			(at 0 0 0)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -941,6 +945,7 @@
 		(property "Reference" "R6"
 			(at 0.016 1.669 180)
 			(layer "F.SilkS")
+			(hide yes)
 			(uuid "b6ead1af-c89c-41a9-be20-f35906f718ea")
 			(effects
 				(font
@@ -952,6 +957,7 @@
 		(property "Value" "330"
 			(at 0 1.43 90)
 			(layer "F.Fab")
+			(hide yes)
 			(uuid "5a3d0edd-9c03-48a8-8272-7e528d1e6b38")
 			(effects
 				(font
@@ -960,7 +966,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric_Pad1.05x0.95mm_HandSolder"
 			(at 0 0 -90)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -1146,6 +1152,7 @@
 		(property "Reference" "R7"
 			(at 0.016 1.7325 180)
 			(layer "F.SilkS")
+			(hide yes)
 			(uuid "069793ba-bf9c-462c-81d0-ceb3f23310cf")
 			(effects
 				(font
@@ -1157,6 +1164,7 @@
 		(property "Value" "330"
 			(at 0 1.43 90)
 			(layer "F.Fab")
+			(hide yes)
 			(uuid "db2a330e-7a36-403e-8e81-3587f3e3bcea")
 			(effects
 				(font
@@ -1165,7 +1173,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric_Pad1.05x0.95mm_HandSolder"
 			(at 0 0 -90)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -1351,6 +1359,7 @@
 		(property "Reference" "R8"
 			(at 0.016 1.669 180)
 			(layer "F.SilkS")
+			(hide yes)
 			(uuid "999f10cd-baf2-43d0-a126-ecb128cf25d0")
 			(effects
 				(font
@@ -1362,6 +1371,7 @@
 		(property "Value" "330"
 			(at 0 1.43 90)
 			(layer "F.Fab")
+			(hide yes)
 			(uuid "23cccdc0-8d1c-42aa-aa35-af39ff9a2f5c")
 			(effects
 				(font
@@ -1370,7 +1380,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric_Pad1.05x0.95mm_HandSolder"
 			(at 0 0 -90)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -1556,6 +1566,7 @@
 		(property "Reference" "R10"
 			(at 2.399 0.0508 180)
 			(layer "F.SilkS")
+			(hide yes)
 			(uuid "6372df94-a6de-4945-b3b6-c0b954f673ee")
 			(effects
 				(font
@@ -1567,6 +1578,7 @@
 		(property "Value" "10k"
 			(at 0 1.43 90)
 			(layer "F.Fab")
+			(hide yes)
 			(uuid "c6fde868-971f-450f-b74b-840b8efb2255")
 			(effects
 				(font
@@ -1575,7 +1587,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric_Pad1.05x0.95mm_HandSolder"
 			(at 0 0 90)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -1761,6 +1773,7 @@
 		(property "Reference" "U4"
 			(at -0.0508 3.7592 180)
 			(layer "F.SilkS")
+			(hide yes)
 			(uuid "2ede1257-c953-4964-a0f2-4016e2582277")
 			(effects
 				(font
@@ -1772,6 +1785,7 @@
 		(property "Value" "MCP2551-I/SN"
 			(at 0 3.5 90)
 			(layer "F.Fab")
+			(hide yes)
 			(uuid "66634cd3-0cef-4697-8ab6-5da5c18e96c2")
 			(effects
 				(font
@@ -1780,7 +1794,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm"
 			(at 0 0 90)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -2065,6 +2079,7 @@
 		(property "Reference" "C10"
 			(at -0.0114 2.286 180)
 			(layer "F.SilkS")
+			(hide yes)
 			(uuid "e32ed69a-1f39-44d7-9434-df4c3c6a9dc5")
 			(effects
 				(font
@@ -2076,6 +2091,7 @@
 		(property "Value" "0.1"
 			(at 0 1.43 90)
 			(layer "F.Fab")
+			(hide yes)
 			(uuid "e294c426-18ac-4aa5-8fc5-f1cf57db246c")
 			(effects
 				(font
@@ -2084,7 +2100,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric_Pad1.05x0.95mm_HandSolder"
 			(at 0 0 -90)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -2270,6 +2286,7 @@
 		(property "Reference" "D6"
 			(at 0 -3.5 0)
 			(layer "F.SilkS")
+			(hide yes)
 			(uuid "598846a3-c522-4d99-8757-951f1e8445af")
 			(effects
 				(font
@@ -2281,6 +2298,7 @@
 		(property "Value" "USB6B1"
 			(at 0 3.5 0)
 			(layer "F.Fab")
+			(hide yes)
 			(uuid "eafa68a9-f23c-4e2f-8707-c95bd46ae1c4")
 			(effects
 				(font
@@ -2289,7 +2307,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm"
 			(at 0 0 180)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -2575,6 +2593,7 @@
 		(property "Reference" "D7"
 			(at 2.9808 0.0254 0)
 			(layer "F.SilkS")
+			(hide yes)
 			(uuid "ab38871b-0dd4-4b06-973d-1e1b76ae8398")
 			(effects
 				(font
@@ -2586,6 +2605,7 @@
 		(property "Value" "MM3Z3V9"
 			(at 0 1.65 0)
 			(layer "F.Fab")
+			(hide yes)
 			(uuid "b409fd24-0360-4a4e-bc19-9ebb1abb16cd")
 			(effects
 				(font
@@ -2594,7 +2614,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Diode_SMD:D_0805_2012Metric_Pad1.15x1.40mm_HandSolder"
 			(at 0 0 0)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -2800,6 +2820,7 @@
 		(property "Reference" "J13"
 			(at -2.4925 5.9256 180)
 			(layer "F.SilkS")
+			(hide yes)
 			(uuid "c7afcea4-7038-4ad7-9cf3-953c6b65308c")
 			(effects
 				(font
@@ -2811,6 +2832,7 @@
 		(property "Value" "Conn_01x06"
 			(at 0 15.47 90)
 			(layer "F.Fab")
+			(hide yes)
 			(uuid "b8315bd9-7725-41a4-a3f9-fea1acdffb2e")
 			(effects
 				(font
@@ -2819,7 +2841,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Connector_PinSocket_2.54mm:PinSocket_1x06_P2.54mm_Vertical"
 			(at 0 0 90)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -3093,6 +3115,7 @@
 		(property "Reference" "R11"
 			(at 0 -1.524 0)
 			(layer "F.SilkS")
+			(hide yes)
 			(uuid "cd58fd75-d536-4bd6-9fac-7f770db3a594")
 			(effects
 				(font
@@ -3104,6 +3127,7 @@
 		(property "Value" "22"
 			(at 0 1.43 0)
 			(layer "F.Fab")
+			(hide yes)
 			(uuid "a8c07919-7657-4f4b-9e78-75a03a0b7ec4")
 			(effects
 				(font
@@ -3112,7 +3136,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric_Pad1.05x0.95mm_HandSolder"
 			(at 0 0 180)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -3298,6 +3322,7 @@
 		(property "Reference" "R14"
 			(at -0.0013 1.524 0)
 			(layer "F.SilkS")
+			(hide yes)
 			(uuid "d55e07f8-e50c-4e3d-826d-232bf7560eff")
 			(effects
 				(font
@@ -3309,6 +3334,7 @@
 		(property "Value" "56k"
 			(at 0 1.43 0)
 			(layer "F.Fab")
+			(hide yes)
 			(uuid "99d99023-5a1c-44fe-8f87-007fad9daab8")
 			(effects
 				(font
@@ -3317,7 +3343,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric_Pad1.05x0.95mm_HandSolder"
 			(at 0 0 0)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -3525,7 +3551,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "MountingHole:MountingHole_3.2mm_M3"
 			(at 0 0 0)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -3614,6 +3640,7 @@
 		(property "Reference" "U5"
 			(at 0 0.0254 0)
 			(layer "F.SilkS")
+			(hide yes)
 			(uuid "38062ee1-9c11-40bf-8a3d-c41a89e0dea5")
 			(effects
 				(font
@@ -3625,6 +3652,7 @@
 		(property "Value" "STM32F072CBTx"
 			(at 0 5.85 0)
 			(layer "F.Fab")
+			(hide yes)
 			(uuid "d2f75bdf-68a0-4243-81f7-9151d34bad07")
 			(effects
 				(font
@@ -3633,7 +3661,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Package_QFP:LQFP-48_7x7mm_P0.5mm"
 			(at 0 0 0)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -4459,6 +4487,7 @@
 		(property "Reference" "C9"
 			(at -0.0114 1.524 0)
 			(layer "F.SilkS")
+			(hide yes)
 			(uuid "9cb9bff1-288e-4545-8f82-f5f02ae486dc")
 			(effects
 				(font
@@ -4470,6 +4499,7 @@
 		(property "Value" "0.1"
 			(at 0 1.43 0)
 			(layer "F.Fab")
+			(hide yes)
 			(uuid "35d75e02-ca10-41b1-8f3a-05261412fdc0")
 			(effects
 				(font
@@ -4478,7 +4508,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric_Pad1.05x0.95mm_HandSolder"
 			(at 0 0 180)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -4664,6 +4694,7 @@
 		(property "Reference" "R12"
 			(at 0 1.5748 0)
 			(layer "F.SilkS")
+			(hide yes)
 			(uuid "c044b7b3-c302-44b5-b59d-081db0cfe224")
 			(effects
 				(font
@@ -4675,6 +4706,7 @@
 		(property "Value" "22"
 			(at 0 1.43 0)
 			(layer "F.Fab")
+			(hide yes)
 			(uuid "987a32d0-c14d-4852-a064-db5eed1f7338")
 			(effects
 				(font
@@ -4683,7 +4715,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric_Pad1.05x0.95mm_HandSolder"
 			(at 0 0 180)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -4869,6 +4901,7 @@
 		(property "Reference" "Q2"
 			(at 0 -2.5 0)
 			(layer "F.SilkS")
+			(hide yes)
 			(uuid "4cd25eba-67f6-462f-9c17-07c58ff4741b")
 			(effects
 				(font
@@ -4880,6 +4913,7 @@
 		(property "Value" "AO3407"
 			(at 0 2.5 0)
 			(layer "F.Fab")
+			(hide yes)
 			(uuid "0332e00e-a625-4f8f-8764-8b9ed8039630")
 			(effects
 				(font
@@ -4888,7 +4922,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "TO_SOT_Packages_SMD:SOT-23_Handsoldering"
 			(at 0 0 0)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -5109,6 +5143,7 @@
 		(property "Reference" "R4"
 			(at 2.5514 0.1016 180)
 			(layer "F.SilkS")
+			(hide yes)
 			(uuid "dccf8993-453c-4bea-8009-03a16e9a6a6b")
 			(effects
 				(font
@@ -5120,6 +5155,7 @@
 		(property "Value" "15k"
 			(at 0 1.43 90)
 			(layer "F.Fab")
+			(hide yes)
 			(uuid "d018fc11-789a-4a6b-bc75-2bc1c65611a6")
 			(effects
 				(font
@@ -5128,7 +5164,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric_Pad1.05x0.95mm_HandSolder"
 			(at 0 0 -90)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -5314,6 +5350,7 @@
 		(property "Reference" "R9"
 			(at 2.7826 0.1016 0)
 			(layer "F.SilkS")
+			(hide yes)
 			(uuid "e0f3d1ba-2f69-4700-ae27-1d44aa0ae35c")
 			(effects
 				(font
@@ -5325,6 +5362,7 @@
 		(property "Value" "120"
 			(at 0 1.43 0)
 			(layer "F.Fab")
+			(hide yes)
 			(uuid "47342355-a4cd-47a8-82fb-2e255a776ebe")
 			(effects
 				(font
@@ -5333,7 +5371,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric_Pad1.05x0.95mm_HandSolder"
 			(at 0 0 0)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -5519,6 +5557,7 @@
 		(property "Reference" "C8"
 			(at -0.014 1.7272 180)
 			(layer "F.SilkS")
+			(hide yes)
 			(uuid "06e735a7-7cc0-4af1-a83f-38f3c26f5633")
 			(effects
 				(font
@@ -5530,6 +5569,7 @@
 		(property "Value" "0.1"
 			(at 0 1.43 90)
 			(layer "F.Fab")
+			(hide yes)
 			(uuid "8724ba95-4569-4c89-8bc2-d3a9b59e6468")
 			(effects
 				(font
@@ -5538,7 +5578,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric_Pad1.05x0.95mm_HandSolder"
 			(at 0 0 90)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -5724,6 +5764,7 @@
 		(property "Reference" "R18"
 			(at 0.3696 1.6002 0)
 			(layer "F.SilkS")
+			(hide yes)
 			(uuid "011bd95a-bacb-4c94-b080-59ac86fbf17d")
 			(effects
 				(font
@@ -5735,6 +5776,7 @@
 		(property "Value" "22"
 			(at 0 1.43 0)
 			(layer "F.Fab")
+			(hide yes)
 			(uuid "4e493e34-aa16-4689-9b13-0f61b6e0f96b")
 			(effects
 				(font
@@ -5743,7 +5785,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric_Pad1.05x0.95mm_HandSolder"
 			(at 0 0 180)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -5929,6 +5971,7 @@
 		(property "Reference" "TP2"
 			(at 0 2.667 0)
 			(layer "F.SilkS")
+			(hide yes)
 			(uuid "3d477ae5-9066-4157-9921-d8f86f2feaa8")
 			(effects
 				(font
@@ -5940,6 +5983,7 @@
 		(property "Value" "TestPoint"
 			(at 0 2.33 0)
 			(layer "F.Fab")
+			(hide yes)
 			(uuid "f9b4a38f-6a57-487a-bf73-237cb6724a61")
 			(effects
 				(font
@@ -5948,7 +5992,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x01_P2.54mm_Vertical"
 			(at 0 0 0)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -6177,6 +6221,7 @@
 		(property "Reference" "R13"
 			(at -0.0688 1.5273 0)
 			(layer "F.SilkS")
+			(hide yes)
 			(uuid "78edc8f9-f4bd-443f-9df8-6d26f97e8dcb")
 			(effects
 				(font
@@ -6188,6 +6233,7 @@
 		(property "Value" "220k"
 			(at 0 1.43 0)
 			(layer "F.Fab")
+			(hide yes)
 			(uuid "1558e51d-5de6-4c0f-a1ab-92c4d8e0cfeb")
 			(effects
 				(font
@@ -6196,7 +6242,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric_Pad1.05x0.95mm_HandSolder"
 			(at 0 0 0)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -6382,6 +6428,7 @@
 		(property "Reference" "D3"
 			(at 0 -2 0)
 			(layer "F.SilkS")
+			(hide yes)
 			(uuid "6c6ab4b4-ab0f-40ba-b67f-16cc3f465040")
 			(effects
 				(font
@@ -6393,6 +6440,7 @@
 		(property "Value" "PESD3V3L4UG"
 			(at 0 2 180)
 			(layer "F.Fab")
+			(hide yes)
 			(uuid "f59a7d13-ceba-4763-9295-bfee14834c2b")
 			(effects
 				(font
@@ -6401,7 +6449,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "TO_SOT_Packages_SMD:SOT-363_SC-70-6_Handsoldering"
 			(at 0 0 0)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -6622,6 +6670,7 @@
 		(property "Reference" "R5"
 			(at -0.0475 1.796 180)
 			(layer "F.SilkS")
+			(hide yes)
 			(uuid "543bf799-4257-4cc8-9df2-fd044f17a9ef")
 			(effects
 				(font
@@ -6633,6 +6682,7 @@
 		(property "Value" "330"
 			(at 0 1.43 90)
 			(layer "F.Fab")
+			(hide yes)
 			(uuid "0f31274d-f259-4ad7-8919-80deba2adbd5")
 			(effects
 				(font
@@ -6641,7 +6691,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric_Pad1.05x0.95mm_HandSolder"
 			(at 0 0 -90)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -6827,6 +6877,7 @@
 		(property "Reference" "U6"
 			(at 0.125 -3.706 180)
 			(layer "F.SilkS")
+			(hide yes)
 			(uuid "66f6e660-5d31-43dc-b5b7-b73aaf1e16a1")
 			(effects
 				(font
@@ -6838,6 +6889,7 @@
 		(property "Value" "MAX3485"
 			(at 0 3.4 -90)
 			(layer "F.Fab")
+			(hide yes)
 			(uuid "f2521ef3-5973-416e-a53e-0d08e87426db")
 			(effects
 				(font
@@ -6846,7 +6898,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Package_SO:SO-8_3.9x4.9mm_P1.27mm"
 			(at 0 0 -90)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -7110,6 +7162,7 @@
 		(property "Reference" "D2"
 			(at 0 3.0386 0)
 			(layer "F.SilkS")
+			(hide yes)
 			(uuid "745bafb5-6797-42d1-a4a6-889a4209f7f6")
 			(effects
 				(font
@@ -7121,6 +7174,7 @@
 		(property "Value" "MBRS130L"
 			(at 0 3 0)
 			(layer "F.Fab")
+			(hide yes)
 			(uuid "750a08d6-43c1-425a-af0c-50004d928f5a")
 			(effects
 				(font
@@ -7129,7 +7183,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Diode_SMD:D_SMB_Handsoldering"
 			(at 0 0 0)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -7383,6 +7437,7 @@
 		(property "Reference" "C7"
 			(at 0 1.7526 180)
 			(layer "F.SilkS")
+			(hide yes)
 			(uuid "6ff8e164-7905-4099-a399-92e9e24264e2")
 			(effects
 				(font
@@ -7394,6 +7449,7 @@
 		(property "Value" "0.1"
 			(at 0 1.43 90)
 			(layer "F.Fab")
+			(hide yes)
 			(uuid "46b7261d-fd4a-4932-b709-3ae6b07209c0")
 			(effects
 				(font
@@ -7402,7 +7458,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric_Pad1.05x0.95mm_HandSolder"
 			(at 0 0 -90)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -7588,6 +7644,7 @@
 		(property "Reference" "TP1"
 			(at 3.5507 -1.0508 0)
 			(layer "F.SilkS")
+			(hide yes)
 			(uuid "14d7c2e7-a3df-462d-a689-627674d35c63")
 			(effects
 				(font
@@ -7599,6 +7656,7 @@
 		(property "Value" "TestPoint"
 			(at 0 2.33 0)
 			(layer "F.Fab")
+			(hide yes)
 			(uuid "0cb8a109-14a5-48b9-8214-b94c29eaff4e")
 			(effects
 				(font
@@ -7607,7 +7665,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x01_P2.54mm_Vertical"
 			(at 0 0 0)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -7836,6 +7894,7 @@
 		(property "Reference" "P1"
 			(at -2.8882 -1.6096 0)
 			(layer "B.SilkS")
+			(hide yes)
 			(uuid "edfcd72f-1d51-4b99-a6e0-d05581ff045e")
 			(effects
 				(font
@@ -7848,6 +7907,7 @@
 		(property "Value" "USB_A"
 			(at 6.76 -10.27 0)
 			(layer "B.Fab")
+			(hide yes)
 			(uuid "ebb1df1a-5458-4b6c-aac3-6de4133807ef")
 			(effects
 				(font
@@ -7857,7 +7917,7 @@
 				(justify mirror)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Connectors_USB:USB_B_OST_USB-B1HSxx_Horizontal"
 			(at 0 0 0)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -8162,6 +8222,7 @@
 		(property "Reference" "Q1"
 			(at 0.0245 -2.5375 0)
 			(layer "B.SilkS")
+			(hide yes)
 			(uuid "f705f2d4-fb17-48e9-9f4e-444ad8a5cd40")
 			(effects
 				(font
@@ -8174,6 +8235,7 @@
 		(property "Value" "SI2305"
 			(at 0 -2.5 180)
 			(layer "B.Fab")
+			(hide yes)
 			(uuid "d768a22d-9e40-4ebe-aa08-41f882dcc70c")
 			(effects
 				(font
@@ -8183,7 +8245,7 @@
 				(justify mirror)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "TO_SOT_Packages_SMD:SOT-23_Handsoldering"
 			(at 0 0 180)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -8405,6 +8467,7 @@
 		(property "Reference" "R1"
 			(at 0.0114 -1.7018 0)
 			(layer "B.SilkS")
+			(hide yes)
 			(uuid "0d1de941-e352-4974-bae8-b22ab639447c")
 			(effects
 				(font
@@ -8417,6 +8480,7 @@
 		(property "Value" "330"
 			(at 0 -1.43 0)
 			(layer "B.Fab")
+			(hide yes)
 			(uuid "b4d77c21-efe5-43e8-a720-c6f87167a467")
 			(effects
 				(font
@@ -8426,7 +8490,7 @@
 				(justify mirror)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric_Pad1.05x0.95mm_HandSolder"
 			(at 0 0 0)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -8613,6 +8677,7 @@
 		(property "Reference" "SW1"
 			(at -2.7104 1.9464 0)
 			(layer "B.SilkS")
+			(hide yes)
 			(uuid "26000eb5-421c-4c63-9684-3b712ba40487")
 			(effects
 				(font
@@ -8625,6 +8690,7 @@
 		(property "Value" "SW_DIP_x01"
 			(at 3.81 -3.11 0)
 			(layer "B.Fab")
+			(hide yes)
 			(uuid "9f374902-7992-4137-80ac-a147c58896b8")
 			(effects
 				(font
@@ -8634,7 +8700,7 @@
 				(justify mirror)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Button_Switch_THT:SW_DIP_SPSTx01_Slide_6.7x4.1mm_W7.62mm_P2.54mm_LowProfile"
 			(at 0 0 0)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -9225,6 +9291,7 @@
 		(property "Reference" "U3"
 			(at -0.3507 -4.4623 0)
 			(layer "B.SilkS")
+			(hide yes)
 			(uuid "a6f9ab19-161b-400f-82ee-217ddb15e7e3")
 			(effects
 				(font
@@ -9237,6 +9304,7 @@
 		(property "Value" "LM1117-3.3"
 			(at 0 -4.5 0)
 			(layer "B.Fab")
+			(hide yes)
 			(uuid "2646357e-792e-43fb-939c-0cafe7d015be")
 			(effects
 				(font
@@ -9246,7 +9314,7 @@
 				(justify mirror)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "TO_SOT_Packages_SMD:SOT-223-3_TabPin2"
 			(at 0 0 180)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -9475,6 +9543,7 @@
 		(property "Reference" "C2"
 			(at 1.75 5.25 0)
 			(layer "B.SilkS")
+			(hide yes)
 			(uuid "bf42b015-ae6b-408b-b22a-3f600eabf5be")
 			(effects
 				(font
@@ -9487,6 +9556,7 @@
 		(property "Value" "100uF"
 			(at 1.75 -5.25 0)
 			(layer "B.Fab")
+			(hide yes)
 			(uuid "250c1d26-790e-4c4a-9364-a9fe3520e359")
 			(effects
 				(font
@@ -9496,7 +9566,7 @@
 				(justify mirror)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_THT:CP_Radial_D8.0mm_P3.50mm"
 			(at 0 0 0)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -11208,6 +11278,7 @@
 		(property "Reference" "C4"
 			(at 4.8487 0.0254 180)
 			(layer "B.SilkS")
+			(hide yes)
 			(uuid "7a1d37ea-536e-41bd-bb6e-79b107c65e29")
 			(effects
 				(font
@@ -11220,6 +11291,7 @@
 		(property "Value" "47uF, 10V"
 			(at 0 -2.55 90)
 			(layer "B.Fab")
+			(hide yes)
 			(uuid "b58d4bdd-8351-4c9c-b28e-aabfae68ef7a")
 			(effects
 				(font
@@ -11229,7 +11301,7 @@
 				(justify mirror)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_Tantalum_SMD:CP_EIA-6032-28_Kemet-C_Pad2.25x2.35mm_HandSolder"
 			(at 0 0 -90)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -11436,6 +11508,7 @@
 		(property "Reference" "C5"
 			(at 2.5006 0 180)
 			(layer "B.SilkS")
+			(hide yes)
 			(uuid "04aa06f7-ad29-4450-90cd-16726510a63e")
 			(effects
 				(font
@@ -11448,6 +11521,7 @@
 		(property "Value" "0.1"
 			(at 0 -1.43 90)
 			(layer "B.Fab")
+			(hide yes)
 			(uuid "24bf4e4f-66fd-4c02-92b5-a1ba6c4934fe")
 			(effects
 				(font
@@ -11457,7 +11531,7 @@
 				(justify mirror)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric_Pad1.05x0.95mm_HandSolder"
 			(at 0 0 -90)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -11644,6 +11718,7 @@
 		(property "Reference" "C6"
 			(at -4.8287 0.0254 180)
 			(layer "B.SilkS")
+			(hide yes)
 			(uuid "6ea47588-0dfa-4f8b-bdfd-14f39680c426")
 			(effects
 				(font
@@ -11656,6 +11731,7 @@
 		(property "Value" "47uF, 10V"
 			(at 0 -2.55 90)
 			(layer "B.Fab")
+			(hide yes)
 			(uuid "b070746d-b855-4dd3-83cc-5cbf69a3f455")
 			(effects
 				(font
@@ -11665,7 +11741,7 @@
 				(justify mirror)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_Tantalum_SMD:CP_EIA-6032-28_Kemet-C_Pad2.25x2.35mm_HandSolder"
 			(at 0 0 -90)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -11872,6 +11948,7 @@
 		(property "Reference" "D8"
 			(at -1.3827 -1.667 0)
 			(layer "B.SilkS")
+			(hide yes)
 			(uuid "b78559b1-be30-4bce-b202-9cdcab2b9561")
 			(effects
 				(font
@@ -11884,6 +11961,7 @@
 		(property "Value" "MM3Z3V9"
 			(at 0 -1.65 0)
 			(layer "B.Fab")
+			(hide yes)
 			(uuid "e3819902-684d-4358-ba69-1597e5a88626")
 			(effects
 				(font
@@ -11893,7 +11971,7 @@
 				(justify mirror)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Diode_SMD:D_0805_2012Metric_Pad1.15x1.40mm_HandSolder"
 			(at 0 0 180)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -12100,6 +12178,7 @@
 		(property "Reference" "J1"
 			(at 9.033 0.1078 180)
 			(layer "B.SilkS")
+			(hide yes)
 			(uuid "856d7cf6-4caa-4965-b14a-f2fdfa580947")
 			(effects
 				(font
@@ -12112,6 +12191,7 @@
 		(property "Value" "A"
 			(at 2.5 -5.66 90)
 			(layer "B.Fab")
+			(hide yes)
 			(uuid "fcc238c7-5149-4854-b5b0-28d33f8ef657")
 			(effects
 				(font
@@ -12121,7 +12201,7 @@
 				(justify mirror)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "TerminalBlock_Phoenix:TerminalBlock_Phoenix_MKDS-1,5-2_1x02_P5.00mm_Horizontal"
 			(at 0 0 -90)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -12588,6 +12668,7 @@
 		(property "Reference" "J5"
 			(at 8.8359 0.2868 180)
 			(layer "B.SilkS")
+			(hide yes)
 			(uuid "1fc3e81e-5756-4268-9d11-a80404fc747d")
 			(effects
 				(font
@@ -12600,6 +12681,7 @@
 		(property "Value" "+/-"
 			(at 2.5 -5.66 90)
 			(layer "B.Fab")
+			(hide yes)
 			(uuid "4ae7d6da-5836-481f-8e4a-eb89392cfc63")
 			(effects
 				(font
@@ -12609,7 +12691,7 @@
 				(justify mirror)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "TerminalBlock_Phoenix:TerminalBlock_Phoenix_MKDS-1,5-2_1x02_P5.00mm_Horizontal"
 			(at 0 0 90)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -13076,6 +13158,7 @@
 		(property "Reference" "J7"
 			(at -3.955 1.6095 0)
 			(layer "B.SilkS")
+			(hide yes)
 			(uuid "a10bba9c-febc-49bd-a4c9-b0bddb31548a")
 			(effects
 				(font
@@ -13088,6 +13171,7 @@
 		(property "Value" "0/1"
 			(at 2.5 -5.66 0)
 			(layer "B.Fab")
+			(hide yes)
 			(uuid "4356aba0-e2f5-4189-8436-d567b366f478")
 			(effects
 				(font
@@ -13097,7 +13181,7 @@
 				(justify mirror)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "TerminalBlock_Phoenix:TerminalBlock_Phoenix_MKDS-1,5-2_1x02_P5.00mm_Horizontal"
 			(at 0 0 0)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -13564,6 +13648,7 @@
 		(property "Reference" "J8"
 			(at 8.9355 1.4825 0)
 			(layer "B.SilkS")
+			(hide yes)
 			(uuid "26c17c5a-8d03-4c79-abd2-4feaa8fd1679")
 			(effects
 				(font
@@ -13576,6 +13661,7 @@
 		(property "Value" "2/3"
 			(at 2.5 -5.66 0)
 			(layer "B.Fab")
+			(hide yes)
 			(uuid "400e286f-4fe1-4ed7-9d44-5983982f0205")
 			(effects
 				(font
@@ -13585,7 +13671,7 @@
 				(justify mirror)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "TerminalBlock_Phoenix:TerminalBlock_Phoenix_MKDS-1,5-2_1x02_P5.00mm_Horizontal"
 			(at 0 0 0)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -14052,6 +14138,7 @@
 		(property "Reference" "J9"
 			(at 1.2065 4.151938 0)
 			(layer "B.SilkS")
+			(hide yes)
 			(uuid "f6843bc7-d3ce-486e-b6ef-1c4d2a5f2eb9")
 			(effects
 				(font
@@ -14064,6 +14151,7 @@
 		(property "Value" "DB9_Female"
 			(at -5.54 -15.85 0)
 			(layer "B.Fab")
+			(hide yes)
 			(uuid "02346911-839c-4a57-830a-4617912bcfad")
 			(effects
 				(font
@@ -14073,7 +14161,7 @@
 				(justify mirror)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Connector_Dsub:DSUB-9_Female_Horizontal_P2.77x2.84mm_EdgePinOffset4.94mm_Housed_MountingHolesOffset7.48mm"
 			(at 0 0 0)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -14598,6 +14686,7 @@
 		(property "Reference" "J10"
 			(at 2.2968 -5.892 0)
 			(layer "B.SilkS")
+			(hide yes)
 			(uuid "d68076dd-eeb1-4667-ac36-128164b8a51b")
 			(effects
 				(font
@@ -14610,6 +14699,7 @@
 		(property "Value" "12v"
 			(at 2.5 -5.66 0)
 			(layer "B.Fab")
+			(hide yes)
 			(uuid "e64ef468-8aca-4b6b-bb65-5bcfdb16968a")
 			(effects
 				(font
@@ -14619,7 +14709,7 @@
 				(justify mirror)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "TerminalBlock_Phoenix:TerminalBlock_Phoenix_MKDS-1,5-2_1x02_P5.00mm_Horizontal"
 			(at 0 0 180)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -15086,6 +15176,7 @@
 		(property "Reference" "J11"
 			(at 1.5748 3.783638 0)
 			(layer "B.SilkS")
+			(hide yes)
 			(uuid "325f770f-be94-4ebe-8734-40fca466e95b")
 			(effects
 				(font
@@ -15098,6 +15189,7 @@
 		(property "Value" "DB9_Male"
 			(at 5.54 -15.68 0)
 			(layer "B.Fab")
+			(hide yes)
 			(uuid "85c83a3c-f4b2-4af1-88e1-99914c5ccc63")
 			(effects
 				(font
@@ -15107,7 +15199,7 @@
 				(justify mirror)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Connector_Dsub:DSUB-9_Male_Horizontal_P2.77x2.84mm_EdgePinOffset4.94mm_Housed_MountingHolesOffset7.48mm"
 			(at 0 0 0)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -15632,6 +15724,7 @@
 		(property "Reference" "J12"
 			(at 9.344 -3.5975 0)
 			(layer "B.SilkS")
+			(hide yes)
 			(uuid "fe257ecb-91c0-44b6-862d-616527bb28fe")
 			(effects
 				(font
@@ -15644,6 +15737,7 @@
 		(property "Value" "RS-485"
 			(at 2.5 -5.66 0)
 			(layer "B.Fab")
+			(hide yes)
 			(uuid "5a0b73c8-bf1e-4766-8bc6-c59646b3966c")
 			(effects
 				(font
@@ -15653,7 +15747,7 @@
 				(justify mirror)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "TerminalBlock_Phoenix:TerminalBlock_Phoenix_MKDS-1,5-2_1x02_P5.00mm_Horizontal"
 			(at 0 0 0)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -16120,6 +16214,7 @@
 		(property "Reference" "R15"
 			(at 0.0401 -2.3569 180)
 			(layer "B.SilkS")
+			(hide yes)
 			(uuid "cfdfd66f-53d0-4733-8694-6400615800bb")
 			(effects
 				(font
@@ -16132,6 +16227,7 @@
 		(property "Value" "47k"
 			(at 0 -1.43 90)
 			(layer "B.Fab")
+			(hide yes)
 			(uuid "fe62c84f-d539-4923-a868-f081844ab0d8")
 			(effects
 				(font
@@ -16141,7 +16237,7 @@
 				(justify mirror)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric_Pad1.05x0.95mm_HandSolder"
 			(at 0 0 -90)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -16328,6 +16424,7 @@
 		(property "Reference" "J2"
 			(at -4.0226 -0.0192 180)
 			(layer "B.SilkS")
+			(hide yes)
 			(uuid "dfbea5e2-ad7d-4876-b9e2-97f1acb3c3d2")
 			(effects
 				(font
@@ -16340,6 +16437,7 @@
 		(property "Value" "B"
 			(at 2.5 -5.66 90)
 			(layer "B.Fab")
+			(hide yes)
 			(uuid "38d9f3e7-9fc1-4f2a-9c63-bf91e6ed7acb")
 			(effects
 				(font
@@ -16349,7 +16447,7 @@
 				(justify mirror)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "TerminalBlock_Phoenix:TerminalBlock_Phoenix_MKDS-1,5-2_1x02_P5.00mm_Horizontal"
 			(at 0 0 -90)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -16816,6 +16914,7 @@
 		(property "Reference" "J4"
 			(at -2.776 0.1826 0)
 			(layer "B.SilkS")
+			(hide yes)
 			(uuid "4ded6b58-4b71-4e43-9ebb-cd95eb98e220")
 			(effects
 				(font
@@ -16828,6 +16927,7 @@
 		(property "Value" "Conn_01x08_Female"
 			(at 0 -20.55 0)
 			(layer "B.Fab")
+			(hide yes)
 			(uuid "3cca6e31-702d-45cd-9959-f9225696b77a")
 			(effects
 				(font
@@ -16837,7 +16937,7 @@
 				(justify mirror)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Connector_PinSocket_2.54mm:PinSocket_1x08_P2.54mm_Vertical"
 			(at 0 0 180)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -17128,6 +17228,7 @@
 		(property "Reference" "F1"
 			(at -0.7208 -0.1244 0)
 			(layer "B.SilkS")
+			(hide yes)
 			(uuid "e5f6ee80-452a-4597-9ee6-6b62276048b8")
 			(effects
 				(font
@@ -17140,6 +17241,7 @@
 		(property "Value" "1A"
 			(at -0.1 0.1 0)
 			(layer "B.Fab")
+			(hide yes)
 			(uuid "1e8f1a4b-c6a8-41ee-8d95-6abb810f89f5")
 			(effects
 				(font
@@ -17149,7 +17251,7 @@
 				(justify mirror)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "MyFootprints:FuseHolder"
 			(at 0 0 0)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -17284,6 +17386,7 @@
 		(property "Reference" "J3"
 			(at -2.5675 -19.6136 0)
 			(layer "B.SilkS")
+			(hide yes)
 			(uuid "43d61dd9-7cf6-4faf-9b09-2932d1f8c128")
 			(effects
 				(font
@@ -17296,6 +17399,7 @@
 		(property "Value" "Conn_01x08_Female"
 			(at 0 -20.55 0)
 			(layer "B.Fab")
+			(hide yes)
 			(uuid "9e963c74-a3f9-4604-a976-0634ee3e9119")
 			(effects
 				(font
@@ -17305,7 +17409,7 @@
 				(justify mirror)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Connector_PinSocket_2.54mm:PinSocket_1x08_P2.54mm_Vertical"
 			(at 0 0 0)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -17598,6 +17702,7 @@
 		(property "Reference" "C12"
 			(at -0.0013 -1.4732 0)
 			(layer "B.SilkS")
+			(hide yes)
 			(uuid "9cbdf48e-b6e7-4862-bd23-f97a941280de")
 			(effects
 				(font
@@ -17610,6 +17715,7 @@
 		(property "Value" "0.1"
 			(at 0 -1.43 180)
 			(layer "B.Fab")
+			(hide yes)
 			(uuid "3892eed9-b763-4859-a7d3-189bb8f2e95b")
 			(effects
 				(font
@@ -17619,7 +17725,7 @@
 				(justify mirror)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric_Pad1.05x0.95mm_HandSolder"
 			(at 0 0 180)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -17806,6 +17912,7 @@
 		(property "Reference" "D1"
 			(at 5.827 -0.0033 0)
 			(layer "B.SilkS")
+			(hide yes)
 			(uuid "6e0bf9d2-cb9a-4110-ad89-036ed707cb9c")
 			(effects
 				(font
@@ -17818,6 +17925,7 @@
 		(property "Value" "MBRS130L"
 			(at 0 -3 0)
 			(layer "B.Fab")
+			(hide yes)
 			(uuid "58178330-60e4-4cc0-9d94-075a197ea205")
 			(effects
 				(font
@@ -17827,7 +17935,7 @@
 				(justify mirror)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Diode_SMD:D_SMB_Handsoldering"
 			(at 0 0 180)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -18082,6 +18190,7 @@
 		(property "Reference" "C1"
 			(at -0.0267 -1.7018 0)
 			(layer "B.SilkS")
+			(hide yes)
 			(uuid "178d6271-448b-4afa-82b6-5da4d127f800")
 			(effects
 				(font
@@ -18094,6 +18203,7 @@
 		(property "Value" "0.1"
 			(at 0 -1.43 0)
 			(layer "B.Fab")
+			(hide yes)
 			(uuid "ca7f30b1-2dcc-4e2a-a8f3-58af91ce5cdc")
 			(effects
 				(font
@@ -18103,7 +18213,7 @@
 				(justify mirror)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric_Pad1.05x0.95mm_HandSolder"
 			(at 0 0 0)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -18290,6 +18400,7 @@
 		(property "Reference" "C3"
 			(at 0.0254 1.7272 180)
 			(layer "B.SilkS")
+			(hide yes)
 			(uuid "0e835f20-06d8-4f59-9049-073ac4f5cf2d")
 			(effects
 				(font
@@ -18302,6 +18413,7 @@
 		(property "Value" "0.1"
 			(at 0 -1.43 90)
 			(layer "B.Fab")
+			(hide yes)
 			(uuid "ce3b1d84-bb3b-494e-9918-b8464e3c5b8c")
 			(effects
 				(font
@@ -18311,7 +18423,7 @@
 				(justify mirror)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric_Pad1.05x0.95mm_HandSolder"
 			(at 0 0 -90)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -18498,6 +18610,7 @@
 		(property "Reference" "U2"
 			(at 0 4.5 0)
 			(layer "B.SilkS")
+			(hide yes)
 			(uuid "c78cbd36-975d-4189-8645-9d11e99a6a01")
 			(effects
 				(font
@@ -18510,6 +18623,7 @@
 		(property "Value" "LM1117-5.0"
 			(at 0 -4.5 0)
 			(layer "B.Fab")
+			(hide yes)
 			(uuid "c07dcc23-e3d6-49ba-b7e2-190258f29bce")
 			(effects
 				(font
@@ -18519,7 +18633,7 @@
 				(justify mirror)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "TO_SOT_Packages_SMD:SOT-223-3_TabPin2"
 			(at 0 0 0)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -18748,6 +18862,7 @@
 		(property "Reference" "J6"
 			(at -2.1791 -6.0104 180)
 			(layer "B.SilkS")
+			(hide yes)
 			(uuid "c9571947-8870-42a7-9c4d-323b24ffa157")
 			(effects
 				(font
@@ -18760,6 +18875,7 @@
 		(property "Value" "CONN_02X03"
 			(at 3.81 -11.04 180)
 			(layer "B.Fab")
+			(hide yes)
 			(uuid "23b430d7-36d1-4481-bf3d-611e2ad3584c")
 			(effects
 				(font
@@ -18769,7 +18885,7 @@
 				(justify mirror)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Button_Switch_THT:SW_DIP_SPSTx04_Slide_9.78x12.34mm_W7.62mm_P2.54mm"
 			(at 0 0 180)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -20354,6 +20470,7 @@
 		(property "Reference" "R2"
 			(at 0.0114 1.778 180)
 			(layer "B.SilkS")
+			(hide yes)
 			(uuid "c1dfc9b5-6723-4d7d-b46a-7f706cdbb1e8")
 			(effects
 				(font
@@ -20366,6 +20483,7 @@
 		(property "Value" "10k"
 			(at 0 -1.43 -90)
 			(layer "B.Fab")
+			(hide yes)
 			(uuid "c66c4c31-57d0-4e6f-b756-8f0d78152cd6")
 			(effects
 				(font
@@ -20375,7 +20493,7 @@
 				(justify mirror)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric_Pad1.05x0.95mm_HandSolder"
 			(at 0 0 90)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -20562,6 +20680,7 @@
 		(property "Reference" "C11"
 			(at -0.5715 2.0955 180)
 			(layer "B.SilkS")
+			(hide yes)
 			(uuid "9f94b27b-f4f7-4a71-8c80-5544409f83e7")
 			(effects
 				(font
@@ -20574,6 +20693,7 @@
 		(property "Value" "0.1"
 			(at 0 -1.43 -90)
 			(layer "B.Fab")
+			(hide yes)
 			(uuid "6f898b23-3a8d-4a51-919a-e8284ff1ae1b")
 			(effects
 				(font
@@ -20583,7 +20703,7 @@
 				(justify mirror)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric_Pad1.05x0.95mm_HandSolder"
 			(at 0 0 90)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -20770,6 +20890,7 @@
 		(property "Reference" "R3"
 			(at 1.1257 -1.6309 180)
 			(layer "B.SilkS")
+			(hide yes)
 			(uuid "6a2953c3-4a5d-4fa3-9ffc-c1f158f712e3")
 			(effects
 				(font
@@ -20782,6 +20903,7 @@
 		(property "Value" "120"
 			(at 0 -1.43 90)
 			(layer "B.Fab")
+			(hide yes)
 			(uuid "44723310-e9c8-4790-97ba-ad4aecb3c9be")
 			(effects
 				(font
@@ -20791,7 +20913,7 @@
 				(justify mirror)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric_Pad1.05x0.95mm_HandSolder"
 			(at 0 0 90)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -20978,6 +21100,7 @@
 		(property "Reference" "R17"
 			(at 0.0589 2.268 180)
 			(layer "B.SilkS")
+			(hide yes)
 			(uuid "d8b26902-f923-459d-8059-b78ee91a30d3")
 			(effects
 				(font
@@ -20990,6 +21113,7 @@
 		(property "Value" "47k"
 			(at 0 -1.43 90)
 			(layer "B.Fab")
+			(hide yes)
 			(uuid "5c180c76-39e0-4a3e-9d43-7fb87efab5a3")
 			(effects
 				(font
@@ -20999,7 +21123,7 @@
 				(justify mirror)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric_Pad1.05x0.95mm_HandSolder"
 			(at 0 0 90)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -21186,6 +21310,7 @@
 		(property "Reference" "R16"
 			(at -3.0795 0.3777 0)
 			(layer "B.SilkS")
+			(hide yes)
 			(uuid "22485509-7acc-40b0-9234-16908b5fa4de")
 			(effects
 				(font
@@ -21198,6 +21323,7 @@
 		(property "Value" "47k"
 			(at 0 -1.43 0)
 			(layer "B.Fab")
+			(hide yes)
 			(uuid "f731d07f-b57d-4882-a5f3-aa0fc67e573c")
 			(effects
 				(font
@@ -21207,7 +21333,7 @@
 				(justify mirror)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric_Pad1.05x0.95mm_HandSolder"
 			(at 0 0 180)
 			(unlocked yes)
 			(layer "F.Fab")

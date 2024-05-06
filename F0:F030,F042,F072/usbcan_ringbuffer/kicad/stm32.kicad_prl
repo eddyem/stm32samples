@@ -67,6 +67,12 @@
     "visible_layers": "00290a0_00000000",
     "zone_display_mode": 1
   },
+  "git": {
+    "repo_password": "",
+    "repo_type": "",
+    "repo_username": "",
+    "ssh_key": ""
+  },
   "meta": {
     "filename": "stm32.kicad_prl",
     "version": 3
