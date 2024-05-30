@@ -77,7 +77,10 @@ int main(void){
         char *str;
         int g = usart_getline(&str);
         if(g < 0) usart_send("USART IN buffer overflow!\n");
-        else if(g > 0) cmd_parser(str);
+        else if(g > 0){
+            const char *ans = cmd_parser(str);
+            if(ans) usart_send(ans);
+        }
     }
     return 0;
 }

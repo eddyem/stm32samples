@@ -21,7 +21,19 @@
 #include <stm32f1.h>
 #include "hardware.h"
 
-#define BUFSZ   (64)
+#ifndef _U_
+#define _U_ __attribute__((__unused__))
+#endif
+
+#define CMD_MAXLEN  (32)
+
+enum{
+    RET_WRONGPARNO = -3,     // wrong parameter number
+    RET_CMDNOTFOUND = -2,    // command not found
+    RET_WRONGARG = -1,       // wrong argument
+    RET_GOOD = 0,            // all OK
+    RET_BAD = 1              // something wrong
+};
 
 typedef struct{
     uint32_t can_monitor : 1;
@@ -36,5 +48,4 @@ extern flags_t flags;
 #define DBG(str)
 #endif
 
-
-void cmd_parser(char *buf);
+const char *cmd_parser(const char *txt);
