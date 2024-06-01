@@ -23,6 +23,17 @@
 
 #include "usart.h"
 
+#ifndef _U_
+#define _U_ __attribute__((__unused__))
+#endif
+
+#ifdef EBUG
+#define DBG(str)  do{usart_send(__FILE__ " (L" STR(__LINE__) "): " str); \
+usart_putchar('\n'); usart_transmit(); }while(0)
+#else
+#define DBG(str)
+#endif
+
 void hexdump(int (*sendfun)(const char *s), uint8_t *arr, uint16_t len);
 char *u2str(uint32_t val);
 char *i2str(int32_t i);

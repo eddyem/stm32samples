@@ -21,31 +21,15 @@
 #include <stm32f1.h>
 #include "hardware.h"
 
-#ifndef _U_
-#define _U_ __attribute__((__unused__))
-#endif
+#define MAXCMDLEN  (12)
 
-#define CMD_MAXLEN  (32)
-
-enum{
-    RET_WRONGPARNO = -3,     // wrong parameter number
-    RET_CMDNOTFOUND = -2,    // command not found
-    RET_WRONGARG = -1,       // wrong argument
-    RET_GOOD = 0,            // all OK
-    RET_BAD = 1              // something wrong
-};
-
+// flags for some RS-232 comands
 typedef struct{
-    uint32_t can_monitor : 1;
+    uint32_t can_monitor : 1;       // monitor any CAN bus connections
+    uint32_t can_printoff : 1;      // print errors to RS-232 if CAN bus is off or other bus errors
 } flags_t;
 
 extern flags_t flags;
 
-#ifdef EBUG
-#define DBG(str)  do{usart_send(__FILE__ " (L" STR(__LINE__) "): " str); \
-    usart_putchar('\n'); usart_transmit(); }while(0)
-#else
-#define DBG(str)
-#endif
 
-const char *cmd_parser(const char *txt);
+void cmd_parser(const char *txt);

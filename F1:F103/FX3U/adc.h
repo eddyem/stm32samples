@@ -20,19 +20,16 @@
 
 #include <stm32f1.h>
 
-#define NUMBER_OF_ADC_CHANNELS (3)
-
-// Vsen voltage channel
-#define CHVSEN  (0)
-// channels for Tsens and Vdd
-#define CHTSENS (1)
-#define CHVDD   (2)
+// ADC channels in array
+enum{
+    ADC_CH_VSEN = 0,  // ADC_ch0
+    ADC_CH_TSEN,      // T sensor
+    ADC_CH_VDD,       // Vdd sensor
+    ADC_CHANNELS
+};
 
 /**
- * @brief ADC_array - array for ADC channels with median filtering:
- * 0 - Isensor voltage
- * 1 - internal Tsens
- * 2 - Vdd
+ * @brief ADC_array - array for ADC channels with median filtering
  */
 extern uint16_t ADC_array[];
 

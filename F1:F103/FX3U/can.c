@@ -17,19 +17,31 @@
  */
 
 #include "can.h"
+#include "canproto.h"
+#include "flash.h" // CANID
 #include "hardware.h"
 #include "proto.h"
+#include "strfunc.h"
 #include "usart.h"
 
 // REMAPPED to PD0/PD1!!!
 
 #include <string.h> // memcpy
 
+// CAN bus oscillator frequency: 36MHz
+#define CAN_F_OSC       (36000000UL)
+// timing values TBS1 and TBS2 (in BTR [TBS1-1] and [TBS2-1])
+// use 3 and 2 to get 6MHz
+#define CAN_TBS1    (3)
+#define CAN_TBS2    (2)
+// bitrate oscillator frequency
+#define CAN_BIT_OSC (CAN_F_OSC / (1+CAN_TBS1+CAN_TBS2))
+
 // circular buffer for  received messages
 static CAN_message messages[CAN_INMESSAGE_SIZE];
 static uint8_t first_free_idx = 0;    // index of first empty cell
 static int8_t first_nonfree_idx = -1; // index of first data cell
-static uint16_t oldspeed = 100; // speed of last init
+static uint32_t oldspeed = 100000; // speed of last init
 
 static CAN_status can_status = CAN_STOP;
 
@@ -44,9 +56,11 @@ CAN_status CAN_get_status(){
 // push next message into buffer; return 1 if buffer overfull
 static int CAN_messagebuf_push(CAN_message *msg){
     //MSG("Try to push\n");
+/*
 #ifdef EBUG
         usart_send("push\n");
 #endif
+*/
     if(first_free_idx == first_nonfree_idx){
 #ifdef EBUG
         usart_send("INBUF OVERFULL\n");
@@ -72,7 +86,7 @@ CAN_message *CAN_messagebuf_pop(){
     return msg;
 }
 
-void CAN_reinit(uint16_t speed){
+void CAN_reinit(uint32_t speed){
     CAN1->TSR |= CAN_TSR_ABRQ0 | CAN_TSR_ABRQ1 | CAN_TSR_ABRQ2;
     RCC->APB1RSTR |= RCC_APB1RSTR_CAN1RST;
     RCC->APB1RSTR &= ~RCC_APB1RSTR_CAN1RST;
@@ -100,12 +114,11 @@ so if TBS1=4 and TBS2=3, sum=8, bit sampling freq is 48/8 = 6MHz
             1MBps   - 6
 */
 
-// speed - in kbps
-void CAN_setup(uint16_t speed){
+// speed - in bps
+void CAN_setup(uint32_t speed){
     if(speed == 0) speed = oldspeed;
-    else if(speed < 50) speed = 50;
-    else if(speed > 3000) speed = 3000;
-    oldspeed = speed;
+    else if(speed < CAN_MIN_SPEED) speed = CAN_MIN_SPEED;
+    else if(speed > CAN_MAX_SPEED) speed = CAN_MAX_SPEED;
     uint32_t tmout = 16000000;
     // Configure GPIO: PD0 - CAN_Rx, PD1 - CAN_Tx
     AFIO->MAPR |= AFIO_MAPR_CAN_REMAP_REMAP3;
@@ -122,7 +135,7 @@ void CAN_setup(uint16_t speed){
     /* (6) Wait the init mode leaving */
     /* (7) Enter filter init mode, (16-bit + mask, bank 0 for FIFO 0) */
     /* (8) Acivate filter 0 for two IDs */
-    /* (9) Identifier list mode */
+    /* (9) Identifier mode for bank#0, mask mode for #1 */
     /* (10) Set the Id list */
     /* (12) Leave filter init */
     /* (13) Set error interrupts enable (& bus off) */
@@ -131,19 +144,26 @@ void CAN_setup(uint16_t speed){
         if(--tmout == 0) break;
     CAN1->MCR &=~ CAN_MCR_SLEEP; /* (3) */
     CAN1->MCR |= CAN_MCR_ABOM; /* allow automatically bus-off */
-
-    CAN1->BTR =  2 << 20 | 3 << 16 | (4500/speed - 1); //| CAN_BTR_SILM | CAN_BTR_LBKM; /* (4) */
+    CAN1->BTR = (CAN_TBS2-1) << 20 | (CAN_TBS1-1) << 16 | (CAN_BIT_OSC/speed - 1); //| CAN_BTR_SILM | CAN_BTR_LBKM; /* (4) */
+    oldspeed = CAN_BIT_OSC/(uint32_t)((CAN1->BTR & CAN_BTR_BRP) + 1);
+#ifdef EBUG
+    usart_send("canspeed->"); usart_send(u2str(oldspeed)); newline();
+#endif
     CAN1->MCR &= ~CAN_MCR_INRQ; /* (5) */
     tmout = 16000000;
     while((CAN1->MSR & CAN_MSR_INAK) == CAN_MSR_INAK) /* (6) */
         if(--tmout == 0) break;
-    // accept ALL
+    // accept depending of monitor flag
     CAN1->FMR = CAN_FMR_FINIT; /* (7) */
-    CAN1->FA1R = CAN_FA1R_FACT0 | CAN_FA1R_FACT1; /* (8) */
-    // set to 1 all needed bits of CAN1->FFA1R to switch given filters to FIFO1
-    CAN1->sFilterRegister[0].FR1 = (1<<21)|(1<<5); // all odd IDs
-    CAN1->FFA1R = 2; // filter 1 for FIFO1, filter 0 - for FIFO0
-    CAN1->sFilterRegister[1].FR1 = (1<<21); // all even IDs
+    CAN1->FA1R = CAN_FA1R_FACT0; /* (8) */
+    CAN1->FM1R = CAN_FM1R_FBM0;
+    // filter 0 for FIFO0
+    CAN1->sFilterRegister[0].FR1 = the_conf.CANID << 5; // (10) CANID and 0
+    if(flags.can_monitor){ /* (11) */
+        CAN1->FA1R |= CAN_FA1R_FACT1; // activate filter1
+        CAN1->sFilterRegister[1].FR1 = 0; // all packets
+        CAN1->FFA1R = 2; // filter 1 for FIFO1
+    }
     CAN1->FMR &= ~CAN_FMR_FINIT; /* (12) */
     CAN1->IER |= CAN_IER_ERRIE | CAN_IER_FOVIE0 | CAN_IER_FOVIE1 | CAN_IER_BOFIE; /* (13) */
 
@@ -158,7 +178,45 @@ void CAN_setup(uint16_t speed){
     can_status = CAN_READY;
 }
 
-void can_proc(){
+/**
+ * @brief CAN_sniffer - reconfigure CAN in sniffer or normal mode
+ * @param issniffer - ==0 for normal mode
+ */
+void CAN_sniffer(uint8_t issniffer){
+    flags.can_monitor = issniffer;
+    CAN_reinit(0);
+}
+
+void CAN_printerr(){
+    uint32_t last_err_code = CAN1->ESR;
+    if(!last_err_code){
+        usart_send("No errors\n");
+        return;
+    }
+    usart_send("Receive error counter: ");
+    usart_send(u2str((last_err_code & CAN_ESR_REC)>>24));
+    usart_send("\nTransmit error counter: ");
+    usart_send(u2str((last_err_code & CAN_ESR_TEC)>>16));
+    usart_send("\nLast error code: ");
+    int lec = (last_err_code & CAN_ESR_LEC) >> 4;
+    const char *errmsg = "No";
+    switch(lec){
+    case 1: errmsg = "Stuff"; break;
+    case 2: errmsg = "Form"; break;
+    case 3: errmsg = "Ack"; break;
+    case 4: errmsg = "Bit recessive"; break;
+    case 5: errmsg = "Bit dominant"; break;
+    case 6: errmsg = "CRC"; break;
+    case 7: errmsg = "(set by software)"; break;
+    }
+    usart_send(errmsg); usart_send(" error\n");
+    if(last_err_code & CAN_ESR_BOFF) usart_send("Bus off ");
+    if(last_err_code & CAN_ESR_EPVF) usart_send("Passive error limit ");
+    if(last_err_code & CAN_ESR_EWGF) usart_send("Error counter limit");
+    newline();
+}
+
+void CAN_proc(){
     // check for messages in FIFO0 & FIFO1
     if(CAN1->RF0R & CAN_RF0R_FMP0){
         can_process_fifo(0);
@@ -168,22 +226,32 @@ void can_proc(){
     }
     IWDG->KR = IWDG_REFRESH;
     if(CAN1->ESR & (CAN_ESR_BOFF | CAN_ESR_EPVF | CAN_ESR_EWGF)){ // much errors - restart CAN BUS
-        usart_send("\nToo much errors, restarting CAN!\n");
-        // request abort for all mailboxes
-        CAN1->TSR |= CAN_TSR_ABRQ0 | CAN_TSR_ABRQ1 | CAN_TSR_ABRQ2;
-        // reset CAN bus
-        RCC->APB1RSTR |= RCC_APB1RSTR_CAN1RST;
-        RCC->APB1RSTR &= ~RCC_APB1RSTR_CAN1RST;
-        CAN_setup(0);
+        if(flags.can_printoff){
+            usart_send("error=canerr\n");
+            CAN_printerr();
+        }
+        CAN_reinit(0);
     }
 }
 
-CAN_status can_send(uint8_t *msg, uint8_t len, uint16_t target_id){
-    uint8_t mailbox = 0;
-    // check first free mailbox
-    if(CAN1->TSR & (CAN_TSR_TME)){
-        mailbox = (CAN1->TSR & CAN_TSR_CODE) >> 24;
-    }else{ // no free mailboxes
+CAN_status CAN_send(CAN_message *message){
+    if(!message) return CAN_ERR;
+    uint8_t *msg = message->data;
+    uint8_t len = message->length;
+    uint16_t target_id = message->ID;
+    uint8_t mailbox = 0xff;
+    uint32_t Tstart = Tms;
+    while(Tms - Tstart < SEND_TIMEOUT_MS/10){
+        IWDG->KR = IWDG_REFRESH;
+        if(CAN1->TSR & (CAN_TSR_TME)){
+            mailbox = (CAN1->TSR & CAN_TSR_CODE) >> 24;
+            break;
+        }
+    }
+    if(mailbox == 0xff){// no free mailboxes
+#ifdef EBUG
+        usart_send("No free mailboxes\n");
+#endif
         return CAN_BUSY;
     }
     CAN_TxMailBox_TypeDef *box = &CAN1->sTxMailBox[mailbox];
@@ -218,6 +286,28 @@ CAN_status can_send(uint8_t *msg, uint8_t len, uint16_t target_id){
     box->TDTR = len;
     box->TIR  = (target_id & 0x7FF) << 21 | CAN_TI0R_TXRQ;
     return CAN_OK;
+}
+
+/**
+ * @brief parseCANcommand - parser
+ * @param msg - incoming message @ my CANID
+ * FORMAT:
+ *  0 1   2      3    4 5 6 7
+ * [CMD][PAR][errcode][VALUE]
+ * CMD - uint16_t, PAR - uint8_t, errcode - one of CAN_errcodes, VALUE - int32_t
+ * `errcode` of  incoming message doesn't matter
+ * incoming data may have variable length
+ */
+TRUE_INLINE void parseCANcommand(CAN_message *msg){
+    msg->ID = the_conf.CANID; // set own ID for broadcast messages
+    // check PING
+    if(msg->length != 0) run_can_cmd(msg);
+    uint32_t Tstart = Tms;
+    while(Tms - Tstart < SEND_TIMEOUT_MS){
+        if(CAN_OK == CAN_send(msg)) return;
+        IWDG->KR = IWDG_REFRESH;
+    }
+    usart_send("error=canbusy\n");
 }
 
 static void can_process_fifo(uint8_t fifo_num){
@@ -263,7 +353,9 @@ static void can_process_fifo(uint8_t fifo_num){
                     dat[0] = lb & 0xff;
             }
         }
-        if(CAN_messagebuf_push(&msg)) return; // error: buffer is full, try later
+        // run command for my or broadcast ID
+        if(msg.ID == the_conf.CANID || msg.ID == 0) parseCANcommand(&msg);
+        if(flags.can_monitor && CAN_messagebuf_push(&msg)) return; // error: buffer is full, try later
         *RFxR |= CAN_RF0R_RFOM0; // release fifo for access to next message
     }
     //if(*RFxR & CAN_RF0R_FULL0) *RFxR &= ~CAN_RF0R_FULL0;

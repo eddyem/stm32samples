@@ -18,6 +18,8 @@
 
 #include "adc.h"
 #include "can.h"
+#include "canproto.h"
+#include "flash.h"
 #include "hardware.h"
 #include "proto.h"
 #include "strfunc.h"
@@ -25,62 +27,68 @@
 #include "version.inc"
 
 flags_t flags = {
-    .can_monitor = 0
+    0
 };
 
-/*
-static void printans(int res){
-    if(res) usart_send("OK");
-    else usart_send("FAIL");
-}
-
-// setters of uint/int
-static void usetter(int(*fn)(uint32_t), char* str){
-    uint32_t d = 0;
-    if(str == getnum(str, &d)) printans(FALSE);
-    else printans(fn(d));
-}
-static void isetter(int(*fn)(int32_t), char* str){
-    int32_t d = 0;
-    if(str == getint(str, &d)) printans(FALSE);
-    else printans(fn(d));
-}
-*/
-
-// parno - number of parameter (or -1); cargs - string with arguments (after '=') (==NULL for getter), iarg - integer argument
-static int goodstub(const char *cmd, int parno, const char *carg, int32_t iarg){
-    usart_send("cmd="); usart_send(cmd);
-    usart_send(", parno="); usart_send(i2str(parno));
-    usart_send(", args="); usart_send(carg);
-    usart_send(", intarg="); usart_send(i2str(iarg)); newline();
-    return RET_GOOD;
-}
+// text-only commans indexes (0 is prohibited)
+typedef enum{
+    TCMD_PROHIBITED,    // prohibited
+    TCMD_WDTEST,        // test watchdog
+    TCMD_DUMPCONF,      // dump configuration
+    TCMD_CANSEND,       // send CAN message
+    TCMD_CANSNIFFER,    // sniff all CAN messages
+    TCMD_CANBUSERRPRNT, // pring all errors of bus
+    TCMD_AMOUNT
+} text_cmd;
 
 typedef struct{
-    int (*fn)(const char*, int, const char*, int32_t);
-    const char *cmd;
-    const char *help;
-} commands;
+    const char *cmd;    // command, if NULL - only display help message
+    int idx;            // index in CAN cmd or text cmd list (if negative)
+    const char *help;   // help message
+} funcdescr;
 
-static commands cmdlist[] = {
-    {goodstub, "stub", "simple stub"},
-    {NULL, "Different commands", NULL},
-//    {adcval, "ADC", "get ADCx value (without x - for all)"},
-//    {adcvoltage, "ADCv", "get ADCx voltage (without x - for all)"},
-//    {mcut, "mcut", "get MCU temperature"},
-    {NULL, NULL, NULL}
+// list of all text functions; should be sorted and can be grouped (`help` is header when cmd == NULL)
+static const funcdescr funclist[] = {
+//    {"adcmul", CMD_ADCMUL, "get/set ADC multipliers 0..3 (*1000)"},
+//    {"adcraw", CMD_ADCRAW, "get raw ADC values of channel 0..4"},
+//    {"adcv", CMD_ADCV,  "get ADC voltage of channel 0..3 (*100V)"},
+//    {"bounce", CMD_BOUNCE, "get/set bounce constant (ms)"},
+    {"canbuserr", -TCMD_CANBUSERRPRNT, "print all CAN bus errors (a lot of if not connected)"},
+    {"canid", CMD_CANID, "get/set CAN ID"},
+    {"cansniff", -TCMD_CANSNIFFER, "switch CAN sniffer mode"},
+    {"canspeed", CMD_CANSPEED, "get/set CAN speed (bps)"},
+    {"dumpconf", -TCMD_DUMPCONF, "dump current configuration"},
+    {"esw", CMD_GETESW, "anti-bounce read ESW of channel 0 or 1"},
+    {"eraseflash", CMD_ERASESTOR, "erase all flash storage"},
+    {"mcutemp", CMD_MCUTEMP, "get MCU temperature (*10degrC)"},
+    {"relay", CMD_RELAY, "get/set relay state (0 - off, 1 - on)"},
+    {"reset", CMD_RESET, "reset MCU"},
+    {"s", -TCMD_CANSEND, "send CAN message: ID 0..8 data bytes"},
+    {"saveconf", CMD_SAVECONF, "save configuration"},
+    {"time", CMD_TIME, "get/set time (1ms, 32bit)"},
+    {"usartspeed", CMD_USARTSPEED, "get/set USART1 speed"},
+    {"wdtest", -TCMD_WDTEST, "test watchdog"},
+    {NULL, 0, NULL} // last record
 };
 
 static void printhelp(){
-    commands *c = cmdlist;
+    const funcdescr *c = funclist;
     usart_send("https://github.com/eddyem/stm32samples/tree/master/F1:F103/FX3U#" BUILD_NUMBER " @ " BUILD_DATE "\n");
-    while(c->cmd){
-        if(!c->fn){ // header
+    usart_send("commands format: parameter[number][=setter]\n");
+    usart_send("parameter [CAN idx] - help\n");
+    usart_send("--------------------------\n");
+    while(c->help){
+        if(!c->cmd){ // header
             usart_send("\n    ");
-            usart_send(c->cmd);
+            usart_send(c->help);
             usart_putchar(':');
         }else{
             usart_send(c->cmd);
+            if(c->idx > -1){
+                usart_send(" [");
+                usart_send(u2str(c->idx));
+                usart_putchar(']');
+            }
             usart_send(" - ");
             usart_send(c->help);
         }
@@ -89,52 +97,224 @@ static void printhelp(){
     }
 }
 
-/**
- * @brief parsecmd - parse text commands over RS-232
- * @param str - input string
- * @return answer code
- */
-static int parsecmd(const char *str){
-    char cmd[CMD_MAXLEN + 1];
-    //USB_sendstr("cmd="); USB_sendstr(str); USB_sendstr("__\n");
-    if(!str || !*str) return RET_CMDNOTFOUND;
-    int i = 0;
-    while(*str > '@' && i < CMD_MAXLEN){ cmd[i++] = *str++; }
-    cmd[i] = 0;
-    int parno = -1;
-    int32_t iarg = __INT32_MAX__;
-    if(*str){
-        uint32_t N;
-        const char *nxt = getnum(str, &N);
-        if(nxt != str) parno = (int) N;
-        str = strchr(str, '=');
-        if(str){
-            str = omit_spaces(++str);
-            getint(str, &iarg);
+/*********** START of all common functions list (for `textfunctions`) ***********/
+
+static errcodes cansnif(const char *str){
+    uint32_t U;
+    if(str){
+        if(*str == '=') str = omit_spaces(str + 1);
+        const char *nxt = getnum(str, &U);
+        if(nxt != str){ // setter
+            CAN_sniffer((uint8_t)U);
         }
-    }else str = NULL;
-    commands *c = cmdlist;
-    while(c->cmd){
-        if(strcmp(c->cmd, cmd) == 0){
-            if(!c->fn) return RET_CMDNOTFOUND;
-            return c->fn(cmd, parno, str, iarg);
-        }
-        ++c;
     }
-    return RET_CMDNOTFOUND;
+    usart_send("cansniff="); usart_putchar('0' + flags.can_monitor); newline();
+    return ERR_OK;
+}
+
+static errcodes canbuserr(const char *str){
+    uint32_t U;
+    if(str){
+        if(*str == '=') str = omit_spaces(str + 1);
+        const char *nxt = getnum(str, &U);
+        if(nxt != str){ // setter
+            flags.can_printoff = U;
+        }
+    }
+    usart_send("canbuserr="); usart_putchar('0' + flags.can_printoff); newline();
+    return ERR_OK;
+}
+
+static errcodes wdtest(const char _U_ *str){
+    usart_send("Wait for reboot\n");
+    usart_transmit();
+    while(1){nop();}
+    return ERR_OK;
+}
+/*
+// names of bit flags (ordered from LSE of[0])
+static const char * const bitfields[] = {
+    "encisSSI",
+    "emulatePEP",
+    NULL
+};*/
+
+static errcodes dumpconf(const char _U_ *str){
+#ifdef EBUG
+    uint32_t sz = FLASH_SIZE*1024;
+    usart_send("flashsize="); printu(sz); usart_putchar('/');
+    printu(FLASH_blocksize); usart_putchar('='); printu(sz/FLASH_blocksize);
+    usart_send(" blocks\n");
+#endif
+    usart_send("userconf_addr="); printuhex((uint32_t)Flash_Data);
+    usart_send("\nuserconf_idx="); printi(currentconfidx);
+    usart_send("\nuserconf_sz="); printu(the_conf.userconf_sz);
+    usart_send("\ncanspeed="); printu(the_conf.CANspeed);
+    usart_send("\ncanid="); printu(the_conf.CANID);
+    /*for(int i = 0; i < ADC_TSENS; ++i){
+        usart_send("\nadcmul"); usart_putchar('0'+i); usart_putchar('=');
+        usart_send(float2str(the_conf.adcmul[i], 3));
+    }*/
+    usart_send("\nusartspeed="); printu(the_conf.usartspeed);
+    /*
+    const char * const *p = bitfields;
+    int bit = 0;
+    while(*p){
+        newline();
+        usart_send(*p); usart_putchar('='); usart_putchar((the_conf.flags & (1<<bit)) ? '1' : '0');
+        if(++bit > 31) break;
+        ++p;
+    }*/
+    newline();
+    return ERR_OK;
+}
+
+static errcodes cansend(const char *txt){
+    CAN_message canmsg;
+    bzero(&canmsg, sizeof(canmsg));
+    int ctr = -1;
+    canmsg.ID = 0xffff;
+    do{
+        txt = omit_spaces(txt);
+        uint32_t N;
+        const char *n = getnum(txt, &N);
+        if(txt == n) break;
+        txt = n;
+        if(ctr == -1){
+            if(N > 0x7ff){
+                return ERR_BADPAR;
+            }
+            canmsg.ID = (uint16_t)(N&0x7ff);
+            ctr = 0;
+            continue;
+        }
+        if(ctr > 7){
+            return ERR_WRONGLEN;
+        }
+        if(N > 0xff){
+            return ERR_BADVAL;
+        }
+        canmsg.data[ctr++] = (uint8_t) N;
+    }while(1);
+    if(canmsg.ID == 0xffff){
+        return ERR_BADPAR;
+    }
+    canmsg.length = (uint8_t) ctr;
+    uint32_t Tstart = Tms;
+    while(Tms - Tstart < SEND_TIMEOUT_MS){
+        if(CAN_OK == CAN_send(&canmsg)){
+            return ERR_OK;
+        }
+    }
+    return ERR_CANTRUN;
+}
+
+/************ END of all common functions list (for `textfunctions`) ************/
+
+// in `textfn` arg `str` is the rest of input string (spaces-omitted) after command
+typedef errcodes (*textfn)(const char *str);
+static textfn textfunctions[TCMD_AMOUNT] = {
+    [TCMD_PROHIBITED] = NULL,
+    [TCMD_WDTEST] = wdtest,
+    [TCMD_DUMPCONF] = dumpconf,
+    [TCMD_CANSEND] = cansend,
+    [TCMD_CANSNIFFER] = cansnif,
+    [TCMD_CANBUSERRPRNT] = canbuserr,
+};
+
+static const char* const errors_txt[ERR_AMOUNT] = {
+    [ERR_OK] = "OK"
+    ,[ERR_BADPAR] = "badpar"
+    ,[ERR_BADVAL] = "badval"
+    ,[ERR_WRONGLEN] = "wronglen"
+    ,[ERR_BADCMD] = "badcmd"
+    ,[ERR_CANTRUN] = "cantrun"
+};
+
+static void errtext(errcodes e){
+    usart_send("error=");
+    usart_send(errors_txt[e]);
+    newline();
 }
 
 /**
  * @brief cmd_parser - command parsing
  * @param txt   - buffer with commands & data
  */
-const char *cmd_parser(const char *txt){
-    int ret = parsecmd(txt);
-    switch(ret){
-    case RET_WRONGPARNO: return "Wrong parameter number\n"; break;
-    case RET_CMDNOTFOUND: printhelp(); return NULL; break;
-    case RET_WRONGARG: return "Wrong command parameters\n"; break;
-    case RET_GOOD: return NULL; break;
-    default: return "FAIL\n"; break;
+void cmd_parser(const char *str){
+    if(!str || !*str) goto ret;
+    char cmd[MAXCMDLEN + 1];
+    errcodes ecode = ERR_BADCMD;
+    int idx = CMD_AMOUNT;
+    const funcdescr *c = funclist;
+    int l = 0;
+    str = omit_spaces(str);
+    const char *ptr = str;
+    while(*ptr > '@' && l < MAXCMDLEN){ cmd[l++] = *ptr++;}
+    if(l == 0) goto ret;
+    cmd[l] = 0;
+    while(c->help){
+        if(!c->cmd) continue;
+        if(0 == strcmp(c->cmd, cmd)){
+            idx = c->idx;
+            break;
+        }
+        ++c;
+    }
+    if(idx == CMD_AMOUNT){ // didn't found
+        // send help over USB
+        printhelp();
+        goto ret;
+    }
+    str = omit_spaces(ptr);
+    if(idx < 0){ // text-only function
+        ecode = textfunctions[-idx](str);
+        goto ret;
+    }
+    // common CAN/text function: we need to form 8-byte data buffer
+    CAN_message msg;
+    bzero(&msg, sizeof(msg));
+    uint8_t *data = msg.data;
+    uint8_t datalen = 2; // only command for start
+    *((uint16_t*)data) = (uint16_t)idx;
+    data[2] = NO_PARNO; // no parameter number by default
+    if(*str >= '0' && *str <= '9'){ // have parameter with number
+        uint32_t N;
+        ptr = getnum(str, &N);
+        if(ptr != str){
+            str = ptr;
+            if(N <= 0x7F) data[2] = (uint8_t)N;
+            else{ ecode = ERR_BADPAR; goto ret; }
+        }
+        datalen = 3;
+    }
+    str = omit_spaces(str);
+    if(*str == '='){ // setter
+        ++str;
+        ptr = getint(str, ((int32_t*)&data[4]));
+        if(str == ptr){
+            ecode = ERR_BADVAL;
+            goto ret;
+        }
+        data[2] |= SETTER_FLAG;
+        datalen = 8;
+    }
+    msg.length = datalen;
+    run_can_cmd(&msg);
+    // now check error code
+    ecode = data[3];
+ret:
+    if(ecode != ERR_OK) errtext(ecode);
+    else if(idx > -1){ // parce all back for common functions
+        if(msg.length != 8){
+            usart_send("OK\n"); // non setters/getters will just print "OK" if all OK
+        }else{
+            usart_send(cmd);
+            data[2] &= ~SETTER_FLAG;
+            if(data[2] != NO_PARNO) usart_send(u2str(data[2]));
+            usart_putchar('=');
+            usart_send(i2str(*(int32_t*)&data[4]));
+            newline();
+        }
     }
 }

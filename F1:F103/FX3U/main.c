@@ -38,19 +38,20 @@ int main(void){
     flashstorage_init();
     gpio_setup(); // should be run before other peripherial setup
     adc_setup();
-    usart_setup(the_conf.rs232speed);
-    CAN_setup(the_conf.canspeed);
+    usart_setup(the_conf.usartspeed);
+    CAN_setup(the_conf.CANspeed);
     RCC->CSR |= RCC_CSR_RMVF; // remove reset flags
 #ifndef EBUG
     iwdg_setup();
 #endif
+    usart_send("START\n");
     while (1){
         IWDG->KR = IWDG_REFRESH; // refresh watchdog
         if(Tms - lastT > 499){ // throw out short messages twice per second
             usart_transmit();
             lastT = Tms;
         }
-        can_proc();
+        CAN_proc();
         CAN_status st = CAN_get_status();
         if(st == CAN_FIFO_OVERRUN){
             usart_send("CAN bus fifo overrun occured!\n");
@@ -58,8 +59,8 @@ int main(void){
             usart_send("Some CAN error occured\n");
         }
         while((can_mesg = CAN_messagebuf_pop())){
+            DBG("got CAN message\n");
             IWDG->KR = IWDG_REFRESH;
-            // TODO: check ID and process messages
             if(flags.can_monitor){
                 lastT = Tms;
                 if(!lastT) lastT = 1;
@@ -77,10 +78,7 @@ int main(void){
         char *str;
         int g = usart_getline(&str);
         if(g < 0) usart_send("USART IN buffer overflow!\n");
-        else if(g > 0){
-            const char *ans = cmd_parser(str);
-            if(ans) usart_send(ans);
-        }
+        else if(g > 0)  cmd_parser(str);
     }
     return 0;
 }

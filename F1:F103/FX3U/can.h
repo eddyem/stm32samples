@@ -20,10 +20,12 @@
 
 #include <stdint.h>
 
-// amount of filter banks in STM32F0
-#define STM32F0FBANKNO      28
-// flood period in milliseconds
-#define FLOOD_PERIOD_MS     5
+// min/max speeds in bps
+#define CAN_MAX_SPEED   ((uint32_t)3000000UL)
+#define CAN_MIN_SPEED   ((uint32_t)9600UL)
+
+// wait to send not more tnah
+#define SEND_TIMEOUT_MS     (100)
 
 // incoming message buffer size
 #define CAN_INMESSAGE_SIZE  (8)
@@ -46,11 +48,12 @@ typedef enum{
 
 CAN_status CAN_get_status();
 
-void CAN_reinit(uint16_t speed);
-void CAN_setup(uint16_t speed);
+void CAN_reinit(uint32_t speed);
+void CAN_setup(uint32_t speed);
 
-CAN_status can_send(uint8_t *msg, uint8_t len, uint16_t target_id);
-void can_proc();
-void printCANerr();
+CAN_status CAN_send(CAN_message *message);
+void CAN_proc();
+void CAN_printerr();
+void CAN_sniffer(uint8_t issniffer);
 
 CAN_message *CAN_messagebuf_pop();

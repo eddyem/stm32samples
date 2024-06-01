@@ -3,6 +3,8 @@ adc.h
 buttons.c
 can.c
 can.h
+canproto.c
+canproto.h
 flash.c
 flash.h
 hardware.c

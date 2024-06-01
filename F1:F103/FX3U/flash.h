@@ -26,16 +26,18 @@
 /*
  * struct to save user configurations
  */
-typedef struct __attribute__((packed, aligned(4))){
+typedef struct __attribute__((aligned(4))){
     uint16_t userconf_sz;       // "magick number"
-    uint16_t canspeed;          // CAN bus speed
-    uint16_t canID;             // CAN bus device ID
-    uint32_t rs232speed;        // speed of RS-232
+    uint16_t CANID;             // CAN bus device ID
+    uint32_t usartspeed;        // RS-232 speed
+    uint32_t CANspeed;          // CAN bus speed
 } user_conf;
 
 extern user_conf the_conf;
+extern const uint32_t FLASH_blocksize;
+extern const user_conf *Flash_Data;
+extern int currentconfidx;
 
 void flashstorage_init();
 int store_userconf();
 int erase_storage(int npage);
-void dump_userconf();

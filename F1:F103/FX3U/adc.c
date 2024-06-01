@@ -18,7 +18,7 @@
 
 #include "adc.h"
 
-uint16_t ADC_array[NUMBER_OF_ADC_CHANNELS*9];
+uint16_t ADC_array[ADC_CHANNELS*9];
 
 void adc_setup(){
     uint32_t ctr = 0;
@@ -29,7 +29,7 @@ void adc_setup(){
     // DMA configuration
     DMA1_Channel1->CPAR = (uint32_t) (&(ADC1->DR));
     DMA1_Channel1->CMAR = (uint32_t)(ADC_array);
-    DMA1_Channel1->CNDTR = NUMBER_OF_ADC_CHANNELS * 9;
+    DMA1_Channel1->CNDTR = ADC_CHANNELS * 9;
     DMA1_Channel1->CCR = DMA_CCR_MINC | DMA_CCR_MSIZE_0 | DMA_CCR_PSIZE_0
                           | DMA_CCR_CIRC | DMA_CCR_PL | DMA_CCR_EN;
     RCC->CFGR = (RCC->CFGR & ~(RCC_CFGR_ADCPRE)) | RCC_CFGR_ADCPRE_DIV8; // ADC clock = RCC / 8
@@ -38,7 +38,7 @@ void adc_setup(){
     ADC1->SMPR1 = ADC_SMPR1_SMP16 | ADC_SMPR1_SMP17;
     // sequence order: 0 -> 16 -> 17
     ADC1->SQR3 = (0 << 0) | (16<<5) | (17 << 10);
-    ADC1->SQR1 = (NUMBER_OF_ADC_CHANNELS - 1) << 20; // amount of conversions
+    ADC1->SQR1 = (ADC_CHANNELS - 1) << 20; // amount of conversions
     ADC1->CR1 = ADC_CR1_SCAN; // scan mode
     // DMA, continuous mode; enable vref & Tsens; enable SWSTART as trigger
     ADC1->CR2 = ADC_CR2_DMA | ADC_CR2_TSVREFE | ADC_CR2_CONT | ADC_CR2_EXTSEL | ADC_CR2_EXTTRIG;
@@ -68,7 +68,7 @@ uint16_t getADCval(int nch){
 #define PIX_SORT(a,b) { if ((a)>(b)) PIX_SWAP((a),(b)); }
 #define PIX_SWAP(a,b) { register uint16_t temp=(a);(a)=(b);(b)=temp; }
     uint16_t p[9];
-    for(i = 0; i < 9; ++i, addr += NUMBER_OF_ADC_CHANNELS){ // first we should prepare array for optmed
+    for(i = 0; i < 9; ++i, addr += ADC_CHANNELS){ // first we should prepare array for optmed
         p[i] = ADC_array[addr];
     }
     PIX_SORT(p[1], p[2]) ; PIX_SORT(p[4], p[5]) ; PIX_SORT(p[7], p[8]) ;
@@ -95,7 +95,7 @@ uint32_t getADCvoltage(int nch){
 int32_t getMCUtemp(){
     // Temp = (V25 - Vsense)/Avg_Slope + 25
     // V_25 = 1.45V,  Slope = 4.3e-3
-    int32_t Vsense = getVdd() * getADCval(CHTSENS);
+    int32_t Vsense = getVdd() * getADCval(ADC_CH_TSEN);
     int32_t temperature = 593920 - Vsense; // 593920 == 145*4096
     temperature /= 172; // == /(4096*10*4.3e-3), 10 - to convert from *100 to *10
     temperature += 250;
@@ -105,6 +105,6 @@ int32_t getMCUtemp(){
 // return Vdd * 100 (V)
 uint32_t getVdd(){
     uint32_t vdd = 120 * 4096; // 1.2V
-    vdd /= getADCval(CHVDD);
+    vdd /= getADCval(ADC_CH_VDD);
     return vdd;
 }

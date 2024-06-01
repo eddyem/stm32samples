@@ -1,2 +1,2 @@
-#define BUILD_NUMBER "20"
-#define BUILD_DATE "2024-05-30"
+#define BUILD_NUMBER "36"
+#define BUILD_DATE "2024-06-01"

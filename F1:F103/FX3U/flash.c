@@ -24,21 +24,21 @@
 #include <string.h> // memcpy
 
 extern const uint32_t __varsstart, _BLOCKSIZE;
-static const uint32_t FLASH_blocksize = (uint32_t)&_BLOCKSIZE;
+const uint32_t FLASH_blocksize = (uint32_t)&_BLOCKSIZE;
 static uint32_t maxCnum = 1024 / sizeof(user_conf); // can't use blocksize here
 
 #define USERCONF_INITIALIZER  {         \
      .userconf_sz = sizeof(user_conf)   \
-    ,.canspeed = 250                    \
-    ,.canID = 0xAA                      \
-    ,.rs232speed = 115200               \
+    ,.CANspeed = 250000                 \
+    ,.CANID = 1                         \
+    ,.usartspeed = 115200               \
     }
 
 static int write2flash(const void*, const void*, uint32_t);
 const user_conf *Flash_Data = (const user_conf *)(&__varsstart);
 user_conf the_conf = USERCONF_INITIALIZER;
 
-static int currentconfidx = -1; // index of current configuration
+int currentconfidx = -1; // index of current configuration
 
 /**
  * @brief binarySearch - binary search in flash for last non-empty cell
@@ -181,11 +181,3 @@ int erase_storage(int npage){
     return ret;
 }
 
-void dump_userconf(){
-    usart_send("userconf_sz="); printu(the_conf.userconf_sz);
-    usart_send("\ncurrentconfidx="); usart_send(u2str(currentconfidx));
-    usart_send("\nCAN_speed="); printu(the_conf.canspeed);
-    usart_send("\nCAN_ID="); printu(the_conf.canID);
-    usart_send("\nRS_232_speed="); printu(the_conf.rs232speed);
-    usart_send("\n");
-}
