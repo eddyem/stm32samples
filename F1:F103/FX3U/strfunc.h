@@ -21,6 +21,7 @@
 #include <stdint.h>
 #include <string.h>
 
+#include "hardware.h"
 #include "usart.h"
 
 #ifndef _U_

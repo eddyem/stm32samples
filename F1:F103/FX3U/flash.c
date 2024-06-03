@@ -30,8 +30,10 @@ static uint32_t maxCnum = 1024 / sizeof(user_conf); // can't use blocksize here
 #define USERCONF_INITIALIZER  {         \
      .userconf_sz = sizeof(user_conf)   \
     ,.CANspeed = 250000                 \
-    ,.CANID = 1                         \
+    ,.CANIDin = 1                       \
+    ,.CANIDout = 2                      \
     ,.usartspeed = 115200               \
+    ,.bouncetime = 50                   \
     }
 
 static int write2flash(const void*, const void*, uint32_t);

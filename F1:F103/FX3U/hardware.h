@@ -20,14 +20,32 @@
 
 #include <stm32f1.h>
 
+
 #define CONCAT(a,b)     a ## b
 #define STR_HELPER(s)   #s
 #define STR(s)          STR_HELPER(s)
 
+/* this stuff may be usefull later
 #define FORMUSART(X)    CONCAT(USART, X)
 #define USARTX          FORMUSART(USARTNUM)
+*/
+
+// max number of in/out pins
+#define INMAX       (15)
+#define OUTMAX      (11)
 
 extern volatile uint32_t Tms;
 
 void gpio_setup(void);
 void iwdg_setup();
+int set_relay(uint8_t Nch, uint32_t val);
+int get_relay(uint8_t Nch);
+int get_esw(uint8_t Nch);
+void proc_esw();
+uint32_t get_ab_esw();
+
+uint32_t inchannels();
+uint32_t outchannels();
+int set_relay(uint8_t Nch, uint32_t val);
+int get_relay(uint8_t Nch);
+int get_esw(uint8_t Nch);

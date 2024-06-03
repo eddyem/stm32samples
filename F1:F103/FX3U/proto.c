@@ -53,20 +53,28 @@ static const funcdescr funclist[] = {
 //    {"adcraw", CMD_ADCRAW, "get raw ADC values of channel 0..4"},
 //    {"adcv", CMD_ADCV,  "get ADC voltage of channel 0..3 (*100V)"},
 //    {"bounce", CMD_BOUNCE, "get/set bounce constant (ms)"},
+    {NULL, 0, "CAN bus commands"},
     {"canbuserr", -TCMD_CANBUSERRPRNT, "print all CAN bus errors (a lot of if not connected)"},
-    {"canid", CMD_CANID, "get/set CAN ID"},
     {"cansniff", -TCMD_CANSNIFFER, "switch CAN sniffer mode"},
+    {NULL, 0, "Configuration"},
+    {"bounce", CMD_BOUNCE, "set/get anti-bounce timeout (ms, max: 1000)"},
+    {"canid", CMD_CANID, "set both (in/out) CAN ID / get in CAN ID"},
+    {"canidin", CMD_CANIDin, "get/set input CAN ID"},
+    {"canidout", CMD_CANIDout, "get/set output CAN ID"},
     {"canspeed", CMD_CANSPEED, "get/set CAN speed (bps)"},
     {"dumpconf", -TCMD_DUMPCONF, "dump current configuration"},
-    {"esw", CMD_GETESW, "anti-bounce read ESW of channel 0 or 1"},
     {"eraseflash", CMD_ERASESTOR, "erase all flash storage"},
-    {"mcutemp", CMD_MCUTEMP, "get MCU temperature (*10degrC)"},
+    {"saveconf", CMD_SAVECONF, "save configuration"},
+    {"usartspeed", CMD_USARTSPEED, "get/set USART1 speed"},
+    {NULL, 0, "IN/OUT"},
+    {"esw", CMD_GETESW, "anti-bounce read inputs"},
+    {"eswnow", CMD_GETESWNOW, "read current inputs' state"},
     {"relay", CMD_RELAY, "get/set relay state (0 - off, 1 - on)"},
+    {NULL, 0, "Other commands"},
+    {"mcutemp", CMD_MCUTEMP, "get MCU temperature (*10degrC)"},
     {"reset", CMD_RESET, "reset MCU"},
     {"s", -TCMD_CANSEND, "send CAN message: ID 0..8 data bytes"},
-    {"saveconf", CMD_SAVECONF, "save configuration"},
     {"time", CMD_TIME, "get/set time (1ms, 32bit)"},
-    {"usartspeed", CMD_USARTSPEED, "get/set USART1 speed"},
     {"wdtest", -TCMD_WDTEST, "test watchdog"},
     {NULL, 0, NULL} // last record
 };
@@ -150,12 +158,14 @@ static errcodes dumpconf(const char _U_ *str){
     usart_send("\nuserconf_idx="); printi(currentconfidx);
     usart_send("\nuserconf_sz="); printu(the_conf.userconf_sz);
     usart_send("\ncanspeed="); printu(the_conf.CANspeed);
-    usart_send("\ncanid="); printu(the_conf.CANID);
+    usart_send("\ncanid_in="); printu(the_conf.CANIDin);
+    usart_send("\ncanid_out="); printu(the_conf.CANIDout);
     /*for(int i = 0; i < ADC_TSENS; ++i){
         usart_send("\nadcmul"); usart_putchar('0'+i); usart_putchar('=');
         usart_send(float2str(the_conf.adcmul[i], 3));
     }*/
     usart_send("\nusartspeed="); printu(the_conf.usartspeed);
+    usart_send("\nbouncetime="); printu(the_conf.bouncetime);
     /*
     const char * const *p = bitfields;
     int bit = 0;
@@ -254,8 +264,7 @@ void cmd_parser(const char *str){
     if(l == 0) goto ret;
     cmd[l] = 0;
     while(c->help){
-        if(!c->cmd) continue;
-        if(0 == strcmp(c->cmd, cmd)){
+        if(c->cmd && 0 == strcmp(c->cmd, cmd)){
             idx = c->idx;
             break;
         }

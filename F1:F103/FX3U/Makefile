@@ -1,8 +1,8 @@
 BINARY      := fx3u
 # MCU code
-MCU         ?= F103xC
+MCU         ?= F103xE
 # change this linking script depending on particular MCU model,
-LDSCRIPT    ?= stm32f103xC.ld
+LDSCRIPT    ?= stm32f103xE.ld
 DEFINES     := -DSTM32F10X_HD
 INC_DIR     := ../inc
 

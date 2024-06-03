@@ -28,7 +28,10 @@
  */
 typedef struct __attribute__((aligned(4))){
     uint16_t userconf_sz;       // "magick number"
-    uint16_t CANID;             // CAN bus device ID
+    uint16_t CANIDin;           // CAN bus device ID for input commands
+    uint16_t CANIDout;          // -//- for output signals
+    uint16_t reserved;
+    uint32_t bouncetime;        // anti-bounce timeout (ms)
     uint32_t usartspeed;        // RS-232 speed
     uint32_t CANspeed;          // CAN bus speed
 } user_conf;

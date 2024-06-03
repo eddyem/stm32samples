@@ -16,7 +16,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "can.h"
+#include "canproto.h"
+#include "flash.h"
 #include "hardware.h"
+#ifdef EBUG
+#include "strfunc.h"
+#endif
 
 /* pinout:
 
@@ -102,4 +108,146 @@ void iwdg_setup(){
     tmout = 16000000;
     while(IWDG->SR){if(--tmout == 0) break;}
     IWDG->KR = IWDG_REFRESH;
+}
+
+typedef struct{
+    GPIO_TypeDef* port; // GPIOx or NULL if no such pin
+    uint16_t pin;       // (1 << pin)
+} pin_t;
+
+// input pins (X0..X15)
+static const pin_t IN[INMAX+1] = { // youbannye uskoglazye pidarasy! Ready to fuck their own mother to save kopeyka
+    {GPIOB, 1<<13}, // X0 - PB13
+    {GPIOB, 1<<14}, // X1 - PB14
+    {GPIOB, 1<<11}, // X2 - PB11
+    {GPIOB, 1<<12}, // X3 - PB12
+    {GPIOE, 1<<15}, // X4 - PE15
+    {GPIOB, 1<<10}, // X5 - PB10
+    {GPIOE, 1<<13}, // X6 - PE13
+    {GPIOE, 1<<14}, // X7 - PE14
+    {NULL, 0},      // X8 - absent
+    {NULL, 0},      // X9 - absent
+    {GPIOE, 1<11},  // X10 - PE11
+    {GPIOE, 1<<12}, // X11 - PE12
+    {GPIOE, 1<<9},  // X12 - PE9
+    {GPIOE, 1<<10}, // X13 - PE10
+    {GPIOE, 1<<7},  // X14 - PE7
+    {GPIOE, 1<<8},  // X15 - PE8
+};
+
+// output (relay) pins (Y0..Y15)
+static const pin_t OUT[OUTMAX+1] = {
+    {GPIOC, 1<<9},  // Y0 - PC9
+    {GPIOC, 1<<8},  // Y1 - PC8
+    {GPIOA, 1<<8},  // Y2 - PA8
+    {GPIOA, 1<<0},  // Y3 - PA0
+    {GPIOB, 1<<3},  // Y4 - PB3
+    {GPIOD, 1<<12}, // Y5 - PD12
+    {GPIOB, 1<<15}, // Y6 - PB15
+    {GPIOA, 1<<7},  // Y7 - PA7
+    {NULL, 0},      // Y8 - absent
+    {NULL, 0},      // Y9 - absent
+    {GPIOA, 1<<6},  // Y10 - PA6
+    {GPIOA, 1<<2},  // Y11 - PA2
+};
+
+// bit 1 - input channel is working, 0 - no
+uint32_t inchannels(){
+    return 0b1111110011111111;
+}
+// bit 1 - input channel is working, 0 - no
+uint32_t outchannels(){
+    return 0b110011111111;
+}
+
+/**
+ * @brief set_relay - turn on/off relay `Nch` (if Nch > OUTMAX - all)
+ * @param Nch - single relay channel No or >Ymax to set/reset all relays
+ * @param val - value to set/reset/change
+ * @return TRUE if OK, -1 if `Nch` is wrong
+ */
+int set_relay(uint8_t Nch, uint32_t val){
+    int chpin(uint8_t N, uint32_t v){
+        const pin_t *cur = &OUT[N];
+        if(NULL == cur->port) return -1;
+        if(v) pin_set(cur->port, cur->pin);
+        else pin_clear(cur->port, cur->pin);
+        return TRUE;
+    }
+    if(Nch > OUTMAX){ // all
+        uint32_t mask = 1;
+        for(uint8_t i = 0; i <= OUTMAX; ++i, mask <<= 1){
+            chpin(i, val & mask);
+        }
+        return TRUE;
+    }
+    return chpin(Nch, val);
+}
+
+static int readpins(uint8_t Nch, const pin_t *pins, uint8_t max){
+    int gpin(uint8_t N){
+        const pin_t *cur = &pins[N];
+        if(NULL == cur->port) return -1;
+        return pin_read(cur->port, cur->pin);
+    }
+    if(Nch > max){ // all
+        int val = 0;
+        for(int i = max; i > -1; --i){
+            val <<= 1;
+            int p = gpin(i);
+            if(p > -1) val |= gpin(i);
+        }
+usart_send("readpins, val="); usart_send(i2str(val)); newline();
+        return val;
+    }
+    return gpin(Nch);
+}
+
+/**
+ * @brief get_relay - get `Nch` relay state (if Nch > OUTMAX - all)
+ * @param Nch - single relay channel No or <0 for all
+ * @return current state or -1 if `Nch` is wrong
+ */
+int get_relay(uint8_t Nch){
+    return readpins(Nch, OUT, OUTMAX);
+}
+
+/**
+ * @brief get_esw - get input `Nch` state (or all if Nch > INMAX)
+ * @param Nch - channel number or -1 for all
+ * @return ESW state or -1 if `Nch` is wrong
+ */
+int get_esw(uint8_t Nch){
+    return readpins(Nch, IN, INMAX);
+}
+
+static uint32_t ESW_ab_values = 0; // current anti-bounce values of ESW
+static uint32_t lastET[INMAX+1] = {0}; // last changing time
+
+// anti-bouce process esw
+void proc_esw(){
+    uint32_t mask = 1, oldesw = ESW_ab_values;
+    for(uint8_t i = 0; i <= OUTMAX; ++i, mask <<= 1){
+        if(Tms - lastET[i] < the_conf.bouncetime) continue;
+        if(NULL == IN[i].port) continue;
+        uint32_t now = pin_read(IN[i].port, IN[i].pin);
+        if(now) ESW_ab_values |= mask;
+        else ESW_ab_values &= ~mask;
+        lastET[i] = Tms;
+    }
+    if(oldesw != ESW_ab_values){
+        usart_send("esw="); usart_send(u2str(ESW_ab_values)); newline();
+        CAN_message msg = {.ID = the_conf.CANIDout, .length = 8};
+        msg.data[0] = CMD_GETESW;
+        *((uint32_t*)(&msg.data[4])) = ESW_ab_values;
+        uint32_t Tstart = Tms;
+        while(Tms - Tstart < SEND_TIMEOUT_MS){
+            if(CAN_OK == CAN_send(&msg)) return;
+        }
+    }
+}
+
+// get all anti-bounce ESW values
+uint32_t get_ab_esw(){
+    return ESW_ab_values;
 }

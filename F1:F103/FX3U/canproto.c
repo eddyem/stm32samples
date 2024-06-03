@@ -57,36 +57,33 @@ static errcodes adcraw(CAN_message *msg){
     *(uint32_t*)&msg->data[4] = getADCval(no);
     return ERR_OK;
 }
-// get ADC voltage
-static errcodes adcv(CAN_message *msg){
-    FIXDL(msg);
-    uint8_t no = msg->data[2] & ~SETTER_FLAG;
-    if(no >= ADC_CH_TSEN) return ERR_BADPAR;
-    float v = getADCvoltage(no) /** the_conf.adcmul[no] * 100.f*/;
-    *(uint32_t*)&msg->data[4] = (uint32_t) v;
-    return ERR_OK;
-}
-// get/set CAN ID
+// set common CAN ID / get CAN IN in
 static errcodes canid(CAN_message *msg){
     if(ISSETTER(msg->data)){
-        the_conf.CANID = *(uint32_t*)&msg->data[4];
+        the_conf.CANIDin = the_conf.CANIDout = *(uint32_t*)&msg->data[4];
         CAN_reinit(0); // setup with new ID
     }else FIXDL(msg);
-    *(uint32_t*)&msg->data[4] = the_conf.CANID;
+    *(uint32_t*)&msg->data[4] = the_conf.CANIDin;
     return ERR_OK;
 }
-/*
-// get/set ADC multiplier
-static errcodes adcmul(CAN_message *msg){
-    uint8_t no = msg->data[2] & ~SETTER_FLAG;
-    if(no >= ADC_TSENS) return ERR_BADPAR;
+// get/set input CAN ID
+static errcodes canidin(CAN_message *msg){
     if(ISSETTER(msg->data)){
-        the_conf.adcmul[no] = ((float)*(uint32_t*)&msg->data[4])/1000.f;
+        the_conf.CANIDin = *(uint32_t*)&msg->data[4];
+        CAN_reinit(0); // setup with new ID
     }else FIXDL(msg);
-    *(uint32_t*)&msg->data[4] = (uint32_t)(1000.f * the_conf.adcmul[no]);
+    *(uint32_t*)&msg->data[4] = the_conf.CANIDin;
     return ERR_OK;
 }
-*/
+// get/set output CAN ID
+static errcodes canidout(CAN_message *msg){
+    if(ISSETTER(msg->data)){
+        the_conf.CANIDout = *(uint32_t*)&msg->data[4];
+    }else FIXDL(msg);
+    *(uint32_t*)&msg->data[4] = the_conf.CANIDout;
+    return ERR_OK;
+}
+
 // save config
 static errcodes saveconf(CAN_message _U_ *msg){
     if(0 == store_userconf()) return ERR_OK;
@@ -97,33 +94,39 @@ static errcodes erasestor(CAN_message _U_ *msg){
     if(0 == erase_storage(-1)) return ERR_OK;
     return ERR_CANTRUN;
 }
-/*
+
 // relay management
 static errcodes relay(CAN_message *msg){
+    uint8_t no = OUTMAX+1;
+    if(msg->length > 2) no = msg->data[2] & ~SETTER_FLAG;
     if(ISSETTER(msg->data)){
-        if(msg->data[4] == 1) RELAY_ON();
-        else RELAY_OFF();
+        if(set_relay(no, *(uint32_t*)&msg->data[4]) < 0) return ERR_BADPAR;
     }else FIXDL(msg);
-    *(uint32_t*)&msg->data[4] = RELAY_GET();
+    int rval = get_relay(no);
+    if(rval < 0) return ERR_BADPAR;
+    *(uint32_t*)&msg->data[4] = (uint32_t)rval;
     return ERR_OK;
 }
-// blocking ESW get status
-static errcodes eswblk(CAN_message *msg){
-    uint8_t no = msg->data[2] & ~SETTER_FLAG;
-    if(no > 1) return ERR_BADPAR;
+// get current ESW status
+static errcodes esw(CAN_message *msg){
+    uint8_t no = INMAX+1;
+    if(msg->length > 2) no = msg->data[2] & ~SETTER_FLAG;
+    int val = get_esw(no);
+    if(val < 0) return ERR_BADPAR;
+    *(uint32_t*)&msg->data[4] = (uint32_t) val;
     FIXDL(msg);
-    *(uint32_t*)&msg->data[4] = getSwitches(no);
     return ERR_OK;
 }
 // bounce-free ESW get status
-static errcodes esw(CAN_message *msg){
-    uint8_t no = msg->data[2] & ~SETTER_FLAG;
-    if(no > 1) return ERR_BADPAR;
+static errcodes eswg(CAN_message *msg){
+    uint8_t no = INMAX+1;
+    if(msg->length > 2) no = msg->data[2] & ~SETTER_FLAG;
+    uint32_t curval = get_ab_esw();
+    if(no > INMAX) *(uint32_t*)&msg->data[4] = curval;
+    else *(uint32_t*)&msg->data[4] = (curval & (1<<no)) ? 0 : 1;
     FIXDL(msg);
-    *(uint32_t*)&msg->data[4] = getESW(no);
     return ERR_OK;
 }
-*/
 
 // common uint32_t setter/getter
 static errcodes u32setget(CAN_message *msg){
@@ -131,7 +134,7 @@ static errcodes u32setget(CAN_message *msg){
     uint32_t *ptr = NULL;
     switch(idx){
     case CMD_CANSPEED: ptr = &the_conf.CANspeed; CAN_reinit(*(uint32_t*)&msg->data[4]); break;
-    //case CMD_BOUNCE: ptr = &the_conf.bounce_ms; break;
+    case CMD_BOUNCE: ptr = &the_conf.bouncetime; break;
     case CMD_USARTSPEED: ptr = &the_conf.usartspeed; break;
     default: break;
     }
@@ -177,16 +180,16 @@ static const commonfunction funclist[CMD_AMOUNT] = {
     [CMD_TIME] = {time_getset, 0, 0, 0},
     [CMD_MCUTEMP] = {mcut, 0, 0, 0},
     [CMD_ADCRAW] = {adcraw, 0, 0, 3}, // need parno: 0..4
-    [CMD_ADCV] = {adcv, 0, 0, 3}, // need parno: 0..3
     [CMD_CANSPEED] = {u32setget, CAN_MIN_SPEED, CAN_MAX_SPEED, 0},
     [CMD_CANID] = {canid, 1, 0x7ff, 0},
-//    [CMD_ADCMUL] = {adcmul, 0, 0, 3}, // at least parno
+    [CMD_CANIDin] = {canidin, 1, 0x7ff, 0},
+    [CMD_CANIDout] = {canidout, 1, 0x7ff, 0},
     [CMD_SAVECONF] = {saveconf, 0, 0, 0},
     [CMD_ERASESTOR] = {erasestor, 0, 0, 0},
-//    [CMD_RELAY] = {relay, 0, 1, 0},
-//    [CMD_GETESW_BLK] = {eswblk, 0, 0, 3},
-//    [CMD_GETESW] = {esw, 0, 0, 3},
-//    [CMD_BOUNCE] = {u32setget, 0, 300, 0},
+    [CMD_RELAY] = {relay, 0, INT32_MAX, 0},
+    [CMD_GETESW] = {eswg, 0, INT32_MAX, 0},
+    [CMD_GETESWNOW] = {esw, 0, INT32_MAX, 0},
+    [CMD_BOUNCE] = {u32setget, 0, 1000, 0},
     [CMD_USARTSPEED] = {u32setget, 1200, 3000000, 0},
 };
 

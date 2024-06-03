@@ -26,7 +26,7 @@ MEMORY
 	ram (rwx) : ORIGIN = 0x20000000, LENGTH = 64K
 }
 
-PROVIDE(_BLOCKSIZE = 1024);
+PROVIDE(_BLOCKSIZE = 2048);
 
 /* Include the common ld script. */
 INCLUDE stm32f01234.ld

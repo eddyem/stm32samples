@@ -22,7 +22,12 @@
 
 // ADC channels in array
 enum{
-    ADC_CH_VSEN = 0,  // ADC_ch0
+    ADC_CH_0 = 0,     // ADC input channels
+    ADC_CH_1,
+    ADC_CH_2,
+    ADC_CH_3,
+    ADC_CH_4,
+    ADC_CH_5,
     ADC_CH_TSEN,      // T sensor
     ADC_CH_VDD,       // Vdd sensor
     ADC_CHANNELS

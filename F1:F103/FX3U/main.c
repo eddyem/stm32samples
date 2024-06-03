@@ -51,6 +51,7 @@ int main(void){
             usart_transmit();
             lastT = Tms;
         }
+        proc_esw();
         CAN_proc();
         CAN_status st = CAN_get_status();
         if(st == CAN_FIFO_OVERRUN){

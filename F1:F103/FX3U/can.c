@@ -158,7 +158,7 @@ void CAN_setup(uint32_t speed){
     CAN1->FA1R = CAN_FA1R_FACT0; /* (8) */
     CAN1->FM1R = CAN_FM1R_FBM0;
     // filter 0 for FIFO0
-    CAN1->sFilterRegister[0].FR1 = the_conf.CANID << 5; // (10) CANID and 0
+    CAN1->sFilterRegister[0].FR1 = the_conf.CANIDin << 5; // (10) CANIDin and 0
     if(flags.can_monitor){ /* (11) */
         CAN1->FA1R |= CAN_FA1R_FACT1; // activate filter1
         CAN1->sFilterRegister[1].FR1 = 0; // all packets
@@ -299,7 +299,7 @@ CAN_status CAN_send(CAN_message *message){
  * incoming data may have variable length
  */
 TRUE_INLINE void parseCANcommand(CAN_message *msg){
-    msg->ID = the_conf.CANID; // set own ID for broadcast messages
+    msg->ID = the_conf.CANIDout; // set output ID for all output messages
     // check PING
     if(msg->length != 0) run_can_cmd(msg);
     uint32_t Tstart = Tms;
@@ -354,7 +354,7 @@ static void can_process_fifo(uint8_t fifo_num){
             }
         }
         // run command for my or broadcast ID
-        if(msg.ID == the_conf.CANID || msg.ID == 0) parseCANcommand(&msg);
+        if(msg.ID == the_conf.CANIDin || msg.ID == 0) parseCANcommand(&msg);
         if(flags.can_monitor && CAN_messagebuf_push(&msg)) return; // error: buffer is full, try later
         *RFxR |= CAN_RF0R_RFOM0; // release fifo for access to next message
     }

@@ -45,29 +45,21 @@ typedef enum{
 
 // CAN commands indexes
 enum{
-    CMD_RESET,      // 0 - reset MCU
-    CMD_TIME,       // 1 - get/set Tms
-    CMD_MCUTEMP,    // 2 - get MCU temperature (*10)
-    CMD_ADCRAW,     // 3 - get ADC raw values
-    CMD_ADCV,       // 4 - get ADC voltage (*100)
-    CMD_CANSPEED,   // 5 - get/set CAN speed (kbps)
-    CMD_CANID,      // 6 - get/set CAN ID
-    CMD_ADCMUL,     // 7 - get/set ADC multipliers 0..4
-    CMD_SAVECONF,   // 8 - save configuration
-    CMD_ERASESTOR,  // 9 - erase all flash storage
-    CMD_RELAY,      // 10 - switch relay ON/OFF
-    CMD_GETESW_BLK, // 11 - blocking read of ESW
-    CMD_GETESW,     // 12 - current ESW state, bounce-free
-    CMD_BOUNCE,     // 13 - get/set bounce constant (ms)
-    CMD_USARTSPEED, // 14 - get/set USART1 speed (if encoder on RS-422)
-    CMD_ENCISSSI,   // 15 - encoder is SSI (1) or RS-422 (0)
-    CMD_SPIINIT,    // 16 - init SPI2
-    CMD_SPISEND,    // 17 - send 1..4 bytes over SPI
-    CMD_ENCGET,     // 18 - get encoder value
-    CMD_EMULPEP,    // 19 - emulate (1) / not (0) PEP
-    CMD_ENCREINIT,  // 20 - reinit encoder
-    CMD_TIMESTAMP,  // 21 - 2mks 24-bit timestamp
-    CMD_SPIDEINIT,  // 22 - turn off SPI2
+    CMD_RESET,      // reset MCU
+    CMD_TIME,       // get/set Tms
+    CMD_MCUTEMP,    // get MCU temperature (*10)
+    CMD_ADCRAW,     // get ADC raw values
+    CMD_CANSPEED,   // get/set CAN speed (kbps)
+    CMD_CANID,      // get/set common CAN ID (both in and out)
+    CMD_CANIDin,    // input CAN ID
+    CMD_CANIDout,   // output CAN ID
+    CMD_SAVECONF,   // save configuration
+    CMD_ERASESTOR,  // erase all flash storage
+    CMD_RELAY,      // switch relay ON/OFF
+    CMD_GETESW,     // current ESW state, bounce-free
+    CMD_GETESWNOW,  // current ESW state, absolute
+    CMD_BOUNCE,     // get/set bounce constant (ms)
+    CMD_USARTSPEED, // get/set USART1 speed (if encoder on RS-422)
     // should be the last:
     CMD_AMOUNT     // amount of CAN commands
 };
