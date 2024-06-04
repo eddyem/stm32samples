@@ -35,8 +35,8 @@
 // error codes for answer message
 typedef enum{
     ERR_OK,         // 0 - all OK
-    ERR_BADPAR,     // 1 - parameter's value is wrong
-    ERR_BADVAL,     // 2 - wrong parameter's value
+    ERR_BADPAR,     // 1 - parameter is wrong
+    ERR_BADVAL,     // 2 - wrong value
     ERR_WRONGLEN,   // 3 - wrong message length
     ERR_BADCMD,     // 4 - unknown command
     ERR_CANTRUN,    // 5 - can't run given command due to bad parameters or other
@@ -45,6 +45,7 @@ typedef enum{
 
 // CAN commands indexes
 enum{
+    CMD_PING,       // just ping
     CMD_RESET,      // reset MCU
     CMD_TIME,       // get/set Tms
     CMD_MCUTEMP,    // get MCU temperature (*10)
@@ -60,6 +61,7 @@ enum{
     CMD_GETESWNOW,  // current ESW state, absolute
     CMD_BOUNCE,     // get/set bounce constant (ms)
     CMD_USARTSPEED, // get/set USART1 speed (if encoder on RS-422)
+    CMD_LED,        // onboard LED
     // should be the last:
     CMD_AMOUNT     // amount of CAN commands
 };

@@ -28,6 +28,8 @@ enum{
     ADC_CH_3,
     ADC_CH_4,
     ADC_CH_5,
+    ADC_POT0,         // on-board pots (PC2 - in12, PC3 - in13)
+    ADC_POT1,
     ADC_CH_TSEN,      // T sensor
     ADC_CH_VDD,       // Vdd sensor
     ADC_CHANNELS

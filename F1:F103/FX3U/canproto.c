@@ -27,8 +27,11 @@
 #define FIXDL(m)     do{m->length = 8;}while(0)
 
 /*********** START of all common functions list (for `funclist`) ***********/
+static errcodes ping(CAN_message *m){
+    m->ID = the_conf.CANIDout; // change ID
+    return ERR_OK; // send same message
+}
 // reset MCU
-
 static errcodes reset(CAN_message _U_ *msg){
     usart_send("Soft reset\n");
     usart_transmit();
@@ -127,6 +130,13 @@ static errcodes eswg(CAN_message *msg){
     FIXDL(msg);
     return ERR_OK;
 }
+// onboard LED
+static errcodes led(CAN_message *m){
+    if(m->length > 4 && ISSETTER(m->data)) LED(m->data[4]);
+    m->data[4] = LED(-1);
+    FIXDL(m);
+    return ERR_OK;
+}
 
 // common uint32_t setter/getter
 static errcodes u32setget(CAN_message *msg){
@@ -176,6 +186,7 @@ typedef struct{
 // list of common (CAN/RS-232) functions
 // !!!!!!!!! Getters should set message length to 8 !!!!!!!!!!!
 static const commonfunction funclist[CMD_AMOUNT] = {
+    [CMD_PING] = {ping, 0, 0, 0},
     [CMD_RESET] = {reset, 0, 0, 0},
     [CMD_TIME] = {time_getset, 0, 0, 0},
     [CMD_MCUTEMP] = {mcut, 0, 0, 0},
@@ -191,6 +202,7 @@ static const commonfunction funclist[CMD_AMOUNT] = {
     [CMD_GETESWNOW] = {esw, 0, INT32_MAX, 0},
     [CMD_BOUNCE] = {u32setget, 0, 1000, 0},
     [CMD_USARTSPEED] = {u32setget, 1200, 3000000, 0},
+    [CMD_LED] = {led, 0, 0, 0},
 };
 
 

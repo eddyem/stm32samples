@@ -38,7 +38,7 @@ void adc_setup(){
     ADC1->SMPR1 = ADC_SMPR1_SMP16 | ADC_SMPR1_SMP17;
     // sequence order: 1[0]->3[1]->14[2]->15[3]->10[4]->11[5] -> 16[tsen] -> 17[vdd]
     ADC1->SQR3 = (1 << 0) | (3<<5) | (14 << 10) | (15 << 15) | (10 << 20) | (11 < 25);
-    ADC1->SQR2 = (16 << 0) | (17 << 5);
+    ADC1->SQR2 = (12 << 0) | (13 << 5) | (16 << 10) | (17 << 15);
     ADC1->SQR1 = (ADC_CHANNELS - 1) << 20; // amount of conversions
     ADC1->CR1 = ADC_CR1_SCAN; // scan mode
     // DMA, continuous mode; enable vref & Tsens; enable SWSTART as trigger

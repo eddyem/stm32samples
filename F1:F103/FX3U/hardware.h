@@ -34,6 +34,10 @@
 #define INMAX       (15)
 #define OUTMAX      (11)
 
+// onboard LED - PD10
+#define LEDPORT GPIOD
+#define LEDPIN  (1<<10)
+
 extern volatile uint32_t Tms;
 
 void gpio_setup(void);
@@ -44,6 +48,7 @@ int get_esw(uint8_t Nch);
 void proc_esw();
 uint32_t get_ab_esw();
 
+uint8_t LED(int onoff);
 uint32_t inchannels();
 uint32_t outchannels();
 int set_relay(uint8_t Nch, uint32_t val);

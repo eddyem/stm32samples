@@ -22,23 +22,28 @@
 #include "hardware.h"
 #ifdef EBUG
 #include "strfunc.h"
+#include "uchar.h"
 #endif
 
 /* pinout:
 
+Xn - inputs, Yn - outputs, ADCn - ADC inputs
+
 | **Pin #** | **Pin name ** | **function** | **settings**           | **comment **                            |
 | --------- | ------------- | ------------ | ---------------------- | --------------------------------------- |
-|  15       | PC0/adcin10   | ADC4         | ADC in                 |                                         |
-|  16       | PC1/adcin11   | ADC5         | ADC in                 |                                         |
+|  15       | PC0/adcin10   | ADC4         | ADC in                 | current in (0..20mA)                    |
+|  16       | PC1/adcin11   | ADC5         | ADC in                 | current in                              |
+|  17       | PC2/adcin12   | ADC6         | ADC in                 | right potentiometer                     |
+|  18       | PC3/adcin13   | ADC7         | ADC in                 | left pot                                |
 |  23       | PA0           | Y3           | PPOUT                  |                                         |
-|  24       | PA1/adcin1    | ADC0         | ADC in                 |                                         |
+|  24       | PA1/adcin1    | ADC0         | ADC in                 | voltage in (up to 11V)                  |
 |  25       | PA2           | Y11          | PPOUT                  |                                         |
-|  26       | PA3/adcin3    | ADC1         | ADC in                 |                                         |
+|  26       | PA3/adcin3    | ADC1         | ADC in                 | voltage in (up to 11V)                  |
 |  31       | PA6           | Y10          | PPOUT                  |                                         |
 |  32       | PA7           | Y7           | PPOUT                  |                                         |
-|  33       | PC4/adcin14   | ADC2         | ADC in                 |                                         |
-|  34       | PC5/adcin15   | ADC3         | ADC in                 |                                         |
-|  37       | PB2/boot1     | PROG SW      | PUIN                   |                                         |
+|  33       | PC4/adcin14   | ADC2         | ADC in                 | voltage in                              |
+|  34       | PC5/adcin15   | ADC3         | ADC in                 | current in                              |
+|  37       | PB2/boot1     | PROG SW      | PUIN                   | onboard switch "Prog" (X8!!!)           |
 |  38       | PE7           | X14          | PUIN                   |                                         |
 |  39       | PE8           | X15          | PUIN                   |                                         |
 |  40       | PE9           | X12          | PUIN                   |                                         |
@@ -54,13 +59,15 @@
 |  52       | PB13          | X0           | PUIN                   |                                         |
 |  53       | PB14          | X1           | PUIN                   |                                         |
 |  54       | PB15          | Y6           | PPOUT                  |                                         |
+|  57       | PD10          | LED          | PPOUT                  | onboard LED "RUN"                       |
 |  59       | PD12          | Y5           | PPOUT                  |                                         |
+|  64       | PC7           |              | (FLIN)                 | (Not now) extern 24V power detect       |
 |  65       | PC8           | Y1           | PPOUT                  |                                         |
 |  66       | PC9           | Y0           | PPOUT                  |                                         |
 |  67       | PA8           | Y2           | PPOUT                  |                                         |
 |  68       | PA9           | RS TX        | AFPP                   |                                         |
 |  69       | PA10          | RS RX        | FLIN                   |                                         |
-|  76       | PA14/SWCLK    | 485 DE *     | (default)              | (Not now)                               |
+|  76       | PA14/SWCLK    | 485 DE *     | (default)              | (Not now) RS-485 Data Enable            |
 |  81       | PD0           | CAN RX       | FLIN                   |                                         |
 |  82       | PD1           | CAN TX       | AFPP                   |                                         |
 |  89       | PB3/JTDO      | Y4           | PPOUT                  |                                         |
@@ -77,14 +84,14 @@ void gpio_setup(void){
     AFIO->MAPR = AFIO_MAPR_SWJ_CFG_JTAGDISABLE;
     GPIOA->CRL = CRL(0, CNF_PPOUTPUT|MODE_NORMAL) | CRL(1, CNF_ANALOG) | CRL(2, CNF_PPOUTPUT|MODE_NORMAL) |
                  CRL(3, CNF_ANALOG) | CRL(6, CNF_PPOUTPUT|MODE_NORMAL) | CRL(7, CNF_PPOUTPUT|MODE_NORMAL);
-    GPIOA->CRH = 0;
-    GPIOB->CRL = CRL(2, CNF_PUDINPUT);
+    GPIOA->CRH = CRH(8, CNF_PPOUTPUT|MODE_NORMAL);
+    GPIOB->CRL = CRL(2, CNF_PUDINPUT) | CRL(3, CNF_PPOUTPUT|MODE_NORMAL);
     GPIOB->CRH = CRH(10, CNF_PUDINPUT) | CRH(11, CNF_PUDINPUT) | CRH(12, CNF_PUDINPUT) | CRH(13, CNF_PUDINPUT) |
                  CRH(14, CNF_PUDINPUT) | CRH(15, CNF_PPOUTPUT|MODE_NORMAL);
     GPIOC-> CRL = CRL(0, CNF_ANALOG) | CRL(1, CNF_ANALOG) | CRL(4, CNF_ANALOG) | CRL(5, CNF_ANALOG);
     GPIOC->CRH = CRH(8, CNF_PPOUTPUT|MODE_NORMAL) | CRH(9, CNF_PPOUTPUT|MODE_NORMAL);
     GPIOD->CRL = 0;
-    GPIOD->CRH = CRH(12, CNF_PPOUTPUT|MODE_NORMAL);
+    GPIOD->CRH = CRH(10, CNF_PPOUTPUT|MODE_NORMAL) | CRH(12, CNF_PPOUTPUT|MODE_NORMAL);
     GPIOE->CRL = CRL(7, CNF_PUDINPUT);
     GPIOE->CRH = CRH(8, CNF_PUDINPUT) | CRH(9, CNF_PUDINPUT) | CRH(10, CNF_PUDINPUT) | CRH(11, CNF_PUDINPUT) |
                  CRH(12, CNF_PUDINPUT) | CRH(13, CNF_PUDINPUT) | CRH(14, CNF_PUDINPUT) | CRH(15, CNF_PUDINPUT);
@@ -92,7 +99,7 @@ void gpio_setup(void){
     GPIOA->ODR = 0;
     GPIOB->ODR = (1<<2) | (1<<10) | (1<<11) | (1<<12) | (1<<13) | (1<<14);
     GPIOC->ODR = 0;
-    GPIOD->ODR = 0;
+    GPIOD->ODR = (1<<10); // turn off LED
     GPIOE->ODR = (1<<7) | (1<<8) | (1<<9) | (1<<10) | (1<<11) | (1<<12) | (1<<13) | (1<<14) | (1<<15);
 }
 
@@ -125,9 +132,9 @@ static const pin_t IN[INMAX+1] = { // youbannye uskoglazye pidarasy! Ready to fu
     {GPIOB, 1<<10}, // X5 - PB10
     {GPIOE, 1<<13}, // X6 - PE13
     {GPIOE, 1<<14}, // X7 - PE14
-    {NULL, 0},      // X8 - absent
+    {GPIOB, 1<<2},  // X8 - onboard switch
     {NULL, 0},      // X9 - absent
-    {GPIOE, 1<11},  // X10 - PE11
+    {GPIOE, 1<<11}, // X10 - PE11
     {GPIOE, 1<<12}, // X11 - PE12
     {GPIOE, 1<<9},  // X12 - PE9
     {GPIOE, 1<<10}, // X13 - PE10
@@ -158,6 +165,15 @@ uint32_t inchannels(){
 // bit 1 - input channel is working, 0 - no
 uint32_t outchannels(){
     return 0b110011111111;
+}
+
+// turn on/off onboard LED; if onoff < 0 - return current state
+uint8_t LED(int onoff){
+    if(onoff > -1){
+        if(onoff) pin_clear(LEDPORT, LEDPIN);
+        else pin_set(LEDPORT, LEDPIN);
+    }
+    return ((LEDPORT->IDR & LEDPIN) ? 0 : 1); // inverse!
 }
 
 /**
@@ -195,9 +211,12 @@ static int readpins(uint8_t Nch, const pin_t *pins, uint8_t max){
         for(int i = max; i > -1; --i){
             val <<= 1;
             int p = gpin(i);
-            if(p > -1) val |= gpin(i);
+            if(p == 1){
+                //usart_send("pin"); usart_send(u2str(i)); usart_send("=1\n");
+                val |= p;
+            }
         }
-usart_send("readpins, val="); usart_send(i2str(val)); newline();
+        //usart_send("readpins, val="); usart_send(i2str(val)); newline();
         return val;
     }
     return gpin(Nch);
@@ -227,7 +246,7 @@ static uint32_t lastET[INMAX+1] = {0}; // last changing time
 // anti-bouce process esw
 void proc_esw(){
     uint32_t mask = 1, oldesw = ESW_ab_values;
-    for(uint8_t i = 0; i <= OUTMAX; ++i, mask <<= 1){
+    for(uint8_t i = 0; i <= INMAX; ++i, mask <<= 1){
         if(Tms - lastET[i] < the_conf.bouncetime) continue;
         if(NULL == IN[i].port) continue;
         uint32_t now = pin_read(IN[i].port, IN[i].pin);
@@ -236,7 +255,7 @@ void proc_esw(){
         lastET[i] = Tms;
     }
     if(oldesw != ESW_ab_values){
-        usart_send("esw="); usart_send(u2str(ESW_ab_values)); newline();
+        //usart_send("esw="); usart_send(u2str(ESW_ab_values)); newline();
         CAN_message msg = {.ID = the_conf.CANIDout, .length = 8};
         msg.data[0] = CMD_GETESW;
         *((uint32_t*)(&msg.data[4])) = ESW_ab_values;
