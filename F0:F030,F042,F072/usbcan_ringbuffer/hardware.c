@@ -21,13 +21,14 @@
 uint8_t ledsON = 0;
 
 void gpio_setup(void){
-    RCC->AHBENR |= RCC_AHBENR_GPIOBEN;
-    // Set LEDS (PB0/1) as output
+    RCC->AHBENR |= RCC_AHBENR_GPIOAEN | RCC_AHBENR_GPIOBEN;
+    // Set LEDS (PB15/PA8) as output
     pin_set(LED0_port, LED0_pin); // clear LEDs
     pin_set(LED1_port, LED1_pin);
-    GPIOB->MODER = (GPIOB->MODER & ~(GPIO_MODER_MODER0  | GPIO_MODER_MODER1)
-                    ) |
-                    GPIO_MODER_MODER0_O | GPIO_MODER_MODER1_O;
+    GPIOB->MODER = (GPIOB->MODER & ~(GPIO_MODER_MODER15)) |
+                    GPIO_MODER_MODER15_O;
+    GPIOA->MODER = (GPIOA->MODER & ~(GPIO_MODER_MODER8)) |
+                   GPIO_MODER_MODER8_O;
 }
 
 void iwdg_setup(){
@@ -51,12 +52,6 @@ void iwdg_setup(){
     tmout = 16000000;
     while(IWDG->SR){if(--tmout == 0) break;} /* (5) */
     IWDG->KR = IWDG_REFRESH; /* (6) */
-}
-
-// pause in milliseconds for some purposes
-void pause_ms(uint32_t pause){
-    uint32_t Tnxt = Tms + pause;
-    while(Tms < Tnxt) nop();
 }
 
 void Jump2Boot(){

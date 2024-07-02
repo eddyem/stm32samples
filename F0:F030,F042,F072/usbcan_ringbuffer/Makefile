@@ -1,8 +1,8 @@
 BINARY      := usbcan
 # MCU code
-MCU         := F042x6
+MCU         := F072xB
 # change this linking script depending on particular MCU model,
-LDSCRIPT    := stm32f042x6.ld
+LDSCRIPT    := stm32f072x8.ld
 
 DEFINES := -DUSB2_16
 
