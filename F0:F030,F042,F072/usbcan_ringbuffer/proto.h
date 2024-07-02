@@ -23,10 +23,11 @@
 
 #define BUFSZ   (64)
 
+// DEBUG/RELEASE build
 #ifdef EBUG
-#define DBG(str)  do{USB_sendstr(__FILE__ " (L" STR(__LINE__) "): " str);}while(0)
+#define RLSDBG "debug"
 #else
-#define DBG(str)
+#define RLSDBG "release"
 #endif
 
 #define IGN_SIZE 10

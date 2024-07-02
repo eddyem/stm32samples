@@ -7,4 +7,4 @@ PB1 - LED1 - shine when line OK
 
 PB8, PB9 - CAN Rx/Tx
 
-PA11. PA12 - USB DM/DP
+PA11, PA12 - USB DM/DP

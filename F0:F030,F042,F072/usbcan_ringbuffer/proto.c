@@ -427,7 +427,7 @@ static void add_filter(char *str){
 }
 
 const char *helpmsg =
-    "https://github.com/eddyem/stm32samples/tree/master/F0-nolib/usbcan_ringbuffer build#" BUILD_NUMBER " @ " BUILD_DATE "\n"
+    "https://github.com/eddyem/stm32samples/tree/master/F0-nolib/usbcan_ringbuffer " RLSDBG " build #" BUILD_NUMBER "@" BUILD_DATE "\n"
     "'a' - add ID to ignore list (max 10 IDs)\n"
     "'b' - reinit CAN with given baudrate\n"
     "'c' - get CAN status\n"
