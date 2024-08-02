@@ -20,6 +20,7 @@
 #include "canproto.h"
 #include "hardware.h"
 #include "proto.h"
+#include "usb.h"
 
 #include <string.h> // memcpy
 
@@ -107,6 +108,7 @@ void CAN_setup(uint16_t speed){
     else if(speed > 3000) speed = 3000;
     oldspeed = speed;
     uint32_t tmout = 16000000;
+    DBG("Start CAN ini");
     // Configure GPIO: PB8 - CAN_Rx, PB9 - CAN_Tx
     /* (1) Select AF mode (10) on PB8 and PB9 */
     /* (2) AF4 for CAN signals */
@@ -129,8 +131,12 @@ void CAN_setup(uint16_t speed){
     tmout = 16000000;
     while((CAN->MSR & CAN_MSR_INAK) == CAN_MSR_INAK){ // Wait the init mode leaving
         IWDG->KR = IWDG_REFRESH;
-        if(--tmout == 0) break;
+        if(--tmout == 0){
+            DBG("Can't enter CAN INIT mode");
+            break;
+        }
     }
+    DBG("CAN initing");
     // accept self ID at filter 0, ALL other at filters 1 and 2
     CAN->FMR = CAN_FMR_FINIT;
     CAN->FA1R = CAN_FA1R_FACT0 | CAN_FA1R_FACT1 | CAN_FA1R_FACT2;
@@ -147,14 +153,15 @@ void CAN_setup(uint16_t speed){
     NVIC_SetPriority(CEC_CAN_IRQn, 0);
     NVIC_EnableIRQ(CEC_CAN_IRQn);
     can_status = CAN_READY;
+    DBG("CAN ready");
 }
 
 void can_proc(){
 #ifdef EBUG
     if(last_err_code){
-        MSG("Error, ESR=");
+        USB_sendstr("Error, ESR=");
         printu(last_err_code);
-        NL();
+        newline();
         last_err_code = 0;
     }
 #endif
@@ -167,12 +174,12 @@ void can_proc(){
     }
     IWDG->KR = IWDG_REFRESH;
     if(CAN->ESR & (CAN_ESR_BOFF | CAN_ESR_EPVF | CAN_ESR_EWGF)){ // much errors - restart CAN BUS
-        SEND("\nToo much errors, restarting CAN!\n");
-        SEND("Receive error counter: ");
+        USND("\nToo much errors, restarting CAN!");
+        USB_sendstr("Receive error counter: ");
         printu((CAN->ESR & CAN_ESR_REC)>>24);
-        SEND("\nTransmit error counter: ");
+        USB_sendstr("\nTransmit error counter: ");
         printu((CAN->ESR & CAN_ESR_TEC)>>16);
-        SEND("\nLast error code: ");
+        USB_sendstr("\nLast error code: ");
         int lec = (CAN->ESR & CAN_ESR_LEC) >> 4;
         const char *errmsg = "No";
         switch(lec){
@@ -184,11 +191,10 @@ void can_proc(){
             case 6: errmsg = "CRC"; break;
             case 7: errmsg = "(set by software)"; break;
         }
-        SEND(errmsg); SEND(" error\n");
-        if(CAN->ESR & CAN_ESR_BOFF) SEND("Bus off");
-        if(CAN->ESR & CAN_ESR_EPVF) SEND("Passive error limit");
-        if(CAN->ESR & CAN_ESR_EWGF) SEND("Error counter limit");
-        NL();
+        USB_sendstr(errmsg); USND(" error\n");
+        if(CAN->ESR & CAN_ESR_BOFF) USND("Bus off");
+        if(CAN->ESR & CAN_ESR_EPVF) USND("Passive error limit");
+        if(CAN->ESR & CAN_ESR_EWGF) USND("Error counter limit");
         IWDG->KR = IWDG_REFRESH;
         // request abort for all mailboxes
         CAN->TSR |= CAN_TSR_ABRQ0 | CAN_TSR_ABRQ1 | CAN_TSR_ABRQ2;
@@ -214,13 +220,13 @@ CAN_status can_send(uint8_t *msg, uint8_t len, uint16_t target_id){
         return CAN_BUSY;
     }
 #ifdef EBUG
-    MSG("Send data. Len="); printu(len);
-    SEND(", tagid="); printuhex(target_id);
-    SEND(", data=");
+    USB_sendstr("Send data. Len="); printu(len);
+    USB_sendstr(", tagid="); printuhex(target_id);
+    USB_sendstr(", data=");
     for(int i = 0; i < len; ++i){
-        SEND(" "); printuhex(msg[i]);
+        USB_sendstr(" "); printuhex(msg[i]);
     }
-    NL();
+    newline();
 #endif
     CAN_TxMailBox_TypeDef *box = &CAN->sTxMailBox[mailbox];
     uint32_t lb = 0, hb = 0;

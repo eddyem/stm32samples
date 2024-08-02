@@ -25,6 +25,8 @@
 #include "usb.h"
 #include "usb_lib.h"
 
+#define MAXSTRLEN    128
+
 volatile uint32_t Tms = 0;
 
 /* Called when systick fires */
@@ -32,43 +34,10 @@ void sys_tick_handler(void){
     ++Tms;
 }
 
-#define USBBUF 63
-// usb getline
-static char *get_USB(){
-    static char tmpbuf[USBBUF+1], *curptr = tmpbuf;
-    static int rest = USBBUF;
-    uint8_t x = USB_receive((uint8_t*)curptr);
-    if(!x) return NULL;
-    curptr[x] = 0;
-    if(x == 1 && *curptr == 0x7f){ // backspace
-        if(curptr > tmpbuf){
-            --curptr;
-            USND("\b \b");
-        }
-        return NULL;
-    }
-    USB_sendstr(curptr); // echo
-    if(curptr[x-1] == '\n'){ // || curptr[x-1] == '\r'){
-        curptr = tmpbuf;
-        rest = USBBUF;
-        // omit empty lines
-        if(tmpbuf[0] == '\n') return NULL;
-        // and wrong empty lines
-        if(tmpbuf[0] == '\r' && tmpbuf[1] == '\n') return NULL;
-        return tmpbuf;
-    }
-    curptr += x; rest -= x;
-    if(rest <= 0){ // buffer overflow
-        curptr = tmpbuf;
-        rest = USBBUF;
-    }
-    return NULL;
-}
-
 int main(void){
+    char inbuff[MAXSTRLEN];
     uint8_t ctr, len;
     CAN_message *can_mesg;
-    char *txt;
     sysreset();
     SysTick_Config(6000, 1);
     gpio_setup();
@@ -84,10 +53,8 @@ int main(void){
         process_keys();
         custom_buttons_process();
         can_proc();
-        usb_proc();
         if(CAN_get_status() == CAN_FIFO_OVERRUN){
-            SEND("CAN bus fifo overrun occured!\n");
-            sendbuf();
+            USND("CAN bus fifo overrun occured!");
         }
         while((can_mesg = CAN_messagebuf_pop())){
             if(can_mesg && isgood(can_mesg->ID)){
@@ -95,20 +62,20 @@ int main(void){
                     IWDG->KR = IWDG_REFRESH;
                     len = can_mesg->length;
                     printu(Tms);
-                    SEND(" #");
+                    USB_sendstr(" #");
                     printuhex(can_mesg->ID);
                     for(ctr = 0; ctr < len; ++ctr){
-                        SEND(" ");
+                        USB_putbyte(' ');
                         printuhex(can_mesg->data[ctr]);
                     }
-                    newline(); sendbuf();
+                    newline();
                 }
             }
         }
-        if((txt = get_USB())){
-            IWDG->KR = IWDG_REFRESH;
-            cmd_parser(txt);
-        }
+        int l = USB_receivestr(inbuff, MAXSTRLEN);
+        IWDG->KR = IWDG_REFRESH;
+        if(l < 0) USB_sendstr("ERROR: USB buffer overflow or string was too long\n");
+        else if(l) cmd_parser(inbuff);
     }
     return 0;
 }

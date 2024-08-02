@@ -1,6 +1,6 @@
 /*
- * This file is part of the canrelay project.
- * Copyright 2021 Edward V. Emelianov <edward.emelianoff@gmail.com>.
+ * This file is part of the usbcanrb project.
+ * Copyright 2023 Edward V. Emelianov <edward.emelianoff@gmail.com>.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,8 +17,6 @@
  */
 
 #pragma once
-#ifndef __USB_DEFS_H__
-#define __USB_DEFS_H__
 
 #include <stm32f0.h>
 
@@ -27,8 +25,9 @@
 /**
  *                 Buffers size definition
  **/
-// !!! when working with CAN bus change USB_BTABLE_SIZE to 768 !!!
 #define USB_BTABLE_SIZE         768
+// first 64 bytes of USB_BTABLE are registers!
+//#define USB_EP0_BASEADDR        64
 // for USB FS EP0 buffers are from 8 to 64 bytes long (64 for PL2303)
 #define USB_EP0_BUFSZ           64
 // USB transmit buffer size (64 for PL2303)
@@ -39,6 +38,7 @@
 #define USB_EP1BUFSZ            8
 
 #define USB_BTABLE_BASE         0x40006000
+#define USB                     ((USB_TypeDef *) USB_BASE)
 
 #ifdef USB_BTABLE
 #undef USB_BTABLE
@@ -73,7 +73,7 @@
 
 #define USB_TypeDef USB_TypeDef_custom
 
-typedef struct{
+typedef struct {
     __IO uint32_t EPnR[STM32ENDPOINTS];
     __IO uint32_t RESERVED[STM32ENDPOINTS];
     __IO uint32_t CNTR;
@@ -85,15 +85,31 @@ typedef struct{
     __IO uint32_t BCDR;
 } USB_TypeDef;
 
+// F303 D/E have 2x16 access scheme
 typedef struct{
+#if defined USB2_16
     __IO uint16_t USB_ADDR_TX;
     __IO uint16_t USB_COUNT_TX;
     __IO uint16_t USB_ADDR_RX;
     __IO uint16_t USB_COUNT_RX;
+#define ACCESSZ (1)
+#define BUFTYPE uint8_t
+#elif defined USB1_16
+    __IO uint32_t USB_ADDR_TX;
+    __IO uint32_t USB_COUNT_TX;
+    __IO uint32_t USB_ADDR_RX;
+    __IO uint32_t USB_COUNT_RX;
+#define ACCESSZ (2)
+#define BUFTYPE uint16_t
+#else
+#error "Define USB1_16 or USB2_16"
+#endif
 } USB_EPDATA_TypeDef;
+
 
 typedef struct{
     __IO USB_EPDATA_TypeDef EP[STM32ENDPOINTS];
 } USB_BtableDef;
 
-#endif // __USB_DEFS_H__
+void USB_setup();
+int EP_Init(uint8_t number, uint8_t type, uint16_t txsz, uint16_t rxsz, void (*func)());

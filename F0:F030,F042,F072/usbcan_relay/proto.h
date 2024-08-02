@@ -24,30 +24,14 @@
 
 #define BUFSZ   (64)
 
-// macro for static strings
-#define SEND(str) do{addtobuf(str);}while(0)
-
-#ifdef EBUG
-#define MSG(str)  do{addtobuf(__FILE__ " (L" STR(__LINE__) "): " str);}while(0)
-#else
-#define MSG(str)
-#endif
-
-#define newline() do{bufputchar('\n');}while(0)
-// newline with buffer sending over USART
-#define NL() do{bufputchar('\n'); sendbuf();}while(0)
-
 #define IGN_SIZE 10
 extern uint16_t Ignore_IDs[IGN_SIZE];
 extern uint8_t IgnSz;
 extern uint8_t ShowMsgs;
 
 void cmd_parser(char *buf);
-void addtobuf(const char *txt);
-void bufputchar(char ch);
 void printu(uint32_t val);
 void printuhex(uint32_t val);
-void sendbuf();
 
 char *omit_spaces(const char *buf);
 char *getnum(const char *buf, uint32_t *N);

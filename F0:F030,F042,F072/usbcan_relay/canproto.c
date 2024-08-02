@@ -21,6 +21,7 @@
 #include "canproto.h"
 #include "hardware.h"
 #include "proto.h"
+#include "usb.h"
 
 /*
  * Protocol (endian format depends on command!):
@@ -130,11 +131,11 @@ TRUE_INLINE uint8_t showTms(uint8_t data[8]){
 void parseCANcommand(CAN_message *msg){
     uint8_t outpdata[8], len = 0;
 #ifdef EBUG
-    SEND("Get data: ");
+    USB_sendstr("Get data: ");
     for(int i = 0; i < msg->length; ++i){
-        printuhex(msg->data[i]); bufputchar(' ');
+        printuhex(msg->data[i]); USB_putbyte(' ');
     }
-    NL();
+    newline();
 #endif
     int N = 1000;
     uint8_t cmd = msg->data[0] & CANCMDMASK, setter = msg->data[0] & CAN_CMD_SETFLAG;

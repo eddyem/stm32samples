@@ -94,55 +94,33 @@ void pause_ms(uint32_t pause){
     while(Tms < Tnxt) nop();
 }
 
+#ifndef STM32F072xB
+#warning "Only F072 can jump to bootloader"
+#endif
 
-#ifdef EBUG
-void Jump2Boot(){
-    __disable_irq();
-    IWDG->KR = IWDG_REFRESH;
+void Jump2Boot(){ // for STM32F072
     void (*SysMemBootJump)(void);
-    volatile uint32_t addr = SystemMem;
+    volatile uint32_t addr = 0x1FFFC800;
     // reset systick
     SysTick->CTRL = 0;
     // reset clocks
     RCC->APB1RSTR = RCC_APB1RSTR_CECRST    | RCC_APB1RSTR_DACRST    | RCC_APB1RSTR_PWRRST    | RCC_APB1RSTR_CRSRST  |
                     RCC_APB1RSTR_CANRST    | RCC_APB1RSTR_USBRST    | RCC_APB1RSTR_I2C2RST   | RCC_APB1RSTR_I2C1RST |
                     RCC_APB1RSTR_USART4RST | RCC_APB1RSTR_USART3RST | RCC_APB1RSTR_USART2RST | RCC_APB1RSTR_SPI2RST |
-                    RCC_APB1RSTR_WWDGRST   | RCC_APB1RSTR_TIM14RST  |
-#ifdef STM32F072xB
-            RCC_APB1RSTR_TIM7RST   | RCC_APB1RSTR_TIM6RST |
-#endif
+                    RCC_APB1RSTR_WWDGRST   | RCC_APB1RSTR_TIM14RST  | RCC_APB1RSTR_TIM7RST   | RCC_APB1RSTR_TIM6RST |
                     RCC_APB1RSTR_TIM3RST   | RCC_APB1RSTR_TIM2RST;
-    RCC->APB2RSTR = RCC_APB2RSTR_DBGMCURST | RCC_APB2RSTR_TIM17RST | RCC_APB2RSTR_TIM16RST |
-#ifdef STM32F072xB
-            RCC_APB2RSTR_TIM15RST |
-#endif
+    RCC->APB2RSTR = RCC_APB2RSTR_DBGMCURST | RCC_APB2RSTR_TIM17RST | RCC_APB2RSTR_TIM16RST | RCC_APB2RSTR_TIM15RST |
                     RCC_APB2RSTR_USART1RST | RCC_APB2RSTR_SPI1RST  | RCC_APB2RSTR_TIM1RST  | RCC_APB2RSTR_ADCRST   | RCC_APB2RSTR_SYSCFGRST;
     RCC->AHBRSTR = 0;
     RCC->APB1RSTR = 0;
     RCC->APB2RSTR = 0;
-    // enable SYSCFG clocking
+    // Enable the SYSCFG peripheral.
     RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN;
-    __DSB();
-    // remap system flash memory to 0 (only for STM32F0)
+    // remap memory to 0 (only for STM32F0)
     SYSCFG->CFGR1 = 0x01; __DSB(); __ISB();
     SysMemBootJump = (void (*)(void)) (*((uint32_t *)(addr + 4)));
     // set main stack pointer
     __set_MSP(*((uint32_t *)addr));
-    IWDG->KR = IWDG_REFRESH;
-    // due to "empty check" mechanism, STM32F042 can jump to bootloader only with empty first 4 bytes of user code
-    while ((FLASH->SR & FLASH_SR_BSY) != 0){}
-    FLASH->SR = FLASH_SR_EOP | FLASH_SR_PGERR | FLASH_SR_WRPRTERR;
-    if ((FLASH->CR & FLASH_CR_LOCK) != 0){
-        FLASH->KEYR = FLASH_KEY1;
-        FLASH->KEYR = FLASH_KEY2;
-    }
-    FLASH->CR |= FLASH_CR_PER;
-    FLASH->AR = 0x08000000; // erase zero's page
-    FLASH->CR |= FLASH_CR_STRT;
-    while(!(FLASH->SR & FLASH_SR_EOP));
-    FLASH->SR |= FLASH_SR_EOP;
-    FLASH->CR &= ~FLASH_CR_PER;
-    // jump to bootloader (don't work :( )
+    // jump to bootloader
     SysMemBootJump();
 }
-#endif

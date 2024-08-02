@@ -32,7 +32,7 @@
 #define SYSMEM09x 0x1FFFD800
 // define SystemMem to other in MAKEFILE
 #ifndef SystemMem
-#define SystemMem SYSMEM04x
+#define SystemMem SYSMEM07x
 #endif
 
 #define CONCAT(a,b)     a ## b

@@ -1,6 +1,6 @@
 /*
- * This file is part of the canrelay project.
- * Copyright 2021 Edward V. Emelianov <edward.emelianoff@gmail.com>.
+ * This file is part of the usbcanrb project.
+ * Copyright 2023 Edward V. Emelianov <edward.emelianoff@gmail.com>.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,21 +17,33 @@
  */
 
 #pragma once
-#ifndef __USB_H__
-#define __USB_H__
 
-#include "hardware.h"
+#include "ringbuffer.h"
+#include "usbhw.h"
 
-#define BUFFSIZE   (64)
+// sizes of ringbuffers for outgoing and incoming data
+#define RBOUTSZ     (512)
+#define RBINSZ      (512)
 
-// send string with constant length
-#define USND(str)  do{USB_send((uint8_t*)str, sizeof(str)-1);}while(0)
+#define newline()   USB_putbyte('\n')
+#define USND(s)     do{USB_sendstr(s); USB_putbyte('\n');}while(0)
 
-void USB_setup();
-void usb_proc();
-void USB_send(const uint8_t *buf, uint16_t len);
-void USB_sendstr(const char *str);
-void USB_send_blk(const uint8_t *buf, uint16_t len);
-uint8_t USB_receive(uint8_t *buf);
+#define STR_HELPER(s)   #s
+#define STR(s)          STR_HELPER(s)
 
-#endif // __USB_H__
+#ifdef EBUG
+#define DBG(str)  do{USB_sendstr(__FILE__ " (L" STR(__LINE__) "): " str); newline();}while(0)
+#else
+#define DBG(str)
+#endif
+
+extern volatile ringbuffer rbout, rbin;
+extern volatile uint8_t bufisempty, bufovrfl;
+
+void send_next();
+int USB_sendall();
+int USB_send(const uint8_t *buf, int len);
+int USB_putbyte(uint8_t byte);
+int USB_sendstr(const char *string);
+int USB_receive(uint8_t *buf, int len);
+int USB_receivestr(char *buf, int len);
