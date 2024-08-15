@@ -140,6 +140,7 @@ errcodes cu_screen(uint8_t par, int32_t *val);
 errcodes cu_speedlimit(uint8_t par, int32_t *val);
 errcodes cu_state(uint8_t par, int32_t *val);
 errcodes cu_stop(uint8_t par, int32_t *val);
+errcodes cu_time(uint8_t par, int32_t *val);
 errcodes cu_tmcbus(uint8_t par, int32_t *val);
 errcodes cu_udata(uint8_t par, int32_t *val);
 errcodes cu_usartstatus(uint8_t par, int32_t *val);

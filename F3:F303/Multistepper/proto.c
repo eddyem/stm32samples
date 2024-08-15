@@ -309,11 +309,8 @@ int fn_cansend(uint32_t _U_ hash, char *args){
 int fn_canfloodt(uint32_t _U_ hash, char *args){
     uint32_t N;
     const char *n = getnum(args, &N);
-    if(args == n){
-        USB_sendstr("floodT="); printu(floodT); USB_putbyte('\n');
-        return RET_GOOD;
-    }
-    floodT = N;
+    if(args != n) floodT = N;
+    USB_sendstr("canfloodT="); printu(floodT); USB_putbyte('\n');
     return RET_GOOD;
 }
 
@@ -396,14 +393,6 @@ int fn_reset(uint32_t _U_ hash,  char _U_ *args){ // "reset" (1907803304)
     return RET_GOOD;
 }
 
-int fn_time(uint32_t _U_ hash,  char _U_ *args){ // "time" (19148340)
-    USB_sendstr("Time (ms): ");
-    printu(Tms);
-    USB_putbyte('\n');
-    return RET_GOOD;
-}
-
-
 static const char* motfl[MOTFLAGS_AMOUNT] = {
     "0: reverse - invert motor's rotation",
     "1: [reserved]",
@@ -433,12 +422,12 @@ int fn_dumpmotflags(uint32_t _U_ hash,  char _U_ *args){ // "dumpmotflags" (3615
 }
 
 static const char* errtxt[ERR_AMOUNT] = {
-    [ERR_OK] =   "all OK",
-    [ERR_BADPAR] =  "wrong parameter's value",
-    [ERR_BADVAL] = "wrong setter of parameter",
-    [ERR_WRONGLEN] = "bad message length",
-    [ERR_BADCMD] = "unknown command",
-    [ERR_CANTRUN] = "temporary can't run given command",
+    [ERR_OK] =   "OK",
+    [ERR_BADPAR] =  "BADPAR",
+    [ERR_BADVAL] = "BADVAL",
+    [ERR_WRONGLEN] = "WRONGLEN",
+    [ERR_BADCMD] = "BADCMD",
+    [ERR_CANTRUN] = "CANTRUN",
 };
 int fn_dumperr(uint32_t _U_ hash,  char _U_ *args){ // "dumperr" (1223989764)
     USND("Error codes:");
@@ -490,9 +479,11 @@ static int canusb_function(uint32_t hash, char *args){
     uint32_t N;
     int32_t val = 0;
     uint8_t par = CANMESG_NOPAR;
-    float f;
-    USB_sendstr("CMD: hash="); printu(hash); USB_sendstr(", args=");
+    DBG("CMD: hash=");
+#ifdef EBUG
+    printu(hash); USB_sendstr(", args=");
     USND(args);
+#endif
     if(*args){
         const char *n = getnum(args, &N);
         if(n != args){ // get parameter
@@ -511,29 +502,17 @@ static int canusb_function(uint32_t hash, char *args){
             }
         }
     }
+#ifdef EBUG
     USB_sendstr("par="); printuhex(par);
     USB_sendstr(", val="); printi(val); newline();
+#endif
     switch(hash){
         case CMD_ADC:
-            par = PARBASE(par);
-            if(par >= NUMBER_OF_ADC_CHANNELS){
-                USB_sendstr("Wrong channel number\n");
-                return RET_BAD;
-            }
-            USB_sendstr("ADC"); USB_putbyte('0'+par);
-            USB_putbyte('='); USB_sendstr(u2str(getADCval(par)));
-            f = getADCvoltage(par);
-            USB_sendstr("\nADCv");USB_putbyte('0'+par);
-            USB_putbyte('='); USB_sendstr(float2str(f, 2));
-            newline();
-            return RET_GOOD;
+            e = cu_adc(par, &val);
         break;
         case CMD_BUTTON:
             e = cu_button(par, &val);
-            if(val == CANMESG_NOPAR){
-                USB_sendstr("Wrong button number\n");
-                return RET_BAD;
-            }
+            if(val == CANMESG_NOPAR) break; // no button number
             const char *kstate = "none";
             switch(e){
                 case EVT_PRESS:
@@ -548,9 +527,9 @@ static int canusb_function(uint32_t hash, char *args){
                 default:
                 break;
             }
-            USB_sendstr("KEY"); USB_putbyte('0'+PARBASE(par));
+            USB_sendstr("button"); USB_putbyte('0'+PARBASE(par));
             USB_putbyte('='); USB_sendstr(kstate);
-            USB_sendstr("\nKEYTIME="); USB_sendstr(u2str(val));
+            USB_sendstr("\nbuttontm="); USB_sendstr(u2str(val));
             newline();
             return RET_GOOD;
         break;
@@ -597,18 +576,10 @@ static int canusb_function(uint32_t hash, char *args){
             e = cu_maxsteps(par, &val);
         break;
         case CMD_MCUT:
-            f = getMCUtemp();
-            USB_sendstr("T=");
-            USB_sendstr(float2str(f, 1));
-            newline();
-            return RET_GOOD;
+            e = cu_mcut(par, &val);
         break;
         case CMD_MCUVDD:
-            f = getVdd();
-            USB_sendstr("VDD=");
-            USB_sendstr(float2str(f, 1));
-            newline();
-            return RET_GOOD;
+            e = cu_mcuvdd(par, &val);
         break;
         case CMD_MICROSTEPS:
             e = cu_microsteps(par, &val);
@@ -658,6 +629,9 @@ static int canusb_function(uint32_t hash, char *args){
         case CMD_STOP:
             e = cu_stop(par, &val);
         break;
+        case CMD_TIME:
+            e = cu_time(par, &val);
+        break;
         case CMD_TMCBUS:
             e = cu_tmcbus(par, &val);
         break;
@@ -683,7 +657,7 @@ static int canusb_function(uint32_t hash, char *args){
     if(ERR_OK != e){
         USB_sendstr(errtxt[e]); newline();
     }else{
-        USB_sendstr("OK par");
+        USB_sendstr(lastcmd);
         if(PARBASE(par) != CANMESG_NOPAR) printu(PARBASE(par));
         USB_putbyte('='); printi(val);
         newline();
@@ -728,6 +702,7 @@ int fn_screen(uint32_t _U_ hash,  char _U_ *args) AL; //* "screen" (2100809349)
 int fn_speedlimit(uint32_t _U_ hash,  char _U_ *args) AL; //* "speedlimit" (1654184245)
 int fn_state(uint32_t _U_ hash,  char _U_ *args) AL; //* "state" (2216628902)
 int fn_stop(uint32_t _U_ hash,  char _U_ *args) AL; //* "stop" (17184971)
+int fn_time(uint32_t _U_ hash,  char _U_ *args) AL; // "time" (19148340)
 int fn_tmcbus(uint32_t _U_ hash,  char _U_ *args) AL; //* "tmcbus" (1906135955)
 int fn_udata(uint32_t _U_ hash,  char _U_ *args) AL; //* "udata" (2736127636)
 int fn_usartstatus(uint32_t _U_ hash,  char _U_ *args) AL; //* "usartstatus" (4007098968)

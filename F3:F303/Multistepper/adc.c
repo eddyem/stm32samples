@@ -132,18 +132,18 @@ uint16_t getADCval(int nch){
     return p[4];
 }
 
-// get voltage @input nch (V)
-float getADCvoltage(int nch){
+// get voltage @input nch (V) *1000V
+int32_t getADCvoltage(int nch){
     float v = getADCval(nch) * 3.3;
-    v /= 4096.f; // 12bit ADC
+    v /= 4.096f; // 12bit ADC
 #ifdef EBUG
     DBG("v="); printf(v); newline();
 #endif
-    return v;
+    return (uint32_t) v;
 }
 
-// return MCU temperature (degrees of celsius)
-float getMCUtemp(){
+// return MCU temperature (*1000 degrees of celsius)
+int32_t getMCUtemp(){
     // make correction on Vdd value
     int32_t ADval = getADCval(ADC_TS);
     float temperature = (float) *TEMP30_CAL_ADDR - ADval;
@@ -153,15 +153,15 @@ float getMCUtemp(){
 #ifdef EBUG
     DBG("t="); printf(temperature); newline();
 #endif
-    return(temperature);
+    return (uint32_t) (temperature*1000.f);
 }
 
-// return ADC Vref (V)
-float getVdd(){
+// return ADC Vref (V) *1000V
+int32_t getVdd(){
     float vdd = ((float) *VREFINT_CAL_ADDR) * 3.3f; // 3.3V
     vdd /= getADCval(ADC_VREF);
 #ifdef EBUG
     DBG("vdd="); printf(vdd); newline();
 #endif
-    return vdd;
+    return (uint32_t) (vdd * 1000.f);
 }

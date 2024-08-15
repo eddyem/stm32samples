@@ -8,6 +8,8 @@
 #define WAL __attribute__ ((weak, alias ("__f1")))
 #endif
 
+char lastcmd[CMD_MAXLEN + 1];
+
 static int __f1(uint32_t _U_ h, char _U_ *a){return 1;}
 
 int fn_abspos(uint32_t _U_ hash, char _U_ *args) WAL; // "abspos" (3056382221)
@@ -137,16 +139,13 @@ static uint32_t hashf(const char *str){
 }
 
 int parsecmd(const char *str){
-        char cmd[CMD_MAXLEN + 1];
         if(!str || !*str) return RET_CMDNOTFOUND;
         int i = 0;
-        while(*str > '@' && i < CMD_MAXLEN){ cmd[i++] = *str++; }
-        cmd[i] = 0;
-        if(*str){
-            while(*str <= ' ') ++str;
-        }
+        while(*str > '@' && i < CMD_MAXLEN){ lastcmd[i++] = *str++; }
+        lastcmd[i] = 0;
+        while(*str && *str <= ' ') ++str;
         char *args = (char*) str;
-        uint32_t h = hashf(cmd);
+        uint32_t h = hashf(lastcmd);
         switch(h){
 
         case CMD_ABSPOS:

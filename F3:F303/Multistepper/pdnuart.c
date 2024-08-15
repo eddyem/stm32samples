@@ -169,7 +169,7 @@ int pdnuart_microsteps(uint8_t no, uint32_t val){
     return writeregister(no, TMC2209Reg_CHOPCONF, regval.value);
 }
 
-// init driver number `no`
+// init driver number `no`, return FALSE if failed
 int pdnuart_init(uint8_t no){
     TMC2209_gconf_reg_t gconf;
     if(!readregister(no, TMC2209Reg_GCONF, &gconf.value)) return FALSE;

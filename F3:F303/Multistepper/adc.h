@@ -43,7 +43,7 @@
 #define ADC2START   (9*NUMBER_OF_ADC1_CHANNELS)
 
 void adc_setup();
-float getMCUtemp();
-float getVdd();
+int32_t getMCUtemp();
+int32_t getVdd();
 uint16_t getADCval(int nch);
-float getADCvoltage(int nch);
+int32_t getADCvoltage(int nch);

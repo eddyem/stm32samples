@@ -53,7 +53,7 @@ enum{
 void addmicrostep(uint8_t i);
 
 void init_steppers();
-void update_stepper(uint8_t i);
+int update_stepper(uint8_t i);
 
 errcodes setmotpos(uint8_t i, int32_t position);
 errcodes getpos(uint8_t i, int32_t *position);

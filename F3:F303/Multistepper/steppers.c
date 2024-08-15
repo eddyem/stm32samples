@@ -78,18 +78,19 @@ TRUE_INLINE void recalcARR(int i){
 }
 
 // update stepper's settings
-void update_stepper(uint8_t i){
-    if(i >= MOTORSNO) return;
+int update_stepper(uint8_t i){
+    if(i >= MOTORSNO) return FALSE;
     accdecsteps[i] = (the_conf.maxspd[i] * the_conf.maxspd[i]) / the_conf.accel[i] / 2;
     ustepsshift[i] = MSB(the_conf.microsteps[i]);
     ESW_reaction[i] = the_conf.ESW_reaction[i];
     switch(the_conf.motflags[i].drvtype){
         case DRVTYPE_UART:
-            pdnuart_init(i);
+            return pdnuart_init(i);
         break;
         default:
         break;
     }
+    return TRUE;
 }
 
 // run this function after each steppers parameters changing

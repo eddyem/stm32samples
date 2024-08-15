@@ -175,9 +175,7 @@ static const char *fhdr =
         int i = 0;\n\
         while(*str > '@' && i < CMD_MAXLEN){ cmd[i++] = *str++; }\n\
         cmd[i] = 0;\n\
-        if(*str){\n\
-            while(*str <= ' ') ++str;\n\
-        }\n\
+        while(*str && *str <= ' ') ++str;\n\
         char *args = (char*) str;\n\
         uint32_t h = hashf(cmd);\n\
         switch(h){\n\n"

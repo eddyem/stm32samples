@@ -42,9 +42,9 @@ int main(void){
         StartHSI();
         SysTick_Config((uint32_t)48000); // 1ms
     }
+    hw_setup(); // GPIO, ADC, timers, watchdog etc.
     USBPU_OFF(); // make a reconnection
     flashstorage_init();
-    hw_setup(); // GPIO, ADC, timers, watchdog etc.
     init_steppers();
     USB_setup();
     CAN_setup(the_conf.CANspeed);
@@ -60,7 +60,7 @@ int main(void){
             LED_blink();
         }
         CAN_proc();
-        USB_proc();
+        USB_proc(); // TODO: remove deprecated trash code!
         process_steppers();
         if(CAN_get_status() == CAN_FIFO_OVERRUN){
             USB_sendstr("CAN bus fifo overrun occured!\n");

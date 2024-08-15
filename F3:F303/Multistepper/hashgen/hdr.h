@@ -13,6 +13,8 @@ enum{
 
 int parsecmd(const char *cmdwargs);
 
+extern char lastcmd[];
+
 #define CMD_ABSPOS          (3056382221)
 #define CMD_ACCEL           (1490521981)
 #define CMD_ADC             (2963026093)
