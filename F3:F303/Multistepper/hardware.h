@@ -34,10 +34,12 @@
 // USB pullup: PA8
 #define USBPU_port  GPIOA
 #define USBPU_pin   (1<<8)
-//#define USBPU_ON()  pin_clear(USBPU_port, USBPU_pin)
-//#define USBPU_OFF() pin_set(USBPU_port, USBPU_pin)
-#define USBPU_ON()  pin_set(USBPU_port, USBPU_pin)
-#define USBPU_OFF() pin_clear(USBPU_port, USBPU_pin)
+// Pullup by P-channel MOSFET
+#define USBPU_ON()  pin_clear(USBPU_port, USBPU_pin)
+#define USBPU_OFF() pin_set(USBPU_port, USBPU_pin)
+// direct pullup connected to pin
+//#define USBPU_ON()  pin_set(USBPU_port, USBPU_pin)
+//#define USBPU_OFF() pin_clear(USBPU_port, USBPU_pin)
 
 // temporary LED: PD9
 #define LED_blink() pin_toggle(GPIOD, 1<<9)

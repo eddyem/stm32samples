@@ -114,7 +114,7 @@ TRUE_INLINE void gpio_setup(){
     GPIOA->OSPEEDR = OSPEED_MED(5) | OSPEED_MED(6) | OSPEED_MED(7) | OSPEED_HI(11) | OSPEED_HI(12)
                  | OSPEED_HI(13) | OSPEED_HI(15);
     GPIOA->OTYPER = 0;
-    GPIOA->PUPDR = PUPD_PU(8) | PUPD_PU(9) | PUPD_PU(10);
+    GPIOA->PUPDR = PUPD_PU(9) | PUPD_PU(10);
 
     GPIOB->ODR = 0;
     GPIOB->AFR[0] = AFRf(2, 0) | AFRf(7, 3) | AFRf(10, 5);
@@ -125,7 +125,7 @@ TRUE_INLINE void gpio_setup(){
     GPIOB->OSPEEDR = OSPEED_HI(0) | OSPEED_HI(5) | OSPEED_HI(8) | OSPEED_MED(13) | OSPEED_MED(14) | OSPEED_MED(15);
     // USART2_Tx (PB3) and USART3_Tx (PB10) are pullup opendrain
     GPIOB->OTYPER = OTYPER_OD(3) | OTYPER_OD(10);
-    GPIOB->PUPDR = PUPD_PU(3) | PUPD_PU(7) | PUPD_PU(9) | PUPD_PU(7) | PUPD_PU(11);
+    GPIOB->PUPDR = PUPD_PU(3) | PUPD_PU(7) | PUPD_PU(9) | PUPD_PU(10) | PUPD_PU(11);
 
     GPIOC->ODR = 0;
     GPIOC->AFR[0] = AFRf(7, 4) | AFRf(7, 5) | AFRf(4, 6);
