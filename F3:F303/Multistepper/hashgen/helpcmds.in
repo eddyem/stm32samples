@@ -30,6 +30,7 @@
     "gotozN - find zero position & refresh counters\n"
     "gpioconfN* - GS GPIO configuration (0 - PUin, 1 - PPout, 2 - ODout), N=0..2\n"
     "gpioN* - GS GPIO values, N=0..2\n"
+    "help - print this help\n"
     "maxspeedN - GS max speed (steps per sec)\n"
     "maxstepsN - GS max steps (from zero ESW)\n"
     "mcut - G MCU T\n"

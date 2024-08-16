@@ -63,6 +63,7 @@ typedef struct{
  * struct to save user configurations
  */
 typedef struct __attribute__((packed, aligned(4))){
+    uint32_t maxsteps[MOTORSNO];    // maximal amount of steps
     uint16_t userconf_sz;           // "magick number"
     uint16_t CANspeed;              // default CAN speed
     uint16_t CANID;                 // identifier
@@ -70,11 +71,9 @@ typedef struct __attribute__((packed, aligned(4))){
     uint16_t accel[MOTORSNO];       // acceleration/deceleration (steps/s^2)
     uint16_t maxspd[MOTORSNO];      // max motor speed (steps per second)
     uint16_t minspd[MOTORSNO];      // min motor speed (steps per second)
-    uint32_t maxsteps[MOTORSNO];    // maximal amount of steps
     motflags_t motflags[MOTORSNO];  // motor's flags
     uint8_t ESW_reaction[MOTORSNO]; // end-switches reaction (esw_react)
     uint8_t motcurrent[MOTORSNO];   // IRUN as fraction of max current (1..32)
-    uint8_t isSPI;                  // ==1 if there's SPI drivers instead of UART
 } user_conf;
 
 extern user_conf the_conf; // global user config (read from FLASH to RAM)

@@ -8,9 +8,9 @@
 #define WAL __attribute__ ((weak, alias ("__f1")))
 #endif
 
-char lastcmd[CMD_MAXLEN + 1];
-
 static int __f1(uint32_t _U_ h, char _U_ *a){return 1;}
+
+char lastcmd[CMD_MAXLEN + 1];
 
 int fn_abspos(uint32_t _U_ hash, char _U_ *args) WAL; // "abspos" (3056382221)
 
@@ -75,6 +75,8 @@ int fn_gotoz(uint32_t _U_ hash, char _U_ *args) WAL; // "gotoz" (3178103736)
 int fn_gpio(uint32_t _U_ hash, char _U_ *args) WAL; // "gpio" (4286324660)
 
 int fn_gpioconf(uint32_t _U_ hash, char _U_ *args) WAL; // "gpioconf" (1309721562)
+
+int fn_help(uint32_t _U_ hash, char _U_ *args) WAL; // "help" (4288288686)
 
 int fn_maxspeed(uint32_t _U_ hash, char _U_ *args) WAL; // "maxspeed" (1498078812)
 
@@ -243,6 +245,9 @@ int parsecmd(const char *str){
         break;
         case CMD_GPIOCONF:
             return fn_gpioconf(h, args);
+        break;
+        case CMD_HELP:
+            return fn_help(h, args);
         break;
         case CMD_MAXSPEED:
             return fn_maxspeed(h, args);

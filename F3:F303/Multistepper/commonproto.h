@@ -113,6 +113,7 @@ errcodes cu_canid(uint8_t par, int32_t *val);
 errcodes cu_diagn(uint8_t par, int32_t *val);
 errcodes cu_drvtype(uint8_t par, int32_t *val);
 errcodes cu_emstop(uint8_t par, int32_t *val);
+errcodes cu_emstopall(uint8_t par, int32_t *val);
 errcodes cu_eraseflash(uint8_t par, int32_t *val);
 errcodes cu_esw(uint8_t par, int32_t *val);
 errcodes cu_eswreact(uint8_t par, int32_t *val);

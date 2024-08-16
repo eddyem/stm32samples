@@ -7,9 +7,9 @@
 
 static int noargs(uint32_t hash){
     switch(hash){
-        case CMD_REBOOT: printf("REBOOT\n"); break;
+        case CMD_RESET: printf("REBOOT\n"); break;
         case CMD_TIME: printf("TIME!\n"); break;
-        case CMD_TEMP: printf("Temp\n"); break;
+        case CMD_MCUT: printf("Temp\n"); break;
         default: printf("Unknown hash 0x%x\n", hash); return 0;
     }
     return 1;
@@ -30,7 +30,7 @@ static int withparno(uint32_t hash, char *args){
     switch(hash){
         case CMD_ESW: fname = "ESW"; break;
         case CMD_GOTO: fname = "GOTO"; break;
-        case CMD_POS: fname = "POS"; break;
+        case CMD_ABSPOS: fname = "ABSPOS"; break;
         case CMD_STOP: fname = "STOP"; break;
         default: fname = "unknown";
     }

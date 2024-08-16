@@ -288,6 +288,7 @@ int fn_canfilter(uint32_t _U_ hash,  char *args){
 
 int fn_canflood(uint32_t _U_ hash,  char *args){
     CAN_flood(parseCANmsg(args), 0);
+    USB_sendstr("Simple flooding is ON (send with empty ID to stop)\n");
     return RET_GOOD;
 }
 
@@ -333,8 +334,8 @@ int fn_canerrcodes(uint32_t _U_ hash,  char _U_ *args){
 }
 
 int fn_canincrflood(uint32_t _U_ hash,  char _U_ *args){
-    CAN_flood(NULL, 1);
-    USB_sendstr("Incremental flooding is ON ('F' to off)\n");
+    CAN_flood(parseCANmsg(args), 1);
+    USB_sendstr("Incremental flooding is ON (send with empty ID to stop)\n");
     return RET_GOOD;
 }
 
@@ -346,18 +347,17 @@ int fn_canspeed(uint32_t _U_ hash,  char _U_ *args){
         return RET_GOOD;
     }
     if(N < 50){
-        USB_sendstr("canspeed=");
-        USB_sendstr(u2str(CAN_speed()));
-        newline();
+        USND("Lower speed is 50kbps");
         return RET_GOOD;
-    }else if(N > 3000){
-        USB_sendstr("Highest speed is 3000kbps");
+    }else if(N > 1500){
+        USND("Highest speed is 1500kbps");
         return RET_GOOD;
     }
     CAN_reinit((uint16_t)N);
-    // theconf.canspeed = N;
+    uint32_t regval = 4500 / N;
+    the_conf.CANspeed = 4500 * regval;
     USB_sendstr("Reinit CAN bus with speed ");
-    printu(N); USB_sendstr("kbps"); newline();
+    printu(the_conf.CANspeed); USB_sendstr("kbps"); newline();
     return RET_GOOD;
 }
 
@@ -529,7 +529,8 @@ static int canusb_function(uint32_t hash, char *args){
             }
             USB_sendstr("button"); USB_putbyte('0'+PARBASE(par));
             USB_putbyte('='); USB_sendstr(kstate);
-            USB_sendstr("\nbuttontm="); USB_sendstr(u2str(val));
+            USB_sendstr("\nbuttontm"); USB_putbyte('0'+PARBASE(par));
+            USB_putbyte('='); USB_sendstr(u2str(val));
             newline();
             return RET_GOOD;
         break;
@@ -552,7 +553,9 @@ static int canusb_function(uint32_t hash, char *args){
             e = cu_drvtype(par, &val);
         break;
         case CMD_EMSTOP:
-            e = cu_emstop(par, &val);
+            if(par == CANMESG_NOPAR) e = cu_emstopall(par, &val);
+            else e = cu_emstop(par, &val);
+            if(e == ERR_OK){ USND("OK"); return RET_GOOD;}
         break;
         case CMD_ESWREACT:
             e = cu_eswreact(par, &val);
@@ -682,6 +685,7 @@ int fn_goto(uint32_t _U_ hash,  char _U_ *args) AL; //* "goto" (4286309438)
 int fn_gotoz(uint32_t _U_ hash,  char _U_ *args) AL; //* "gotoz" (3178103736)
 int fn_gpio(uint32_t _U_ hash,  char _U_ *args) AL; //* "gpio" (4286324660)
 int fn_gpioconf(uint32_t _U_ hash,  char _U_ *args) AL; //* "gpioconf" (1309721562)
+int fn_help(uint32_t _U_ hash, char _U_ *args){return RET_HELP;} // "help" (4288288686)
 int fn_maxspeed(uint32_t _U_ hash,  char _U_ *args) AL; //* "maxspeed" (1498078812)
 int fn_maxsteps(uint32_t _U_ hash,  char _U_ *args) AL; //* "maxsteps" (1506667002)
 int fn_mcut(uint32_t _U_ hash,  char _U_ *args) AL; // "mcut" (4022718)
@@ -717,8 +721,9 @@ int fn_vfive(uint32_t _U_ hash, char _U_ *args) AL; // "vfive" (3017477285)
 const char *cmd_parser(const char *txt){
     int ret = parsecmd(txt);
     switch(ret){
-        case RET_CMDNOTFOUND: return helpstring; break;
-        case RET_WRONGCMD: return "Wrong command parameters\n"; break;
+        case RET_HELP: return helpstring; break;
+        case RET_CMDNOTFOUND: return "BADCMD\n"; break;
+        case RET_WRONGCMD: return "BADARGS\n"; break;
         case RET_GOOD: return NULL; break;
         default: return "FAIL\n"; break;
     }

@@ -5,10 +5,11 @@
 #define CMD_MAXLEN  (32)
 
 enum{
+   RET_HELP = -3,
    RET_CMDNOTFOUND = -2,
    RET_WRONGCMD = -1,
-   RET_BAD = 0,
-   RET_GOOD = 1
+   RET_GOOD = 0,
+   RET_BAD = 1
 };
 
 int parsecmd(const char *cmdwargs);
@@ -47,6 +48,7 @@ extern char lastcmd[];
 #define CMD_GOTOZ           (3178103736)
 #define CMD_GPIO            (4286324660)
 #define CMD_GPIOCONF        (1309721562)
+#define CMD_HELP            (4288288686)
 #define CMD_MAXSPEED        (1498078812)
 #define CMD_MAXSTEPS        (1506667002)
 #define CMD_MCUT            (4022718)

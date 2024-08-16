@@ -37,6 +37,7 @@ static int8_t first_nonfree_idx = -1; // index of first data cell
 static uint16_t oldspeed = 100; // speed of last init
 uint32_t floodT = FLOOD_PERIOD_MS; // flood period in ms
 static uint8_t incrflood = 0; // ==1 for incremental flooding
+static uint32_t incrmessagectr = 0; // counter for incremental flooding
 
 static uint32_t last_err_code = 0;
 static CAN_status can_status = CAN_STOP;
@@ -130,7 +131,7 @@ so if TBS1=4 and TBS2=3, sum=8, bit sampling freq is 48/8 = 6MHz
 void CAN_setup(uint16_t speed){
     if(speed == 0) speed = oldspeed;
     else if(speed < 50) speed = 50;
-    else if(speed > 3000) speed = 3000;
+    else if(speed > 1500) speed = 1500;
     oldspeed = speed;
     uint32_t tmout = 10000;
     /* Enable the peripheral clock CAN */
@@ -240,7 +241,6 @@ void CAN_proc(){
         CAN_setup(0);
     }
     static uint32_t lastFloodTime = 0;
-    static uint32_t incrmessagectr = 0;
     if(flood_msg && (Tms - lastFloodTime) >= floodT){ // flood every ~5ms
         lastFloodTime = Tms;
         CAN_send(flood_msg->data, flood_msg->length, flood_msg->ID);
@@ -305,8 +305,11 @@ CAN_status CAN_send(uint8_t *msg, uint8_t len, uint16_t target_id){
 }
 
 void CAN_flood(CAN_message *msg, int incr){
-    if(incr){ incrflood = 1; return; }
-    incrflood = 0;
+    if(incr){
+        incrmessagectr = 0;
+        incrflood = 1;
+        return;
+    }else incrflood = 0;
     if(!msg) flood_msg = NULL;
     else{
         memcpy(&loc_flood_msg, msg, sizeof(CAN_message));

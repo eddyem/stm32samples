@@ -8,3 +8,5 @@ gcc hdr.c test.c strfunc.c  -o test
 ./test "esw45 =   some text"
 ./test "goto 55 = "
 ./test "stop 3256"
+./test "mcut"
+

@@ -32,12 +32,12 @@ static const uint32_t FLASH_blocksize = (uint32_t)&_BLOCKSIZE;
 // max amount of Config records stored (will be recalculate in flashstorage_init()
 static uint32_t maxCnum = 1024 / sizeof(user_conf); // can't use blocksize here
 
-#define DEFMF   {.donthold = 1, .drvtype = DRVTYPE_UART}
+#define DEFMF   {.donthold = 1, .drvtype = DRVTYPE_SIMPLE}
 
 #define USERCONF_INITIALIZER  {             \
      .userconf_sz = sizeof(user_conf)       \
     ,.CANspeed = 100                        \
-    ,.CANID = 0xaa                          \
+    ,.CANID = 1                             \
     ,.microsteps = {32,32,32,32,32,32,32,32}\
     ,.accel = {500,500,500,500,500,500,500,500} \
     ,.maxspd = {2000,2000,2000,2000,2000,2000,2000,2000} \
@@ -203,8 +203,8 @@ int erase_storage(int npage){
 
 int fn_dumpconf(uint32_t _U_ hash, char _U_ *args){ // "dumpconf" (3271513185)
 #ifdef EBUG
-    USB_sendstr("flashsize="); printu(FLASH_SIZE); USB_putbyte('*');
-    printu(FLASH_blocksize); USB_putbyte('='); printu(FLASH_SIZE*FLASH_blocksize);
+    USB_sendstr("flashsize="); printu(FLASH_SIZE); USB_sendstr("kB\nblocksize=");
+    printu(FLASH_blocksize);
     newline();
 #endif
     USB_sendstr("userconf_addr="); printuhex((uint32_t)Flash_Data);
@@ -230,7 +230,7 @@ int fn_dumpconf(uint32_t _U_ hash, char _U_ *args){ // "dumpconf" (3271513185)
         printu(the_conf.motcurrent[i]);
         PROPNAME("motflags");
         printuhex(*((uint8_t*)&the_conf.motflags[i]));
-        PROPNAME("eswreaction");
+        PROPNAME("eswreact");
         printu(the_conf.ESW_reaction[i]);
 #undef PROPNAME
     }

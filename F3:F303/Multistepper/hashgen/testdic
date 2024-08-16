@@ -30,6 +30,7 @@ goto
 gotoz
 gpioconf
 gpio
+help
 maxspeed
 maxsteps
 mcut

@@ -170,14 +170,13 @@ static char *fnname(const char *cmd){
 
 static const char *fhdr =
 "int parsecmd(const char *str){\n\
-        char cmd[CMD_MAXLEN + 1];\n\
         if(!str || !*str) return RET_CMDNOTFOUND;\n\
         int i = 0;\n\
-        while(*str > '@' && i < CMD_MAXLEN){ cmd[i++] = *str++; }\n\
-        cmd[i] = 0;\n\
+        while(*str > '@' && i < CMD_MAXLEN){ lastcmd[i++] = *str++; }\n\
+        lastcmd[i] = 0;\n\
         while(*str && *str <= ' ') ++str;\n\
         char *args = (char*) str;\n\
-        uint32_t h = hashf(cmd);\n\
+        uint32_t h = hashf(lastcmd);\n\
         switch(h){\n\n"
 ;
 static const char *ffooter =
@@ -195,12 +194,15 @@ static const char *headercontent =
 #endif\n\n\
 #define CMD_MAXLEN  (32)\n\n\
 enum{\n\
+   RET_HELP = -3,\n\
    RET_CMDNOTFOUND = -2,\n\
    RET_WRONGCMD = -1,\n\
-   RET_BAD = 0,\n\
-   RET_GOOD = 1\n\
+   RET_GOOD = 0,\n\
+   RET_BAD = 1\n\
 };\n\n\
-int parsecmd(const char *cmdwargs);\n\n";
+int parsecmd(const char *cmdwargs);\n\n\
+extern char lastcmd[];\n\n";
+
 static const char *sw =
 "        case CMD_%s:\n\
             return fn_%s(h, args);\n\
@@ -213,7 +215,8 @@ static const char *srchdr =
 #include \"%s\"\n\n\
 #ifndef WAL\n\
 #define WAL __attribute__ ((weak, alias (\"__f1\")))\n\
-#endif\n\nstatic int __f1(uint32_t _U_ h, char _U_ *a){return 1;}\n\n"
+#endif\n\nstatic int __f1(uint32_t _U_ h, char _U_ *a){return 1;}\n\n\
+char lastcmd[CMD_MAXLEN + 1];\n\n"
 ;
 
 static void build(strhash *H, int hno, int hlen){

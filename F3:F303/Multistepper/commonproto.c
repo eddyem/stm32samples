@@ -108,6 +108,11 @@ errcodes cu_emstop(uint8_t _U_ par, int32_t _U_ *val){
     return ERR_OK;
 }
 
+errcodes cu_emstopall(uint8_t _U_ par, int32_t _U_ *val){
+    for(int i = 0; i < MOTORSNO; ++i) emstopmotor(i);
+    return ERR_OK;
+}
+
 errcodes cu_eraseflash(uint8_t _U_ par, int32_t _U_ *val){
     NOPARCHK(par);
     if(ISSETTER(par)){

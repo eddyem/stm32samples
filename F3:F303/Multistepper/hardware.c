@@ -76,7 +76,7 @@ static IRQn_Type motirqs[MOTORSNO] = {
 // return two bits: 0 - ESW0, 1 - ESW1 (if inactive -> 1; if active -> 0)
 uint8_t ESW_state(uint8_t MOTno){
     uint8_t val = 0;
-    if(the_conf.isSPI){ // only ESW0 used
+    if(the_conf.motflags[MOTno].drvtype == DRVTYPE_SPI){ // only ESW0 used
         val = ((ESWports[MOTno][0]->IDR & ESWpins[MOTno][0]) ? 1 : 0);
         if(the_conf.motflags[MOTno].eswinv) val ^= 1;
         return val;
