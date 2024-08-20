@@ -194,7 +194,7 @@ TRUE_INLINE void iwdg_setup(){
 static void setup_mpwm(int i){
     volatile TIM_TypeDef *TIM = mottimers[i];
     TIM->CR1 = TIM_CR1_ARPE; // buffered ARR
-    TIM->PSC = MOTORTIM_PSC; // 16MHz
+    TIM->PSC = MOTORTIM_PSC; // 26MHz
     // PWM mode 1 (active -> inactive)
     uint8_t n = mottchannels[i];
     switch(n){

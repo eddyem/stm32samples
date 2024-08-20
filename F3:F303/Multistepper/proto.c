@@ -488,7 +488,7 @@ static int canusb_function(uint32_t hash, char *args){
         const char *n = getnum(args, &N);
         if(n != args){ // get parameter
             if(N >= CANMESG_NOPAR){
-                USND("Wrong parameter value");
+                USB_sendstr(errtxt[ERR_BADPAR]); newline();
                 return RET_GOOD;
             }
             par = (uint8_t) N;

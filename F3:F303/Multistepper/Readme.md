@@ -420,42 +420,157 @@ Dump motors' state codes (for getter `stateN`):
 
 ### emstop[N] (29 with `N` and 31 without)
 Emergency stop Nth motor or all (if `N` absent). Returns `OK` or error text.
+### eraseflash [=N] (38)
+Erase flash data storage (full or only N'th page of it). Use this option only if you have problems
+when try to save current configuration.
+### eswN (6) G
+Get end-switches state. Return two bits (for limit switches 0 and 1): 1 means "active", 0 - "passive". 
+If you use SPI-based driver, only one switch available, so return will be 1-bit.
+### eswreactN (24) GS
+End-switches reaction: 0 - ignore, 1 - stop on any limit switch (both 0 and 1; moving will be available only backwards),
+2 - stop only on switch 0. You can modify this values on-the-fly (but only when steppers aren't moving). This can be usefull,
+for example, to rotate filter turret into given position using switch 1 to both as limit switch and position stopper.
+But even in state 0 (ignore) active state of both switches estimates as error and you won't be able to move motor.
+### gotoN (26) GS
+Move motor to given absolute position.
+### gotozN (32)
+Find zero position & refresh counters. The motor would rotate in reverse direction until limit switch 0 acts or amount of
+steps (parameter `maxsteps` of configuration) is exhausted.
+### gpioconfN* GS
+GPIO configuration (0 - PUin, 1 - PPout, 2 - ODout), N=0..2.
+### gpio[N]* (12) GS
+GPIO values, N=0..2. Without `N` run for all GPIOs (each byte is state: 0/1).
+By default GPIOs are pulled up inputs. 
+### help
+Show this help.
+### maxspeedN (18) GS
+Maximal motor speed (steps per sec). Depends on current microstep configuration. As speed depends on Nth motor's timer settings,
+you can't give any value you want. Speed recalculated through ARR value:
 
-    "eraseflash [=N] (38) erase flash data storage (full or only N'th page of it)\n"
-    "esw[N] (6) G end-switches state\n"
-    "eswreactN (24) GS end-switches reaction (0 - ignore, 1 - stop@any, 2 - stop@zero)\n"
-    "gotoN (26) GS move motor to given absolute position\n"
-    "gotozN (32) find zero position & refresh counters\n"
-    "gpioconfN* - GS GPIO configuration (0 - PUin, 1 - PPout, 2 - ODout), N=0..2\n"
-    "gpioN* (12) GS GPIO values, N=0..2\n"
-help
-    "maxspeedN (18) GS max speed (steps per sec)\n"
-    "maxstepsN (21) GS max steps (from zero ESW)\n"
-    "mcut (7) G MCU T\n"
-    "mcuvdd (8) G MCU Vdd\n"
-    "microstepsN (16) GS microsteps settings (2^0..2^9)\n"
-    "minspeedN (19)  min speed (steps per sec)\n"
-    "motcurrentN (46) GS motor current (1..32 for 1/32..32/32 of max current)\n"
-    "motflagsN (23) motorN flags\n"
-    "motmul* (36) GS external multiplexer status (<0 - disable, 0..7 - enable and set address)\n"
-    "motno (44) GS motor number for next `pdn` commands\n"
-    "motreinit (25) re-init motors after configuration changed\n"
-    "pdnN (43) GS read/write TMC2209 registers over uart @ motor0\n"
-    "ping (1)- echo given command back\n"
-    "relposN (27) GS relative move (get remaining)\n"
-    "relslowN (28) GS like 'relpos' but with slowest speed\n"
-    "reset (9) software reset\n"
-    "saveconf (13) save current configuration\n"
-    "screen* - GS screen enable (1) or disable (0)\n"
-    "speedlimit (20) G limiting speed for current microsteps setting\n"
-    "stateN (33) G motor state (0-relax, 1-accel, 2-move, 3-mvslow, 4-decel, 5-stall, 6-err)\n"
-    "stopN (30) stop motor with deceleration\n"
-    "time (10) G time from start (ms)\n"
-    "tmcbus* - GS TMC control bus (0 - USART, 1 - SPI)\n"
-    "udata* (39) GS data by usart in slave mode (text strings, '\\n'-terminated)\n"
-    "usartstatus* (40) GS status of USART1 (0 - off, 1 - master, 2 - slave)\n"
-    "vdrive (41) G approx voltage on Vdrive\n"
-    "vfive (42) G approx voltage on 5V bus\n"
+    ARR = 26MHz / microsteps / (speed - 1).
+
+Minimal value of ARR is 99 (260kHz), maximal is 0xffff (600Hz). And after that actual speed value calculated:
+    
+    speed = 26MHz / microsteps / (ARR + 1).
+
+And it can't be greater than 0xffff. So if your motor really can make, let's say, 32000 steps per second, you can run it only
+for microstepping not more than 2.
+### maxstepsN (21) GS
+Maximal steps amount (from zero ESW) for given motor. This is limiting positive position and amount of steps to make when
+searching of zero limit switch.
+### mcut (7) G
+Temperature of MCU in thousandths of degC.
+### mcuvdd (8) G
+MCU Vdd value.
+### microstepsN (16) GS
+Microsteps settings (2^0..2^9). Read `maxspeed` about relationship of maximal speed and microsteppings.
+### minspeedN (19) GS
+Minimal motor speed (steps per sec), this is the starting speed of motor's ramp and default speed for `relslow` command,
+so don't try to make it too large.
+### motcurrentN (46) GS
+Maximal motor current (1..32 for 1/32..32/32 of max current) for TMC drivers. In case of simplest drivers like DRV8825
+you should set current using varistor on driver's board.
+### motflagsN (23) GS 
+Nth motor flags. To understand bit fields of these flags use `dumpmotflags`.
+### motmul * (36) GS
+external multiplexer status (<0 - disable, 0..7 - enable and set address).
+### motno (44) GS
+Motor number for next `pdn` commands (if you want to run custom commands by hands or in a batch).
+### motreinit (25)
+Re-init motors after configuration changed. Some changes will run this automatically.
+### pdnN (43) GS 
+Read/write TMC2209 (and other UART-based drivers) registers over uart @ motor number `motno`.
+For `pdnN=X` `N` is register number, `X` is data to write into it. Due to protocol's particulars
+you can't work with registers with address more than 126 (0x7e).
+### ping (1) 
+Echo given command back. For CAN bus return original packet, for USB - given argumemt and parameter (but checking parameter).
+### relposN (27) GS
+Relative (with ramp) move for given amount of steps (get remaining steps for getter). 
+### relslowN (28) GS 
+Like `relpos` but with constant slowest speed (you can change it with `minspeed`).
+### reset (9)
+Software reset.
+### saveconf (13)
+Save current configuration into MCU flash memory.
+### screen*  GS
+Enable (1) or disable (0) screen.
+### speedlimit (20) G
+Get limiting speed for current microsteps setting.
+### stateN (33) G
+Get Nth motor state (`dumpstates`: 0-relax, 1-accel, 2-move, 3-mvslow, 4-decel, 5-stall, 6-err).
+### stopN (30) 
+Stop Nth motor with deceleration (moving by ramp).
+### time (10) G
+Get time from start (ms).
+### tmcbus * GS 
+TMC control bus (0 - USART, 1 - SPI), unuseful command; use `motflags` instead.
+### udata* (39) GS
+Data by usart in slave mode (text strings, '\\n'-terminated).
+### usartstatus* (40)
+GS status of USART1 (0 - off, 1 - master, 2 - slave).
+### vdrive (41) G 
+Approximate voltage on Vdrive input, millivolts.
+### vfive (42) G
+Approximate voltage on 5V bus, millivolts.
 
 ## CAN bus
 Default CAN ID is 1.
+Protocol use variable length incoming messages: from 2 bytes for simplest commands to all 8 bytes for common.
+Bytes (in time order):
+
+- **0**, **1** - little-endian command code. 
+- **2** - parameter number (0..126), 127 means "no parameter", elder bit (0x80) is a setter flag (without it 
+all rest part of message ignored).
+- **3** - (only in packets from controller) error code.
+- **4**...**8** - little-endian data.
+
+Command codes described in USB answer for `dumpcmd`:
+
+    1 - ping
+    4 - adc
+    5 - button
+    6 - esw
+    7 - mcut
+    8 - mcuvdd
+    9 - reset
+    10 - time
+    12 - gpio
+    13 - saveconf
+    16 - microsteps
+    17 - accel
+    18 - maxspeed
+    19 - minspeed
+    20 - speedlimit
+    21 - maxsteps
+    23 - motflags
+    24 - eswreact
+    25 - motreinit
+    26 - goto
+    27 - relpos
+    28 - relslow
+    29 - emstop N
+    30 - stop
+    31 - emstop all
+    32 - gotoz
+    33 - state
+    35 - abspos
+    36 - motmul
+    37 - diagn
+    38 - eraseflash
+    39 - udata
+    40 - usartstatus
+    41 - vdrive
+    42 - vfive
+    43 - pdn
+    44 - motno
+    45 - drvtype
+
+Error codes (`dumperr`):
+
+    0 - OK
+    1 - BADPAR
+    2 - BADVAL
+    3 - WRONGLEN
+    4 - BADCMD
+    5 - CANTRUN
+
