@@ -20,8 +20,8 @@
 
 #include <stdint.h>
 
-// amount of filter banks in STM32F0
-#define STM32F0FBANKNO      28
+// amount of filter banks in STM32F
+#define STM32FBANKNO        28
 // flood period in milliseconds
 #define FLOOD_PERIOD_MS     5
 

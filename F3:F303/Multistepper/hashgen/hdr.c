@@ -56,6 +56,8 @@ int fn_dumpconf(uint32_t _U_ hash, char _U_ *args) WAL; // "dumpconf" (327151318
 
 int fn_dumperr(uint32_t _U_ hash, char _U_ *args) WAL; // "dumperr" (1223989764)
 
+int fn_dumpmot(uint32_t _U_ hash, char _U_ *args) WAL; // "dumpmot" (1224122507)
+
 int fn_dumpmotflags(uint32_t _U_ hash, char _U_ *args) WAL; // "dumpmotflags" (36159640)
 
 int fn_dumpstates(uint32_t _U_ hash, char _U_ *args) WAL; // "dumpstates" (4235564367)
@@ -215,6 +217,9 @@ int parsecmd(const char *str){
         break;
         case CMD_DUMPERR:
             return fn_dumperr(h, args);
+        break;
+        case CMD_DUMPMOT:
+            return fn_dumpmot(h, args);
         break;
         case CMD_DUMPMOTFLAGS:
             return fn_dumpmotflags(h, args);

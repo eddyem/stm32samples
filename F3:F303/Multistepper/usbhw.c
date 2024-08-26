@@ -1,6 +1,6 @@
 /*
  * This file is part of the multistepper project.
- * Copyright 2023 Edward V. Emelianov <edward.emelianoff@gmail.com>.
+ * Copyright 2024 Edward V. Emelianov <edward.emelianoff@gmail.com>.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -50,10 +50,10 @@ static uint16_t lastaddr = LASTADDR_DEFAULT;
 int EP_Init(uint8_t number, uint8_t type, uint16_t txsz, uint16_t rxsz, void (*func)(ep_t ep)){
     if(number >= STM32ENDPOINTS) return 4; // out of configured amount
     if(txsz > USB_BTABLE_SIZE || rxsz > USB_BTABLE_SIZE) return 1; // buffer too large
-    if(lastaddr + txsz + rxsz >= USB_BTABLE_SIZE) return 2; // out of btable
+    if(lastaddr + txsz + rxsz >= USB_BTABLE_SIZE/ACCESSZ) return 2; // out of btable
     USB->EPnR[number] = (type << 9) | (number & USB_EPnR_EA);
     USB->EPnR[number] ^= USB_EPnR_STAT_RX | USB_EPnR_STAT_TX_1;
-    if(rxsz & 1 || rxsz > 512) return 3; // wrong rx buffer size
+    if(rxsz & 1 || rxsz > USB_BTABLE_SIZE) return 3; // wrong rx buffer size
     uint16_t countrx = 0;
     if(rxsz < 64) countrx = rxsz / 2;
     else{
@@ -84,7 +84,6 @@ void usb_lp_isr(){
         lastaddr = LASTADDR_DEFAULT;
         // clear address, leave only enable bit
         USB->DADDR = USB_DADDR_EF;
-        USB_Dev.USB_Status = USB_STATE_DEFAULT;
         if(EP_Init(0, EP_TYPE_CONTROL, USB_EP0_BUFSZ, USB_EP0_BUFSZ, EP0_Handler)){
             return;
         }
@@ -101,10 +100,10 @@ void usb_lp_isr(){
         if(USB->ISTR & USB_ISTR_DIR){ // OUT interrupt - receive data, CTR_RX==1 (if CTR_TX == 1 - two pending transactions: receive following by transmit)
             if(n == 0){ // control endpoint
                 if(epstatus & USB_EPnR_SETUP){ // setup packet -> copy data to conf_pack
-                    EP_Read(0, (uint8_t*)&setup_packet);
+                    EP_Read(0, setupdatabuf);
                     // interrupt handler will be called later
                 }else if(epstatus & USB_EPnR_CTR_RX){ // data packet -> push received data to ep0databuf
-                    EP_Read(0, (uint8_t*)&ep0databuf);
+                    EP_Read(0, ep0databuf);
                 }
             }
         }

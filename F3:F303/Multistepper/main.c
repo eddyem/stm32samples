@@ -45,11 +45,11 @@ int main(void){
     hw_setup(); // GPIO, ADC, timers, watchdog etc.
     USBPU_OFF(); // make a reconnection
     flashstorage_init();
-    init_steppers();
     USB_setup();
     CAN_setup(the_conf.CANspeed);
     adc_setup();
     pdnuart_setup();
+    init_steppers();
     USBPU_ON();
     uint32_t ctr = 0;
     CAN_message *can_mesg;
@@ -60,10 +60,9 @@ int main(void){
             LED_blink();
         }
         CAN_proc();
-        USB_proc(); // TODO: remove deprecated trash code!
         process_steppers();
         if(CAN_get_status() == CAN_FIFO_OVERRUN){
-            USB_sendstr("CAN bus fifo overrun occured!\n");
+            USB_sendstr("CAN_FIFO_OVERRUN\n");
         }
         while((can_mesg = CAN_messagebuf_pop())){
             if(can_mesg && isgood(can_mesg->ID)){
@@ -82,8 +81,13 @@ int main(void){
             }
         }
         int l = USB_receivestr(inbuff, MAXSTRLEN);
-        if(l < 0) USB_sendstr("ERROR: USB buffer overflow or string was too long\n");
+        if(l < 0) USB_sendstr("USB_BUF_OVERFLOW\n");
         else if(l){
+#ifdef EBUG
+            USB_sendstr("USB GOT:\n");
+            USB_sendstr(inbuff);
+            USB_sendstr("\n--------\n");
+#endif
             const char *ans = cmd_parser(inbuff);
             if(ans) USB_sendstr(ans);
         }

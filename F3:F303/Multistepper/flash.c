@@ -200,6 +200,33 @@ int erase_storage(int npage){
     return ret;
 }
 
+int fn_dumpmot(uint32_t _U_ hash, char _U_ *args){ // "dumpmot" (1224122507)
+    if(!args || !*args) return RET_WRONGCMD;
+    uint32_t i;
+    const char *eq = getnum(args, &i);
+    if(eq == args || i > STP_STATE_AMOUNT) return RET_WRONGCMD;
+    char cur = '0' + i;
+#define PROPNAME(nm)    do{newline(); USB_sendstr(nm); USB_putbyte(cur); USB_putbyte('=');}while(0)
+    USB_sendstr("microsteps"); USB_putbyte(cur); USB_putbyte('=');
+    printu(the_conf.microsteps[i]);
+    PROPNAME("accel");
+    printu(the_conf.accel[i]);
+    PROPNAME("maxspeed");
+    printu(the_conf.maxspd[i]);
+    PROPNAME("minspeed");
+    printu(the_conf.minspd[i]);
+    PROPNAME("maxsteps");
+    printu(the_conf.maxsteps[i]);
+    PROPNAME("motcurrent");
+    printu(the_conf.motcurrent[i]);
+    PROPNAME("motflags");
+    printuhex(*((uint8_t*)&the_conf.motflags[i]));
+    PROPNAME("eswreact");
+    printu(the_conf.ESW_reaction[i]);
+#undef PROPNAME
+    newline();
+    return RET_GOOD;
+}
 
 int fn_dumpconf(uint32_t _U_ hash, char _U_ *args){ // "dumpconf" (3271513185)
 #ifdef EBUG
@@ -212,28 +239,12 @@ int fn_dumpconf(uint32_t _U_ hash, char _U_ *args){ // "dumpconf" (3271513185)
     USB_sendstr("\nuserconf_sz="); printu(the_conf.userconf_sz);
     USB_sendstr("\ncanspeed="); printu(the_conf.CANspeed);
     USB_sendstr("\ncanid="); printu(the_conf.CANID);
+    newline();
+    char x[2] = {0};
     // motors' data
     for(int i = 0; i < MOTORSNO; ++i){
-        char cur = '0' + i;
-#define PROPNAME(nm)    do{newline(); USB_sendstr(nm); USB_putbyte(cur); USB_putbyte('=');}while(0)
-        PROPNAME("microsteps");
-        printu(the_conf.microsteps[i]);
-        PROPNAME("accel");
-        printu(the_conf.accel[i]);
-        PROPNAME("maxspeed");
-        printu(the_conf.maxspd[i]);
-        PROPNAME("minspeed");
-        printu(the_conf.minspd[i]);
-        PROPNAME("maxsteps");
-        printu(the_conf.maxsteps[i]);
-        PROPNAME("motcurrent");
-        printu(the_conf.motcurrent[i]);
-        PROPNAME("motflags");
-        printuhex(*((uint8_t*)&the_conf.motflags[i]));
-        PROPNAME("eswreact");
-        printu(the_conf.ESW_reaction[i]);
-#undef PROPNAME
+        x[0] = '0' + i;
+        fn_dumpmot(0, x);
     }
-    newline();
     return RET_GOOD;
 }

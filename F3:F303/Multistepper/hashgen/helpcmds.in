@@ -20,6 +20,7 @@
     "dumperr - dump error codes\n"
     "dumpcmd - dump command codes\n"
     "dumpconf - dump current configuration\n"
+    "dumpmotN - dump Nth motor configuration\n"
     "dumpmotflags - dump motor flags' bits\n"
     "dumpstates - dump motors' state codes\n"
     "emstop[N] - emergency stop motor N or all\n"

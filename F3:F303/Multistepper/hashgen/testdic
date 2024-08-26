@@ -20,6 +20,7 @@ drvtype
 dumperr
 dumpcmd
 dumpconf
+dumpmot
 dumpmotflags
 dumpstates
 emstop

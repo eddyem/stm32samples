@@ -390,6 +390,8 @@ Dump command codes. Returns all list of CAN bus command codes.
 ###  dumpconf
 Dump current configuration. Returns a lot of information both common (like CAN bus speed, ID and so on) and
 for each motor driver. You can call independeng getters for each of this parameter.
+###  dumpmotN
+Dump configuration of Nth motor only.
 ### dumpmotflags 
 Dump motor flags' bits (for `motflagsN`) and reaction to limit switches (`eswreact`) values:
 

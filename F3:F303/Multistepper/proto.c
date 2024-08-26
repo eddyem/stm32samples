@@ -205,7 +205,7 @@ static void add_filter(const char *str){
         USB_sendstr("No bank# given");
         return;
     }
-    if(N > STM32F0FBANKNO-1){
+    if(N > STM32FBANKNO-1){
         USB_sendstr("bank# > 27");
         return;
     }

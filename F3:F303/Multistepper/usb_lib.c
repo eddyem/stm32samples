@@ -1,6 +1,6 @@
 /*
  * This file is part of the multistepper project.
- * Copyright 2023 Edward V. Emelianov <edward.emelianoff@gmail.com>.
+ * Copyright 2024 Edward V. Emelianov <edward.emelianoff@gmail.com>.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,14 +17,16 @@
  */
 
 #include <stdint.h>
+#include "usb.h"
 #include "usb_lib.h"
+#include "usbhw.h"
 
 ep_t endpoints[STM32ENDPOINTS];
 
-usb_dev_t USB_Dev;
+static uint16_t USB_Addr = 0;
 static usb_LineCoding lineCoding = {115200, 0, 0, 8};
-config_pack_t setup_packet;
-uint8_t ep0databuf[EP0DATABUF_SIZE];
+uint8_t ep0databuf[EP0DATABUF_SIZE], setupdatabuf[EP0DATABUF_SIZE];
+config_pack_t *setup_packet = (config_pack_t*) setupdatabuf;
 
 usb_LineCoding getLineCoding(){return lineCoding;}
 
@@ -53,9 +55,9 @@ static const uint8_t USB_DeviceDescriptor[] = {
         0x23,   // idProduct_H
         0x00,   // bcdDevice_Ver_L
         0x03,   // bcdDevice_Ver_H
-        0x01,   // iManufacturer
-        0x02,   // iProduct
-        0x00,   // iSerialNumber
+        iMANUFACTURER_DESCR,   // iManufacturer
+        iPRODUCT_DESCR,   // iProduct
+        iSERIAL_DESCR,   // iSerialNumber
         bNumConfigurations    // bNumConfigurations
 };
 
@@ -95,7 +97,7 @@ static const uint8_t USB_ConfigDescriptor[] = {
         0xff, /* bInterfaceClass */
         0x00, /* bInterfaceSubClass */
         0x00, /* bInterfaceProtocol */
-        0x00, /* iInterface: */
+        iINTERFACE_DESCR, /* iInterface: */
 ///////////////////////////////////////////////////
         /*Endpoint 1 Descriptor*/
         0x07, /* bLength: Endpoint Descriptor size */
@@ -125,11 +127,19 @@ static const uint8_t USB_ConfigDescriptor[] = {
         0x00, /* bInterval: ignore for Bulk transfer */
 };
 
-_USB_LANG_ID_(USB_StringLangDescriptor, LANG_US);
-// these descriptors are not used in PL2303 emulator!
-_USB_STRING_(USB_StringSerialDescriptor, u"0");
-_USB_STRING_(USB_StringManufacturingDescriptor, u"Prolific Technology Inc.");
-_USB_STRING_(USB_StringProdDescriptor, u"USB-Serial Controller");
+_USB_LANG_ID_(LD, LANG_US);
+_USB_STRING_(SD, u"0.0.1");
+_USB_STRING_(MD, u"Prolific Technology Inc.");
+_USB_STRING_(PD, u"USB-Serial Controller");
+_USB_STRING_(ID, u"multistepper");
+static void const *StringDescriptor[iDESCR_AMOUNT] = {
+    [iLANGUAGE_DESCR] = &LD,
+    [iMANUFACTURER_DESCR] = &MD,
+    [iPRODUCT_DESCR] = &PD,
+    [iSERIAL_DESCR] = &SD,
+    [iINTERFACE_DESCR] = &ID
+};
+
 
 /*
  * default handlers
@@ -171,7 +181,7 @@ void WEAK vendor_handler(config_pack_t *packet){
 }
 
 static void wr0(const uint8_t *buf, uint16_t size){
-    if(setup_packet.wLength < size) size = setup_packet.wLength; // shortened request
+    if(setup_packet->wLength < size) size = setup_packet->wLength; // shortened request
     if(size < endpoints[0].txbufsz){
         EP_WriteIRQ(0, buf, size);
         return;
@@ -199,24 +209,18 @@ static void wr0(const uint8_t *buf, uint16_t size){
 }
 
 static inline void get_descriptor(){
-    switch(setup_packet.wValue){
+    uint8_t descrtype = setup_packet->wValue >> 8,
+            descridx = setup_packet->wValue & 0xff;
+    switch(descrtype){
         case DEVICE_DESCRIPTOR:
             wr0(USB_DeviceDescriptor, sizeof(USB_DeviceDescriptor));
         break;
         case CONFIGURATION_DESCRIPTOR:
             wr0(USB_ConfigDescriptor, sizeof(USB_ConfigDescriptor));
         break;
-        case STRING_LANG_DESCRIPTOR:
-            wr0((const uint8_t *)&USB_StringLangDescriptor, STRING_LANG_DESCRIPTOR_SIZE_BYTE);
-        break;
-        case STRING_MAN_DESCRIPTOR:
-            wr0((const uint8_t *)&USB_StringManufacturingDescriptor, USB_StringManufacturingDescriptor.bLength);
-        break;
-        case STRING_PROD_DESCRIPTOR:
-            wr0((const uint8_t *)&USB_StringProdDescriptor, USB_StringProdDescriptor.bLength);
-        break;
-        case STRING_SN_DESCRIPTOR:
-            wr0((const uint8_t *)&USB_StringSerialDescriptor, USB_StringSerialDescriptor.bLength);
+        case STRING_DESCRIPTOR:
+            if(descridx < iDESCR_AMOUNT) wr0((const uint8_t *)StringDescriptor[descridx], *((uint8_t*)StringDescriptor[descridx]));
+            else EP_WriteIRQ(0, (uint8_t*)0, 0);
         break;
         case DEVICE_QUALIFIER_DESCRIPTOR:
             wr0(USB_DeviceQualifierDescriptor, USB_DeviceQualifierDescriptor[0]);
@@ -229,7 +233,7 @@ static inline void get_descriptor(){
 static uint16_t configuration = 0; // reply for GET_CONFIGURATION (==1 if configured)
 static inline void std_d2h_req(){
     uint16_t status = 0; // bus powered
-    switch(setup_packet.bRequest){
+    switch(setup_packet->bRequest){
         case GET_DESCRIPTOR:
             get_descriptor();
         break;
@@ -244,16 +248,61 @@ static inline void std_d2h_req(){
     }
 }
 
+// interrupt IN handler (never used?)
+static void EP1_Handler(){
+    uint16_t epstatus = KEEP_DTOG(USB->EPnR[1]);
+    if(RX_FLAG(epstatus)) epstatus = (epstatus & ~USB_EPnR_STAT_TX) ^ USB_EPnR_STAT_RX; // set valid RX
+    else epstatus = epstatus & ~(USB_EPnR_STAT_TX|USB_EPnR_STAT_RX);
+    // clear CTR
+    epstatus = (epstatus & ~(USB_EPnR_CTR_RX|USB_EPnR_CTR_TX));
+    USB->EPnR[1] = epstatus;
+}
+
+// data IN/OUT handlers
+static void transmit_Handler(){ // EP3IN
+    uint16_t epstatus = KEEP_DTOG_STAT(USB->EPnR[3]);
+    // clear CTR keep DTOGs & STATs
+    USB->EPnR[3] = (epstatus & ~(USB_EPnR_CTR_TX)); // clear TX ctr
+    send_next();
+}
+
+static uint8_t rcvbuf[USB_RXBUFSZ];
+static uint8_t volatile rcvbuflen = 0;
+
+void chkin(){
+    if(bufovrfl) return;
+    if(!rcvbuflen) return;
+    int w = RB_write((ringbuffer*)&rbin, rcvbuf, rcvbuflen);
+    if(w < 0) return;
+    if(w != rcvbuflen) bufovrfl = 1;
+    rcvbuflen = 0;
+    uint16_t status = KEEP_DTOG(USB->EPnR[2]); // don't change DTOG
+    USB->EPnR[2] = status ^ USB_EPnR_STAT_RX;
+}
+
+// receiver reads data from local buffer and only then ACK'ed
+static void receive_Handler(){ // EP2OUT
+    uint16_t status = KEEP_DTOG_STAT(USB->EPnR[2]); // don't change DTOG and NACK
+    if(rcvbuflen){
+        bufovrfl = 1; // lost last data
+        rcvbuflen = 0;
+    }
+    rcvbuflen = EP_Read(2, (uint8_t*)rcvbuf);
+    USB->EPnR[2] = status & ~USB_EPnR_CTR_RX;
+}
+
 static inline void std_h2d_req(){
-    switch(setup_packet.bRequest){
+    switch(setup_packet->bRequest){
         case SET_ADDRESS:
             // new address will be assigned later - after  acknowlegement or request to host
-            USB_Dev.USB_Addr = setup_packet.wValue;
+            USB_Addr = setup_packet->wValue;
         break;
         case SET_CONFIGURATION:
             // Now device configured
-            USB_Dev.USB_Status = USB_STATE_CONFIGURED;
-            configuration = setup_packet.wValue;
+            configuration = setup_packet->wValue;
+            EP_Init(1, EP_TYPE_INTERRUPT, USB_EP1BUFSZ, 0, EP1_Handler); // IN1 - transmit
+            EP_Init(2, EP_TYPE_BULK, 0, USB_RXBUFSZ, receive_Handler); // OUT2 - receive data
+            EP_Init(3, EP_TYPE_BULK, USB_TXBUFSZ, 0, transmit_Handler); // IN3 - transmit data
         break;
         default:
         break;
@@ -271,8 +320,8 @@ bmRequestType: 76543210
  */
 void EP0_Handler(){
     uint16_t epstatus = USB->EPnR[0]; // EP0R on input -> return this value after modifications
-    uint8_t reqtype = setup_packet.bmRequestType & 0x7f;
-    uint8_t dev2host = (setup_packet.bmRequestType & 0x80) ? 1 : 0;
+    uint8_t reqtype = setup_packet->bmRequestType & 0x7f;
+    uint8_t dev2host = (setup_packet->bmRequestType & 0x80) ? 1 : 0;
     int rxflag = RX_FLAG(epstatus);
     if(rxflag && SETUP_FLAG(epstatus)){
         switch(reqtype){
@@ -285,15 +334,15 @@ void EP0_Handler(){
                 }
             break;
             case STANDARD_ENDPOINT_REQUEST_TYPE: // standard endpoint request
-                if(setup_packet.bRequest == CLEAR_FEATURE){
+                if(setup_packet->bRequest == CLEAR_FEATURE){
                     EP_WriteIRQ(0, (uint8_t *)0, 0);
                 }
             break;
             case VENDOR_REQUEST_TYPE:
-                vendor_handler(&setup_packet);
+                vendor_handler(setup_packet);
             break;
             case CONTROL_REQUEST_TYPE:
-                switch(setup_packet.bRequest){
+                switch(setup_packet->bRequest){
                     case GET_LINE_CODING:
                         EP_WriteIRQ(0, (uint8_t*)&lineCoding, sizeof(lineCoding));
                     break;
@@ -301,7 +350,7 @@ void EP0_Handler(){
                     break;
                     case SET_CONTROL_LINE_STATE:
                         usbON = 1;
-                        clstate_handler(setup_packet.wValue);
+                        clstate_handler(setup_packet->wValue);
                     break;
                     case SEND_BREAK:
                         usbON = 0;
@@ -310,23 +359,22 @@ void EP0_Handler(){
                     default:
                     break;
                 }
-                if(setup_packet.bRequest != GET_LINE_CODING) EP_WriteIRQ(0, (uint8_t *)0, 0); // write acknowledgement
+                if(setup_packet->bRequest != GET_LINE_CODING) EP_WriteIRQ(0, (uint8_t *)0, 0); // write acknowledgement
             break;
             default:
                 EP_WriteIRQ(0, (uint8_t *)0, 0);
         }
     }else if(rxflag){ // got data over EP0 or host acknowlegement
         if(endpoints[0].rx_cnt){
-            if(setup_packet.bRequest == SET_LINE_CODING){
+            if(setup_packet->bRequest == SET_LINE_CODING){
                 linecoding_handler((usb_LineCoding*)ep0databuf);
             }
         }
     } else if(TX_FLAG(epstatus)){ // package transmitted
         // now we can change address after enumeration
-        if ((USB->DADDR & USB_DADDR_ADD) != USB_Dev.USB_Addr){
-            USB->DADDR = USB_DADDR_EF | USB_Dev.USB_Addr;
-            // change state to ADRESSED
-            USB_Dev.USB_Status = USB_STATE_ADDRESSED;
+        if ((USB->DADDR & USB_DADDR_ADD) != USB_Addr){
+            USB->DADDR = USB_DADDR_EF | USB_Addr;
+            usbON = 0;
         }
     }
     epstatus = KEEP_DTOG(USB->EPnR[0]);
