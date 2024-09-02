@@ -1,5 +1,4 @@
 /*
- * This file is part of the multistepper project.
  * Copyright 2024 Edward V. Emelianov <edward.emelianoff@gmail.com>.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -15,7 +14,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 #pragma once
 
 #include <wchar.h>
@@ -91,16 +89,6 @@ enum{
 #define EP_TYPE_INTERRUPT               0x03
 
 #define LANG_US (uint16_t)0x0409
-
-#if 0
-typedef struct{
-    uint8_t  bLength;
-    uint8_t  bDescriptorType;
-    uint16_t *bString;
-} string_descriptor_t;
-
-#define _USB_STRING_(name, str) string_descriptor_t name = {(sizeof(str) + 2), STRING_DESCRIPTOR, str}
-#endif
 
 #define _USB_STRING_(name, str)                  \
 static const struct name \
@@ -181,3 +169,4 @@ void clstate_handler(uint16_t val);
 void break_handler();
 void vendor_handler(config_pack_t *packet);
 void chkin();
+int EP_Init(uint8_t number, uint8_t type, uint16_t txsz, uint16_t rxsz, void (*func)());

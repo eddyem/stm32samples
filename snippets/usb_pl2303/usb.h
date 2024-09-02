@@ -1,6 +1,5 @@
 /*
- * This file is part of the pl2303 project.
- * Copyright 2023 Edward V. Emelianov <edward.emelianoff@gmail.com>.
+ * Copyright 2024 Edward V. Emelianov <edward.emelianoff@gmail.com>.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,7 +22,7 @@
 
 // sizes of ringbuffers for outgoing and incoming data
 #define RBOUTSZ     (512)
-#define RBINSZ      (512)
+#define RBINSZ      (256)
 
 #define newline()   USB_putbyte('\n')
 #define USND(s)     do{USB_sendstr(s); USB_putbyte('\n');}while(0)

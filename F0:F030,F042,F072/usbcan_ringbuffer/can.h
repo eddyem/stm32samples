@@ -49,6 +49,7 @@ CAN_status CAN_get_status();
 
 int CAN_reinit(uint16_t speed);
 int CAN_setup(uint16_t speed);
+uint16_t CAN_getspeed();
 
 CAN_status can_send(uint8_t *msg, uint8_t len, uint16_t target_id);
 void can_proc();

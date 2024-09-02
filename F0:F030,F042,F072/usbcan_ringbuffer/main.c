@@ -56,6 +56,7 @@ int main(void){
             USB_sendstr("CAN bus fifo overrun occured!\n");
         }
         while((can_mesg = CAN_messagebuf_pop())){
+            IWDG->KR = IWDG_REFRESH;
             if(can_mesg && isgood(can_mesg->ID)){
                 LED_on(LED0);
                 lastT = Tms;

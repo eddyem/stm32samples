@@ -1,6 +1,5 @@
 /*
- * This file is part of the pl2303 project.
- * Copyright 2023 Edward V. Emelianov <edward.emelianoff@gmail.com>.
+ * Copyright 2024 Edward V. Emelianov <edward.emelianoff@gmail.com>.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,17 +14,61 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 #pragma once
 
+#if defined STM32F0
+#include <stm32f0.h>
+#elif defined STM32F1
+#include <stm32f1.h>
+// there's no this define in standard header
+#define USB_BASE                ((uint32_t)0x40005C00)
+#elif defined STM32F3
 #include <stm32f3.h>
+#endif
 
 // max endpoints number
 #define STM32ENDPOINTS          8
 /**
  *                 Buffers size definition
  **/
+
+//  F0 - USB2_16; F1 - USB1_16; F3 - 1/2 depending on series
+#if !defined USB1_16 && !defined USB2_16
+#if defined STM32F0
+#define USB2_16
+#elif defined STM32F1
+#define USB1_16
+#else
+#error "Can't determine USB1_16 or USB2_16, define by hands"
+#endif
+#endif
+
+// BTABLE_SIZE FOR STM32F3:
+// In STM32F303/302xB/C, 512 bytes SRAM is not shared with CAN.
+// In STM32F302x6/x8 and STM32F30xxD/E, 726 bytes dedicated SRAM and 256 bytes shared SRAM with CAN i.e.
+//     1Kbytes dedicated SRAM in case CAN is disabled.
+// remember, that USB_BTABLE_SIZE will be divided by ACCESSZ, so don't divide it twice for 32-bit addressing
+
+#ifdef NOCAN
+#if defined STM32F0
+#define USB_BTABLE_SIZE         1024
+#elif defined STM32F3
+#define USB_BTABLE_SIZE         512
+#warning "Please, check real buffer size due to docs"
+#else
+#error "define STM32F0 or STM32F3"
+#endif
+#else // !NOCAN: F0/F3 with CAN or F1 (can't simultaneously run CAN and USB)
+#if defined STM32F0
 #define USB_BTABLE_SIZE         768
+#elif defined STM32F3
+#define USB_BTABLE_SIZE         512
+#warning "Please, check real buffer size due to docs"
+#else // STM32F103: 1024 bytes but with 32-bit addressing
+#define USB_BTABLE_SIZE         1024
+#endif
+#endif // NOCAN
+
 // first 64 bytes of USB_BTABLE are registers!
 //#define USB_EP0_BASEADDR        64
 // for USB FS EP0 buffers are from 8 to 64 bytes long (64 for PL2303)
@@ -110,4 +153,3 @@ typedef struct{
 } USB_BtableDef;
 
 void USB_setup();
-int EP_Init(uint8_t number, uint8_t type, uint16_t txsz, uint16_t rxsz, void (*func)());

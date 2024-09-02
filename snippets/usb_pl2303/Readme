@@ -1,1 +1,9 @@
 Actual snipper for all MCUs (just fix usbhw.c and usbhw.h)
+
+If USB DP/DM pins need to be setting up, do it before calling USB_setup().
+For F1/F3 your should manulally turn off DP pullup before calling USB_setup() and turn it on after this. 
+F0 do it itself (excluding need of external pullup, e.g for halvanic isolator).
+
+defines:
+NOCAN - no common work with CAN bus (for F0/F3) - buffer will be 256 bytes larger
+USB1_16 (32-bit addressing) / USB2_16 (16-bit addressing) - addressing method of USB registers (manually define only for F3, where < D have 1_16, >= D have 2_16)

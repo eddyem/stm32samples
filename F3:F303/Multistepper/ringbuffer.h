@@ -1,5 +1,4 @@
 /*
- * This file is part of the multistepper project.
  * Copyright 2023 Edward V. Emelianov <edward.emelianoff@gmail.com>.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -18,7 +17,13 @@
 
 #pragma once
 
+#if defined STM32F0
+#include <stm32f0.h>
+#elif defined STM32F1
+#include <stm32f1.h>
+#elif defined STM32F3
 #include <stm32f3.h>
+#endif
 
 typedef struct{
     uint8_t *data;      // data buffer

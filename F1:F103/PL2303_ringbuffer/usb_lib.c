@@ -1,6 +1,5 @@
 /*
- * This file is part of the pl2303 project.
- * Copyright 2023 Edward V. Emelianov <edward.emelianoff@gmail.com>.
+ * Copyright 2024 Edward V. Emelianov <edward.emelianoff@gmail.com>.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,7 +14,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 #include <stdint.h>
 #include "usb.h"
 #include "usb_lib.h"
@@ -26,7 +24,7 @@ ep_t endpoints[STM32ENDPOINTS];
 static uint16_t USB_Addr = 0;
 static usb_LineCoding lineCoding = {115200, 0, 0, 8};
 uint8_t ep0databuf[EP0DATABUF_SIZE], setupdatabuf[EP0DATABUF_SIZE];
-static config_pack_t *setup_packet = (config_pack_t*) setupdatabuf;
+config_pack_t *setup_packet = (config_pack_t*) setupdatabuf;
 
 usb_LineCoding getLineCoding(){return lineCoding;}
 
@@ -131,7 +129,7 @@ _USB_LANG_ID_(LD, LANG_US);
 _USB_STRING_(SD, u"0.0.1");
 _USB_STRING_(MD, u"Prolific Technology Inc.");
 _USB_STRING_(PD, u"USB-Serial Controller");
-_USB_STRING_(ID, u"pl2303_emulator");
+_USB_STRING_(ID, u"USB-STM32");
 static void const *StringDescriptor[iDESCR_AMOUNT] = {
     [iLANGUAGE_DESCR] = &LD,
     [iMANUFACTURER_DESCR] = &MD,
@@ -266,15 +264,29 @@ static void transmit_Handler(){ // EP3IN
     send_next();
 }
 
+static uint8_t volatile rcvbuf[USB_RXBUFSZ];
+static uint8_t volatile rcvbuflen = 0;
+
+void chkin(){
+    if(bufovrfl) return;
+    if(!rcvbuflen) return;
+    int w = RB_write((ringbuffer*)&rbin, (uint8_t*)rcvbuf, rcvbuflen);
+    if(w < 0) return;
+    if(w != rcvbuflen) bufovrfl = 1;
+    rcvbuflen = 0;
+    uint16_t status = KEEP_DTOG(USB->EPnR[2]); // don't change DTOG
+    USB->EPnR[2] = status ^ USB_EPnR_STAT_RX;
+}
+
+// receiver reads data from local buffer and only then ACK'ed
 static void receive_Handler(){ // EP2OUT
-    uint8_t buf[USB_RXBUFSZ];
-    uint16_t epstatus = KEEP_DTOG(USB->EPnR[2]);
-    uint8_t sz = EP_Read(2, (uint8_t*)buf);
-    if(sz){
-        if(RB_write((ringbuffer*)&rbin, buf, sz) != sz) bufovrfl = 1;
+    uint16_t status = KEEP_DTOG_STAT(USB->EPnR[2]); // don't change DTOG and NACK
+    if(rcvbuflen){
+        bufovrfl = 1; // lost last data
+        rcvbuflen = 0;
     }
-    // keep stat_tx & set ACK rx, clear RX ctr
-    USB->EPnR[2] = (epstatus & ~USB_EPnR_CTR_RX) ^ USB_EPnR_STAT_RX;
+    rcvbuflen = EP_Read(2, (uint8_t*)rcvbuf);
+    USB->EPnR[2] = status & ~USB_EPnR_CTR_RX;
 }
 
 static inline void std_h2d_req(){
@@ -436,3 +448,103 @@ int EP_Read(uint8_t number, uint8_t *buf){
     return sz;
 }
 
+
+static uint16_t lastaddr = LASTADDR_DEFAULT;
+/**
+ * Endpoint initialisation
+ * @param number - EP num (0...7)
+ * @param type - EP type (EP_TYPE_BULK, EP_TYPE_CONTROL, EP_TYPE_ISO, EP_TYPE_INTERRUPT)
+ * @param txsz - transmission buffer size @ USB/CAN buffer
+ * @param rxsz - reception buffer size @ USB/CAN buffer
+ * @param uint16_t (*func)(ep_t *ep) - EP handler function
+ * @return 0 if all OK
+ */
+int EP_Init(uint8_t number, uint8_t type, uint16_t txsz, uint16_t rxsz, void (*func)(ep_t ep)){
+    if(number >= STM32ENDPOINTS) return 4; // out of configured amount
+    if(txsz > USB_BTABLE_SIZE || rxsz > USB_BTABLE_SIZE) return 1; // buffer too large
+    if(lastaddr + txsz + rxsz >= USB_BTABLE_SIZE/ACCESSZ) return 2; // out of btable
+    USB->EPnR[number] = (type << 9) | (number & USB_EPnR_EA);
+    USB->EPnR[number] ^= USB_EPnR_STAT_RX | USB_EPnR_STAT_TX_1;
+    if(rxsz & 1 || rxsz > USB_BTABLE_SIZE) return 3; // wrong rx buffer size
+    uint16_t countrx = 0;
+    if(rxsz < 64) countrx = rxsz / 2;
+    else{
+        if(rxsz & 0x1f) return 3; // should be multiple of 32
+        countrx = 31 + rxsz / 32;
+    }
+    USB_BTABLE->EP[number].USB_ADDR_TX = lastaddr;
+    endpoints[number].tx_buf = (uint16_t *)(USB_BTABLE_BASE + lastaddr * ACCESSZ);
+    endpoints[number].txbufsz = txsz;
+    lastaddr += txsz;
+    USB_BTABLE->EP[number].USB_COUNT_TX = 0;
+    USB_BTABLE->EP[number].USB_ADDR_RX = lastaddr;
+    endpoints[number].rx_buf = (uint8_t *)(USB_BTABLE_BASE + lastaddr * ACCESSZ);
+    lastaddr += rxsz;
+    USB_BTABLE->EP[number].USB_COUNT_RX = countrx << 10;
+    endpoints[number].func = func;
+    return 0;
+}
+
+// standard IRQ handler
+void USB_IRQ(){
+    if(USB->ISTR & USB_ISTR_RESET){
+        usbON = 0;
+        // Reinit registers
+        USB->CNTR = USB_CNTR_RESETM | USB_CNTR_CTRM | USB_CNTR_SUSPM | USB_CNTR_WKUPM;
+        // Endpoint 0 - CONTROL
+        // ON USB LS size of EP0 may be 8 bytes, but on FS it should be 64 bytes!
+        lastaddr = LASTADDR_DEFAULT;
+        // clear address, leave only enable bit
+        USB->DADDR = USB_DADDR_EF;
+        if(EP_Init(0, EP_TYPE_CONTROL, USB_EP0_BUFSZ, USB_EP0_BUFSZ, EP0_Handler)){
+            return;
+        }
+        USB->ISTR = ~USB_ISTR_RESET;
+    }
+    if(USB->ISTR & USB_ISTR_CTR){
+        // EP number
+        uint8_t n = USB->ISTR & USB_ISTR_EPID;
+        // copy status register
+        uint16_t epstatus = USB->EPnR[n];
+        // copy received bytes amount
+        endpoints[n].rx_cnt = USB_BTABLE->EP[n].USB_COUNT_RX & 0x3FF; // low 10 bits is counter
+        // check direction
+        if(USB->ISTR & USB_ISTR_DIR){ // OUT interrupt - receive data, CTR_RX==1 (if CTR_TX == 1 - two pending transactions: receive following by transmit)
+            if(n == 0){ // control endpoint
+                if(epstatus & USB_EPnR_SETUP){ // setup packet -> copy data to conf_pack
+                    EP_Read(0, setupdatabuf);
+                    // interrupt handler will be called later
+                }else if(epstatus & USB_EPnR_CTR_RX){ // data packet -> push received data to ep0databuf
+                    EP_Read(0, ep0databuf);
+                }
+            }
+        }
+        // call EP handler
+        if(endpoints[n].func) endpoints[n].func(endpoints[n]);
+    }
+    if(USB->ISTR & USB_ISTR_SUSP){ // suspend -> still no connection, may sleep
+        usbON = 0;
+#ifndef STM32F0
+        USB->CNTR |= USB_CNTR_FSUSP | USB_CNTR_LP_MODE;
+#else
+        USB->CNTR |= USB_CNTR_FSUSP | USB_CNTR_LPMODE;
+#endif
+        USB->ISTR = ~USB_ISTR_SUSP;
+    }
+    if(USB->ISTR & USB_ISTR_WKUP){ // wakeup
+#ifndef STM32F0
+        USB->CNTR &= ~(USB_CNTR_FSUSP | USB_CNTR_LP_MODE); // clear suspend flags
+#else
+        USB->CNTR &= ~(USB_CNTR_FSUSP | USB_CNTR_LPMODE);
+#endif
+        USB->ISTR = ~USB_ISTR_WKUP;
+    }
+}
+
+#if defined STM32F3
+void usb_lp_isr() __attribute__ ((alias ("USB_IRQ")));
+#elif defined STM32F1
+void usb_lp_can_rx0_isr() __attribute__ ((alias ("USB_IRQ")));
+#elif defined STM32F0
+void usb_isr() __attribute__ ((alias ("USB_IRQ")));
+#endif

@@ -1,5 +1,4 @@
 /*
- * This file is part of the multistepper project.
  * Copyright 2024 Edward V. Emelianov <edward.emelianoff@gmail.com>.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -21,9 +20,6 @@
 #include "hardware.h"
 #include "usb.h"
 #include "usb_lib.h"
-#ifdef EBUG
-#include "strfunc.h"
-#endif
 
 static volatile uint8_t usbbuff[USB_TXBUFSZ]; // temporary buffer for sending data
 // ring buffers for incoming and outgoing data
@@ -43,7 +39,9 @@ void send_next(){
         lastdsz = 0;
         return;
     }else if(buflen < 0){
-        EP_Write(3, NULL, 0); // send ZLP if buffer is in writting state now
+        lastdsz = 0;
+        // Uncomment next line if you want 4Mbit/s instead of 6Mbit/s
+        //EP_Write(3, NULL, 0); // send ZLP if buffer is in writting state now
         return;
     }
     EP_Write(3, (uint8_t*)usbbuff, buflen);
@@ -130,9 +128,6 @@ int USB_receivestr(char *buf, int len){
         }
         return 0;
     }
-#ifdef EBUG
-    USB_sendstr("readto, l="); USB_sendstr(u2str(l)); newline();
-#endif
     if(l == 0) return 0;
     buf[l-1] = 0; // replace '\n' with strend
     return l;

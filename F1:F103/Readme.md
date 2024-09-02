@@ -2,9 +2,6 @@
 - **BMP280** - I2C temperature/pressure sensor BMP280 and temp/pres/humidity sensor BME280
 - **Canon_managing_device** - device for independent managing of some Canon lens
 - **canUART** - UART-CAN bridge
-- **CDC_ACM** - simplest CDC-ACM snippet (*deprecated*)
-- **chronometer** - first version of chronometer for bike/auto/moto competitions
-- **chronometer_v2** - chrono-2
 - **chronometer_v3** - chrono-3
 - **DHT22_DHT11** - DHT11 and DHT22 humidity/temperature sensors management based on timer+DMA
 - **DS18** - DS18x20 temperature sensor management
@@ -14,11 +11,8 @@
 - **led_blink** - simple blink
 - **LED_Screen** - management with matrixes of LED screens 32x16 (or another size) pixels (P10)
 - **MAX7219_screen** - work with N LED matrices 8x8
-- **MLX90640** - test of MLX90640 (*deprecated* as can't calculate so many sqrt's on STM32F103)
-- **PL2303** - based PL2303 emulation (*deprecated*)
-- **PL2303_ringbuffer** - PL2303 with ringbuffer (need rebuld as for STM32F0x2)
-- **pl2303_snippet** - (*deprecated*)
-- **pl2303_snippet_naked** - (*deprecated*)
+- **PL2303_rb_strip** - "naked" PL2303 (without UART)
+- **PL2303_ringbuffer** - PL2303 with ringbuffer 
 - **pwmdmatest** - generate signals on PA8 by PWM through DMA @ TIM1_CC1 (awfull code)
 - **pwmtest** - generate signals on PA8 by PWM @ TIM1_CC1
 - **RGB_LED_Screen** - HUB75E-based RGB LED panel management, 8.8.4 color (RRRGGGBB)

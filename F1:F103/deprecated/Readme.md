@@ -1,0 +1,7 @@
+- **CDC_ACM** - simplest CDC-ACM snippet (*deprecated*)
+- **chronometer** - first version of chronometer for bike/auto/moto competitions
+- **chronometer_v2** - chrono-2
+- **MLX90640** - test of MLX90640 (*deprecated* as can't calculate so many sqrt's on STM32F103)
+- **PL2303** - based PL2303 emulation (*deprecated*)
+- **pl2303_snippet** - (*deprecated*)
+- **pl2303_snippet_naked** - (*deprecated*)

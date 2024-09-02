@@ -33,9 +33,8 @@ int main(void){
     char inbuff[MAXSTRLEN+1];
     StartHSE();
     hw_setup();
-    SysTick_Config(72000);
     USBPU_OFF();
-    hw_setup();
+    SysTick_Config(72000);
     usart_setup();
     USB_setup();
     USBPU_ON();
@@ -56,6 +55,7 @@ int main(void){
         if(l < 0) USB_sendstr("ERROR: USB buffer overflow or string was too long\n");
         else if(l){
             USEND("Got USB data\n");
+            USB_sendstr("RECEIVED: _"); USB_sendstr(inbuff); USB_sendstr("_\n");
             const char *ans = parse_cmd(inbuff);
             if(ans) USB_sendstr(ans);
         }

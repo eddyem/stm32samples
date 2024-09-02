@@ -30,16 +30,6 @@
 // macro for static strings
 #define USEND(str) usart_send(str)
 
-#ifdef EBUG
-#define x__(a) #a
-#define STR(a) x__(a)
-#define DBG(str)  do{usart_send(__FILE__ " (L" STR(__LINE__) "): " str); \
-    usart_putchar('\n'); usart_transmit(); }while(0)
-#else
-#define DBG(str)
-#endif
-
-
 #define usartrx()  (usart_linerdy)
 #define usartovr() (usart_bufovr)
 

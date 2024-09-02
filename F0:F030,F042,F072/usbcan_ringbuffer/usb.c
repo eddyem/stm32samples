@@ -1,6 +1,5 @@
 /*
- * This file is part of the usbcanrb project.
- * Copyright 2023 Edward V. Emelianov <edward.emelianoff@gmail.com>.
+ * Copyright 2024 Edward V. Emelianov <edward.emelianoff@gmail.com>.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,18 +26,23 @@ static volatile uint8_t usbbuff[USB_TXBUFSZ]; // temporary buffer for sending da
 static uint8_t obuf[RBOUTSZ], ibuf[RBINSZ];
 volatile ringbuffer rbout = {.data = obuf, .length = RBOUTSZ, .head = 0, .tail = 0};
 volatile ringbuffer rbin = {.data = ibuf, .length = RBINSZ, .head = 0, .tail = 0};
-// transmission is succesfull
-volatile uint8_t bufisempty = 1;
+// inbuf overflow when receiving
 volatile uint8_t bufovrfl = 0;
+// last send data size
+static volatile int lastdsz = 0;
 
+// called from transmit EP
 void send_next(){
-    if(bufisempty) return;
-    static int lastdsz = 0;
+    IWDG->KR = IWDG_REFRESH;
     int buflen = RB_read((ringbuffer*)&rbout, (uint8_t*)usbbuff, USB_TXBUFSZ);
-    if(!buflen){
+    if(buflen == 0){
         if(lastdsz == 64) EP_Write(3, NULL, 0); // send ZLP after 64 bits packet when nothing more to send
         lastdsz = 0;
-        bufisempty = 1;
+        return;
+    }else if(buflen < 0){
+        lastdsz = 0;
+        // Uncomment next line if you want 4Mbit/s instead of 6Mbit/s
+        //EP_Write(3, NULL, 0); // send ZLP if buffer is in writting state now
         return;
     }
     EP_Write(3, (uint8_t*)usbbuff, buflen);
@@ -47,44 +51,45 @@ void send_next(){
 
 // blocking send full content of ring buffer
 int USB_sendall(){
-    while(!bufisempty){
-        if(!usbON) return 0;
+    while(lastdsz > 0){
+        IWDG->KR = IWDG_REFRESH;
+        if(!usbON) return FALSE;
     }
-    return 1;
+    return TRUE;
 }
 
 // put `buf` into queue to send
 int USB_send(const uint8_t *buf, int len){
-    if(!buf || !usbON || !len) return 0;
+    if(!buf || !usbON || !len) return FALSE;
     while(len){
+        IWDG->KR = IWDG_REFRESH;
         int a = RB_write((ringbuffer*)&rbout, buf, len);
-        len -= a;
-        buf += a;
-        if(bufisempty){
-            bufisempty = 0;
-            send_next();
-        }
+        if(a > 0){
+            len -= a;
+            buf += a;
+        } else if (a < 0) continue; // do nothing if buffer is in reading state
+        if(lastdsz == 0) send_next(); // need to run manually - all data sent, so no IRQ on IN
     }
-    return 1;
+    return TRUE;
 }
 
 int USB_putbyte(uint8_t byte){
-    if(!usbON) return 0;
-    while(0 == RB_write((ringbuffer*)&rbout, &byte, 1)){
-        if(bufisempty){
-            bufisempty = 0;
-            send_next();
-        }
+    if(!usbON) return FALSE;
+    int l = 0;
+    while((l = RB_write((ringbuffer*)&rbout, &byte, 1)) != 1){
+        IWDG->KR = IWDG_REFRESH;
+        if(l < 0) continue;
     }
-    return 1;
+    if(lastdsz == 0) send_next(); // need to run manually - all data sent, so no IRQ on IN
+    return TRUE;
 }
 
 int USB_sendstr(const char *string){
-    if(!string || !usbON) return 0;
+    if(!string || !usbON) return FALSE;
     int len = 0;
     const char *b = string;
     while(*b++) ++len;
-    if(!len) return 0;
+    if(!len) return FALSE;
     return USB_send((const uint8_t*)string, len);
 }
 
@@ -95,13 +100,14 @@ int USB_sendstr(const char *string){
  * @return amount of received bytes (negative, if overfull happened)
  */
 int USB_receive(uint8_t *buf, int len){
-    int sz = RB_read((ringbuffer*)&rbin, buf, len);
+    chkin();
     if(bufovrfl){
-        RB_clearbuf((ringbuffer*)&rbin);
-        if(!sz) sz = -1;
-        else sz = -sz;
+        while(1 != RB_clearbuf((ringbuffer*)&rbin)) IWDG->KR = IWDG_REFRESH;
         bufovrfl = 0;
+        return -1;
     }
+    int sz = RB_read((ringbuffer*)&rbin, buf, len);
+    if(sz < 0) return 0; // buffer in writting state
     return sz;
 }
 
@@ -112,15 +118,22 @@ int USB_receive(uint8_t *buf, int len){
  * @return strlen or negative value indicating overflow (if so, string won't be ends with 0 and buffer should be cleared)
  */
 int USB_receivestr(char *buf, int len){
-    int l = RB_readto((ringbuffer*)&rbin, '\n', (uint8_t*)buf, len);
-    if(l == 0) return 0;
-    if(--l < 0 || bufovrfl) RB_clearbuf((ringbuffer*)&rbin);
-    else buf[l] = 0; // replace '\n' with strend
+    chkin();
     if(bufovrfl){
-        if(l > 0) l = -l;
-        else l = -1;
+        while(1 != RB_clearbuf((ringbuffer*)&rbin)) IWDG->KR = IWDG_REFRESH;
         bufovrfl = 0;
+        return -1;
     }
+    int l = RB_readto((ringbuffer*)&rbin, '\n', (uint8_t*)buf, len);
+    if(l < 1){
+        if(rbin.length == RB_datalen((ringbuffer*)&rbin)){ // buffer is full but no '\n' found
+            while(1 != RB_clearbuf((ringbuffer*)&rbin)) IWDG->KR = IWDG_REFRESH;
+            return -1;
+        }
+        return 0;
+    }
+    if(l == 0) return 0;
+    buf[l-1] = 0; // replace '\n' with strend
     return l;
 }
 

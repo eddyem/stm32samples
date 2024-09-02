@@ -111,14 +111,21 @@ so if TBS1=4 and TBS2=3, sum=8, bit sampling freq is 48/8 = 6MHz
             1MBps   - 6
 */
 
+
+static uint16_t oldspeed = 100; // speed of last init
+uint16_t CAN_getspeed(){
+    return oldspeed;
+}
 // speed - in kbps. @return - current speed
 int CAN_setup(uint16_t speed){
-    static uint16_t oldspeed = 100; // speed of last init
     LED_off(LED1);
+    flood_msg = NULL; // clear for not flood in terminal
+    incrflood = 0;
     if(speed == 0) speed = oldspeed;
     else if(speed < 50) speed = 50;
     else if(speed > 3000) speed = 3000;
-    oldspeed = speed;
+    uint32_t regval = 6000/speed - 1;
+    oldspeed = 6000 / (regval + 1); // new speed due to register value
     uint32_t tmout = 16000000;
     // Configure GPIO: PB8 - CAN_Rx, PB9 - CAN_Tx
     /* (1) Select AF mode (10) on PB8 and PB9 */
@@ -148,7 +155,7 @@ int CAN_setup(uint16_t speed){
     CAN->MCR &=~ CAN_MCR_SLEEP; /* (3) */
     CAN->MCR |= CAN_MCR_ABOM; /* allow automatically bus-off */
 
-    CAN->BTR =  2 << 20 | 3 << 16 | (6000/speed - 1); /* (4) */
+    CAN->BTR =  2 << 20 | 3 << 16 | regval; /* (4) */
     CAN->MCR &=~ CAN_MCR_INRQ; /* (5) */
     tmout = 16000000;
     while((CAN->MSR & CAN_MSR_INAK)==CAN_MSR_INAK) if(--tmout == 0) break; /* (6) */

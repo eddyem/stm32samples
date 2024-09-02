@@ -216,14 +216,15 @@ TRUE_INLINE void CANini(char *txt){
     uint32_t N;
     char *n = getnum(txt, &N);
     if(txt == n){
-        USB_sendstr("No speed given");
+        printu(CAN_getspeed());
+        USB_sendstr("kbps\n");
         return;
     }
     if(N < 50){
-        USB_sendstr("Lowest speed is 50kbps");
+        USB_sendstr("Lowest speed is 50kbps\n");
         return;
     }else if(N > 3000){
-        USB_sendstr("Highest speed is 3000kbps");
+        USB_sendstr("Highest speed is 3000kbps\n");
         return;
     }
     CAN_reinit((uint16_t)N);
@@ -432,7 +433,7 @@ const char *helpmsg =
     "'b' - reinit CAN with given baudrate\n"
     "'c' - get CAN status\n"
     "'d' - delete ignore list\n"
-    "'D' - activate DFU mode\n"
+//    "'D' - activate DFU mode\n"
     "'e' - get CAN errcodes\n"
     "'f' - add/delete filter, format: bank# FIFO# mode(M/I) num0 [num1 [num2 [num3]]]\n"
     "'F' - send/clear flood message: F ID byte0 ... byteN\n"
@@ -508,12 +509,12 @@ void cmd_parser(char *txt){
         break;
         case 'e':
             printCANerr();
-        break;
+        break;/*
         case 'D':
             USB_sendstr("Go into DFU mode\n");
             USB_sendall();
             Jump2Boot();
-        break;
+        break;*/
         case 'i':
             set_flood(NULL, 1);
             USB_sendstr("Incremental flooding is ON ('F' to off)\n");
