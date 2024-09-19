@@ -20,10 +20,12 @@
 #include "canproto.h"
 #include "flash.h"
 #include "hardware.h"
+/*
 #ifdef EBUG
 #include "strfunc.h"
-#include "uchar.h"
+#include "usart.h"
 #endif
+*/
 
 /* pinout:
 
@@ -257,11 +259,18 @@ void proc_esw(){
     if(oldesw != ESW_ab_values){
         //usart_send("esw="); usart_send(u2str(ESW_ab_values)); newline();
         CAN_message msg = {.ID = the_conf.CANIDout, .length = 8};
-        msg.data[0] = CMD_GETESW;
-        *((uint32_t*)(&msg.data[4])) = ESW_ab_values;
+        MSG_SET_CMD(msg, CMD_GETESW);
+        MSG_SET_U32(msg, ESW_ab_values);
         uint32_t Tstart = Tms;
         while(Tms - Tstart < SEND_TIMEOUT_MS){
-            if(CAN_OK == CAN_send(&msg)) return;
+            if(CAN_OK == CAN_send(&msg)) break;
+        }
+        if(the_conf.flags.sw_send_relay_cmd){ // send also CMD_RELAY
+            MSG_SET_CMD(msg, CMD_RELAY);
+            Tstart = Tms;
+            while(Tms - Tstart < SEND_TIMEOUT_MS){
+                if(CAN_OK == CAN_send(&msg)) break;
+            }
         }
     }
 }

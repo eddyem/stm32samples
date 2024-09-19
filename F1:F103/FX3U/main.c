@@ -20,6 +20,8 @@
 #include "can.h"
 #include "flash.h"
 #include "hardware.h"
+#include "modbusproto.h"
+#include "modbusrtu.h"
 #include "proto.h"
 #include "strfunc.h"
 
@@ -30,17 +32,31 @@ void sys_tick_handler(void){
     ++Tms;
 }
 
+TRUE_INLINE void parsemodbus(){
+    if(the_conf.modbusID != MODBUS_MASTER_ID){ // slave
+        modbus_request req;
+        if(1 == modbus_get_request(&req))
+            parse_modbus_request(&req);
+    }else{ // master
+        modbus_response res;
+        if(1 == modbus_get_response(&res))
+            parse_modbus_response(&res);
+    }
+}
+
 int main(void){
     uint32_t lastT = 0;
     CAN_message *can_mesg;
     StartHSE();
+    RCC->CSR |= RCC_CSR_RMVF; // remove reset flags
     SysTick_Config(72000);
     flashstorage_init();
     gpio_setup(); // should be run before other peripherial setup
     adc_setup();
     usart_setup(the_conf.usartspeed);
     CAN_setup(the_conf.CANspeed);
-    RCC->CSR |= RCC_CSR_RMVF; // remove reset flags
+    modbus_setup(the_conf.modbusspeed);
+
 #ifndef EBUG
     iwdg_setup();
 #endif
@@ -80,6 +96,7 @@ int main(void){
         int g = usart_getline(&str);
         if(g < 0) usart_send("USART IN buffer overflow!\n");
         else if(g > 0)  cmd_parser(str);
+        parsemodbus();
     }
     return 0;
 }

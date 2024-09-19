@@ -236,6 +236,7 @@ void CAN_proc(){
 
 CAN_status CAN_send(CAN_message *message){
     if(!message) return CAN_ERR;
+    IWDG->KR = IWDG_REFRESH;
     uint8_t *msg = message->data;
     uint8_t len = message->length;
     uint16_t target_id = message->ID;

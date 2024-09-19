@@ -124,6 +124,10 @@ typedef struct {
     __IO uint32_t FNR;
     __IO uint32_t DADDR;
     __IO uint32_t BTABLE;
+#ifdef STM32F0
+    __IO uint32_t LPMCSR;
+    __IO uint32_t BCDR;
+#endif
 } USB_TypeDef;
 
 // F303 D/E have 2x16 access scheme

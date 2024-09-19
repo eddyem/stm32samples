@@ -1,6 +1,5 @@
 /*
- * This file is part of the i2cscan project.
- * Copyright 2023 Edward V. Emelianov <edward.emelianoff@gmail.com>.
+ * Copyright 2024 Edward V. Emelianov <edward.emelianoff@gmail.com>.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,15 +15,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stm32g0.h>
-
+#include <math.h>
+#include <stm32f0.h>
+#include <string.h>
+#include "usb.h"
 /**
  * @brief hexdump - dump hex array by 16 bytes in string
- * @param sendfun - function to send data
  * @param arr - array to dump
  * @param len - length of `arr`
  */
-void hexdump(int (*sendfun)(const char *s), uint8_t *arr, uint16_t len){
+void hexdump(uint8_t *arr, uint16_t len){
     char buf[52], *bptr = buf;
     for(uint16_t l = 0; l < len; ++l, ++arr){
         for(int16_t j = 1; j > -1; --j){
@@ -35,14 +35,14 @@ void hexdump(int (*sendfun)(const char *s), uint8_t *arr, uint16_t len){
         if(l % 16 == 15){
             *bptr++ = '\n';
             *bptr = 0;
-            sendfun(buf);
+            USB_sendstr(buf);
             bptr = buf;
         }else *bptr++ = ' ';
     }
     if(bptr != buf){
         *bptr++ = '\n';
         *bptr = 0;
-        sendfun(buf);
+        USB_sendstr(buf);
     }
 }
 
@@ -60,8 +60,11 @@ static char *_2str(uint32_t  val, uint8_t minus){
         *(--bufptr) = '0';
     }else{
         while(val){
-            *(--bufptr) = val % 10 + '0';
-            val /= 10;
+            uint32_t x = val / 10;
+            *(--bufptr) = (val - 10*x) + '0';
+            val = x;
+            //*(--bufptr) = val % 10 + '0';
+            //val /= 10;
         }
     }
     if(minus) *(--bufptr) = '-';
@@ -113,12 +116,12 @@ char *uhex2str(uint32_t val){
  * @param buf - string
  * @return - pointer to first character in `buf` > ' '
  */
-char *omit_spaces(const char *buf){
+const char *omit_spaces(const char *buf){
     while(*buf){
         if(*buf > ' ') break;
         ++buf;
     }
-    return (char*)buf;
+    return buf;
 }
 
 /**
@@ -127,7 +130,7 @@ char *omit_spaces(const char *buf){
  * @param N - number read
  * @return Next non-number symbol. In case of overflow return `buf` and N==0xffffffff
  */
-static char *getdec(const char *buf, uint32_t *N){
+static const char *getdec(const char *buf, uint32_t *N){
     char *start = (char*)buf;
     uint32_t num = 0;
     while(*buf){
@@ -144,11 +147,11 @@ static char *getdec(const char *buf, uint32_t *N){
         ++buf;
     }
     *N = num;
-    return (char*)buf;
+    return buf;
 }
 // read hexadecimal number (without 0x prefix!)
-static char *gethex(const char *buf, uint32_t *N){
-    char *start = (char*)buf;
+static const char *gethex(const char *buf, uint32_t *N){
+    const char *start = buf;
     uint32_t num = 0;
     while(*buf){
         char c = *buf;
@@ -173,11 +176,11 @@ static char *gethex(const char *buf, uint32_t *N){
         ++buf;
     }
     *N = num;
-    return (char*)buf;
+    return buf;
 }
 // read octal number (without 0 prefix!)
-static char *getoct(const char *buf, uint32_t *N){
-    char *start = (char*)buf;
+static const char *getoct(const char *buf, uint32_t *N){
+    const char *start = (char*)buf;
     uint32_t num = 0;
     while(*buf){
         char c = *buf;
@@ -193,11 +196,11 @@ static char *getoct(const char *buf, uint32_t *N){
         ++buf;
     }
     *N = num;
-    return (char*)buf;
+    return buf;
 }
 // read binary number (without b prefix!)
-static char *getbin(const char *buf, uint32_t *N){
-    char *start = (char*)buf;
+static const char *getbin(const char *buf, uint32_t *N){
+    const char *start = (char*)buf;
     uint32_t num = 0;
     while(*buf){
         char c = *buf;
@@ -213,7 +216,7 @@ static char *getbin(const char *buf, uint32_t *N){
         ++buf;
     }
     *N = num;
-    return (char*)buf;
+    return buf;
 }
 
 /**
@@ -223,9 +226,9 @@ static char *getbin(const char *buf, uint32_t *N){
  * @return pointer to first non-number symbol in buf
  *      (if it is == buf, there's no number or if *N==0xffffffff there was overflow)
  */
-char *getnum(const char *txt, uint32_t *N){
-    char *nxt = NULL;
-    char *s = omit_spaces(txt);
+const char *getnum(const char *txt, uint32_t *N){
+    const char *nxt = NULL;
+    const char *s = omit_spaces(txt);
     if(*s == '0'){ // hex, oct or 0
         if(s[1] == 'x' || s[1] == 'X'){ // hex
             nxt = gethex(s+2, N);
@@ -245,4 +248,102 @@ char *getnum(const char *txt, uint32_t *N){
         if(nxt == s) nxt = (char*)txt;
     }
     return nxt;
+}
+
+// get signed integer
+const char *getint(const char *txt, int32_t *I){
+    const char *s = omit_spaces(txt);
+    int32_t sign = 1;
+    uint32_t U;
+    if(*s == '-'){
+        sign = -1;
+        ++s;
+    }
+    const char *nxt = getnum(s, &U);
+    if(nxt == s) return txt;
+    if(U & 0x80000000) return txt; // overfull
+    *I = sign * (int32_t)U;
+    return nxt;
+}
+
+int mystrlen(const char *txt){
+    if(!txt) return 0;
+    int r = 0;
+    while(*txt++) ++r;
+    return r;
+}
+
+/*
+void mymemcpy(char *dest, const char *src, int len){
+    if(len < 1) return;
+    while(len--) *dest++ = *src++;
+}
+*/
+
+// be careful: if pow10 would be bigger you should change str[] size!
+static const float pwr10[] = {1.f, 10.f, 100.f, 1000.f, 10000.f};
+static const float rounds[] = {0.5f, 0.05f, 0.005f, 0.0005f, 0.00005f};
+#define P10L  (sizeof(pwr10)/sizeof(uint32_t) - 1)
+char * float2str(float x, uint8_t prec){
+    static char str[16] = {0}; // -117.5494E-36\0 - 14 symbols max!
+    if(prec > P10L) prec = P10L;
+    if(isnan(x)){ memcpy(str, "NAN", 4); return str;}
+    else{
+        int i = isinf(x);
+        if(i){memcpy(str, "-INF", 5); if(i == 1) return str+1; else return str;}
+    }
+    char *s = str + 14; // go to end of buffer
+    uint8_t minus = 0;
+    if(x < 0){
+        x = -x;
+        minus = 1;
+    }
+    int pow = 0; // xxxEpow
+    // now convert float to 1.xxxE3y
+    while(x > 1000.f){
+        x /= 1000.f;
+        pow += 3;
+    }
+    if(x > 0.) while(x < 1.){
+        x *= 1000.f;
+        pow -= 3;
+    }
+    // print Eyy
+    if(pow){
+        uint8_t m = 0;
+        if(pow < 0){pow = -pow; m = 1;}
+        while(pow){
+            register int p10 = pow/10;
+            *s-- = '0' + (pow - 10*p10);
+            pow = p10;
+        }
+        if(m) *s-- = '-';
+        *s-- = 'E';
+    }
+    // now our number is in [1, 1000]
+    uint32_t units;
+    if(prec){
+        units = (uint32_t) x;
+        uint32_t decimals = (uint32_t)((x-units+rounds[prec])*pwr10[prec]);
+        // print decimals
+        while(prec){
+            register int d10 = decimals / 10;
+            *s-- = '0' + (decimals - 10*d10);
+            decimals = d10;
+            --prec;
+        }
+        // decimal point
+        *s-- = '.';
+    }else{ // without decimal part
+        units = (uint32_t) (x + 0.5);
+    }
+    // print main units
+    if(units == 0) *s-- = '0';
+    else while(units){
+        register uint32_t u10 = units / 10;
+        *s-- = '0' + (units - 10*u10);
+        units = u10;
+    }
+    if(minus) *s-- = '-';
+    return s+1;
 }

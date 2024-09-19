@@ -23,7 +23,7 @@ extern volatile uint32_t Tms;
 static volatile int idatalen[2] = {0,0}; // received data line length (including '\n')
 static volatile int odatalen[2] = {0,0};
 
-volatile int usart_txrdy = 1;   // transmission done
+static volatile int usart_txrdy = 1;   // transmission done
 
 static volatile int usart_linerdy = 0   // received data ready
     ,dlen = 0                           // length of data (including '\n') in current buffer
@@ -31,7 +31,7 @@ static volatile int usart_linerdy = 0   // received data ready
 
 ;
 
-int rbufno = 0, tbufno = 0; // current rbuf/tbuf numbers
+static int rbufno = 0, tbufno = 0; // current rbuf/tbuf numbers
 static char rbuf[2][UARTBUFSZI], tbuf[2][UARTBUFSZO]; // receive & transmit buffers
 static char *recvdata = NULL;
 

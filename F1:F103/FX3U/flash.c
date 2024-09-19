@@ -18,6 +18,7 @@
 
 #include "stm32f1.h"
 
+#include "modbusrtu.h"
 #include "flash.h"
 #include "strfunc.h"
 #include "usart.h"
@@ -34,6 +35,8 @@ static uint32_t maxCnum = 1024 / sizeof(user_conf); // can't use blocksize here
     ,.CANIDout = 2                      \
     ,.usartspeed = 115200               \
     ,.bouncetime = 50                   \
+    ,.modbusID = MODBUS_MASTER_ID       \
+    ,.modbusspeed = 9600                \
     }
 
 static int write2flash(const void*, const void*, uint32_t);

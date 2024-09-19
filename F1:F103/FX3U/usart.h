@@ -18,14 +18,14 @@
 
 #pragma once
 
+#include <stdint.h>
+
 // input and output buffers size
 #define UARTBUFSZI  (64)
 #define UARTBUFSZO  (128)
 
 #define usartrx()  (usart_linerdy)
 #define usartovr() (usart_bufovr)
-
-extern volatile int usart_txrdy;
 
 int usart_transmit();
 void usart_setup(uint32_t speed);

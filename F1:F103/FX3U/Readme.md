@@ -7,6 +7,9 @@ You can see pinout table in file `hardware.c`.
 
 ## Serial protocol (each string ends with '\n').
 
+(TODO: add new)
+
+
 ```
 commands format: parameter[number][=setter]
 parameter [CAN idx] - help
@@ -49,11 +52,11 @@ Value in square brackets is CAN bus command code.
 
 All data in little-endian format!
 
-BIT -  MEANING
+BYTE -  MEANING
 
 0, 1 - (uint16_t) - command code (value in square brackets upper);
 
-2 - (uint8_t) - parameter number (e.g. ADC channel or X/Y channel number), 0..127 [ORed with 0x80 for setter];
+2 - (uint8_t) - parameter number (e.g. ADC channel or X/Y channel number), 0..126 [ORed with 0x80 for setter], 127 means "no parameter";
 
 3 - (uint8_t) - error code (only when device answers for requests);
 
@@ -73,3 +76,7 @@ BIT -  MEANING
 
 5 - `ERR_CANTRUN`  - can't run given command due to bad parameters or other reason.
 
+
+## MODBUS-RTU protocol
+
+(TODO)

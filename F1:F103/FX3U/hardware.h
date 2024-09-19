@@ -33,6 +33,9 @@
 // max number of in/out pins
 #define INMAX       (15)
 #define OUTMAX      (11)
+// and 8-multiple
+#define INMAXBYTES  (2)
+#define OUTMAXBYTES (2)
 
 // onboard LED - PD10
 #define LEDPORT GPIOD

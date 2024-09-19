@@ -20,7 +20,7 @@
 #include "canproto.h"
 #include "flash.h"
 #include "hardware.h"
-#include "proto.h"
+#include "modbusrtu.h"
 #include "strfunc.h"
 #include "usart.h"
 
@@ -41,49 +41,53 @@ static errcodes reset(CAN_message _U_ *msg){
 // get/set Tms
 static errcodes time_getset(CAN_message *msg){
     if(ISSETTER(msg->data)){
-        Tms = *(uint32_t*)&msg->data[4];
-    }else FIXDL(msg);
-    *(uint32_t*)&msg->data[4] = Tms;
+        Tms = MSGP_GET_U32(msg);
+    }
+    FIXDL(msg);
+    MSGP_SET_U32(msg, Tms);
     return ERR_OK;
 }
 // get MCU T
 static errcodes mcut(CAN_message *msg){
     FIXDL(msg);
-    *(int32_t*)&msg->data[4] = getMCUtemp();
+    MSGP_SET_U32(msg, getMCUtemp());
     return ERR_OK;
 }
 // get ADC raw values
 static errcodes adcraw(CAN_message *msg){
     FIXDL(msg);
-    uint8_t no = msg->data[2] & ~SETTER_FLAG;
+    uint8_t no = PARVAL(msg->data);
     if(no >= ADC_CHANNELS) return ERR_BADPAR;
-    *(uint32_t*)&msg->data[4] = getADCval(no);
+    MSGP_SET_U32(msg, getADCval(no));
     return ERR_OK;
 }
 // set common CAN ID / get CAN IN in
 static errcodes canid(CAN_message *msg){
     if(ISSETTER(msg->data)){
-        the_conf.CANIDin = the_conf.CANIDout = *(uint32_t*)&msg->data[4];
+        the_conf.CANIDin = the_conf.CANIDout = (uint16_t)MSGP_GET_U32(msg);
         CAN_reinit(0); // setup with new ID
-    }else FIXDL(msg);
-    *(uint32_t*)&msg->data[4] = the_conf.CANIDin;
+    }
+    FIXDL(msg);
+    MSGP_SET_U32(msg, the_conf.CANIDin);
     return ERR_OK;
 }
 // get/set input CAN ID
 static errcodes canidin(CAN_message *msg){
     if(ISSETTER(msg->data)){
-        the_conf.CANIDin = *(uint32_t*)&msg->data[4];
+        the_conf.CANIDin = (uint16_t)MSGP_GET_U32(msg);
         CAN_reinit(0); // setup with new ID
-    }else FIXDL(msg);
-    *(uint32_t*)&msg->data[4] = the_conf.CANIDin;
+    }
+    FIXDL(msg);
+    MSGP_SET_U32(msg, the_conf.CANIDin);
     return ERR_OK;
 }
 // get/set output CAN ID
 static errcodes canidout(CAN_message *msg){
     if(ISSETTER(msg->data)){
-        the_conf.CANIDout = *(uint32_t*)&msg->data[4];
-    }else FIXDL(msg);
-    *(uint32_t*)&msg->data[4] = the_conf.CANIDout;
+        the_conf.CANIDout = (uint16_t)MSGP_GET_U32(msg);
+    }
+    FIXDL(msg);
+    MSGP_SET_U32(msg, the_conf.CANIDout);
     return ERR_OK;
 }
 
@@ -101,32 +105,42 @@ static errcodes erasestor(CAN_message _U_ *msg){
 // relay management
 static errcodes relay(CAN_message *msg){
     uint8_t no = OUTMAX+1;
-    if(msg->length > 2) no = msg->data[2] & ~SETTER_FLAG;
+    if(msg->length > 2){
+        uint8_t chnl = PARVAL(msg->data);
+        if(chnl != NO_PARNO) no = chnl;
+    }
     if(ISSETTER(msg->data)){
-        if(set_relay(no, *(uint32_t*)&msg->data[4]) < 0) return ERR_BADPAR;
-    }else FIXDL(msg);
+        if(set_relay(no, MSGP_GET_U32(msg)) < 0) return ERR_BADPAR;
+    }
+    FIXDL(msg);
     int rval = get_relay(no);
     if(rval < 0) return ERR_BADPAR;
-    *(uint32_t*)&msg->data[4] = (uint32_t)rval;
+    MSGP_SET_U32(msg, (uint32_t)rval);
     return ERR_OK;
 }
 // get current ESW status
 static errcodes esw(CAN_message *msg){
     uint8_t no = INMAX+1;
-    if(msg->length > 2) no = msg->data[2] & ~SETTER_FLAG;
+    if(msg->length > 2){
+        uint8_t chnl = PARVAL(msg->data);
+        if(chnl != NO_PARNO) no = chnl;
+    }
     int val = get_esw(no);
     if(val < 0) return ERR_BADPAR;
-    *(uint32_t*)&msg->data[4] = (uint32_t) val;
+    MSGP_SET_U32(msg, (uint32_t)val);
     FIXDL(msg);
     return ERR_OK;
 }
 // bounce-free ESW get status
 static errcodes eswg(CAN_message *msg){
     uint8_t no = INMAX+1;
-    if(msg->length > 2) no = msg->data[2] & ~SETTER_FLAG;
+    if(msg->length > 2){
+        uint8_t chnl = PARVAL(msg->data);
+        if(chnl != NO_PARNO) no = chnl;
+    }
     uint32_t curval = get_ab_esw();
-    if(no > INMAX) *(uint32_t*)&msg->data[4] = curval;
-    else *(uint32_t*)&msg->data[4] = (curval & (1<<no)) ? 0 : 1;
+    if(no > INMAX) MSGP_SET_U32(msg, curval);
+    else MSGP_SET_U32(msg, (curval & (1<<no)) ? 0 : 1);
     FIXDL(msg);
     return ERR_OK;
 }
@@ -140,41 +154,49 @@ static errcodes led(CAN_message *m){
 
 // common uint32_t setter/getter
 static errcodes u32setget(CAN_message *msg){
-    uint16_t idx = *(uint16_t*)msg->data;
-    uint32_t *ptr = NULL;
-    switch(idx){
-    case CMD_CANSPEED: ptr = &the_conf.CANspeed; CAN_reinit(*(uint32_t*)&msg->data[4]); break;
-    case CMD_BOUNCE: ptr = &the_conf.bouncetime; break;
-    case CMD_USARTSPEED: ptr = &the_conf.usartspeed; break;
+    uint16_t cmd = *(uint16_t*)msg->data;
+    uint32_t *ptr = NULL, val;
+    switch(cmd){
+        case CMD_CANSPEED: ptr = &the_conf.CANspeed; CAN_reinit(MSGP_GET_U32(msg)); break;
+        case CMD_BOUNCE: ptr = &the_conf.bouncetime; break;
+        case CMD_USARTSPEED: ptr = &the_conf.usartspeed; break;
+        case CMD_INCHNLS: val = inchannels(); ptr = &val; break;
+        case CMD_OUTCHNLS: val = outchannels(); ptr = &val; break;
+        case CMD_MODBUSID: ptr = &the_conf.modbusID; break;
     default: break;
     }
     if(!ptr) return ERR_CANTRUN; // unknown error
     if(ISSETTER(msg->data)){
-        *ptr = *(uint32_t*)&msg->data[4];
-    }else FIXDL(msg);
-    *(uint32_t*)&msg->data[4] = *ptr;
+        if(cmd == CMD_INCHNLS || cmd == CMD_OUTCHNLS) return ERR_CANTRUN; // can't set getter-only
+        *ptr = MSGP_GET_U32(msg);
+    }
+    FIXDL(msg);
+    MSGP_SET_U32(msg, *ptr);
     return ERR_OK;
 }
 
-/*
 // common bitflag setter/getter
+// without parno - all flags, with - flag with number N
 static errcodes flagsetget(CAN_message *msg){
-    uint16_t idx = *(uint16_t*)msg->data;
-    uint8_t bit = 32;
-    switch(idx){
-        case CMD_ENCISSSI: bit = FLAGBIT(ENC_IS_SSI); break;
-        case CMD_EMULPEP: bit = FLAGBIT(EMULATE_PEP); break;
-        default: break;
+    uint8_t idx = NO_PARNO;
+    if(msg->length > 2){
+        idx = PARVAL(msg->data);
+        if(idx != NO_PARNO && idx > MAX_FLAG_BITNO) return ERR_BADPAR;
     }
-    if(bit > 31) return ERR_CANTRUN; // unknown error
     if(ISSETTER(msg->data)){
-        if(msg->data[4])  the_conf.flags |= 1<<bit;
-        else the_conf.flags &= ~(1<<bit);
-    }else FIXDL(msg);
-    *(uint32_t*)&msg->data[4] = (the_conf.flags & (1<<bit)) ? 1 : 0;
+        uint32_t val = MSGP_GET_U32(msg);
+        if(idx == NO_PARNO) the_conf.flags.u32 = val; // all bits
+        else{ // only selected
+            if(val) the_conf.flags.u32 |= 1 << idx;
+            else the_conf.flags.u32 &= ~(1 << idx);
+        }
+    }
+    FIXDL(msg);
+    if(idx == NO_PARNO) MSGP_SET_U32(msg, the_conf.flags.u32);
+    else MSGP_SET_U32(msg, (the_conf.flags.u32 & (1<<idx)) ? 1:0);
     return ERR_OK;
 }
-************ END of all common functions list (for `funclist`) ************/
+/************ END of all common functions list (for `funclist`) ************/
 
 typedef struct{
     errcodes (*fn)(CAN_message *msg); // function to run with can packet `msg`
@@ -203,6 +225,11 @@ static const commonfunction funclist[CMD_AMOUNT] = {
     [CMD_BOUNCE] = {u32setget, 0, 1000, 0},
     [CMD_USARTSPEED] = {u32setget, 1200, 3000000, 0},
     [CMD_LED] = {led, 0, 0, 0},
+    [CMD_FLAGS] = {flagsetget, 0, 0, 0},
+    [CMD_INCHNLS] = {u32setget, 0, 0, 0},
+    [CMD_OUTCHNLS] = {u32setget, 0, 0, 0},
+    [CMD_MODBUSID] = {u32setget, 0, MODBUS_MAX_ID, 0}, // 0 - master!
+    [CMD_MODBUSSPEED] = {u32setget, 1200, 115200, 0},
 };
 
 
@@ -225,7 +252,6 @@ void run_can_cmd(CAN_message *msg){
     for(int i = 0; i < msg->length; ++i){
         usart_send(uhex2str(msg->data[i])); usart_putchar(' ');
     }
-    //for(int i = msg->length-1; i < 8; ++i) msg->data[i] = 0;
     newline();
 #endif
     if(datalen < 2){

@@ -22,6 +22,7 @@
 #include "flash.h"
 #include "hardware.h"
 #include "proto.h"
+#include "modbusrtu.h"
 #include "strfunc.h"
 #include "usart.h"
 #include "version.inc"
@@ -38,6 +39,8 @@ typedef enum{
     TCMD_CANSEND,       // send CAN message
     TCMD_CANSNIFFER,    // sniff all CAN messages
     TCMD_CANBUSERRPRNT, // pring all errors of bus
+    TCMD_SW_SEND_RELAY, // change of IN will send also command to change OUT
+    TCMD_MODBUS_SEND,   // send raw modbus data (CRC added auto)
     TCMD_AMOUNT
 } text_cmd;
 
@@ -56,6 +59,7 @@ static const funcdescr funclist[] = {
     {NULL, 0, "CAN bus commands"},
     {"canbuserr", -TCMD_CANBUSERRPRNT, "print all CAN bus errors (a lot of if not connected)"},
     {"cansniff", -TCMD_CANSNIFFER, "switch CAN sniffer mode"},
+    {"s", -TCMD_CANSEND, "send CAN message: ID 0..8 data bytes"},
     {NULL, 0, "Configuration"},
     {"bounce", CMD_BOUNCE, "set/get anti-bounce timeout (ms, max: 1000)"},
     {"canid", CMD_CANID, "set both (in/out) CAN ID / get in CAN ID"},
@@ -64,7 +68,11 @@ static const funcdescr funclist[] = {
     {"canspeed", CMD_CANSPEED, "get/set CAN speed (bps)"},
     {"dumpconf", -TCMD_DUMPCONF, "dump current configuration"},
     {"eraseflash", CMD_ERASESTOR, "erase all flash storage"},
+    {"flags", CMD_FLAGS, "set/get configuration flags (as one U32 without parameter or Nth bit with)"},
+    {"modbusid", CMD_MODBUSID, "set/get modbus slave ID (1..247) or set it master (0)"},
+    {"modbusspeed", CMD_MODBUSSPEED, "set/get modbus speed (1200..115200)"},
     {"saveconf", CMD_SAVECONF, "save configuration"},
+    {"sw_send_relay", -TCMD_SW_SEND_RELAY, "change of IN will send also command to change OUT with `canidout`"},
     {"usartspeed", CMD_USARTSPEED, "get/set USART1 speed"},
     {NULL, 0, "IN/OUT"},
     {"adc", CMD_ADCRAW, "get raw ADC values for given channel"},
@@ -73,9 +81,11 @@ static const funcdescr funclist[] = {
     {"led", CMD_LED, "work with onboard LED"},
     {"relay", CMD_RELAY, "get/set relay state (0 - off, 1 - on)"},
     {NULL, 0, "Other commands"},
+    {"inchannels", CMD_INCHNLS, "get u32 with bits set on supported IN channels"},
     {"mcutemp", CMD_MCUTEMP, "get MCU temperature (*10degrC)"},
+    {"modbus", -TCMD_MODBUS_SEND, "send modbus request, format: slaveID Fcode startReg numRegs"},
+    {"outchannels", CMD_OUTCHNLS, "get u32 with bits set on supported OUT channels"},
     {"reset", CMD_RESET, "reset MCU"},
-    {"s", -TCMD_CANSEND, "send CAN message: ID 0..8 data bytes"},
     {"time", CMD_TIME, "get/set time (1ms, 32bit)"},
     {"wdtest", -TCMD_WDTEST, "test watchdog"},
     {NULL, 0, NULL} // last record
@@ -83,7 +93,7 @@ static const funcdescr funclist[] = {
 
 static void printhelp(){
     const funcdescr *c = funclist;
-    usart_send("https://github.com/eddyem/stm32samples/tree/master/F1:F103/FX3U#" BUILD_NUMBER " @ " BUILD_DATE "\n");
+    usart_send("https://github.com/eddyem/stm32samples/tree/master/F1:F103/FX3U build #" BUILD_NUMBER " @ " BUILD_DATE "\n");
     usart_send("commands format: parameter[number][=setter]\n");
     usart_send("parameter [CAN idx] - help\n");
     usart_send("--------------------------\n");
@@ -107,9 +117,9 @@ static void printhelp(){
     }
 }
 
-/*********** START of all common functions list (for `textfunctions`) ***********/
+/*********** START of all text functions list  ***********/
 
-static errcodes cansnif(const char *str){
+static errcodes cansnif(const char *str, text_cmd _U_ cmd){
     uint32_t U;
     if(str){
         if(*str == '=') str = omit_spaces(str + 1);
@@ -122,7 +132,7 @@ static errcodes cansnif(const char *str){
     return ERR_OK;
 }
 
-static errcodes canbuserr(const char *str){
+static errcodes canbuserr(const char *str, text_cmd _U_ cmd){
     uint32_t U;
     if(str){
         if(*str == '=') str = omit_spaces(str + 1);
@@ -135,21 +145,20 @@ static errcodes canbuserr(const char *str){
     return ERR_OK;
 }
 
-static errcodes wdtest(const char _U_ *str){
+static errcodes wdtest(const char _U_ *str, text_cmd _U_ cmd){
     usart_send("Wait for reboot\n");
     usart_transmit();
     while(1){nop();}
     return ERR_OK;
 }
-/*
+
 // names of bit flags (ordered from LSE of[0])
 static const char * const bitfields[] = {
-    "encisSSI",
-    "emulatePEP",
+    "sw_send_relay_cmd",
     NULL
-};*/
+};
 
-static errcodes dumpconf(const char _U_ *str){
+static errcodes dumpconf(const char _U_ *str, text_cmd _U_ cmd){
 #ifdef EBUG
     uint32_t sz = FLASH_SIZE*1024;
     usart_send("flashsize="); printu(sz); usart_putchar('/');
@@ -167,21 +176,23 @@ static errcodes dumpconf(const char _U_ *str){
         usart_send(float2str(the_conf.adcmul[i], 3));
     }*/
     usart_send("\nusartspeed="); printu(the_conf.usartspeed);
+    usart_send("\nmodbus_id="); printu(the_conf.modbusID);
+    usart_send("\nmodbusspeed="); printu(the_conf.modbusspeed);
     usart_send("\nbouncetime="); printu(the_conf.bouncetime);
-    /*
     const char * const *p = bitfields;
     int bit = 0;
+    usart_send("\nflags="); usart_putchar('='); printuhex(the_conf.flags.u32);
     while(*p){
-        newline();
-        usart_send(*p); usart_putchar('='); usart_putchar((the_conf.flags & (1<<bit)) ? '1' : '0');
-        if(++bit > 31) break;
+        newline(); usart_putchar(' ');
+        usart_send(*p); usart_putchar('='); usart_putchar((the_conf.flags.u32 & (1<<bit)) ? '1' : '0');
+        if(++bit > MAX_FLAG_BITNO) break;
         ++p;
-    }*/
+    }
     newline();
     return ERR_OK;
 }
 
-static errcodes cansend(const char *txt){
+static errcodes cansend(const char *txt, text_cmd _U_ cmd){
     CAN_message canmsg;
     bzero(&canmsg, sizeof(canmsg));
     int ctr = -1;
@@ -221,10 +232,70 @@ static errcodes cansend(const char *txt){
     return ERR_CANTRUN;
 }
 
-/************ END of all common functions list (for `textfunctions`) ************/
+// change configuration flags by one
+static errcodes confflags(const char _U_ *str, text_cmd cmd){
+    if(str){
+        if(*str == '=') str = omit_spaces(str + 1);
+        if(*str != '0' && *str != '1') return ERR_BADVAL;
+        uint8_t val = *str - '0';
+        switch(cmd){
+            case TCMD_SW_SEND_RELAY:
+                the_conf.flags.sw_send_relay_cmd = val;
+            break;
+            default:
+                return ERR_BADCMD;
+        }
+    }
+    uint8_t val = 0, idx = 0;
+    switch(cmd){
+        case TCMD_SW_SEND_RELAY:
+            val = the_conf.flags.sw_send_relay_cmd;
+            idx = 0;
+        break;
+        default:
+            return ERR_BADCMD;
+    }
+    usart_send(bitfields[idx]); usart_putchar('='); usart_putchar('0' + val);
+    newline();
+    return ERR_OK;
+}
+
+// format: slaveID Fcode startReg numRegs
+static errcodes modbussend(const char *txt, text_cmd _U_ cmd){
+    modbus_request req = {0};
+    uint32_t N = 0;
+    const char *n = getnum(txt, &N);
+    if(n == txt || N > MODBUS_MAX_ID){
+        usart_send("Need slave ID (0..247)\n");
+        return ERR_WRONGLEN;
+    }
+    req.ID = N;
+    txt = n; n = getnum(txt, &N);
+    if(n == txt || N > 127 || N == 0){
+        usart_send("Need function code (1..127)\n");
+        return ERR_WRONGLEN;
+    }
+    req.Fcode = N;
+    txt = n; n = getnum(txt, &N);
+    if(n == txt){
+        usart_send("Need starting register address\n");
+        return ERR_WRONGLEN;
+    }
+    req.startreg = N;
+    txt = n; n = getnum(txt, &N);
+    if(n == txt || N == 0){
+        usart_send("Need registers amount\n");
+        return ERR_WRONGLEN;
+    }
+    req.regno = N;
+    if(modbus_send_request(&req) < 1) return ERR_CANTRUN;
+    return ERR_OK;
+}
+
+/************ END of all text functions list ************/
 
 // in `textfn` arg `str` is the rest of input string (spaces-omitted) after command
-typedef errcodes (*textfn)(const char *str);
+typedef errcodes (*textfn)(const char *str, text_cmd cmd);
 static textfn textfunctions[TCMD_AMOUNT] = {
     [TCMD_PROHIBITED] = NULL,
     [TCMD_WDTEST] = wdtest,
@@ -232,6 +303,8 @@ static textfn textfunctions[TCMD_AMOUNT] = {
     [TCMD_CANSEND] = cansend,
     [TCMD_CANSNIFFER] = cansnif,
     [TCMD_CANBUSERRPRNT] = canbuserr,
+    [TCMD_SW_SEND_RELAY] = confflags,
+    [TCMD_MODBUS_SEND] = modbussend,
 };
 
 static const char* const errors_txt[ERR_AMOUNT] = {
@@ -254,9 +327,9 @@ static void errtext(errcodes e){
  * @param txt   - buffer with commands & data
  */
 void cmd_parser(const char *str){
+    errcodes ecode = ERR_BADCMD;
     if(!str || !*str) goto ret;
     char cmd[MAXCMDLEN + 1];
-    errcodes ecode = ERR_BADCMD;
     int idx = CMD_AMOUNT;
     const funcdescr *c = funclist;
     int l = 0;
@@ -279,7 +352,7 @@ void cmd_parser(const char *str){
     }
     str = omit_spaces(ptr);
     if(idx < 0){ // text-only function
-        ecode = textfunctions[-idx](str);
+        ecode = textfunctions[-idx](str, -idx);
         goto ret;
     }
     // common CAN/text function: we need to form 8-byte data buffer
