@@ -122,6 +122,7 @@ void CAN_setup(uint32_t speed){
     uint32_t tmout = 16000000;
     // Configure GPIO: PD0 - CAN_Rx, PD1 - CAN_Tx
     AFIO->MAPR |= AFIO_MAPR_CAN_REMAP_REMAP3;
+    AFIO->MAPR |= AFIO_MAPR_SWJ_CFG_DISABLE; // I don't know why, but without this string JTAG works (despite on turning it off in hardware.c)!
     GPIOD->CRL = (GPIOD->CRL & ~(CRL(0,0xf)|CRL(1,0xf))) |
                  CRL(0, CNF_FLINPUT | MODE_INPUT) | CRL(1, CNF_AFPP | MODE_NORMAL);
     /* Enable the peripheral clock CAN */

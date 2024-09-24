@@ -104,7 +104,7 @@ void usart_setup(uint32_t speed){
     // PA9 - Tx, PA10 - Rx
     RCC->APB2ENR |= RCC_APB2ENR_USART1EN;
     RCC->AHBENR |= RCC_AHBENR_DMA1EN;
-    GPIOA->CRH = (GPIOA->CRH & ~(CRH(9,0xf)|CRH(10,0xf))) |
+    GPIOA->CRH = (GPIOA->CRH & ~(CRH(9, 0xf)|CRH(10, 0xf))) |
         CRH(9, CNF_AFPP|MODE_NORMAL) | CRH(10, CNF_FLINPUT|MODE_INPUT);
     // USART1 Tx DMA - Channel4 (Rx - channel 5)
     DMA1_Channel4->CPAR = (uint32_t) &USART1->DR; // periph

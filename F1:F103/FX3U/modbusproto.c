@@ -26,6 +26,7 @@
 
 // send error
 static void senderr(modbus_request *r, uint8_t exception){
+    if(r->ID == 0) return; // don't answer to broadcasting packets
     modbus_response resp = {.ID = the_conf.modbusID, .Fcode = r->Fcode | MODBUS_RESPONSE_ERRMARK, .datalen = exception};
     modbus_send_response(&resp);
 }
@@ -132,6 +133,7 @@ TRUE_INLINE void writecoil(modbus_request *r){
         senderr(r, ME_ILLEGAL_ADDRESS);
         return;
     }
+    if(r->ID == 0) return;
     modbus_send_request(r); // answer with same data
 }
 
@@ -147,6 +149,7 @@ TRUE_INLINE void writereg(modbus_request *r){
             senderr(r, ME_ILLEGAL_ADDRESS);
             return;
     }
+    if(r->ID == 0) return;
     modbus_send_request(r);
 }
 
@@ -171,6 +174,7 @@ TRUE_INLINE void writecoils(modbus_request *r){
         senderr(r, ME_NACK);
         return;
     }
+    if(r->ID == 0) return;
     r->datalen = 0;
     modbus_send_request(r);
 }
@@ -190,6 +194,7 @@ TRUE_INLINE void writeregs(modbus_request *r){
             senderr(r, ME_ILLEGAL_ADDRESS);
             return;
     }
+    if(r->ID == 0) return;
     r->datalen = 0;
     modbus_send_request(r);
 }
@@ -199,17 +204,22 @@ TRUE_INLINE void writeregs(modbus_request *r){
 // Understand only requests with codes <= 6
 void parse_modbus_request(modbus_request *r){
     if(!r) return;
+    int bcast = (r->ID == 0) ? 1 : 0;
     switch(r->Fcode){
         case MC_READ_COIL:
+            if(bcast) break; // block broadcast reading requests
             readcoil(r);
         break;
         case MC_READ_DISCRETE:
+            if(bcast) break;
             readdiscr(r);
         break;
         case MC_READ_HOLDING_REG:
+            if(bcast) break;
             readreg(r);
         break;
         case MC_READ_INPUT_REG:
+            if(bcast) break;
             readadc(r);
         break;
         case MC_WRITE_COIL:

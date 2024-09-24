@@ -16,6 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "hardware.h"
 #include "modbusrtu.h"
 #include "flash.h"
 #include "strfunc.h"
@@ -26,6 +27,20 @@
 
 #include <stm32f1.h>
 #include <string.h> // memcpy
+
+/*
+static void us(){
+    usart_send("MAPR="); printuhex(AFIO->MAPR);
+    usart_send("\nACRH="); printuhex(GPIOA->CRH);
+    usart_send("\nODR"); printuhex(GPIOA->ODR);
+    usart_send("\nIDR"); printuhex(GPIOA->IDR);
+    AFIO->MAPR |= AFIO_MAPR_SWJ_CFG_DISABLE;
+    newline();
+}*/
+
+// switch to Rx/Tx:
+#define _485_Rx()  do{LED(1); RS485_RX(); /*UART4->CR1 = (UART4->CR1 & ~USART_CR1_TE) | USART_CR1_RE;*/}while(0)
+#define _485_Tx()  do{LED(0); RS485_TX(); /*UART4->CR1 = (UART4->CR1 & ~USART_CR1_RE) | USART_CR1_TE;*/}while(0)
 
 static volatile int modbus_txrdy = 1;
 static volatile int idatalen[2] = {0,0}; // received data line length (including '\n')
@@ -53,6 +68,9 @@ static uint16_t getCRC(uint8_t *data, int l){
             }else crc >>= 1;
         }
     }
+#ifdef EBUG
+    DBG("Calc CRC: "); printuhex(crc); newline();
+#endif
     // CRC have swapped bytes, so we can just send it as *((uint16_t*)&data[x]) = CRC
     return crc;
 }
@@ -87,6 +105,7 @@ static int senddata(int l){
         IWDG->KR = IWDG_REFRESH;
         if(--tmout == 0) return 0;
     }; // wait for previos buffer transmission
+    _485_Tx();
     modbus_txrdy = 0;
     DMA2_Channel5->CCR &= ~DMA_CCR_EN;
     DMA2_Channel5->CMAR = (uint32_t) tbuf[tbufno]; // mem
@@ -121,6 +140,7 @@ int modbus_send_request(modbus_request *r){
         memcpy(curbuf, r->data, r->datalen);
         n += r->datalen;
     }
+    packCRC(tbuf[tbufno], n) = getCRC(tbuf[tbufno], n);
     return senddata(n);
 }
 
@@ -161,6 +181,7 @@ int modbus_send_response(modbus_response *r){
         if(len > MODBUSBUFSZO - 2) return -1; // too much data
         memcpy(curbuf, r->data, r->datalen);
     }
+    packCRC(tbuf[tbufno], len) = getCRC(tbuf[tbufno], len);
     return senddata(len);
 }
 
@@ -187,11 +208,11 @@ int modbus_get_response(modbus_response* r){
 // USART4: PC10 - Tx, PC11 - Rx
 void modbus_setup(uint32_t speed){
     uint32_t tmout = 16000000;
-    // PA9 - Tx, PA10 - Rx
+    // PC10 - Tx, PC11 - Rx
     RCC->APB1ENR |= RCC_APB1ENR_UART4EN;
     RCC->AHBENR |= RCC_AHBENR_DMA2EN;
-    GPIOA->CRH = (GPIOA->CRH & ~(CRH(9,0xf)|CRH(10,0xf))) |
-        CRH(9, CNF_AFPP|MODE_NORMAL) | CRH(10, CNF_FLINPUT|MODE_INPUT);
+    GPIOC->CRH = (GPIOC->CRH & ~(CRH(10,0xf)|CRH(11,0xf))) |
+        CRH(10, CNF_AFPP|MODE_NORMAL) | CRH(11, CNF_FLINPUT|MODE_INPUT);
     // UART4 Tx DMA - Channel5 (Rx - channel 3)
     DMA2_Channel5->CPAR = (uint32_t) &UART4->DR; // periph
     DMA2_Channel5->CCR |= DMA_CCR_MINC | DMA_CCR_DIR | DMA_CCR_TCIE; // 8bit, mem++, mem->per, transcompl irq
@@ -202,15 +223,20 @@ void modbus_setup(uint32_t speed){
     // setup uart4
     UART4->BRR = 36000000 / speed; // APB1 is 36MHz
     UART4->CR1 = USART_CR1_TE | USART_CR1_RE | USART_CR1_UE; // 1start,8data,nstop; enable Rx,Tx,USART
-    while(!(UART4->SR & USART_SR_TC)){if(--tmout == 0) break;} // polling idle frame Transmission
+    while(!(UART4->SR & USART_SR_TC)){  // polling idle frame Transmission
+        IWDG->KR = IWDG_REFRESH;
+        if(--tmout == 0) break;
+    }
     UART4->SR = 0; // clear flags
-    UART4->CR1 |= USART_CR1_RXNEIE | USART_CR1_IDLEIE; // allow Rx and IDLE IRQ
+    UART4->CR1 |= USART_CR1_RXNEIE | USART_CR1_IDLEIE | USART_CR1_TCIE; // allow Rx and IDLE IRQ; TC IRQ for switching to Rx
     UART4->CR3 = USART_CR3_DMAT; // enable DMA Tx
     NVIC_EnableIRQ(UART4_IRQn);
+    _485_Rx();
 }
 
 void uart4_isr(){
     if(UART4->SR & USART_SR_IDLE){ // idle - end of frame
+usart_send("485: IDLE\n");
         modbus_rdy = 1;
         dlen = idatalen[rbufno];
         recvdata = rbuf[rbufno];
@@ -218,15 +244,22 @@ void uart4_isr(){
         rbufno = !rbufno;
         idatalen[rbufno] = 0;
         (void) UART4->DR; // clear IDLE flag by reading DR
-    }
-    if(UART4->SR & USART_SR_RXNE){ // RX not emty - receive next char
+    }else if(UART4->SR & USART_SR_RXNE){ // RX not emty - receive next char
         uint8_t rb = UART4->DR; // clear RXNE flag
         if(idatalen[rbufno] < MODBUSBUFSZI){ // put next char into buf
             rbuf[rbufno][idatalen[rbufno]++] = rb;
+usart_send("485: "); usart_putchar(rb); newline();
         }else{ // buffer overrun
             bufovr = 1;
             idatalen[rbufno] = 0;
         }
+    }else if(UART4->SR & USART_SR_TC){
+        if(modbus_txrdy){
+usart_send("->Rx\n");
+            _485_Rx();
+        }
+usart_send("485: TC\n");
+        UART4->SR &= ~USART_SR_TC;
     }
 }
 
@@ -236,3 +269,4 @@ void dma2_channel4_5_isr(){
         modbus_txrdy = 1;
     }
 }
+

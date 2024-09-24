@@ -69,7 +69,9 @@ Xn - inputs, Yn - outputs, ADCn - ADC inputs
 |  67       | PA8           | Y2           | PPOUT                  |                                         |
 |  68       | PA9           | RS TX        | AFPP                   |                                         |
 |  69       | PA10          | RS RX        | FLIN                   |                                         |
-|  76       | PA14/SWCLK    | 485 DE *     | (default)              | (Not now) RS-485 Data Enable            |
+|  76       | PA14/SWCLK    | 485 DE       | PPOUT                  | RS-485 Data Tx Enable                   |
+|  78       | PC10          | 485 TX       | AFPP                   | RS-485 Tx                               |
+|  79       | PC11          | 485 RX       | FLIN                   | RS-485 Rx                               |
 |  81       | PD0           | CAN RX       | FLIN                   |                                         |
 |  82       | PD1           | CAN TX       | AFPP                   |                                         |
 |  89       | PB3/JTDO      | Y4           | PPOUT                  |                                         |
@@ -82,27 +84,32 @@ void gpio_setup(void){
     // PD0 & PD1 (CAN) setup in can.c; PA9 & PA10 (USART) in usart.c
     RCC->APB2ENR |= RCC_APB2ENR_IOPAEN | RCC_APB2ENR_IOPBEN | RCC_APB2ENR_IOPCEN | RCC_APB2ENR_IOPDEN |
                     RCC_APB2ENR_IOPEEN | RCC_APB2ENR_AFIOEN;
-    // Turn off JTAG
-    AFIO->MAPR = AFIO_MAPR_SWJ_CFG_JTAGDISABLE;
-    GPIOA->CRL = CRL(0, CNF_PPOUTPUT|MODE_NORMAL) | CRL(1, CNF_ANALOG) | CRL(2, CNF_PPOUTPUT|MODE_NORMAL) |
-                 CRL(3, CNF_ANALOG) | CRL(6, CNF_PPOUTPUT|MODE_NORMAL) | CRL(7, CNF_PPOUTPUT|MODE_NORMAL);
-    GPIOA->CRH = CRH(8, CNF_PPOUTPUT|MODE_NORMAL);
-    GPIOB->CRL = CRL(2, CNF_PUDINPUT) | CRL(3, CNF_PPOUTPUT|MODE_NORMAL);
-    GPIOB->CRH = CRH(10, CNF_PUDINPUT) | CRH(11, CNF_PUDINPUT) | CRH(12, CNF_PUDINPUT) | CRH(13, CNF_PUDINPUT) |
-                 CRH(14, CNF_PUDINPUT) | CRH(15, CNF_PPOUTPUT|MODE_NORMAL);
-    GPIOC-> CRL = CRL(0, CNF_ANALOG) | CRL(1, CNF_ANALOG) | CRL(4, CNF_ANALOG) | CRL(5, CNF_ANALOG);
-    GPIOC->CRH = CRH(8, CNF_PPOUTPUT|MODE_NORMAL) | CRH(9, CNF_PPOUTPUT|MODE_NORMAL);
-    GPIOD->CRL = 0;
-    GPIOD->CRH = CRH(10, CNF_PPOUTPUT|MODE_NORMAL) | CRH(12, CNF_PPOUTPUT|MODE_NORMAL);
-    GPIOE->CRL = CRL(7, CNF_PUDINPUT);
-    GPIOE->CRH = CRH(8, CNF_PUDINPUT) | CRH(9, CNF_PUDINPUT) | CRH(10, CNF_PUDINPUT) | CRH(11, CNF_PUDINPUT) |
-                 CRH(12, CNF_PUDINPUT) | CRH(13, CNF_PUDINPUT) | CRH(14, CNF_PUDINPUT) | CRH(15, CNF_PUDINPUT);
+    // Turn off JTAG/SWD to use PA14
+    AFIO->MAPR |= AFIO_MAPR_SWJ_CFG_DISABLE;
+    // be sure that all OK
+   // __ISB();
+   // __DSB();
     // pullups & initial values
     GPIOA->ODR = 0;
     GPIOB->ODR = (1<<2) | (1<<10) | (1<<11) | (1<<12) | (1<<13) | (1<<14);
     GPIOC->ODR = 0;
     GPIOD->ODR = (1<<10); // turn off LED
     GPIOE->ODR = (1<<7) | (1<<8) | (1<<9) | (1<<10) | (1<<11) | (1<<12) | (1<<13) | (1<<14) | (1<<15);
+    // configuration
+    GPIOA->CRL = CRL(0, CNF_PPOUTPUT|MODE_NORMAL) | CRL(1, CNF_ANALOG) | CRL(2, CNF_PPOUTPUT|MODE_NORMAL) |
+                 CRL(3, CNF_ANALOG) | CRL(6, CNF_PPOUTPUT|MODE_NORMAL) | CRL(7, CNF_PPOUTPUT|MODE_NORMAL);
+    //GPIOA->CRH = CRH(8, CNF_PPOUTPUT|MODE_NORMAL) | CRH(14, CNF_PPOUTPUT|MODE_NORMAL);
+    GPIOA->CRH = CRH(8, CNF_PPOUTPUT|MODE_NORMAL) | CRH(14, CNF_ODOUTPUT|MODE_NORMAL);
+    GPIOB->CRL = CRL(2, CNF_PUDINPUT) | CRL(3, CNF_PPOUTPUT|MODE_NORMAL);
+    GPIOB->CRH = CRH(10, CNF_PUDINPUT) | CRH(11, CNF_PUDINPUT) | CRH(12, CNF_PUDINPUT) | CRH(13, CNF_PUDINPUT) |
+                 CRH(14, CNF_PUDINPUT) | CRH(15, CNF_PPOUTPUT|MODE_NORMAL);
+    GPIOC->CRL = CRL(0, CNF_ANALOG) | CRL(1, CNF_ANALOG) | CRL(4, CNF_ANALOG) | CRL(5, CNF_ANALOG);
+    GPIOC->CRH = CRH(8, CNF_PPOUTPUT|MODE_NORMAL) | CRH(9, CNF_PPOUTPUT|MODE_NORMAL);
+    GPIOD->CRL = 0;
+    GPIOD->CRH = CRH(10, CNF_PPOUTPUT|MODE_NORMAL) | CRH(12, CNF_PPOUTPUT|MODE_NORMAL);
+    GPIOE->CRL = CRL(7, CNF_PUDINPUT);
+    GPIOE->CRH = CRH(8, CNF_PUDINPUT) | CRH(9, CNF_PUDINPUT) | CRH(10, CNF_PUDINPUT) | CRH(11, CNF_PUDINPUT) |
+                 CRH(12, CNF_PUDINPUT) | CRH(13, CNF_PUDINPUT) | CRH(14, CNF_PUDINPUT) | CRH(15, CNF_PUDINPUT);
 }
 
 

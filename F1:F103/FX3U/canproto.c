@@ -163,6 +163,7 @@ static errcodes u32setget(CAN_message *msg){
         case CMD_INCHNLS: val = inchannels(); ptr = &val; break;
         case CMD_OUTCHNLS: val = outchannels(); ptr = &val; break;
         case CMD_MODBUSID: ptr = &the_conf.modbusID; break;
+        case CMD_MODBUSSPEED: ptr = &the_conf.modbusspeed; break;
     default: break;
     }
     if(!ptr) return ERR_CANTRUN; // unknown error

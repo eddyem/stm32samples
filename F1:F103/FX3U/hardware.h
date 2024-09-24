@@ -41,6 +41,10 @@
 #define LEDPORT GPIOD
 #define LEDPIN  (1<<10)
 
+// RS-485 receive/transmit (PA14: 0-Rx, 1-Tx)
+#define RS485_TX()      pin_set(GPIOA, (1<<14))
+#define RS485_RX()      pin_clear(GPIOA, (1<<14))
+
 extern volatile uint32_t Tms;
 
 void gpio_setup(void);
