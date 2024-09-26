@@ -35,8 +35,10 @@ static uint32_t maxCnum = 1024 / sizeof(user_conf); // can't use blocksize here
     ,.CANIDout = 2                      \
     ,.usartspeed = 115200               \
     ,.bouncetime = 50                   \
-    ,.modbusID = MODBUS_MASTER_ID       \
+    ,.modbusID = 1                      \
+    ,.modbusIDout = 2                   \
     ,.modbusspeed = 9600                \
+    ,.flags.sw_send_relay_inv = 1       \
     }
 
 static int write2flash(const void*, const void*, uint32_t);
@@ -57,6 +59,7 @@ int currentconfidx = -1; // index of current configuration
 static int binarySearch(int r, const uint8_t *start, int stor_size){
     int l = 0;
     while(r >= l){
+        IWDG->KR = IWDG_REFRESH;
         int mid = l + (r - l) / 2;
         const uint8_t *s = start + mid * stor_size;
         if(*((const uint16_t*)s) == stor_size){

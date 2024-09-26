@@ -39,11 +39,12 @@ static void us(){
 }*/
 
 // switch to Rx/Tx:
-#define _485_Rx()  do{LED(1); RS485_RX(); /*UART4->CR1 = (UART4->CR1 & ~USART_CR1_TE) | USART_CR1_RE;*/}while(0)
-#define _485_Tx()  do{LED(0); RS485_TX(); /*UART4->CR1 = (UART4->CR1 & ~USART_CR1_RE) | USART_CR1_TE;*/}while(0)
+#define _485_Rx()  do{ DMA2_Channel5->CCR &= ~DMA_CCR_EN; RS485_RX(); \
+    DMA2_Channel3->CMAR = (uint32_t) rbuf[rbufno]; DMA2_Channel3->CNDTR = MODBUSBUFSZI; \
+    DMA2_Channel3->CCR |= DMA_CCR_EN;}while(0)
+#define _485_Tx()  do{ RS485_TX(); }while(0)
 
 static volatile int modbus_txrdy = 1;
-static volatile int idatalen[2] = {0,0}; // received data line length (including '\n')
 
 static volatile int modbus_rdy = 0      // received data ready
     ,dlen = 0                           // length of data (including '\n') in current buffer
@@ -68,9 +69,11 @@ static uint16_t getCRC(uint8_t *data, int l){
             }else crc >>= 1;
         }
     }
+    /*
 #ifdef EBUG
     DBG("Calc CRC: "); printuhex(crc); newline();
 #endif
+    */
     // CRC have swapped bytes, so we can just send it as *((uint16_t*)&data[x]) = CRC
     return crc;
 }
@@ -105,13 +108,13 @@ static int senddata(int l){
         IWDG->KR = IWDG_REFRESH;
         if(--tmout == 0) return 0;
     }; // wait for previos buffer transmission
-    _485_Tx();
     modbus_txrdy = 0;
     DMA2_Channel5->CCR &= ~DMA_CCR_EN;
     DMA2_Channel5->CMAR = (uint32_t) tbuf[tbufno]; // mem
     DMA2_Channel5->CNDTR = l + 2; // + CRC
     DMA2_Channel5->CCR |= DMA_CCR_EN;
     tbufno = !tbufno;
+    _485_Tx();
     return l;
 }
 
@@ -133,12 +136,13 @@ int modbus_send_request(modbus_request *r){
     *curbuf++ = r->startreg >> 8; // H
     *curbuf++ = (uint8_t) r->startreg; // L
     *curbuf++ = r->regno >> 8; // H
-    *curbuf   = (uint8_t) r->regno; // L
+    *curbuf++ = (uint8_t) r->regno; // L
     // if r->datalen == 0 - this is responce for request with fcode > 4
     if((r->Fcode == MC_WRITE_MUL_COILS || r->Fcode == MC_WRITE_MUL_REGS) && r->datalen){ // request with data
-        *(++curbuf) = r->datalen;
+        if(r->datalen > MODBUSBUFSZO - 7) return -1;
+        *curbuf++ = r->datalen;
         memcpy(curbuf, r->data, r->datalen);
-        n += r->datalen;
+        n += r->datalen + 1; // + data length byte
     }
     packCRC(tbuf[tbufno], n) = getCRC(tbuf[tbufno], n);
     return senddata(n);
@@ -207,66 +211,71 @@ int modbus_get_response(modbus_response* r){
 
 // USART4: PC10 - Tx, PC11 - Rx
 void modbus_setup(uint32_t speed){
-    uint32_t tmout = 16000000;
     // PC10 - Tx, PC11 - Rx
     RCC->APB1ENR |= RCC_APB1ENR_UART4EN;
     RCC->AHBENR |= RCC_AHBENR_DMA2EN;
     GPIOC->CRH = (GPIOC->CRH & ~(CRH(10,0xf)|CRH(11,0xf))) |
         CRH(10, CNF_AFPP|MODE_NORMAL) | CRH(11, CNF_FLINPUT|MODE_INPUT);
-    // UART4 Tx DMA - Channel5 (Rx - channel 3)
+    // UART4 Tx DMA - Channel5, Rx - channel 3
     DMA2_Channel5->CPAR = (uint32_t) &UART4->DR; // periph
     DMA2_Channel5->CCR |= DMA_CCR_MINC | DMA_CCR_DIR | DMA_CCR_TCIE; // 8bit, mem++, mem->per, transcompl irq
+    DMA2_Channel3->CPAR = (uint32_t) &UART4->DR;
+    DMA2_Channel3->CCR = DMA_CCR_MINC | DMA_CCR_TCIE;
     // Tx CNDTR set @ each transmission due to data size
     NVIC_SetPriority(DMA2_Channel4_5_IRQn, 2);
     NVIC_EnableIRQ(DMA2_Channel4_5_IRQn);
-    NVIC_SetPriority(UART4_IRQn, 2);
+    NVIC_SetPriority(DMA2_Channel3_IRQn, 2);
+    NVIC_EnableIRQ(DMA2_Channel3_IRQn);
     // setup uart4
     UART4->BRR = 36000000 / speed; // APB1 is 36MHz
     UART4->CR1 = USART_CR1_TE | USART_CR1_RE | USART_CR1_UE; // 1start,8data,nstop; enable Rx,Tx,USART
+    uint32_t tmout = 16000000;
     while(!(UART4->SR & USART_SR_TC)){  // polling idle frame Transmission
         IWDG->KR = IWDG_REFRESH;
         if(--tmout == 0) break;
     }
+    (void) UART4->DR; // clear IDLE etc
     UART4->SR = 0; // clear flags
-    UART4->CR1 |= USART_CR1_RXNEIE | USART_CR1_IDLEIE | USART_CR1_TCIE; // allow Rx and IDLE IRQ; TC IRQ for switching to Rx
-    UART4->CR3 = USART_CR3_DMAT; // enable DMA Tx
+    UART4->CR1 |= USART_CR1_IDLEIE | USART_CR1_TCIE; // allow IDLE IRQ; TC IRQ for switching to Rx
+    UART4->CR3 = USART_CR3_DMAT | USART_CR3_DMAR; // enable DMA Tx & Rx
+    NVIC_SetPriority(UART4_IRQn, 2);
     NVIC_EnableIRQ(UART4_IRQn);
     _485_Rx();
 }
 
 void uart4_isr(){
     if(UART4->SR & USART_SR_IDLE){ // idle - end of frame
-usart_send("485: IDLE\n");
+        DMA2_Channel3->CCR &= ~DMA_CCR_EN;
         modbus_rdy = 1;
-        dlen = idatalen[rbufno];
+        dlen = MODBUSBUFSZI - DMA2_Channel3->CNDTR;
         recvdata = rbuf[rbufno];
         // prepare other buffer
         rbufno = !rbufno;
-        idatalen[rbufno] = 0;
         (void) UART4->DR; // clear IDLE flag by reading DR
-    }else if(UART4->SR & USART_SR_RXNE){ // RX not emty - receive next char
-        uint8_t rb = UART4->DR; // clear RXNE flag
-        if(idatalen[rbufno] < MODBUSBUFSZI){ // put next char into buf
-            rbuf[rbufno][idatalen[rbufno]++] = rb;
-usart_send("485: "); usart_putchar(rb); newline();
-        }else{ // buffer overrun
-            bufovr = 1;
-            idatalen[rbufno] = 0;
-        }
-    }else if(UART4->SR & USART_SR_TC){
+        _485_Rx(); // receive next
+    }else if(UART4->SR & USART_SR_TC){ // TC - switch to Rx
         if(modbus_txrdy){
-usart_send("->Rx\n");
             _485_Rx();
         }
-usart_send("485: TC\n");
         UART4->SR &= ~USART_SR_TC;
     }
 }
 
+// Tx rdy
 void dma2_channel4_5_isr(){
     if(DMA2->ISR & DMA_ISR_TCIF5){ // Tx
         DMA2->IFCR = DMA_IFCR_CTCIF5; // clear TC flag
         modbus_txrdy = 1;
+    }
+}
+
+// Rx full
+void dma2_channel3_isr(){
+    if(DMA2->ISR & DMA_ISR_TCIF3){
+        DMA2_Channel3->CCR &= ~DMA_CCR_EN;
+        DMA2->IFCR = DMA_IFCR_CTCIF3;
+        bufovr = 1;
+        _485_Rx();
     }
 }
 

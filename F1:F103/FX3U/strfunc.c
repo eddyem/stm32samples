@@ -64,8 +64,6 @@ static char *_2str(uint32_t  val, uint8_t minus){
             uint32_t x = val / 10;
             *(--bufptr) = (val - 10*x) + '0';
             val = x;
-            //*(--bufptr) = val % 10 + '0';
-            //val /= 10;
         }
     }
     if(minus) *(--bufptr) = '-';
@@ -257,8 +255,8 @@ const char *getint(const char *txt, int32_t *I){
     int32_t sign = 1;
     uint32_t U;
     if(*s == '-'){
-    	sign = -1;
-    	++s;
+        sign = -1;
+        ++s;
     }
     const char *nxt = getnum(s, &U);
     if(nxt == s) return txt;

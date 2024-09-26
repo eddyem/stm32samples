@@ -19,8 +19,8 @@
 #pragma once
 #include <stdint.h>
 
-// input and output buffers size
-#define MODBUSBUFSZI  (64)
+// input and output buffers size: input buffer is greater as last symbol would be lost on Rx DMA IRQ
+#define MODBUSBUFSZI  (68)
 #define MODBUSBUFSZO  (64)
 
 #define MODBUS_MASTER_ID    (0)

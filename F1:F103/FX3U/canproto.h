@@ -48,6 +48,9 @@ typedef enum{
 // set command bytes in CAN message
 #define MSG_SET_CMD(msg, cmd)       do{*((uint16_t*)msg.data) = (cmd);}while(0)
 #define MSGP_SET_CMD(msg, cmd)      do{*((uint16_t*)msg->data) = (cmd);}while(0)
+// set command parameter number
+#define MSG_SET_PARNO(msg, n)       do{msg.data[2] = (n);}while(0)
+#define MSGP_SET_PARNO(msg, n)      do{msg->data[2] = (n);}while(0)
 // set error
 #define MSG_SET_ERR(msg, err)       do{msg.data[3] = (err);}while(0)
 #define MSGP_SET_ERR(msg, err)      do{msg->data[3] = (err);}while(0)
@@ -75,15 +78,17 @@ enum{
     CMD_GETESW,     // current ESW state, bounce-free
     CMD_GETESWNOW,  // current ESW state, absolute
     CMD_BOUNCE,     // get/set bounce constant (ms)
-    CMD_USARTSPEED, // get/set USART1 speed (if encoder on RS-422)
+    CMD_USARTSPEED, // get/set USART1 speed
     CMD_LED,        // onboard LED
     CMD_FLAGS,      // flags setter/getter
     CMD_INCHNLS,    // all bits set are active supported IN channels
     CMD_OUTCHNLS,   // all bits set are active supported OUT channels
     CMD_MODBUSID,   // set/get modbus slave ID (or 0 if master)
+    CMD_MODBUSIDOUT,// slave ID to send modbus relay command if IN changes
     CMD_MODBUSSPEED,// speed of modbus interface
     // should be the last:
     CMD_AMOUNT     // amount of CAN commands
 };
 
 void run_can_cmd(CAN_message *msg);
+void parseCANcommand(CAN_message *msg);

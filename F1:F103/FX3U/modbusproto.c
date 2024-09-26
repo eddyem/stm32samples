@@ -68,13 +68,12 @@ TRUE_INLINE void readdiscr(modbus_request *r){
         return;
     }
     uint8_t bytes[INMAXBYTES] = {0};
-    int curidx = INMAXBYTES - 1;
     int vals = get_esw(INMAX+1);
-    for(int i = 0; i < amount; ++i){
-        bytes[--curidx] = vals & 0xff;
+    for(int i = amount - 1; i > -1; --i){
+        bytes[i] = vals & 0xff;
         vals >>= 8;
     }
-    modbus_response resp = {.Fcode = r->Fcode, .ID = the_conf.modbusID, .data = bytes+curidx, .datalen = amount};
+    modbus_response resp = {.Fcode = r->Fcode, .ID = the_conf.modbusID, .data = bytes, .datalen = amount};
     modbus_send_response(&resp);
 }
 
@@ -122,7 +121,7 @@ TRUE_INLINE void readadc(modbus_request *r){
     uint16_t vals[ADC_CHANNELS];
     for(int i = r->startreg; i < nlast; ++i){
         uint16_t v = getADCval(i);
-        vals[i] = __builtin_bswap16(v);
+        vals[i - r->startreg] = __builtin_bswap16(v);
     }
     modbus_response resp = {.Fcode = r->Fcode, .ID = the_conf.modbusID, .data = (uint8_t*) vals, .datalen = r->regno * 2};
     modbus_send_response(&resp);
@@ -155,20 +154,21 @@ TRUE_INLINE void writereg(modbus_request *r){
 
 // support ONLY write to ALL!
 // data - by bits, like in readcoil
+// N registers is N bits
 TRUE_INLINE void writecoils(modbus_request *r){
     if(r->startreg){
         senderr(r, ME_ILLEGAL_ADDRESS);
         return;
     }
-    int amount = r->regno;
-    if(amount == 0 || amount > OUTMAX || r->datalen > 4){
+    int amount = (r->regno + 7) >> 3;
+    if(amount == 0 || amount > OUTMAXBYTES || r->datalen < amount){
         senderr(r, ME_ILLEGAL_VALUE);
         return;
     }
     uint32_t v = 0;
     for(int i = 0; i < amount; ++i){
-        v |= r->data[i];
         v <<= 8;
+        v |= r->data[i];
     }
     if(set_relay(OUTMAX+1, v) < 0){
         senderr(r, ME_NACK);

@@ -18,6 +18,7 @@
 
 #include "adc.h"
 #include "can.h"
+#include "canproto.h"
 #include "flash.h"
 #include "hardware.h"
 #include "modbusproto.h"
@@ -48,7 +49,6 @@ int main(void){
     uint32_t lastT = 0;
     CAN_message *can_mesg;
     StartHSE();
-    RCC->CSR |= RCC_CSR_RMVF; // remove reset flags
     SysTick_Config(72000);
     flashstorage_init();
     gpio_setup(); // should be run before other peripherial setup
@@ -61,6 +61,19 @@ int main(void){
     iwdg_setup();
 #endif
     usart_send("START\n");
+    if(RCC->CSR & RCC_CSR_IWDGRSTF){ // watchdog reset occured
+        usart_send("IWDGRSTF=1\n");
+    }
+    if(RCC->CSR & RCC_CSR_SFTRSTF){ // software reset occured
+        usart_send("SFTRSTF=1\n");
+    }
+    if(RCC->CSR & RCC_CSR_PORRSTF){ // POR/RDR
+        usart_send("PORRSTF=1\n");
+    }
+    if(RCC->CSR & RCC_CSR_PINRSTF){ // reset by pin NRST
+        usart_send("PINRSTF=1\n");
+    }
+    RCC->CSR |= RCC_CSR_RMVF; // remove reset flags
     while (1){
         IWDG->KR = IWDG_REFRESH; // refresh watchdog
         if(Tms - lastT > 499){ // throw out short messages twice per second
@@ -69,15 +82,12 @@ int main(void){
         }
         proc_esw();
         CAN_proc();
-        CAN_status st = CAN_get_status();
-        if(st == CAN_FIFO_OVERRUN){
-            usart_send("CAN bus fifo overrun occured!\n");
-        }else if(st == CAN_ERR){
-            usart_send("Some CAN error occured\n");
-        }
         while((can_mesg = CAN_messagebuf_pop())){
             DBG("got CAN message\n");
             IWDG->KR = IWDG_REFRESH;
+            // run command for my or broadcast ID
+            if(can_mesg->ID == the_conf.CANIDin || can_mesg->ID == 0)
+                parseCANcommand(can_mesg);
             if(flags.can_monitor){
                 lastT = Tms;
                 if(!lastT) lastT = 1;

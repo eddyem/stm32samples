@@ -48,9 +48,7 @@ static CAN_status can_status = CAN_STOP;
 static void can_process_fifo(uint8_t fifo_num);
 
 CAN_status CAN_get_status(){
-    int st = can_status;
-    can_status = CAN_OK;
-    return st;
+    return can_status;
 }
 
 // push next message into buffer; return 1 if buffer overfull
@@ -141,8 +139,10 @@ void CAN_setup(uint32_t speed){
     /* (12) Leave filter init */
     /* (13) Set error interrupts enable (& bus off) */
     CAN1->MCR |= CAN_MCR_INRQ; /* (1) */
-    while((CAN1->MSR & CAN_MSR_INAK) != CAN_MSR_INAK) /* (2) */
+    while((CAN1->MSR & CAN_MSR_INAK) != CAN_MSR_INAK){ /* (2) */
+        IWDG->KR = IWDG_REFRESH;
         if(--tmout == 0) break;
+    }
     CAN1->MCR &=~ CAN_MCR_SLEEP; /* (3) */
     CAN1->MCR |= CAN_MCR_ABOM; /* allow automatically bus-off */
     CAN1->BTR = (CAN_TBS2-1) << 20 | (CAN_TBS1-1) << 16 | (CAN_BIT_OSC/speed - 1); //| CAN_BTR_SILM | CAN_BTR_LBKM; /* (4) */
@@ -152,8 +152,10 @@ void CAN_setup(uint32_t speed){
 #endif
     CAN1->MCR &= ~CAN_MCR_INRQ; /* (5) */
     tmout = 16000000;
-    while((CAN1->MSR & CAN_MSR_INAK) == CAN_MSR_INAK) /* (6) */
+    while((CAN1->MSR & CAN_MSR_INAK) == CAN_MSR_INAK){ /* (6) */
+        IWDG->KR = IWDG_REFRESH;
         if(--tmout == 0) break;
+    }
     // accept depending of monitor flag
     CAN1->FMR = CAN_FMR_FINIT; /* (7) */
     CAN1->FA1R = CAN_FA1R_FACT0; /* (8) */
@@ -218,20 +220,28 @@ void CAN_printerr(){
 }
 
 void CAN_proc(){
+    IWDG->KR = IWDG_REFRESH;
+    if((CAN1->ESR & (CAN_ESR_BOFF | CAN_ESR_EPVF | CAN_ESR_EWGF))
+       || can_status != CAN_READY){ // much errors - restart CAN BUS
+        if(flags.can_printoff){
+            const char *e;
+            switch(can_status){
+                case CAN_ERR: e = "ERRI"; break;
+                case CAN_FIFO_OVERRUN: e = "FIFO_OVERRUN"; break;
+                default: e = "UNKNOWN";
+            }
+            usart_send("canerror=");
+            usart_send(e); newline();
+            CAN_printerr();
+        }
+        CAN_reinit(0);
+    }
     // check for messages in FIFO0 & FIFO1
     if(CAN1->RF0R & CAN_RF0R_FMP0){
         can_process_fifo(0);
     }
     if(CAN1->RF1R & CAN_RF1R_FMP1){
         can_process_fifo(1);
-    }
-    IWDG->KR = IWDG_REFRESH;
-    if(CAN1->ESR & (CAN_ESR_BOFF | CAN_ESR_EPVF | CAN_ESR_EWGF)){ // much errors - restart CAN BUS
-        if(flags.can_printoff){
-            usart_send("error=canerr\n");
-            CAN_printerr();
-        }
-        CAN_reinit(0);
     }
 }
 
@@ -290,28 +300,6 @@ CAN_status CAN_send(CAN_message *message){
     return CAN_OK;
 }
 
-/**
- * @brief parseCANcommand - parser
- * @param msg - incoming message @ my CANID
- * FORMAT:
- *  0 1   2      3    4 5 6 7
- * [CMD][PAR][errcode][VALUE]
- * CMD - uint16_t, PAR - uint8_t, errcode - one of CAN_errcodes, VALUE - int32_t
- * `errcode` of  incoming message doesn't matter
- * incoming data may have variable length
- */
-TRUE_INLINE void parseCANcommand(CAN_message *msg){
-    msg->ID = the_conf.CANIDout; // set output ID for all output messages
-    // check PING
-    if(msg->length != 0) run_can_cmd(msg);
-    uint32_t Tstart = Tms;
-    while(Tms - Tstart < SEND_TIMEOUT_MS){
-        if(CAN_OK == CAN_send(msg)) return;
-        IWDG->KR = IWDG_REFRESH;
-    }
-    usart_send("error=canbusy\n");
-}
-
 static void can_process_fifo(uint8_t fifo_num){
     if(fifo_num > 1) return;
     CAN_FIFOMailBox_TypeDef *box = &CAN1->sFIFOMailBox[fifo_num];
@@ -355,9 +343,8 @@ static void can_process_fifo(uint8_t fifo_num){
                     dat[0] = lb & 0xff;
             }
         }
-        // run command for my or broadcast ID
-        if(msg.ID == the_conf.CANIDin || msg.ID == 0) parseCANcommand(&msg);
-        if(flags.can_monitor && CAN_messagebuf_push(&msg)) return; // error: buffer is full, try later
+        IWDG->KR = IWDG_REFRESH;
+        if(CAN_messagebuf_push(&msg)) return; // error: buffer is full, try later
         *RFxR |= CAN_RF0R_RFOM0; // release fifo for access to next message
     }
     //if(*RFxR & CAN_RF0R_FULL0) *RFxR &= ~CAN_RF0R_FULL0;
@@ -368,6 +355,7 @@ void usb_lp_can_rx0_isr(){ // Rx FIFO0 (overrun)
     if(CAN1->RF0R & CAN_RF0R_FOVR0){ // FIFO overrun
         CAN1->RF0R &= ~CAN_RF0R_FOVR0;
         can_status = CAN_FIFO_OVERRUN;
+        RCC->APB1ENR &= ~RCC_APB1ENR_CAN1EN;
     }
 }
 
@@ -375,6 +363,7 @@ void can_rx1_isr(){ // Rx FIFO1 (overrun)
     if(CAN1->RF1R & CAN_RF1R_FOVR1){
         CAN1->RF1R &= ~CAN_RF1R_FOVR1;
         can_status = CAN_FIFO_OVERRUN;
+        RCC->APB1ENR &= ~RCC_APB1ENR_CAN1EN;
     }
 }
 
@@ -386,5 +375,6 @@ void can_sce_isr(){ // status changed
         if(CAN1->TSR & CAN_TSR_TERR1) CAN1->TSR |= CAN_TSR_ABRQ1;
         if(CAN1->TSR & CAN_TSR_TERR2) CAN1->TSR |= CAN_TSR_ABRQ2;
         can_status = CAN_ERR;
+        RCC->APB1ENR &= ~RCC_APB1ENR_CAN1EN;
     }
 }

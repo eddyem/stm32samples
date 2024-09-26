@@ -56,18 +56,18 @@ int usart_getline(char **line){
 int usart_transmit(){
     register int l = odatalen[tbufno];
     if(!l) return 0;
-    uint32_t tmout = 1600000;
+    uint32_t tmout = 18000000;
     while(!usart_txrdy){
         IWDG->KR = IWDG_REFRESH;
         if(--tmout == 0) return 0;
     }; // wait for previos buffer transmission
     usart_txrdy = 0;
-    odatalen[tbufno] = 0;
     DMA1_Channel4->CCR &= ~DMA_CCR_EN;
     DMA1_Channel4->CMAR = (uint32_t) tbuf[tbufno]; // mem
     DMA1_Channel4->CNDTR = l;
     DMA1_Channel4->CCR |= DMA_CCR_EN;
     tbufno = !tbufno;
+    odatalen[tbufno] = 0;
     return l;
 }
 
@@ -82,6 +82,7 @@ int usart_putchar(const char ch){
 int usart_send(const char *str){
     int l = 0;
     while(*str){
+        IWDG->KR = IWDG_REFRESH;
         if(odatalen[tbufno] == UARTBUFSZO){
             if(!usart_transmit()) return 0;
         }
@@ -100,7 +101,6 @@ int usart_send(const char *str){
  */
 
 void usart_setup(uint32_t speed){
-    uint32_t tmout = 16000000;
     // PA9 - Tx, PA10 - Rx
     RCC->APB2ENR |= RCC_APB2ENR_USART1EN;
     RCC->AHBENR |= RCC_AHBENR_DMA1EN;
@@ -116,7 +116,11 @@ void usart_setup(uint32_t speed){
     // setup usart1
     USART1->BRR = 72000000 / speed;
     USART1->CR1 = USART_CR1_TE | USART_CR1_RE | USART_CR1_UE; // 1start,8data,nstop; enable Rx,Tx,USART
-    while(!(USART1->SR & USART_SR_TC)){if(--tmout == 0) break;} // polling idle frame Transmission
+    uint32_t tmout = 16000000;
+    while(!(USART1->SR & USART_SR_TC)){
+        IWDG->KR = IWDG_REFRESH;
+        if(--tmout == 0) break;
+    } // polling idle frame Transmission
     USART1->SR = 0; // clear flags
     USART1->CR1 |= USART_CR1_RXNEIE; // allow Rx IRQ
     USART1->CR3 = USART_CR3_DMAT; // enable DMA Tx

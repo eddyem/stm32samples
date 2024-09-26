@@ -43,7 +43,8 @@ const char *getnum(const char *txt, uint32_t *N);
 const char *omit_spaces(const char *buf);
 const char *getint(const char *txt, int32_t *I);
 
-#define newline() do{usart_putchar('\n');}while(0)
-#define printu(a) do{usart_send(u2str(a));}while(0)
-#define printi(a) do{usart_send(i2str(a));}while(0)
+#define EQ()        do{usart_putchar('=');}while(0)
+#define newline()   do{usart_putchar('\n');}while(0)
+#define printu(a)   do{usart_send(u2str(a));}while(0)
+#define printi(a)   do{usart_send(i2str(a));}while(0)
 #define printuhex(a) do{usart_send(uhex2str(a));}while(0)

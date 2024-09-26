@@ -23,14 +23,20 @@
 #define FLASH_SIZE_REG      ((uint32_t)0x1FFFF7E0)
 #define FLASH_SIZE          *((uint16_t*)FLASH_SIZE_REG)
 
-// maximal bit number of flags
-#define MAX_FLAG_BITNO      (0)
+// maximal bit NUMBER (0 etc) of flags
+#define MAX_FLAG_BITNO      (3)
 typedef union{
     uint32_t u32;
     struct{
-        uint32_t sw_send_relay_cmd; // switching ESW state will send also CMD_RELAY command with CANID_OUT
+        uint32_t sw_send_esw_can : 1;       // 0 - if ESW state changes, send message over CAN with CANID_IN
+        uint32_t sw_send_relay_can : 1;     // 1 - switching ESW state will send CMD_RELAY command with CANID_OUT
+        uint32_t sw_send_relay_inv : 1;     // 2 - sw_send should be inverted related to current inputs value
+        uint32_t sw_send_relay_modbus : 1;  // 3 - 1 for modbus
     };
 } confflags_t;
+
+// ALL sw_send flags mask (without relay_inv)
+#define SW_SEND_MASK    (0x0B)
 
 /*
  * struct to save user configurations
@@ -45,6 +51,7 @@ typedef struct __attribute__((aligned(4))){
     uint32_t CANspeed;          // CAN bus speed
     confflags_t flags;          // different flags
     uint32_t modbusID;          // MODBUS-RTU ID (0 for master)
+    uint32_t modbusIDout;       // MODBUS-RTU slave ID to send relay command when IN changes
     uint32_t modbusspeed;       // Speed of modbus interface
 } user_conf;
 

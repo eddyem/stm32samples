@@ -21,8 +21,8 @@
 #include <stdint.h>
 
 // input and output buffers size
-#define UARTBUFSZI  (64)
-#define UARTBUFSZO  (128)
+#define UARTBUFSZI  (196)
+#define UARTBUFSZO  (256)
 
 #define usartrx()  (usart_linerdy)
 #define usartovr() (usart_bufovr)

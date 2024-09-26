@@ -27,8 +27,7 @@
 #define FIXDL(m)     do{m->length = 8;}while(0)
 
 /*********** START of all common functions list (for `funclist`) ***********/
-static errcodes ping(CAN_message *m){
-    m->ID = the_conf.CANIDout; // change ID
+static errcodes ping(CAN_message _U_ *m){
     return ERR_OK; // send same message
 }
 // reset MCU
@@ -163,6 +162,7 @@ static errcodes u32setget(CAN_message *msg){
         case CMD_INCHNLS: val = inchannels(); ptr = &val; break;
         case CMD_OUTCHNLS: val = outchannels(); ptr = &val; break;
         case CMD_MODBUSID: ptr = &the_conf.modbusID; break;
+        case CMD_MODBUSIDOUT: ptr = &the_conf.modbusIDout; break;
         case CMD_MODBUSSPEED: ptr = &the_conf.modbusspeed; break;
     default: break;
     }
@@ -230,6 +230,7 @@ static const commonfunction funclist[CMD_AMOUNT] = {
     [CMD_INCHNLS] = {u32setget, 0, 0, 0},
     [CMD_OUTCHNLS] = {u32setget, 0, 0, 0},
     [CMD_MODBUSID] = {u32setget, 0, MODBUS_MAX_ID, 0}, // 0 - master!
+    [CMD_MODBUSIDOUT] = {u32setget, 0, MODBUS_MAX_ID, 0},
     [CMD_MODBUSSPEED] = {u32setget, 1200, 115200, 0},
 };
 
@@ -287,4 +288,26 @@ void run_can_cmd(CAN_message *msg){
     }
     newline();
 #endif
+}
+
+/**
+ * @brief parseCANcommand - parser
+ * @param msg - incoming message @ my CANID
+ * FORMAT:
+ *  0 1   2      3    4 5 6 7
+ * [CMD][PAR][errcode][VALUE]
+ * CMD - uint16_t, PAR - uint8_t, errcode - one of CAN_errcodes, VALUE - int32_t
+ * `errcode` of  incoming message doesn't matter
+ * incoming data may have variable length
+ */
+void parseCANcommand(CAN_message *msg){
+    // check PING
+    if(msg->length != 0) run_can_cmd(msg);
+    uint32_t Tstart = Tms;
+    // send answer
+    while(Tms - Tstart < SEND_TIMEOUT_MS){
+        if(CAN_OK == CAN_send(msg)) return;
+        IWDG->KR = IWDG_REFRESH;
+    }
+    usart_send("error=canbusy\n");
 }

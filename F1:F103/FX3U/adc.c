@@ -47,12 +47,13 @@ void adc_setup(){
     ADC1->CR2 |= ADC_CR2_ADON;
     __DSB();
     // wait for Tstab - at least 1us
+    IWDG->KR = IWDG_REFRESH;
     while(++ctr < 0xff) nop();
     // calibration
     ADC1->CR2 |= ADC_CR2_RSTCAL;
-    ctr = 0; while((ADC1->CR2 & ADC_CR2_RSTCAL) && ++ctr < 0xfffff);
+    ctr = 0; while((ADC1->CR2 & ADC_CR2_RSTCAL) && ++ctr < 0xfffff) IWDG->KR = IWDG_REFRESH;
     ADC1->CR2 |= ADC_CR2_CAL;
-    ctr = 0; while((ADC1->CR2 & ADC_CR2_CAL) && ++ctr < 0xfffff);
+    ctr = 0; while((ADC1->CR2 & ADC_CR2_CAL) && ++ctr < 0xfffff) IWDG->KR = IWDG_REFRESH;
     // clear possible errors and start
     ADC1->SR = 0;
     ADC1->CR2 |= ADC_CR2_SWSTART;

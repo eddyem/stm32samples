@@ -20,6 +20,7 @@
 #include "canproto.h"
 #include "flash.h"
 #include "hardware.h"
+#include "modbusrtu.h"
 /*
 #ifdef EBUG
 #include "strfunc.h"
@@ -116,14 +117,16 @@ void gpio_setup(void){
 void iwdg_setup(){
     uint32_t tmout = 16000000;
     RCC->CSR |= RCC_CSR_LSION;
-    while((RCC->CSR & RCC_CSR_LSIRDY) != RCC_CSR_LSIRDY){if(--tmout == 0) break;}
+    while((RCC->CSR & RCC_CSR_LSIRDY) != RCC_CSR_LSIRDY) if(--tmout == 0) break;
     IWDG->KR = IWDG_START;
     IWDG->KR = IWDG_WRITE_ACCESS;
     IWDG->PR = IWDG_PR_PR_1;
     IWDG->RLR = 1250;
     tmout = 16000000;
-    while(IWDG->SR){if(--tmout == 0) break;}
-    IWDG->KR = IWDG_REFRESH;
+    while(IWDG->SR){
+        IWDG->KR = IWDG_REFRESH;
+        if(--tmout == 0) break;
+    }
 }
 
 typedef struct{
@@ -263,21 +266,45 @@ void proc_esw(){
         else ESW_ab_values &= ~mask;
         lastET[i] = Tms;
     }
-    if(oldesw != ESW_ab_values){
+    if(oldesw != ESW_ab_values && (the_conf.flags.u32 & SW_SEND_MASK)){ // State changes and need to send info
         //usart_send("esw="); usart_send(u2str(ESW_ab_values)); newline();
-        CAN_message msg = {.ID = the_conf.CANIDout, .length = 8};
-        MSG_SET_CMD(msg, CMD_GETESW);
-        MSG_SET_U32(msg, ESW_ab_values);
-        uint32_t Tstart = Tms;
-        while(Tms - Tstart < SEND_TIMEOUT_MS){
-            if(CAN_OK == CAN_send(&msg)) break;
-        }
-        if(the_conf.flags.sw_send_relay_cmd){ // send also CMD_RELAY
-            MSG_SET_CMD(msg, CMD_RELAY);
-            Tstart = Tms;
+        if(the_conf.flags.sw_send_esw_can){
+            CAN_message msg = {.ID = the_conf.CANIDin, .length = 8, .data = {0}};
+            MSG_SET_CMD(msg, CMD_GETESW);
+            MSG_SET_U32(msg, ESW_ab_values);
+            uint32_t Tstart = Tms;
             while(Tms - Tstart < SEND_TIMEOUT_MS){
+                IWDG->KR = IWDG_REFRESH;
                 if(CAN_OK == CAN_send(&msg)) break;
             }
+        }
+        uint32_t v = ESW_ab_values;
+        if(the_conf.flags.sw_send_relay_inv) v = ~v;
+        if(the_conf.flags.sw_send_relay_can){ // send also CMD_RELAY
+            CAN_message msg = {.ID = the_conf.CANIDout, .length = 8, .data = {0}};
+            MSG_SET_U32(msg, v);
+            MSG_SET_CMD(msg, CMD_RELAY);
+            MSG_SET_PARNO(msg, SETTER_FLAG | NO_PARNO);
+            uint32_t Tstart = Tms;
+            while(Tms - Tstart < SEND_TIMEOUT_MS){
+                IWDG->KR = IWDG_REFRESH;
+                if(CAN_OK == CAN_send(&msg)) break;
+            }
+        }
+        if(the_conf.flags.sw_send_relay_modbus && the_conf.modbusID == MODBUS_MASTER_ID){
+            modbus_request r = {.ID = the_conf.modbusIDout,
+                                .Fcode = MC_WRITE_MUL_COILS,
+                                .startreg = 0,
+                                .regno = OUTMAX+1,
+                                .datalen = OUTMAXBYTES
+                               };
+            uint8_t data[OUTMAXBYTES];
+            r.data = data;
+            for(int i = OUTMAXBYTES - 1; i > -1; --i){
+                data[i] = (uint8_t) v;
+                v >>= 8;
+            }
+            modbus_send_request(&r);
         }
     }
 }

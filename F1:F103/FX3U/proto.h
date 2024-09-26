@@ -21,7 +21,7 @@
 #include <stm32f1.h>
 #include "hardware.h"
 
-#define MAXCMDLEN  (12)
+#define MAXCMDLEN  (32)
 
 // flags for some RS-232 comands
 typedef struct{
@@ -33,3 +33,4 @@ extern flags_t flags;
 
 
 void cmd_parser(const char *txt);
+
