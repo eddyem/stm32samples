@@ -115,15 +115,16 @@ void usart_setup(uint32_t speed){
     NVIC_SetPriority(USART1_IRQn, 0);
     // setup usart1
     USART1->BRR = 72000000 / speed;
-    USART1->CR1 = USART_CR1_TE | USART_CR1_RE | USART_CR1_UE; // 1start,8data,nstop; enable Rx,Tx,USART
+    USART1->CR1 = USART_CR1_UE | USART_CR1_TE | USART_CR1_RE; // 1start,8data,nstop; enable Rx/Tx
     uint32_t tmout = 16000000;
-    while(!(USART1->SR & USART_SR_TC)){
+    while(!(USART1->SR & USART_SR_TC)){ // polling idle frame Transmission
         IWDG->KR = IWDG_REFRESH;
         if(--tmout == 0) break;
-    } // polling idle frame Transmission
+    }
+    (void) USART1->DR; // clear IDLE etc
     USART1->SR = 0; // clear flags
-    USART1->CR1 |= USART_CR1_RXNEIE; // allow Rx IRQ
     USART1->CR3 = USART_CR3_DMAT; // enable DMA Tx
+    USART1->CR1 |= USART_CR1_RXNEIE; // allow Rx IRQ
     NVIC_EnableIRQ(USART1_IRQn);
 }
 

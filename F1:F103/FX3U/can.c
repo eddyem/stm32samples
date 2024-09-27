@@ -119,8 +119,8 @@ void CAN_setup(uint32_t speed){
     else if(speed > CAN_MAX_SPEED) speed = CAN_MAX_SPEED;
     uint32_t tmout = 16000000;
     // Configure GPIO: PD0 - CAN_Rx, PD1 - CAN_Tx
-    AFIO->MAPR |= AFIO_MAPR_CAN_REMAP_REMAP3;
-    AFIO->MAPR |= AFIO_MAPR_SWJ_CFG_DISABLE; // I don't know why, but without this string JTAG works (despite on turning it off in hardware.c)!
+    // I don't know why, but without AFIO_MAPR_SWJ_CFG_DISABLE here JTAG works (despite on turning it off in hardware.c)!
+    AFIO->MAPR |= AFIO_MAPR_CAN_REMAP_REMAP3 | AFIO_MAPR_SWJ_CFG_DISABLE;
     GPIOD->CRL = (GPIOD->CRL & ~(CRL(0,0xf)|CRL(1,0xf))) |
                  CRL(0, CNF_FLINPUT | MODE_INPUT) | CRL(1, CNF_AFPP | MODE_NORMAL);
     /* Enable the peripheral clock CAN */
@@ -171,9 +171,9 @@ void CAN_setup(uint32_t speed){
     CAN1->IER |= CAN_IER_ERRIE | CAN_IER_FOVIE0 | CAN_IER_FOVIE1 | CAN_IER_BOFIE; /* (13) */
 
     /* Configure IT */
-    NVIC_SetPriority(USB_LP_CAN1_RX0_IRQn, 0); // RX FIFO0 IRQ
-    NVIC_SetPriority(CAN1_RX1_IRQn, 0); // RX FIFO1 IRQ
-    NVIC_SetPriority(CAN1_SCE_IRQn, 0); // RX status changed IRQ
+    NVIC_SetPriority(USB_LP_CAN1_RX0_IRQn, 4); // RX FIFO0 IRQ
+    NVIC_SetPriority(CAN1_RX1_IRQn, 4); // RX FIFO1 IRQ
+    NVIC_SetPriority(CAN1_SCE_IRQn, 4); // RX status changed IRQ
     NVIC_EnableIRQ(USB_LP_CAN1_RX0_IRQn);
     NVIC_EnableIRQ(CAN1_RX1_IRQn);
     NVIC_EnableIRQ(CAN1_SCE_IRQn);
@@ -192,10 +192,7 @@ void CAN_sniffer(uint8_t issniffer){
 
 void CAN_printerr(){
     uint32_t last_err_code = CAN1->ESR;
-    if(!last_err_code){
-        usart_send("No errors\n");
-        return;
-    }
+    if(!last_err_code) return;
     usart_send("Receive error counter: ");
     usart_send(u2str((last_err_code & CAN_ESR_REC)>>24));
     usart_send("\nTransmit error counter: ");
@@ -226,6 +223,7 @@ void CAN_proc(){
         if(flags.can_printoff){
             const char *e;
             switch(can_status){
+                case CAN_STOP: e = "STOP"; break;
                 case CAN_ERR: e = "ERRI"; break;
                 case CAN_FIFO_OVERRUN: e = "FIFO_OVERRUN"; break;
                 default: e = "UNKNOWN";
@@ -234,7 +232,8 @@ void CAN_proc(){
             usart_send(e); newline();
             CAN_printerr();
         }
-        CAN_reinit(0);
+        if(can_status == CAN_FIFO_OVERRUN) can_status = CAN_READY;
+        else CAN_reinit(0);
     }
     // check for messages in FIFO0 & FIFO1
     if(CAN1->RF0R & CAN_RF0R_FMP0){
@@ -345,7 +344,7 @@ static void can_process_fifo(uint8_t fifo_num){
         }
         IWDG->KR = IWDG_REFRESH;
         if(CAN_messagebuf_push(&msg)) return; // error: buffer is full, try later
-        *RFxR |= CAN_RF0R_RFOM0; // release fifo for access to next message
+        *RFxR = CAN_RF0R_RFOM0; // release fifo for access to next message
     }
     //if(*RFxR & CAN_RF0R_FULL0) *RFxR &= ~CAN_RF0R_FULL0;
     *RFxR = 0; // clear FOVR & FULL
@@ -353,28 +352,25 @@ static void can_process_fifo(uint8_t fifo_num){
 
 void usb_lp_can_rx0_isr(){ // Rx FIFO0 (overrun)
     if(CAN1->RF0R & CAN_RF0R_FOVR0){ // FIFO overrun
-        CAN1->RF0R &= ~CAN_RF0R_FOVR0;
+        CAN1->RF0R = CAN_RF0R_FOVR0; // clear flag
         can_status = CAN_FIFO_OVERRUN;
-        RCC->APB1ENR &= ~RCC_APB1ENR_CAN1EN;
     }
 }
 
 void can_rx1_isr(){ // Rx FIFO1 (overrun)
     if(CAN1->RF1R & CAN_RF1R_FOVR1){
-        CAN1->RF1R &= ~CAN_RF1R_FOVR1;
+        CAN1->RF1R = CAN_RF1R_FOVR1; // clear flag
         can_status = CAN_FIFO_OVERRUN;
-        RCC->APB1ENR &= ~RCC_APB1ENR_CAN1EN;
     }
 }
 
 void can_sce_isr(){ // status changed
     if(CAN1->MSR & CAN_MSR_ERRI){ // Error
-        CAN1->MSR &= ~CAN_MSR_ERRI;
+        CAN1->MSR = CAN_MSR_ERRI; // clear flag
         // request abort for problem mailbox
         if(CAN1->TSR & CAN_TSR_TERR0) CAN1->TSR |= CAN_TSR_ABRQ0;
         if(CAN1->TSR & CAN_TSR_TERR1) CAN1->TSR |= CAN_TSR_ABRQ1;
         if(CAN1->TSR & CAN_TSR_TERR2) CAN1->TSR |= CAN_TSR_ABRQ2;
         can_status = CAN_ERR;
-        RCC->APB1ENR &= ~RCC_APB1ENR_CAN1EN;
     }
 }

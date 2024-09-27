@@ -85,8 +85,10 @@ void gpio_setup(void){
     // PD0 & PD1 (CAN) setup in can.c; PA9 & PA10 (USART) in usart.c
     RCC->APB2ENR |= RCC_APB2ENR_IOPAEN | RCC_APB2ENR_IOPBEN | RCC_APB2ENR_IOPCEN | RCC_APB2ENR_IOPDEN |
                     RCC_APB2ENR_IOPEEN | RCC_APB2ENR_AFIOEN;
-    // Turn off JTAG/SWD to use PA14
+    // Turn off JTAG/SWD to use PA14 (I don't know why, but here it doesn't work, need to repeat in can.c)
+#ifndef EBUG
     AFIO->MAPR |= AFIO_MAPR_SWJ_CFG_DISABLE;
+#endif
     // be sure that all OK
    // __ISB();
    // __DSB();
