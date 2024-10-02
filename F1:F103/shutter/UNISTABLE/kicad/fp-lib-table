@@ -1,0 +1,4 @@
+(fp_lib_table
+  (version 7)
+  (lib (name "kicad_unistable")(type "KiCad")(uri "/home/eddy/Docs/SAO/ELECTRONICS/STM32/F1-srcs/shutter/kicad_unistable")(options "")(descr ""))
+)
