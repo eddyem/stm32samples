@@ -634,6 +634,46 @@
     [
       "e947a8a3-079f-4713-9cda-543cc3ee8d44",
       "X_opto14"
+    ],
+    [
+      "448100fa-8d41-4af2-bc0f-6a1f6a77b73d",
+      "Y_relay"
+    ],
+    [
+      "a1d44dd6-63b8-4a65-ab50-25aa994d2e7c",
+      "Y_relay1"
+    ],
+    [
+      "beb52f3c-da81-453e-bc1a-14f878b76205",
+      "Y_relay2"
+    ],
+    [
+      "a7b1389f-a2b2-48ac-8b5a-7df52df70d02",
+      "Y_relay3"
+    ],
+    [
+      "7f639efc-9e98-46e1-bde7-8d86a2bc54a2",
+      "Y_relay4"
+    ],
+    [
+      "05877096-73b7-4551-862b-274040c00fe8",
+      "Y_relay5"
+    ],
+    [
+      "93755669-dd83-4aea-8f9c-41094847d026",
+      "Y_relay6"
+    ],
+    [
+      "926fd5c7-9e56-4058-90d7-fe546946295d",
+      "Y_relay7"
+    ],
+    [
+      "1c43d7a4-ec7a-47bb-8132-9a3f4ab13e61",
+      "Y_relay8"
+    ],
+    [
+      "c75db433-0b6c-4780-be6c-cdc3ba1f866b",
+      "Y_relay9"
     ]
   ],
   "text_variables": {}

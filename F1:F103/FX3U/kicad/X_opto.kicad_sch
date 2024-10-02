@@ -829,6 +829,12 @@
 		(color 0 0 0 0)
 		(uuid "5fe460d6-81a0-449e-a8d3-64e62f4b9df0")
 	)
+	(junction
+		(at 49.53 47.625)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "617159a7-e972-442a-afc4-859b99b5ab99")
+	)
 	(wire
 		(pts
 			(xy 49.53 47.625) (xy 51.435 47.625)
@@ -838,6 +844,16 @@
 			(type default)
 		)
 		(uuid "232b6c1c-f3a2-4615-a818-9e8dd36ff292")
+	)
+	(wire
+		(pts
+			(xy 51.435 55.245) (xy 51.435 52.705)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "34fd5b0c-e125-4544-a706-171996c9fe41")
 	)
 	(wire
 		(pts
@@ -858,6 +874,16 @@
 			(type default)
 		)
 		(uuid "5bf1c17f-a49c-4016-a7d6-d63b4d463e74")
+	)
+	(wire
+		(pts
+			(xy 49.53 55.245) (xy 51.435 55.245)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "7ceab231-4da6-480e-af8b-da00a2eb2700")
 	)
 	(wire
 		(pts
@@ -925,7 +951,7 @@
 	)
 	(hierarchical_label "Xcom"
 		(shape input)
-		(at 51.435 52.705 180)
+		(at 49.53 55.245 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -944,15 +970,15 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "14323fc5-37e6-41cb-a8aa-ede36cbb5ab8")
-		(property "Reference" "R5"
-			(at 72.39 33.655 0)
+		(property "Reference" "R39"
+			(at 66.04 33.655 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 			)
 		)
-		(property "Value" "2k"
+		(property "Value" "1k"
 			(at 69.85 33.655 90)
 			(effects
 				(font
@@ -1056,6 +1082,125 @@
 	)
 	(symbol
 		(lib_id "Device:R")
+		(at 49.53 51.435 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "19951d65-483e-40c0-a8c6-ec4b281351e4")
+		(property "Reference" "R69"
+			(at 46.355 50.8 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "510"
+			(at 49.53 51.435 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric_Pad0.98x0.95mm_HandSolder"
+			(at 47.752 51.435 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 49.53 51.435 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 49.53 51.435 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "fb3e08da-0ce2-428d-b931-790353d44a21")
+		)
+		(pin "2"
+			(uuid "06db1f9c-267b-4eb1-80a4-d62661c9070b")
+		)
+		(instances
+			(project "fx3u_24mr"
+				(path "/b583aae5-8eb0-4221-b485-3f768bd7f89b/2fa2bdcf-15f9-49a7-9a81-e1f81e7bb506"
+					(reference "R69")
+					(unit 1)
+				)
+				(path "/b583aae5-8eb0-4221-b485-3f768bd7f89b/35d34014-7737-4563-ab17-34d8338eb561"
+					(reference "R67")
+					(unit 1)
+				)
+				(path "/b583aae5-8eb0-4221-b485-3f768bd7f89b/44ba5bcb-4331-44e2-b09c-2b823503ee6e"
+					(reference "R64")
+					(unit 1)
+				)
+				(path "/b583aae5-8eb0-4221-b485-3f768bd7f89b/45e173fb-090a-49a8-913e-d7a1f7ca25b4"
+					(reference "R59")
+					(unit 1)
+				)
+				(path "/b583aae5-8eb0-4221-b485-3f768bd7f89b/8aac9950-acf3-4106-ba34-ef5c981de411"
+					(reference "R70")
+					(unit 1)
+				)
+				(path "/b583aae5-8eb0-4221-b485-3f768bd7f89b/a66f3b15-4b8b-4763-9db3-eb45c7da3682"
+					(reference "R61")
+					(unit 1)
+				)
+				(path "/b583aae5-8eb0-4221-b485-3f768bd7f89b/ae0f8fff-e2da-4bad-8994-90240158b3f6"
+					(reference "R62")
+					(unit 1)
+				)
+				(path "/b583aae5-8eb0-4221-b485-3f768bd7f89b/c16ad446-04f8-4b71-9a14-9d91df85c51f"
+					(reference "R66")
+					(unit 1)
+				)
+				(path "/b583aae5-8eb0-4221-b485-3f768bd7f89b/c687aed0-c06f-4fdb-aa5d-9196b81b6b71"
+					(reference "R60")
+					(unit 1)
+				)
+				(path "/b583aae5-8eb0-4221-b485-3f768bd7f89b/ce0dbf25-2474-42c8-8193-cc321308499f"
+					(reference "R68")
+					(unit 1)
+				)
+				(path "/b583aae5-8eb0-4221-b485-3f768bd7f89b/d8a96d3b-43f3-46e3-a08f-d0b44ccf3a29"
+					(reference "R63")
+					(unit 1)
+				)
+				(path "/b583aae5-8eb0-4221-b485-3f768bd7f89b/e8bff125-9f47-48bc-8f86-b0ecbf99df23"
+					(reference "R65")
+					(unit 1)
+				)
+				(path "/b583aae5-8eb0-4221-b485-3f768bd7f89b/e947a8a3-079f-4713-9cda-543cc3ee8d44"
+					(reference "R71")
+					(unit 1)
+				)
+				(path "/b583aae5-8eb0-4221-b485-3f768bd7f89b/f287e225-c1fa-4c9b-bbf3-2592c44400ac"
+					(reference "R58")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
 		(at 49.53 43.815 180)
 		(unit 1)
 		(exclude_from_sim no)
@@ -1063,8 +1208,8 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "1b91600b-0a9e-40dc-bcd2-b50f5c62c02c")
-		(property "Reference" "R7"
-			(at 52.07 43.815 0)
+		(property "Reference" "R38"
+			(at 46.355 43.815 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1183,7 +1328,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "2e0cec5b-0b81-42ef-b00e-3a2e0cbd2428")
-		(property "Reference" "#PWR018"
+		(property "Reference" "#PWR038"
 			(at 66.675 59.055 0)
 			(effects
 				(font
@@ -1284,6 +1429,10 @@
 					(reference "#PWR042")
 					(unit 1)
 				)
+				(path "/b583aae5-8eb0-4221-b485-3f768bd7f89b/f287e225-c1fa-4c9b-bbf3-2592c44400ac"
+					(reference "#PWR?")
+					(unit 1)
+				)
 			)
 		)
 	)
@@ -1297,7 +1446,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "56a5cef8-e556-4693-b820-14c50d49a3f0")
-		(property "Reference" "#PWR017"
+		(property "Reference" "#PWR039"
 			(at 69.85 33.655 0)
 			(effects
 				(font
@@ -1415,7 +1564,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "95ba6c0a-2e27-4538-9ddf-4ec443c24047")
-		(property "Reference" "U6"
+		(property "Reference" "U16"
 			(at 59.055 42.2105 0)
 			(effects
 				(font
@@ -1527,6 +1676,10 @@
 					(reference "U18")
 					(unit 1)
 				)
+				(path "/b583aae5-8eb0-4221-b485-3f768bd7f89b/f287e225-c1fa-4c9b-bbf3-2592c44400ac"
+					(reference "U?")
+					(unit 1)
+				)
 			)
 		)
 	)
@@ -1539,8 +1692,8 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "daa714d5-bcb6-44ab-9f40-17688d45e9a0")
-		(property "Reference" "R6"
-			(at 78.105 33.655 0)
+		(property "Reference" "R40"
+			(at 78.74 33.655 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1658,7 +1811,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "daf48ae0-ac7f-46a0-a638-f3504bcc658c")
-		(property "Reference" "D3"
+		(property "Reference" "D14"
 			(at 66.675 41.275 90)
 			(effects
 				(font
