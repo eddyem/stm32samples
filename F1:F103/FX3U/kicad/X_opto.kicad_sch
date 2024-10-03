@@ -925,6 +925,16 @@
 		)
 		(uuid "d5f32554-f144-4e79-a00e-41f44da65237")
 	)
+	(text "Absent on channels 6÷15"
+		(exclude_from_sim no)
+		(at 90.17 31.75 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "d2d03f2b-b161-4da5-a446-e6e3ee8f386a")
+	)
 	(hierarchical_label "Xn"
 		(shape output)
 		(at 75.565 47.5335 0)
@@ -1430,7 +1440,7 @@
 					(unit 1)
 				)
 				(path "/b583aae5-8eb0-4221-b485-3f768bd7f89b/f287e225-c1fa-4c9b-bbf3-2592c44400ac"
-					(reference "#PWR?")
+					(reference "#PWR0106")
 					(unit 1)
 				)
 			)
@@ -1677,7 +1687,7 @@
 					(unit 1)
 				)
 				(path "/b583aae5-8eb0-4221-b485-3f768bd7f89b/f287e225-c1fa-4c9b-bbf3-2592c44400ac"
-					(reference "U?")
+					(reference "U2")
 					(unit 1)
 				)
 			)
