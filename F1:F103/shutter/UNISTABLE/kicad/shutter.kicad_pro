@@ -116,7 +116,7 @@
       },
       "rules": {
         "max_error": 0.005,
-        "min_clearance": 0.2,
+        "min_clearance": 0.22,
         "min_connection": 0.2,
         "min_copper_edge_clearance": 0.25,
         "min_hole_clearance": 0.25,
@@ -493,7 +493,7 @@
       "gencad": "",
       "idf": "",
       "netlist": "",
-      "plot": "svg/",
+      "plot": "gerbers/",
       "pos_files": "",
       "specctra_dsn": "",
       "step": "",
@@ -504,7 +504,7 @@
   },
   "schematic": {
     "annotate_start_num": 0,
-    "bom_export_filename": "",
+    "bom_export_filename": "shutter.csv",
     "bom_fmt_presets": [],
     "bom_fmt_settings": {
       "field_delimiter": ",",

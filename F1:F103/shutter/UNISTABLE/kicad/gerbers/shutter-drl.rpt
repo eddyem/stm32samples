@@ -1,0 +1,31 @@
+Drill report for shutter.kicad_pcb
+Created on 2024-10-04T09:10:23+0300
+
+Copper Layer Stackup:
+    =============================================================
+    L1 :  F.Cu                      front
+    L2 :  B.Cu                      back
+
+
+Drill file 'shutter.drl' contains
+    plated through holes:
+    =============================================================
+    T1  0.600mm  0.0236"  (23 holes)
+    T2  0.650mm  0.0256"  (6 holes)
+    T3  0.750mm  0.0295"  (10 holes)
+    T4  0.950mm  0.0374"  (4 holes)
+    T5  1.000mm  0.0394"  (6 holes)
+    T6  1.100mm  0.0433"  (3 holes)
+    T7  1.300mm  0.0512"  (2 holes)
+    T8  2.300mm  0.0906"  (2 holes)
+
+    Total plated holes count 56
+
+
+Not plated through holes are merged with plated holes
+    unplated through holes:
+    =============================================================
+    T9  3.200mm  0.1260"  (4 holes)
+    T10  3.500mm  0.1378"  (1 hole)
+
+    Total unplated holes count 5
