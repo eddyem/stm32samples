@@ -372,7 +372,7 @@ static void can_process_fifo(uint8_t fifo_num){
             }
         }
         if(CAN_messagebuf_push(&msg)) return; // error: buffer is full, try later
-        *RFxR |= CAN_RF0R_RFOM0; // release fifo for access to next message
+        *RFxR = CAN_RF0R_RFOM0; // release fifo for access to next message
     }
     //if(*RFxR & CAN_RF0R_FULL0) *RFxR &= ~CAN_RF0R_FULL0;
     *RFxR = 0; // clear FOVR & FULL
@@ -380,11 +380,11 @@ static void can_process_fifo(uint8_t fifo_num){
 
 void cec_can_isr(){
     if(CAN->RF0R & CAN_RF0R_FOVR0){ // FIFO overrun
-        CAN->RF0R &= ~CAN_RF0R_FOVR0;
+        CAN->RF0R = CAN_RF0R_FOVR0;
         can_status = CAN_FIFO_OVERRUN;
     }
     if(CAN->RF1R & CAN_RF1R_FOVR1){
-        CAN->RF1R &= ~CAN_RF1R_FOVR1;
+        CAN->RF1R = CAN_RF1R_FOVR1;
         can_status = CAN_FIFO_OVERRUN;
     }
     if(CAN->MSR & CAN_MSR_ERRI){ // Error

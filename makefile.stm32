@@ -158,7 +158,7 @@ clean:
 
 flash: $(BIN)
 	@echo "  FLASH  $(BIN)"
-	$(STFLASH) write $(BIN) 0x8000000
+	$(STFLASH) --reset write $(BIN) 0x8000000
 	$(STFLASH) reset
 
 boot: $(BIN)
