@@ -41,27 +41,27 @@ void set_configuration(uint16_t _U_ configuration){
 }
 
 static void usb_i2c_io(config_pack_t *req, uint8_t *buf, size_t *len){
-    static uint8_t iobuf[256] = "1234567890abcdefghijclmnop";
-    //uint8_t cmd = req->bRequest;
+    // static uint8_t iobuf[256] = "1234567890abcdefghijclmnop";
+    uint8_t cmd = req->bRequest;
     uint8_t size = req->wLength;
-    //i2c_set_addr7(req->wIndex);
+    uint8_t is_read = req->wValue & I2C_M_RD;
     i2c_status stat = I2C_NACK;
-    // ignore NOSTART and STOP!
-    if(req->wValue & I2C_M_RD){ // read
-        //stat = i2c_7bit_receive(buf, size);
-        if(len && *len) memcpy(buf, iobuf, *len);
-        stat = I2C_OK;
-        *len = size;
-    }else{ // write
-        //stat = i2c_7bit_send(buf, size);
-        if(len && *len) memcpy(iobuf, buf, *len);
-        stat = I2C_OK;
-        *len = 0;
+    if(cmd & CMD_I2C_BEGIN){
+        if(I2C_OK != (stat = i2c_start())) goto eot;
+        if(I2C_OK != (stat = i2c_sendaddr((uint8_t)req->wIndex, (is_read) ? size : 0))) goto eot;
     }
+    for(int i = 0; i < size; ++i){
+        if(is_read) stat = i2c_readbyte(buf + i);
+        else stat = i2c_sendbyte(buf[i]);
+        if(I2C_OK != stat) goto eot;
+    }
+    if(cmd & CMD_I2C_END) stat = i2c_stop();
+eot:
     if(stat == I2C_OK){
         status = STATUS_ADDRESS_ACK;
+        *len = (is_read) ? size : 0;
     }else{
-        //i2c_setup();
+        i2c_setup();
         *len = 0;
         status = STATUS_ADDRESS_NACK;
     }
@@ -77,7 +77,8 @@ void usb_class_request(config_pack_t *req, uint8_t *data, unsigned int datalen){
             case CMD_I2C_IO | CMD_I2C_BEGIN:
             case CMD_I2C_IO | CMD_I2C_END:
             case CMD_I2C_IO | CMD_I2C_BEGIN | CMD_I2C_END: // write
-                if(req->wValue & I2C_M_RD) break;
+                if(req->wValue & I2C_M_RD) break; // OUT - only write
+                if(!data) break; // wait for data
                 len = datalen;
                 usb_i2c_io(req, data, &len);
             break;
@@ -102,7 +103,7 @@ void usb_class_request(config_pack_t *req, uint8_t *data, unsigned int datalen){
         case CMD_I2C_IO | CMD_I2C_BEGIN:
         case CMD_I2C_IO | CMD_I2C_END:
         case CMD_I2C_IO | CMD_I2C_BEGIN | CMD_I2C_END: // read
-            if(req->wValue & I2C_M_RD){
+            if(req->wValue & I2C_M_RD){ // IN - only read
                 len = req->wLength;
                 usb_i2c_io(req, buf, &len);
             }
@@ -117,56 +118,8 @@ void usb_class_request(config_pack_t *req, uint8_t *data, unsigned int datalen){
     EP_WriteIRQ(0, buf, len); // write ZLP if nothing received
 }
 
-void usb_vendor_request(config_pack_t *req, uint8_t *data, unsigned int datalen){
-    uint8_t buf[USB_EP0BUFSZ];
-    size_t len = 0;
-    //uint8_t recipient = REQUEST_RECIPIENT(req->bmRequestType);
-    if((req->bmRequestType & 0x80) == 0){ // OUT - setters
-        switch(req->bRequest){
-            case CMD_I2C_IO:
-            case CMD_I2C_IO | CMD_I2C_BEGIN:
-            case CMD_I2C_IO | CMD_I2C_END:
-            case CMD_I2C_IO | CMD_I2C_BEGIN | CMD_I2C_END: // write
-                if(req->wValue & I2C_M_RD) break;
-                if(!data || !datalen) break; // omit for next stage - when data received
-                len = datalen;
-                usb_i2c_io(req, data, &len);
-                break;
-            default:
-                break;
-        }
-        EP_WriteIRQ(0, 0, 0);
-        return;
-    }
-    switch(req->bRequest){
-        case CMD_ECHO:
-            memcpy(buf, &req->wValue, sizeof(req->wValue));
-            len = sizeof(req->wValue);
-            break;
-        case CMD_GET_FUNC:
-            /* Report our capabilities */
-            bzero(buf, req->wLength);
-            memcpy(buf, &func, sizeof(func));
-            len = req->wLength;
-            break;
-        case CMD_I2C_IO:
-        case CMD_I2C_IO | CMD_I2C_BEGIN:
-        case CMD_I2C_IO | CMD_I2C_END:
-        case CMD_I2C_IO | CMD_I2C_BEGIN | CMD_I2C_END: // read
-            if(req->wValue & I2C_M_RD){
-            len = req->wLength;
-            usb_i2c_io(req, buf, &len);
-            }
-            break;
-        case CMD_GET_STATUS:
-            memcpy(buf, &status, sizeof(status));
-            len = sizeof(status);
-            break;
-        default:
-            break;
-    }
-    EP_WriteIRQ(0, buf, len); // write ZLP if nothing received
-}
+void usb_vendor_request(config_pack_t *req, uint8_t *data, unsigned int datalen) __attribute__ ((alias ("usb_class_request")));
+
 #if 0
 // handler of vendor requests
 void usb_vendor_request(config_pack_t *req){

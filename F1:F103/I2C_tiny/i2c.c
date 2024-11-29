@@ -29,28 +29,34 @@ extern volatile uint32_t Tms;
 // current addresses for read/write (should be set with i2c_set_addr7)
 static uint8_t addr7r = 0, addr7w = 0;
 
+void i2c_set_addr7(uint8_t addr){
+	addr7w = addr << 1;
+	addr7r = addr7w | 1;
+}
+
+static uint8_t aflag = 0;
+static uint32_t sctr = 0;
+
 /*
  * PB10/PB6 - I2C_SCL, PB11/PB7 - I2C_SDA or remap @ PB8 & PB9
  */
 void i2c_setup(){
-    RCC->APB1ENR &= ~RCC_APB1ENR_I2C1EN;
-    I2C1->CR1 = I2C_CR1_SWRST;
+    ++sctr;
+    //RCC->APB1RSTR = RCC_APB1RSTR_I2C1RST; // reset I2C
+    //RCC->APB1RSTR = 0;
+    I2C1->CR1 = 0;
     I2C1->SR1 = 0;
     RCC->APB2ENR |= RCC_APB2ENR_IOPBEN;
-    GPIOB->CRL = (GPIOB->CRL & ~(GPIO_CRL_CNF6 | GPIO_CRL_CNF7)) |
-            CRL(6, CNF_AFOD | MODE_NORMAL) | CRL(7, CNF_AFOD | MODE_NORMAL);
     RCC->APB1ENR |= RCC_APB1ENR_I2C1EN;
+    GPIOB->CRL = (GPIOB->CRL & ~(GPIO_CRL_CNF6 | GPIO_CRL_CNF7)) |
+                 CRL(6, CNF_AFOD | MODE_NORMAL) | CRL(7, CNF_AFOD | MODE_NORMAL);
     I2C1->CR2 = 8; // FREQR=8MHz, T=125ns
     I2C1->TRISE = 9; // (9-1)*125 = 1mks
     I2C1->CCR = 40; // normal mode, 8MHz/2/40 = 100kHz
     I2C1->CR1 = I2C_CR1_PE; // enable periph
 }
 
-void i2c_set_addr7(uint8_t addr){
-	addr7w = addr << 1;
-	addr7r = addr7w | 1;
-}
-
+#if 0
 // wait for event evt no more than 2 ms
 #define I2C_WAIT(evt)  do{ register uint32_t wait4 = Tms + 2;   \
 		while(Tms < wait4 && !(evt)) IWDG->KR = IWDG_REFRESH;   \
@@ -60,203 +66,50 @@ void i2c_set_addr7(uint8_t addr){
     while(Tms < wait4 && (I2C1->SR2 & I2C_SR2_BUSY)) IWDG->KR = IWDG_REFRESH;   \
     if(I2C1->SR2 & I2C_SR2_BUSY){I2C1->CR1 |= I2C_CR1_SWRST; return I2C_LINEBUSY;}\
     }while(0)
+#endif
 
-// start writing
-static i2c_status i2c_7bit_startw(){
-    i2c_status ret = I2C_LINEBUSY;
-    if(I2C1->CR1 != I2C_CR1_PE) i2c_setup();
-    if(I2C1->SR1) I2C1->SR1 = 0; // clear NACK and other problems
-    (void) I2C1->SR2;
-    I2C_LINEWAIT();
-    DBG("linew\n");
-    I2C1->CR1 |= I2C_CR1_START;             // generate start sequence
-    I2C_WAIT(I2C1->SR1 & I2C_SR1_SB);       // wait for SB
-    DBG("SB\n");
-    (void) I2C1->SR1;                       // clear SB
-    I2C1->DR = addr7w;                      // set address
-    I2C_WAIT(I2C1->SR1 & I2C_SR1_ADDR);     // wait for ADDR flag (timeout @ NACK)
-    DBG("ADDR\n");
-    if(I2C1->SR1 & I2C_SR1_AF){             // NACK
-        return I2C_NACK;
-    }
-    DBG("ACK\n");
-    (void) I2C1->SR2;                       // clear ADDR
-    ret = I2C_OK;
-eotr:
-    return ret;
-}
-
-/**
- * send one byte in 7bit address mode
- * @param data - data to write
- * @param stop - ==1 to send stop event
- * @return status
- */
-i2c_status i2c_7bit_send_onebyte(uint8_t data, uint8_t stop){
-    i2c_status ret = i2c_7bit_startw();
-    if(ret != I2C_OK){
-        I2C1->CR1 |= I2C_CR1_STOP;
-        goto eotr;
-    }
-    I2C1->DR = data;                        // init data send register
-    DBG("TxE\n");
-    I2C_WAIT(I2C1->SR1 & I2C_SR1_TXE);      // wait for TxE (timeout when NACK)
-    ret = I2C_OK;
-    DBG("OK\n");
-    if(stop){
-        I2C_WAIT(I2C1->SR1 & I2C_SR1_BTF);  // wait for BTF
-        DBG("BTF\n");
-    }
-eotr:
-    if(stop){
-        I2C1->CR1 |= I2C_CR1_STOP;          // generate stop event
-    }
-    return ret;
-}
-
-// send data array
-i2c_status i2c_7bit_send(const uint8_t *data, int datalen){
-    i2c_status ret = i2c_7bit_startw();
-    if(ret != I2C_OK){
-        DBG("NACK!\n");
-        I2C1->CR1 |= I2C_CR1_STOP;
-        goto eotr;
-    }
-    for(int i = 0; i < datalen; ++i){
-        I2C1->DR = data[i];
-        I2C_WAIT(I2C1->SR1 & I2C_SR1_TXE);
-    }
-    DBG("GOOD\n");
-    ret = I2C_OK;
-    if(datalen) I2C_WAIT(I2C1->SR1 & I2C_SR1_BTF);
-eotr:
-    I2C1->CR1 |= I2C_CR1_STOP;
-    return ret;
-}
-
-i2c_status i2c_7bit_receive_onebyte(uint8_t *data, uint8_t stop){
-    i2c_status ret = I2C_LINEBUSY;
-    //I2C_LINEWAIT();
-    I2C1->CR1 |= I2C_CR1_START;             // generate start sequence
-    I2C_WAIT(I2C1->SR1 & I2C_SR1_SB);       // wait for SB
-    DBG("Rx SB\n");
-    (void) I2C1->SR1;                       // clear SB
-    I2C1->DR = addr7r;                      // set address
-    DBG("Rx addr\n");
-    I2C_WAIT(I2C1->SR1 & I2C_SR1_ADDR);     // wait for ADDR flag
-    DBG("Rx ack\n");
-    I2C1->CR1 &= ~I2C_CR1_ACK;              // clear ACK
-    if(I2C1->SR1 & I2C_SR1_AF){             // NACK
-        DBG("Rx nak\n");
-        ret = I2C_NACK;
-        goto eotr;
-    }
-    (void) I2C1->SR2;                       // clear ADDR
-    DBG("Rx stop\n");
-    if(stop) I2C1->CR1 |= I2C_CR1_STOP;     // program STOP
-    I2C_WAIT(I2C1->SR1 & I2C_SR1_RXNE);     // wait for RxNE
-    DBG("Rx OK\n");
-    *data = I2C1->DR;                       // read data & clear RxNE
-    ret = I2C_OK;
-eotr:
-    return ret;
-}
-
-i2c_status i2c_7bit_receive_twobytes(uint8_t *data){
-    i2c_status ret = I2C_LINEBUSY;
-    //I2C_LINEWAIT();
-    I2C1->CR1 |= I2C_CR1_START | I2C_CR1_POS | I2C_CR1_ACK; // generate start sequence, set pos & ack
-    I2C_WAIT(I2C1->SR1 & I2C_SR1_SB);       // wait for SB
-    DBG("2 Rx sb\n");
-    (void) I2C1->SR1;                       // clear SB
-    I2C1->DR = addr7r;                      // set address
-    I2C_WAIT(I2C1->SR1 & I2C_SR1_ADDR);     // wait for ADDR flag
-    DBG("2 ADDR\n");
-    if(I2C1->SR1 & I2C_SR1_AF){             // NACK
-        ret = I2C_NACK;
-        goto eotr;
-    }
-    DBG("2 ACK\n");
-    (void) I2C1->SR2;                       // clear ADDR
-    I2C1->CR1 &= ~I2C_CR1_ACK;              // clear ACK
-    I2C_WAIT(I2C1->SR1 & I2C_SR1_BTF);      // wait for BTF
-    DBG("2 BTF\n");
-    I2C1->CR1 |= I2C_CR1_STOP;              // program STOP
-    *data++ = I2C1->DR; *data = I2C1->DR;   // read data & clear RxNE
-    ret = I2C_OK;
-eotr:
-    return ret;
-}
+// wait for event evt
+#define I2C_WAIT(evt)  do{ register uint32_t xx = 2000000;   \
+while(--xx && !(evt)) IWDG->KR = IWDG_REFRESH;   \
+    if(!(evt)){ret = I2C_TMOUT; goto eotr;}}while(0)
+// wait for !busy
+#define I2C_LINEWAIT() do{ register uint32_t xx = 2000000;                   \
+    while(--xx && (I2C1->SR2 & I2C_SR2_BUSY)) IWDG->KR = IWDG_REFRESH;   \
+    if(I2C1->SR2 & I2C_SR2_BUSY){I2C1->CR1 |= I2C_CR1_SWRST; return I2C_LINEBUSY;}\
+}while(0)
 
 
 
-// receive any amount of bytes
+static uint8_t bytes_remaining = 0;
 
-i2c_status i2c_7bit_receive(uint8_t *data, uint16_t nbytes){
-    if(nbytes == 0) return I2C_HWPROBLEM;
-    I2C1->SR1 = 0; // clear previous NACK flag & other error flags
-    if(nbytes == 1) return i2c_7bit_receive_onebyte(data, 1);
-    else if(nbytes == 2) return i2c_7bit_receive_twobytes(data);
-    i2c_status ret = I2C_LINEBUSY;
-    //I2C_LINEWAIT();
-    I2C1->CR1 |= I2C_CR1_START | I2C_CR1_ACK; // generate start sequence, set pos & ack
-    I2C_WAIT(I2C1->SR1 & I2C_SR1_SB);       // wait for SB
-    DBG("got SB\n");
-    (void) I2C1->SR1;                       // clear SB
-    I2C1->DR = addr7r;                      // set address
-    I2C_WAIT(I2C1->SR1 & I2C_SR1_ADDR);     // wait for ADDR flag
-    DBG("send addr\n");
-    if(I2C1->SR1 & I2C_SR1_AF){             // NACK
-        DBG("NACKed\n");
-        ret = I2C_NACK;
-        goto eotr;
-    }
-    DBG("ACKed\n");
-    (void) I2C1->SR2;                       // clear ADDR
-    for(uint16_t x = nbytes - 3; x > 0; --x){
-        I2C_WAIT(I2C1->SR1 & I2C_SR1_RXNE); // wait next byte
-        *data++ = I2C1->DR;                 // get data
-    }
-    DBG("three left\n");
-    // three bytes remain to be read
-    I2C_WAIT(I2C1->SR1 & I2C_SR1_RXNE);     // wait dataN-2
-    DBG("dataN-2\n");
-    I2C_WAIT(I2C1->SR1 & I2C_SR1_BTF);      // wait for BTF
-    DBG("BTF\n");
-    I2C1->CR1 &= ~I2C_CR1_ACK;              // clear ACK
-    *data++ = I2C1->DR;                     // read dataN-2
-    I2C1->CR1 |= I2C_CR1_STOP;              // program STOP
-    *data++ = I2C1->DR;                     // read dataN-1
-    I2C_WAIT(I2C1->SR1 & I2C_SR1_RXNE);     // wait next byte
-    *data = I2C1->DR;                       // read dataN
-    DBG("got it\n");
-    ret = I2C_OK;
-eotr:
-    return ret;
-}
-
-#if 0
 i2c_status i2c_start(){
     i2c_status ret = I2C_LINEBUSY;
+    aflag = 44;
     I2C_LINEWAIT();
-    I2C1->CR1 |= I2C_CR1_START | I2C_CR1_ACK; // generate start sequence, set pos & ack
+    I2C1->CR1 |= I2C_CR1_START; // generate start sequence, set pos & ack
+    aflag = 1;
     I2C_WAIT(I2C1->SR1 & I2C_SR1_SB);       // wait for SB
     (void) I2C1->SR1;                       // clear SB
     ret = I2C_OK;
+    aflag = 2;
 eotr:
     return ret;
 }
 
 i2c_status i2c_sendaddr(uint8_t addr, uint8_t nread){
-    addr <<= 1;
-    if(nread) addr |= 1;
+    i2c_set_addr7(addr);
     i2c_status ret = I2C_LINEBUSY;
-    I2C1->DR = addr7;                       // set address
+    I2C1->DR = (nread) ? addr7r : addr7w;   // set address
+    aflag = 3;
     I2C_WAIT(I2C1->SR1 & I2C_SR1_ADDR);     // wait for ADDR flag
+    aflag = 4;
     if(I2C1->SR1 & I2C_SR1_AF){             // NACK
         ret = I2C_NACK;
         goto eotr;
     }
+    aflag = 5;
+    ret = I2C_OK;
+    bytes_remaining = nread;
     if(nread == 1) I2C1->CR1 &= ~I2C_CR1_ACK; // clear ACK
     else if(nread >= 2) I2C1->CR1 |= I2C_CR1_ACK;
     (void) I2C1->SR2;                       // clear ADDR
@@ -268,8 +121,10 @@ eotr:
 i2c_status i2c_sendbyte(uint8_t data){
     i2c_status ret = I2C_LINEBUSY;
     I2C1->DR = data;                        // init data send register
-    DBG("TxE\n");
-    I2C_WAIT(I2C1->SR1 & I2C_SR1_TXE);      // wait for TxE (timeout when NACK)
+    //I2C_WAIT(I2C1->SR1 & I2C_SR1_TXE);      // wait for TxE (timeout when NACK)
+    aflag = 6;
+    I2C_WAIT(I2C1->SR1 & I2C_SR1_BTF);
+    aflag = 7;
     ret = I2C_OK;
 eotr:
     return ret;
@@ -277,10 +132,26 @@ eotr:
 
 i2c_status i2c_readbyte(uint8_t *data){
     i2c_status ret = I2C_LINEBUSY;
+    aflag = 8;
     I2C_WAIT(I2C1->SR1 & I2C_SR1_RXNE);     // wait for RxNE
+    aflag = 9;
+    if(--bytes_remaining == 1){
+        I2C1->CR1 &= ~I2C_CR1_ACK;
+        I2C1->CR1 |= I2C_CR1_STOP;
+    }
     *data = I2C1->DR;                       // read data & clear RxNE
     ret = I2C_OK;
 eotr:
     return ret;
 }
-#endif
+
+i2c_status i2c_stop(){
+    i2c_status ret = I2C_LINEBUSY;
+    aflag = 10;
+    //I2C_WAIT(I2C1->SR1 & (I2C_SR1_TXE | I2C_SR1_BTF));
+    //aflag = 11;
+    I2C1->CR1 |= I2C_CR1_STOP;
+    ret = I2C_OK;
+//eotr:
+    return ret;
+}
