@@ -20,6 +20,7 @@
 #include "i2c.h"
 #include "proto.h"
 #include "usb.h"
+#include "version.inc"
 
 extern volatile uint32_t Tms;
 
@@ -155,18 +156,19 @@ char *getnum(const char *txt, uint32_t *N){
 
 static void displaydata(uint8_t *data, int start, int N){
     if(N == 0){
-        USB_send("Done\n");
+        USB_sendstr("Done\n");
         return;
     }
-    USB_send("Got:\naddr\tval(x)\tval(d)\n");
+    USB_sendstr("Got:\naddr\tval(x)\tval(d)\n");
     for(int i = 0; i < N; ++i){
-        USB_send(u2hexstr(i+start)); USB_send("\t");
-        USB_send(u2hexstr(data[i])); USB_send("\t");
-        USB_send(u2str(data[i])); USB_send("\n");
+        USB_sendstr(u2hexstr(i+start)); USB_sendstr("\t");
+        USB_sendstr(u2hexstr(data[i])); USB_sendstr("\t");
+        USB_sendstr(u2str(data[i])); USB_sendstr("\n");
     }
 }
 
 const char* helpmsg =
+    "https://github.com/eddyem/stm32samples/tree/master/F1:F103/I2Cscan build #" BUILD_NUMBER " @ " BUILD_DATE "\n"
     "'Aa'- set I2C 7bit address a\n"
     "'I' - reinit i2c\n"
     "'Rrn'- read Nnbytes (<256) from register r\n"
@@ -175,14 +177,14 @@ const char* helpmsg =
 ;
 
 const char *parse_cmd(const char *buf){
-    if(buf[1] == '\n'){ // one symbol commands
+    if(buf[1] == 0){ // one symbol commands
         switch(*buf){
             case 'I':
                 i2c_setup();
                 return "Reinit\n";
             break;
             case 'S':
-                init_scan_mode();
+                i2c_init_scan_mode();
                 return "Scan mode\n";
             break;
             default:

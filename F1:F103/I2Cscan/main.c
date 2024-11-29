@@ -32,28 +32,8 @@ void sys_tick_handler(void){
     ++Tms;
 }
 
-// usb getline
-static char *get_USB(){
-    static char tmpbuf[USBBUFSZ+1], *curptr = tmpbuf;
-    static int rest = USBBUFSZ;
-    int x = USB_receive(curptr);
-    curptr[x] = 0;
-    if(!x) return NULL;
-    if(curptr[x-1] == '\n'){
-        curptr = tmpbuf;
-        rest = USBBUFSZ;
-        return tmpbuf;
-    }
-    curptr += x; rest -= x;
-    if(rest <= 0){ // buffer overflow
-        curptr = tmpbuf;
-        rest = USBBUFSZ;
-        USB_send("USB buffer overflow\n");
-    }
-    return NULL;
-}
-
 int main(void){
+	char buf[256];
     uint32_t lastT = 0;
     sysreset();
     StartHSE();
@@ -74,25 +54,23 @@ int main(void){
             LED_blink(LED0);
             lastT = Tms;
         }
-        usb_proc();
         if(scanmode){ // get next address & print it
             uint8_t addr;
-            int ok = scan_next_addr(&addr);
-            if(addr == I2C_ADDREND) USB_send("Scan ends\n");
+            int ok = i2c_scan_next_addr(&addr);
+            if(addr == I2C_ADDREND) USB_sendstr("Scan ends\n");
             else if(ok){
-                USB_send(u2hexstr(addr));
-                USB_send(" ("); USB_send(u2str(addr));
-                USB_send(") - found device\n");
+                USB_sendstr(u2hexstr(addr));
+                USB_sendstr(" ("); USB_sendstr(u2str(addr));
+                USB_sendstr(") - found device\n");
             }
         }
-        char *txt, *ans;
-        if((txt = get_USB())){
+        if(USB_receivestr(buf, 255)){
             IWDG->KR = IWDG_REFRESH;
-            ans = (char*)parse_cmd(txt);
+            char *ans = (char*)parse_cmd(buf);
             if(ans){
                 uint16_t l = 0; char *p = ans;
                 while(*p++) l++;
-                USB_send(ans);
+                USB_sendstr(ans);
             }
         }
     }
