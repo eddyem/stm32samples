@@ -24,6 +24,10 @@
 
 #include <stdint.h>
 
+#ifndef _U_
+#define _U_ __attribute__((__unused__))
+#endif
+
 #ifndef TRUE
 #define TRUE 1
 #endif
