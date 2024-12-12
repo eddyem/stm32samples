@@ -16,23 +16,10 @@
  */
 
 #include "usb_descr.h"
-#include "usb_lib.h"
 
-// string descriptors
-enum{
-    iLANGUAGE_DESCR,
-    iMANUFACTURER_DESCR,
-    iPRODUCT_DESCR,
-    iSERIAL_DESCR,
-    iINTERFACE_DESCR1,
-    iINTERFACE_DESCR2,
-    iINTERFACE_DESCR3,
-    iINTERFACE_DESCR4,
-    iINTERFACE_DESCR5,
-    iINTERFACE_DESCR6,
-    iINTERFACE_DESCR7,
-    iDESCR_AMOUNT
-};
+// low/high for uint16_t
+#define L16(x)              (x & 0xff)
+#define H16(x)              (x >> 8)
 
 const uint8_t USB_DeviceDescriptor[] = {
     USB_DT_DEVICE_SIZE, // bLength
@@ -43,12 +30,12 @@ const uint8_t USB_DeviceDescriptor[] = {
     bDeviceSubClass, // bDeviceSubClass
     bDeviceProtocol, // bDeviceProtocol
     USB_EP0BUFSZ, // bMaxPacketSize
-    L(idVendor), // idVendor_L
-    H(idVendor), // idVendor_H
-    L(idProduct), // idProduct_L
-    H(idProduct), // idProduct_H
-    L(bcdDevice_Ver), // bcdDevice_Ver_L
-    H(bcdDevice_Ver), // bcdDevice_Ver_H
+    L16(idVendor), // idVendor_L
+    H16(idVendor), // idVendor_H
+    L16(idProduct), // idProduct_L
+    H16(idProduct), // idProduct_H
+    L16(bcdDevice_Ver), // bcdDevice_Ver_L
+    H16(bcdDevice_Ver), // bcdDevice_Ver_H
     iMANUFACTURER_DESCR, // iManufacturer - indexes of string descriptors in array
     iPRODUCT_DESCR, // iProduct
     iSERIAL_DESCR, // iSerial
@@ -71,7 +58,7 @@ const uint8_t USB_DeviceQualifierDescriptor[] = {
 #define wTotalLength  (USB_DT_CONFIG_SIZE + (bNumInterfaces * USB_DT_INTERFACE_SIZE) + (bTotNumEndpoints * USB_DT_ENDPOINT_SIZE))
 
 const uint8_t USB_ConfigDescriptor[] = {
-    /*Configuration Descriptor*/
+    /* Configuration Descriptor*/
     USB_DT_CONFIG_SIZE, /* bLength: Configuration Descriptor size */
     USB_DT_CONFIG, /* bDescriptorType: Configuration */
     L16(wTotalLength),   /* wTotalLength.L :no of returned bytes */
@@ -82,25 +69,52 @@ const uint8_t USB_ConfigDescriptor[] = {
     BusPowered, /* bmAttributes - Bus powered */
     100, /* MaxPower in 2mA units */
     /*---------------------------------------------------------------------------*/
-    /*Interface Descriptor */
+    /* Interface Descriptor */
     USB_DT_INTERFACE_SIZE, /* bLength: Interface Descriptor size */
     USB_DT_INTERFACE, /* bDescriptorType: Interface */
     0, /* bInterfaceNumber: Number of Interface */
     0, /* bAlternateSetting: Alternate setting */
-    1, /* bNumEndpoints: only 1 used */
-    0, /* bInterfaceClass */
+    3, /* bNumEndpoints */
+    USB_CLASS_VENDOR_SPEC, /* bInterfaceClass */
     0, /* bInterfaceSubClass */
     0, /* bInterfaceProtocol */
     iINTERFACE_DESCR1, /* iInterface: */
+    /*---------------------------------------------------------------------------*/
+    /* Endpoint 1 Descriptor */
+    USB_DT_ENDPOINT_SIZE, /* bLength: Endpoint Descriptor size */
+    USB_DT_ENDPOINT, /* bDescriptorType: Endpoint */
+    0x81, /* bEndpointAddress IN1 */
+    EP_TYPE_INTERRUPT, /* bmAttributes: Interrupt */
+    L16(USB_EP1BUFSZ), /* wMaxPacketSize LO */
+    H16(USB_EP1BUFSZ), /* wMaxPacketSize HI */
+    0x01, /* bInterval: 1ms */
+    /* Endpoint OUT2 Descriptor */
+    USB_DT_ENDPOINT_SIZE, /* bLength: Endpoint Descriptor size */
+    USB_DT_ENDPOINT, /* bDescriptorType: Endpoint */
+    0x02, /* bEndpointAddress: OUT2 */
+    EP_TYPE_BULK, /* bmAttributes: Bulk */
+    L16(USB_RXBUFSZ), /* wMaxPacketSize LO */
+    H16(USB_RXBUFSZ), /* wMaxPacketSize HI */
+    0, /* bInterval: ignore for Bulk transfer */
+    /*Endpoint IN3 Descriptor*/
+    USB_DT_ENDPOINT_SIZE, /* bLength: Endpoint Descriptor size */
+    USB_DT_ENDPOINT, /* bDescriptorType: Endpoint */
+    0x83, /* bEndpointAddress: IN3 */
+    EP_TYPE_BULK, /* bmAttributes: Bulk */
+    L16(USB_TXBUFSZ), /* wMaxPacketSize LO */
+    H16(USB_TXBUFSZ), /* wMaxPacketSize HI */
+    0, /* bInterval: ignore for Bulk transfer */
 };
+
+//const uint8_t HID_ReportDescriptor[];
 
 _USB_LANG_ID_(LD, LANG_US);
 _USB_STRING_(SD, u"0.0.1");
-_USB_STRING_(MD, u"eddy@sao");
-_USB_STRING_(PD, u"Some USB device");
-_USB_STRING_(ID, u"first interface");
+_USB_STRING_(MD, u"eddy@sao.ru");
+_USB_STRING_(PD, u"USB-Serial Controller");
+_USB_STRING_(ID, u"USB-STM32");
 
-const uint8_t* const StringDescriptor[iDESCR_AMOUNT] = {
+const void* const StringDescriptor[iDESCR_AMOUNT] = {
     [iLANGUAGE_DESCR] = &LD,
     [iMANUFACTURER_DESCR] = &MD,
     [iPRODUCT_DESCR] = &PD,
@@ -108,3 +122,55 @@ const uint8_t* const StringDescriptor[iDESCR_AMOUNT] = {
     [iINTERFACE_DESCR1] = &ID
 };
 
+void wr0(const uint8_t *buf, uint16_t size, uint16_t askedsize){
+    if(askedsize < size) size = askedsize; // shortened request
+    if(size < USB_EP0BUFSZ){
+        EP_WriteIRQ(0, buf, size);
+        return;
+    }
+    while(size){
+        uint16_t l = size;
+        if(l > USB_EP0BUFSZ) l = USB_EP0BUFSZ;
+        EP_WriteIRQ(0, buf, l);
+        buf += l;
+        size -= l;
+        uint8_t needzlp = (l == USB_EP0BUFSZ) ? 1 : 0;
+        if(size || needzlp){ // send last data buffer
+            uint16_t epstatus = KEEP_DTOG(USB->EPnR[0]);
+            // keep DTOGs, clear CTR_RX,TX, set TX VALID, leave stat_Rx
+            USB->EPnR[0] = (epstatus & ~(USB_EPnR_CTR_RX|USB_EPnR_CTR_TX|USB_EPnR_STAT_RX))
+                           ^ USB_EPnR_STAT_TX;
+            uint32_t ctr = 1000000;
+            while(--ctr && (USB->ISTR & USB_ISTR_CTR) == 0){IWDG->KR = IWDG_REFRESH;};
+            if((USB->ISTR & USB_ISTR_CTR) == 0){
+                return;
+            }
+            if(needzlp) EP_WriteIRQ(0, NULL, 0);
+        }
+    }
+}
+
+void get_descriptor(config_pack_t *pack){
+    uint8_t descrtype = pack->wValue >> 8,
+        descridx = pack->wValue & 0xff;
+    switch(descrtype){
+        case DEVICE_DESCRIPTOR:
+            wr0(USB_DeviceDescriptor, sizeof(USB_DeviceDescriptor), pack->wLength);
+            break;
+        case CONFIGURATION_DESCRIPTOR:
+            wr0(USB_ConfigDescriptor, sizeof(USB_ConfigDescriptor), pack->wLength);
+            break;
+        case STRING_DESCRIPTOR:
+            if(descridx < iDESCR_AMOUNT) wr0((const uint8_t *)StringDescriptor[descridx], *((uint8_t*)StringDescriptor[descridx]), pack->wLength);
+            else EP_WriteIRQ(0, NULL, 0);
+            break;
+        case DEVICE_QUALIFIER_DESCRIPTOR:
+            wr0(USB_DeviceQualifierDescriptor, sizeof(USB_DeviceQualifierDescriptor), pack->wLength);
+            break;
+       /* case HID_REPORT_DESCRIPTOR:
+            wr0(HID_ReportDescriptor, sizeof(HID_ReportDescriptor), pack->wLength);
+            break;*/
+        default:
+            break;
+    }
+}

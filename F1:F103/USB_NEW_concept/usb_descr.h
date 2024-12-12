@@ -18,6 +18,8 @@
 
 #include <stdint.h>
 
+#include "usb_lib.h"
+
 // definition of parts common for USB_DeviceDescriptor & USB_DeviceQualifierDescriptor
 // bcdUSB: 1.10
 #define bcdUSB              0x0110
@@ -28,10 +30,6 @@
 #define bcdDevice_Ver       0x0205
 #define bNumConfigurations  1
 
-// low/high for uint16_t
-#define L16(x)              (x & 0xff)
-#define H16(x)              (x >> 8)
-
 // amount of interfaces and endpoints (except 0) used
 #define bNumInterfaces      1
 #define bTotNumEndpoints    1
@@ -41,6 +39,27 @@
 #define SelfPowered         (1<<6)
 #define RemoteWakeup        (1<<5)
 
-extern const uint8_t USB_DeviceDescriptor[];
-extern const uint8_t USB_DeviceQualifierDescriptor[];
-extern const uint8_t USB_ConfigDescriptor[];
+// buffer sizes
+// for USB FS EP0 buffers are from 8 to 64 bytes long
+#define USB_EP0BUFSZ    64
+#define USB_EP1BUFSZ    10
+#define USB_RXBUFSZ     64
+#define USB_TXBUFSZ     64
+
+// string descriptors
+enum{
+    iLANGUAGE_DESCR,
+    iMANUFACTURER_DESCR,
+    iPRODUCT_DESCR,
+    iSERIAL_DESCR,
+    iINTERFACE_DESCR1,
+   /* iINTERFACE_DESCR2,
+    iINTERFACE_DESCR3,
+    iINTERFACE_DESCR4,
+    iINTERFACE_DESCR5,
+    iINTERFACE_DESCR6,
+    iINTERFACE_DESCR7,*/
+    iDESCR_AMOUNT
+};
+
+void get_descriptor(config_pack_t *pack);

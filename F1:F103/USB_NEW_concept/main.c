@@ -17,7 +17,6 @@
  */
 
 #include "hardware.h"
-#include "usb_lib.h"
 #include "usb_dev.h"
 
 volatile uint32_t Tms = 0;
@@ -30,23 +29,27 @@ void sys_tick_handler(void){
 #define STRLEN  (256)
 
 int main(void){
+    char inbuff[RBINSZ+1];
     uint32_t lastT = 0;
     StartHSE();
     hw_setup();
     USBPU_OFF();
     SysTick_Config(72000);
     USB_setup();
-    i2c_setup();
 #ifndef EBUG
     iwdg_setup();
 #endif
     USBPU_ON();
-
     while (1){
         IWDG->KR = IWDG_REFRESH; // refresh watchdog
         if(lastT > Tms || Tms - lastT > 499){
             LED_blink(LED0);
             lastT = Tms;
+        }
+        int l = USB_receivestr(inbuff, RBINSZ);
+        if(l < 0) USB_sendstr("ERROR: USB buffer overflow or string was too long\n");
+        else if(l){
+            USB_sendstr("RECEIVED: _"); USB_sendstr(inbuff); USB_sendstr("_\n");
         }
     }
     return 0;

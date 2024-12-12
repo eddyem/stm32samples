@@ -28,62 +28,14 @@ static uint8_t ep0dbuflen = 0;
 static config_pack_t *setup_packet = (config_pack_t*) setupdatabuf;
 volatile uint8_t usbON = 0; // device is configured and active
 
-static void wr0(const uint8_t *buf, uint16_t size){
-    if(setup_packet->wLength < size) size = setup_packet->wLength; // shortened request
-    if(size < endpoints[0].txbufsz){
-        EP_WriteIRQ(0, buf, size);
-        return;
-    }
-    while(size){
-        uint16_t l = size;
-        if(l > endpoints[0].txbufsz) l = endpoints[0].txbufsz;
-        EP_WriteIRQ(0, buf, l);
-        buf += l;
-        size -= l;
-        uint8_t needzlp = (l == endpoints[0].txbufsz) ? 1 : 0;
-        if(size || needzlp){ // send last data buffer
-            uint16_t epstatus = KEEP_DTOG(USB->EPnR[0]);
-            // keep DTOGs, clear CTR_RX,TX, set TX VALID, leave stat_Rx
-            USB->EPnR[0] = (epstatus & ~(USB_EPnR_CTR_RX|USB_EPnR_CTR_TX|USB_EPnR_STAT_RX))
-                            ^ USB_EPnR_STAT_TX;
-            uint32_t ctr = 1000000;
-            while(--ctr && (USB->ISTR & USB_ISTR_CTR) == 0){IWDG->KR = IWDG_REFRESH;};
-            if((USB->ISTR & USB_ISTR_CTR) == 0){
-                return;
-            }
-            if(needzlp) EP_WriteIRQ(0, (uint8_t*)0, 0);
-        }
-    }
-}
-
-static inline void get_descriptor(){
-    uint8_t descrtype = setup_packet->wValue >> 8,
-            descridx = setup_packet->wValue & 0xff;
-    switch(descrtype){
-        case DEVICE_DESCRIPTOR:
-            wr0(USB_DeviceDescriptor, sizeof(USB_DeviceDescriptor));
-        break;
-        case CONFIGURATION_DESCRIPTOR:
-            wr0(USB_ConfigDescriptor, sizeof(USB_ConfigDescriptor));
-        break;
-        case STRING_DESCRIPTOR:
-            if(descridx < iDESCR_AMOUNT) wr0((const uint8_t *)StringDescriptor[descridx], *((uint8_t*)StringDescriptor[descridx]));
-            else EP_WriteIRQ(0, (uint8_t*)0, 0);
-        break;
-        case DEVICE_QUALIFIER_DESCRIPTOR:
-            wr0(USB_DeviceQualifierDescriptor, USB_DeviceQualifierDescriptor[0]);
-        break;
-        default:
-        break;
-    }
-}
+const uint8_t HID_ReportDescriptor[] WEAK = {0};
 
 static uint16_t configuration = 0; // reply for GET_CONFIGURATION (==1 if configured)
 static inline void std_d2h_req(){
     uint16_t st = 0;
     switch(setup_packet->bRequest){
         case GET_DESCRIPTOR:
-            get_descriptor();
+            get_descriptor(setup_packet);
         break;
         case GET_STATUS:
             EP_WriteIRQ(0, (uint8_t *)&st, 2); // send status: Bus Powered
@@ -105,7 +57,7 @@ static inline void std_h2d_req(){
         case SET_CONFIGURATION:
             // Now device configured
             configuration = setup_packet->wValue;
-            set_configuration(configuration);
+            set_configuration();
             usbON = 1;
         break;
         default:
@@ -116,6 +68,7 @@ static inline void std_h2d_req(){
 void WEAK usb_standard_request(){
     uint8_t recipient = REQUEST_RECIPIENT(setup_packet->bmRequestType);
     uint8_t dev2host = (setup_packet->bmRequestType & 0x80) ? 1 : 0;
+    uint8_t reqtype = REQUEST_TYPE(setup_packet->bmRequestType);
     switch(recipient){
         case REQ_RECIPIENT_DEVICE:
             if(dev2host){
@@ -123,15 +76,31 @@ void WEAK usb_standard_request(){
                 return;
             }else{
                 std_h2d_req();
-                EP_WriteIRQ(0, (uint8_t *)0, 0);
+                EP_WriteIRQ(0, NULL, 0);
             }
         break;
         case REQ_RECIPIENT_INTERFACE:
-            //EP_WriteIRQ(0, (const uint8_t*)"epi", 4);
+            switch(reqtype){
+                case REQ_TYPE_STANDARD:
+                    if(dev2host && setup_packet->bRequest == GET_DESCRIPTOR){
+                        get_descriptor(setup_packet);
+                    }else EP_WriteIRQ(0, NULL, 0);
+                break;
+                case REQ_TYPE_CLASS:
+                    if(setup_packet->bRequest == GET_INTERFACE){
+                        EP_WriteIRQ(0, NULL, 0);
+                    }/*else if (setup_packet->bRequest == SET_FEAUTRE){
+                        //set_featuring = 1;
+                    }*/
+                break;
+                default:
+                    if(dev2host) EP_WriteIRQ(0, NULL, 0);
+                break;
+            }
         break;
         case REQ_RECIPIENT_ENDPOINT:
             if(setup_packet->bRequest == CLEAR_FEATURE){
-                EP_WriteIRQ(0, (uint8_t *)0, 0);
+                EP_WriteIRQ(0, NULL, 0);
             }else{
                 //EP_WriteIRQ(0, (const uint8_t*)"epr", 4);
             }
@@ -142,12 +111,12 @@ void WEAK usb_standard_request(){
     }
 }
 
-void WEAK usb_class_request(config_pack_t _U_ *req, uint8_t _U_ *data, unsigned int _U_ datalen){
-    EP_WriteIRQ(0, (const uint8_t*)"cls", 4);
+void WEAK usb_class_request(config_pack_t _U_ *req, uint8_t _U_ *data, uint16_t _U_ datalen){
+    EP_WriteIRQ(0, NULL, 0);
 }
 
-void WEAK usb_vendor_request(config_pack_t _U_ *packet, uint8_t _U_ *data, unsigned int _U_ datalen){
-    EP_WriteIRQ(0, (const uint8_t*)"vnd", 4);
+void WEAK usb_vendor_request(config_pack_t _U_ *packet, uint8_t _U_ *data, uint16_t datalen){
+    EP_WriteIRQ(0, NULL, 0);
 }
 
 /*

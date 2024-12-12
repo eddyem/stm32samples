@@ -1,6 +1,8 @@
 hardware.c
 hardware.h
 main.c
+ringbuffer.c
+ringbuffer.h
 usb_descr.c
 usb_descr.h
 usb_lib.c

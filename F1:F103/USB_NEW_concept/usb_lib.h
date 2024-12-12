@@ -76,10 +76,6 @@
 #endif // NOCAN
 
 // first 64 bytes of USB_BTABLE are registers!
-// for USB FS EP0 buffers are from 8 to 64 bytes long
-#define USB_EP0BUFSZ           64
-// EP1 - interrupt - buffer size
-#define USB_EP1BUFSZ            8
 
 #define USB_BTABLE_BASE         0x40006000
 #define USB                     ((USB_TypeDef *) USB_BASE)
@@ -218,6 +214,7 @@ typedef struct{
 #define REQ_TYPE_VENDOR         2
 #define REQ_TYPE_RESERVED       3
 
+/*
 // deprecated defines:
 #define STANDARD_DEVICE_REQUEST_TYPE    0
 #define STANDARD_INTERFACE_REQUEST_TYPE 1
@@ -225,6 +222,7 @@ typedef struct{
 #define STANDARD_OTHER_REQUEST_TYPE     3
 #define VENDOR_REQUEST_TYPE             0x40
 #define CONTROL_REQUEST_TYPE            0x21
+*/
 
 // bRequest, standard; for bmRequestType == 0x80
 #define GET_STATUS                      0x00
@@ -247,6 +245,7 @@ typedef struct{
 #define CONFIGURATION_DESCRIPTOR        0x02
 #define STRING_DESCRIPTOR               0x03
 #define DEVICE_QUALIFIER_DESCRIPTOR     0x06
+#define HID_REPORT_DESCRIPTOR           0x2200
 
 // EP types
 #define EP_TYPE_BULK                    0x00
@@ -315,6 +314,6 @@ void EP_Write(uint8_t number, const uint8_t *buf, uint16_t size);
 int EP_Read(uint8_t number, uint8_t *buf);
 
 // could be [re]defined in usb_dev.c
-extern void usb_class_request(config_pack_t *packet, uint8_t *data, unsigned int datalen);
-extern void usb_vendor_request(config_pack_t *packet, uint8_t *data, unsigned int datalen);
-extern void set_configuration(uint16_t configuration);
+extern void usb_class_request(config_pack_t *packet, uint8_t *data, uint16_t datalen);
+extern void usb_vendor_request(config_pack_t *packet, uint8_t *data, uint16_t datalen);
+extern void set_configuration();
