@@ -1,5 +1,5 @@
 Drill report for Hall.kicad_pcb
-Created on 2024-12-19T11:27:46+0300
+Created on 2024-12-26T12:17:42+0300
 
 Copper Layer Stackup:
     =============================================================
@@ -10,15 +10,15 @@ Copper Layer Stackup:
 Drill file 'Hall.drl' contains
     plated through holes:
     =============================================================
-    T1  0.400mm  0.0157"  (1 hole)
-    T2  0.600mm  0.0236"  (27 holes)
+    T1  0.400mm  0.0157"  (2 holes)
+    T2  0.600mm  0.0236"  (34 holes)
     T3  0.600mm  0.0236"  (4 holes)  (with 4 slots)
     T4  0.650mm  0.0256"  (6 holes)
     T5  0.800mm  0.0315"  (3 holes)
     T6  1.000mm  0.0394"  (3 holes)
     T7  1.100mm  0.0433"  (3 holes)
 
-    Total plated holes count 47
+    Total plated holes count 55
 
 
 Not plated through holes are merged with plated holes
