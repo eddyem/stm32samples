@@ -247,11 +247,18 @@ typedef struct{
 #define DEVICE_QUALIFIER_DESCRIPTOR     0x06
 #define HID_REPORT_DESCRIPTOR           0x2200
 
-// EP types
+// EP types for EP_init
 #define EP_TYPE_BULK                    0x00
 #define EP_TYPE_CONTROL                 0x01
 #define EP_TYPE_ISO                     0x02
 #define EP_TYPE_INTERRUPT               0x03
+
+// EP types for descriptors
+#define USB_BM_ATTR_CONTROL             0x00
+#define USB_BM_ATTR_ISO                 0x01
+#define USB_BM_ATTR_BULK                0x02
+#define USB_BM_ATTR_INTERRUPT           0x03
+
 
 /******************************************************************
  *                 Other stuff                                    *

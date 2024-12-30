@@ -25,14 +25,16 @@
 #define bcdUSB              0x0110
 #define bDeviceSubClass     0x00
 #define bDeviceProtocol     0x00
-#define idVendor            0x0403
-#define idProduct           0xc631
-#define bcdDevice_Ver       0x0205
+//#define idVendor            0x0483
+//#define idProduct           0x3748
+#define idVendor            0x067b
+#define idProduct           0x2303
+#define bcdDevice_Ver       0x0300
 #define bNumConfigurations  1
 
 // amount of interfaces and endpoints (except 0) used
 #define bNumInterfaces      1
-#define bTotNumEndpoints    1
+#define bTotNumEndpoints    3
 
 // powered
 #define BusPowered          (1<<7)

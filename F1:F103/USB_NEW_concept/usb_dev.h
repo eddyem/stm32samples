@@ -47,15 +47,6 @@ void linecoding_handler(usb_LineCoding *lc);
 #define newline()   USB_putbyte('\n')
 #define USND(s)     do{USB_sendstr(s); USB_putbyte('\n');}while(0)
 
-#define STR_HELPER(s)   #s
-#define STR(s)          STR_HELPER(s)
-
-#ifdef EBUG
-#define DBG(str)  do{USB_sendstr(__FILE__ " (L" STR(__LINE__) "): " str); newline();}while(0)
-#else
-#define DBG(str)
-#endif
-
 int USB_sendall();
 int USB_send(const uint8_t *buf, int len);
 int USB_putbyte(uint8_t byte);

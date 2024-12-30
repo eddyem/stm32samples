@@ -129,8 +129,7 @@ int RB_readto(ringbuffer *b, uint8_t byte, uint8_t *s, int len){
 
 static int write(ringbuffer *b, const uint8_t *str, int l){
     int r = b->length - 1 - datalen(b); // rest length
-    if(l > r) l = r;
-    if(!l) return 0;
+    if(l > r || !l) return 0;
     int _1st = b->length - b->tail;
     if(_1st > l) _1st = l;
     mcpy(b->data + b->tail, str, _1st);

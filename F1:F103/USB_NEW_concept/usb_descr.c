@@ -15,6 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "usart.h"
 #include "usb_descr.h"
 
 // low/high for uint16_t
@@ -26,7 +27,7 @@ const uint8_t USB_DeviceDescriptor[] = {
     USB_DT_DEVICE, // bDescriptorType
     L16(bcdUSB), // bcdUSB_L
     H16(bcdUSB), // bcdUSB_H
-    USB_CLASS_VENDOR_SPEC, // bDeviceClass
+    USB_CLASS_PER_INTERFACE, // bDeviceClass
     bDeviceSubClass, // bDeviceSubClass
     bDeviceProtocol, // bDeviceProtocol
     USB_EP0BUFSZ, // bMaxPacketSize
@@ -47,7 +48,7 @@ const uint8_t USB_DeviceQualifierDescriptor[] = {
     USB_DT_QUALIFIER, // bDescriptorType
     L16(bcdUSB), // bcdUSB_L
     H16(bcdUSB), // bcdUSB_H
-    USB_CLASS_VENDOR_SPEC, // bDeviceClass
+    USB_CLASS_PER_INTERFACE, // bDeviceClass
     bDeviceSubClass, // bDeviceSubClass
     bDeviceProtocol, // bDeviceProtocol
     USB_EP0BUFSZ, // bMaxPacketSize0
@@ -58,52 +59,52 @@ const uint8_t USB_DeviceQualifierDescriptor[] = {
 #define wTotalLength  (USB_DT_CONFIG_SIZE + (bNumInterfaces * USB_DT_INTERFACE_SIZE) + (bTotNumEndpoints * USB_DT_ENDPOINT_SIZE))
 
 const uint8_t USB_ConfigDescriptor[] = {
-    /* Configuration Descriptor*/
-    USB_DT_CONFIG_SIZE, /* bLength: Configuration Descriptor size */
-    USB_DT_CONFIG, /* bDescriptorType: Configuration */
-    L16(wTotalLength),   /* wTotalLength.L :no of returned bytes */
-    H16(wTotalLength), /* wTotalLength.H */
-    bNumInterfaces, /* bNumInterfaces */
-    1, /* bConfigurationValue: Current configuration value */
-    0, /* iConfiguration: Index of string descriptor describing the configuration or 0 */
-    BusPowered, /* bmAttributes - Bus powered */
-    100, /* MaxPower in 2mA units */
-    /*---------------------------------------------------------------------------*/
-    /* Interface Descriptor */
-    USB_DT_INTERFACE_SIZE, /* bLength: Interface Descriptor size */
-    USB_DT_INTERFACE, /* bDescriptorType: Interface */
-    0, /* bInterfaceNumber: Number of Interface */
-    0, /* bAlternateSetting: Alternate setting */
-    3, /* bNumEndpoints */
-    USB_CLASS_VENDOR_SPEC, /* bInterfaceClass */
-    0, /* bInterfaceSubClass */
-    0, /* bInterfaceProtocol */
-    iINTERFACE_DESCR1, /* iInterface: */
-    /*---------------------------------------------------------------------------*/
-    /* Endpoint 1 Descriptor */
-    USB_DT_ENDPOINT_SIZE, /* bLength: Endpoint Descriptor size */
-    USB_DT_ENDPOINT, /* bDescriptorType: Endpoint */
-    0x81, /* bEndpointAddress IN1 */
-    EP_TYPE_INTERRUPT, /* bmAttributes: Interrupt */
-    L16(USB_EP1BUFSZ), /* wMaxPacketSize LO */
-    H16(USB_EP1BUFSZ), /* wMaxPacketSize HI */
-    0x01, /* bInterval: 1ms */
-    /* Endpoint OUT2 Descriptor */
-    USB_DT_ENDPOINT_SIZE, /* bLength: Endpoint Descriptor size */
-    USB_DT_ENDPOINT, /* bDescriptorType: Endpoint */
-    0x02, /* bEndpointAddress: OUT2 */
-    EP_TYPE_BULK, /* bmAttributes: Bulk */
-    L16(USB_RXBUFSZ), /* wMaxPacketSize LO */
-    H16(USB_RXBUFSZ), /* wMaxPacketSize HI */
-    0, /* bInterval: ignore for Bulk transfer */
-    /*Endpoint IN3 Descriptor*/
-    USB_DT_ENDPOINT_SIZE, /* bLength: Endpoint Descriptor size */
-    USB_DT_ENDPOINT, /* bDescriptorType: Endpoint */
-    0x83, /* bEndpointAddress: IN3 */
-    EP_TYPE_BULK, /* bmAttributes: Bulk */
-    L16(USB_TXBUFSZ), /* wMaxPacketSize LO */
-    H16(USB_TXBUFSZ), /* wMaxPacketSize HI */
-    0, /* bInterval: ignore for Bulk transfer */
+    // Configuration Descriptor
+    USB_DT_CONFIG_SIZE, // bLength: Configuration Descriptor size
+    USB_DT_CONFIG, // bDescriptorType: Configuration
+    L16(wTotalLength),   // wTotalLength.L :no of returned bytes
+    H16(wTotalLength), // wTotalLength.H
+    bNumInterfaces, // bNumInterfaces
+    1, // bConfigurationValue: Current configuration value
+    0, // iConfiguration: Index of string descriptor describing the configuration or 0
+    BusPowered, // bmAttributes - Bus powered
+    50, // MaxPower in 2mA units
+    //---------------------------------------------------------------------------
+    // Interface Descriptor
+    USB_DT_INTERFACE_SIZE, // bLength: Interface Descriptor size
+    USB_DT_INTERFACE, // bDescriptorType: Interface
+    0, // bInterfaceNumber: Number of Interface
+    0, // bAlternateSetting: Alternate setting
+    3, // bNumEndpoints
+    USB_CLASS_VENDOR_SPEC, // bInterfaceClass
+    0, // bInterfaceSubClass
+    0, // bInterfaceProtocol
+    iINTERFACE_DESCR1, // iInterface:
+    //---------------------------------------------------------------------------
+    // Endpoint 1 Descriptor
+    USB_DT_ENDPOINT_SIZE, // bLength: Endpoint Descriptor size
+    USB_DT_ENDPOINT, // bDescriptorType: Endpoint
+    0x81, // bEndpointAddress IN1
+    USB_BM_ATTR_INTERRUPT, // bmAttributes: Interrupt
+    L16(USB_EP1BUFSZ), // wMaxPacketSize LO
+    H16(USB_EP1BUFSZ), // wMaxPacketSize HI
+    0x01, // bInterval: 1ms
+    // Endpoint OUT2 Descriptor
+    USB_DT_ENDPOINT_SIZE, // bLength: Endpoint Descriptor size
+    USB_DT_ENDPOINT, // bDescriptorType: Endpoint
+    0x02, // bEndpointAddress: OUT2
+    USB_BM_ATTR_BULK, // bmAttributes: Bulk
+    L16(USB_RXBUFSZ), // wMaxPacketSize LO
+    H16(USB_RXBUFSZ), // wMaxPacketSize HI
+    0, // bInterval: ignore for Bulk transfer
+    //Endpoint IN3 Descriptor
+    USB_DT_ENDPOINT_SIZE, // bLength: Endpoint Descriptor size
+    USB_DT_ENDPOINT, // bDescriptorType: Endpoint
+    0x83, // bEndpointAddress: IN3
+    USB_BM_ATTR_BULK, // bmAttributes: Bulk
+    L16(USB_TXBUFSZ), // wMaxPacketSize LO
+    H16(USB_TXBUFSZ), // wMaxPacketSize HI
+    0, // bInterval: ignore for Bulk transfer
 };
 
 //const uint8_t HID_ReportDescriptor[];
@@ -114,7 +115,7 @@ _USB_STRING_(MD, u"eddy@sao.ru");
 _USB_STRING_(PD, u"USB-Serial Controller");
 _USB_STRING_(ID, u"USB-STM32");
 
-const void* const StringDescriptor[iDESCR_AMOUNT] = {
+static const void* const StringDescriptor[iDESCR_AMOUNT] = {
     [iLANGUAGE_DESCR] = &LD,
     [iMANUFACTURER_DESCR] = &MD,
     [iPRODUCT_DESCR] = &PD,
@@ -125,9 +126,11 @@ const void* const StringDescriptor[iDESCR_AMOUNT] = {
 void wr0(const uint8_t *buf, uint16_t size, uint16_t askedsize){
     if(askedsize < size) size = askedsize; // shortened request
     if(size < USB_EP0BUFSZ){
+        //DBG("short wr0");
         EP_WriteIRQ(0, buf, size);
         return;
     }
+    //DBG("long wr0");
     while(size){
         uint16_t l = size;
         if(l > USB_EP0BUFSZ) l = USB_EP0BUFSZ;
@@ -155,16 +158,20 @@ void get_descriptor(config_pack_t *pack){
         descridx = pack->wValue & 0xff;
     switch(descrtype){
         case DEVICE_DESCRIPTOR:
+            //DBG("DEVICE_DESCRIPTOR");
             wr0(USB_DeviceDescriptor, sizeof(USB_DeviceDescriptor), pack->wLength);
             break;
         case CONFIGURATION_DESCRIPTOR:
+            //DBG("CONFIGURATION_DESCRIPTOR");
             wr0(USB_ConfigDescriptor, sizeof(USB_ConfigDescriptor), pack->wLength);
             break;
         case STRING_DESCRIPTOR:
+            //DBG("STRING_DESCRIPTOR");
             if(descridx < iDESCR_AMOUNT) wr0((const uint8_t *)StringDescriptor[descridx], *((uint8_t*)StringDescriptor[descridx]), pack->wLength);
             else EP_WriteIRQ(0, NULL, 0);
             break;
         case DEVICE_QUALIFIER_DESCRIPTOR:
+            //DBG("DEVICE_QUALIFIER_DESCRIPTOR");
             wr0(USB_DeviceQualifierDescriptor, sizeof(USB_DeviceQualifierDescriptor), pack->wLength);
             break;
        /* case HID_REPORT_DESCRIPTOR:

@@ -19,6 +19,7 @@
 #include <string.h>
 
 #include "ringbuffer.h"
+#include "usart.h"
 #include "usb_descr.h"
 #include "usb_dev.h"
 
@@ -57,6 +58,7 @@ static volatile int lastdsz = 0;
 
 static void EP1_Handler(){
     uint16_t epstatus = KEEP_DTOG(USB->EPnR[1]);
+    DBG("EP1_Handler");
     if(RX_FLAG(epstatus)) epstatus = (epstatus & ~USB_EPnR_STAT_TX) ^ USB_EPnR_STAT_RX; // set valid RX
     else epstatus = epstatus & ~(USB_EPnR_STAT_TX|USB_EPnR_STAT_RX);
     // clear CTR
@@ -116,19 +118,23 @@ static void receive_Handler(){ // EP2OUT
 // SET_LINE_CODING
 void WEAK linecoding_handler(usb_LineCoding *lc){
     lineCoding = *lc;
+    DBG("linecoding_handler");
 }
 
 // SET_CONTROL_LINE_STATE
 void WEAK clstate_handler(uint16_t _U_ val){
+    DBG("clstate_handler");
 }
 
 // SEND_BREAK
 void WEAK break_handler(){
+    DBG("break_handler()");
 }
 
 
 // USB is configured: setup endpoints
 void set_configuration(){
+    DBG("set_configuration()");
     EP_Init(1, EP_TYPE_INTERRUPT, USB_EP1BUFSZ, 0, EP1_Handler); // IN1 - transmit
     EP_Init(2, EP_TYPE_BULK, 0, USB_RXBUFSZ, receive_Handler); // OUT2 - receive data
     EP_Init(3, EP_TYPE_BULK, USB_TXBUFSZ, 0, transmit_Handler); // IN3 - transmit data
@@ -142,29 +148,57 @@ void usb_class_request(config_pack_t *req, uint8_t *data, uint16_t datalen){
         case REQ_RECIPIENT_INTERFACE:
             switch(req->bRequest){
                 case SET_LINE_CODING:
+                    DBG("SET_LINE_CODING");
                     if(!data || !datalen) break; // wait for data
                     if(datalen == sizeof(usb_LineCoding))
                         linecoding_handler((usb_LineCoding*)data);
+                    CDCready = 1;
                 break;
                 case GET_LINE_CODING:
+                    DBG("GET_LINE_CODING");
                     EP_WriteIRQ(0, (uint8_t*)&lineCoding, sizeof(lineCoding));
                 break;
                 case SET_CONTROL_LINE_STATE:
+                    DBG("SET_CONTROL_LINE_STATE");
                     CDCready = 1;
                     clstate_handler(req->wValue);
                 break;
                 case SEND_BREAK:
+                    DBG("SEND_BREAK");
                     CDCready = 0;
                     break_handler();
                     break;
                 default:
-                    break;
+                    DBG("Wrong");
+                    DBGs(uhex2str(req->bRequest));
+                    DBGs(uhex2str(datalen));
             }
         break;
         default:
+            DBG("Wrong");
+            DBGs(uhex2str(recipient));
+            DBGs(uhex2str(datalen));
+            DBGs(uhex2str(req->bRequest));
             if(dev2host) EP_WriteIRQ(0, NULL, 0);
     }
 }
+
+#if 0
+		pl2303_vendor_read(serial, 0x8484, buf);
+		pl2303_vendor_write(serial, 0x0404, 0);
+		pl2303_vendor_read(serial, 0x8484, buf);
+		pl2303_vendor_read(serial, 0x8383, buf);
+		pl2303_vendor_read(serial, 0x8484, buf);
+		pl2303_vendor_write(serial, 0x0404, 1);
+		pl2303_vendor_read(serial, 0x8484, buf);
+		pl2303_vendor_read(serial, 0x8383, buf);
+		pl2303_vendor_write(serial, 0, 1);
+		pl2303_vendor_write(serial, 1, 0);
+		if (spriv->quirks & PL2303_QUIRK_LEGACY)
+			pl2303_vendor_write(serial, 2, 0x24);
+		else
+			pl2303_vendor_write(serial, 2, 0x44);
+#endif
 
 // Vendor request for PL2303
 void usb_vendor_request(config_pack_t *req, uint8_t _U_ *data, uint16_t _U_ datalen){
@@ -184,12 +218,16 @@ void usb_vendor_request(config_pack_t *req, uint8_t _U_ *data, uint16_t _U_ data
                 c = 0;
         }
         EP_WriteIRQ(0, &c, 1);
+        DBG("Vendor read");
     }else{ // write ZLP
         EP_WriteIRQ(0, NULL, 0);
+        DBG("Vendor write");
     }
+    DBGs(uhex2str(req->bRequest));
+    DBGs(uhex2str(req->wValue));
+    DBGs(uhex2str(req->wLength));
+    DBGs(uhex2str(datalen));
 }
-
-
 
 // blocking send full content of ring buffer
 int USB_sendall(){
@@ -202,6 +240,7 @@ int USB_sendall(){
 // put `buf` into queue to send
 int USB_send(const uint8_t *buf, int len){
     if(!buf || !CDCready || !len) return FALSE;
+    DBG("send");
     while(len){
         int a = RB_write((ringbuffer*)&rbout, buf, len);
         if(a > 0){
@@ -241,12 +280,14 @@ int USB_sendstr(const char *string){
 int USB_receive(uint8_t *buf, int len){
     chkin();
     if(bufovrfl){
+        DBG("Buffer overflow");
         while(1 != RB_clearbuf((ringbuffer*)&rbin));
         bufovrfl = 0;
         return -1;
     }
     int sz = RB_read((ringbuffer*)&rbin, buf, len);
     if(sz < 0) return 0; // buffer in writting state
+    DBG("usb read");
     return sz;
 }
 
