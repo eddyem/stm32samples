@@ -195,6 +195,7 @@ typedef struct{
 #define USB_DT_DEVICE_SIZE              18
 #define USB_DT_CONFIG_SIZE              9
 #define USB_DT_INTERFACE_SIZE           9
+#define USB_DT_HID_SIZE                 9
 #define USB_DT_ENDPOINT_SIZE            7
 #define USB_DT_QUALIFIER_SIZE           10
 
@@ -214,38 +215,31 @@ typedef struct{
 #define REQ_TYPE_VENDOR         2
 #define REQ_TYPE_RESERVED       3
 
-/*
-// deprecated defines:
-#define STANDARD_DEVICE_REQUEST_TYPE    0
-#define STANDARD_INTERFACE_REQUEST_TYPE 1
-#define STANDARD_ENDPOINT_REQUEST_TYPE  2
-#define STANDARD_OTHER_REQUEST_TYPE     3
-#define VENDOR_REQUEST_TYPE             0x40
-#define CONTROL_REQUEST_TYPE            0x21
-*/
 
-// bRequest, standard; for bmRequestType == 0x80
+//#define VENDOR_REQUEST                  0x01
+
+// standard device requests
 #define GET_STATUS                      0x00
-#define GET_DESCRIPTOR                  0x06
-#define GET_CONFIGURATION               0x08
-// for bmRequestType == 0
 #define CLEAR_FEATURE                   0x01
 #define SET_FEATURE                     0x03
 #define SET_ADDRESS                     0x05
+#define GET_DESCRIPTOR                  0x06
 #define SET_DESCRIPTOR                  0x07
+#define GET_CONFIGURATION               0x08
 #define SET_CONFIGURATION               0x09
-// for bmRequestType == 0x81, 1 or 0xB2
+// and some standard interface requests
 #define GET_INTERFACE                   0x0A
 #define SET_INTERFACE                   0x0B
+// and some standard endpoint requests
 #define SYNC_FRAME                      0x0C
-#define VENDOR_REQUEST                  0x01
 
 // Types of descriptors
 #define DEVICE_DESCRIPTOR               0x01
 #define CONFIGURATION_DESCRIPTOR        0x02
 #define STRING_DESCRIPTOR               0x03
 #define DEVICE_QUALIFIER_DESCRIPTOR     0x06
-#define HID_REPORT_DESCRIPTOR           0x2200
+#define DEBUG_DESCRIPTOR                0x0a
+#define HID_REPORT_DESCRIPTOR           0x22
 
 // EP types for EP_init
 #define EP_TYPE_BULK                    0x00

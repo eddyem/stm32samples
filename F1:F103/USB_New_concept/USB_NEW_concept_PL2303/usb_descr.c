@@ -22,7 +22,7 @@
 #define L16(x)              (x & 0xff)
 #define H16(x)              (x >> 8)
 
-const uint8_t USB_DeviceDescriptor[] = {
+static const uint8_t USB_DeviceDescriptor[] = {
     USB_DT_DEVICE_SIZE, // bLength
     USB_DT_DEVICE, // bDescriptorType
     L16(bcdUSB), // bcdUSB_L
@@ -43,7 +43,7 @@ const uint8_t USB_DeviceDescriptor[] = {
     bNumConfigurations // bNumConfigurations
 };
 
-const uint8_t USB_DeviceQualifierDescriptor[] = {
+static const uint8_t USB_DeviceQualifierDescriptor[] = {
     USB_DT_QUALIFIER_SIZE, //bLength
     USB_DT_QUALIFIER, // bDescriptorType
     L16(bcdUSB), // bcdUSB_L
@@ -58,7 +58,7 @@ const uint8_t USB_DeviceQualifierDescriptor[] = {
 
 #define wTotalLength  (USB_DT_CONFIG_SIZE + (bNumInterfaces * USB_DT_INTERFACE_SIZE) + (bTotNumEndpoints * USB_DT_ENDPOINT_SIZE))
 
-const uint8_t USB_ConfigDescriptor[] = {
+static const uint8_t USB_ConfigDescriptor[] = {
     // Configuration Descriptor
     USB_DT_CONFIG_SIZE, // bLength: Configuration Descriptor size
     USB_DT_CONFIG, // bDescriptorType: Configuration
@@ -123,7 +123,7 @@ static const void* const StringDescriptor[iDESCR_AMOUNT] = {
     [iINTERFACE_DESCR1] = &ID
 };
 
-void wr0(const uint8_t *buf, uint16_t size, uint16_t askedsize){
+static void wr0(const uint8_t *buf, uint16_t size, uint16_t askedsize){
     if(askedsize < size) size = askedsize; // shortened request
     if(size < USB_EP0BUFSZ){
         //DBG("short wr0");

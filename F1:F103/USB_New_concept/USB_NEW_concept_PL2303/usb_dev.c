@@ -144,9 +144,12 @@ void set_configuration(){
 void usb_class_request(config_pack_t *req, uint8_t *data, uint16_t datalen){
     uint8_t recipient = REQUEST_RECIPIENT(req->bmRequestType);
     uint8_t dev2host = (req->bmRequestType & 0x80) ? 1 : 0;
+    DBG("usb_class_request");
+    DBGs(uhex2str(req->bRequest));
     switch(recipient){
         case REQ_RECIPIENT_INTERFACE:
             switch(req->bRequest){
+                case 0x32: // non-standard but used for same purpose in PL2303
                 case SET_LINE_CODING:
                     DBG("SET_LINE_CODING");
                     if(!data || !datalen) break; // wait for data
@@ -154,6 +157,7 @@ void usb_class_request(config_pack_t *req, uint8_t *data, uint16_t datalen){
                         linecoding_handler((usb_LineCoding*)data);
                     CDCready = 1;
                 break;
+                case 0x33: // -//-
                 case GET_LINE_CODING:
                     DBG("GET_LINE_CODING");
                     EP_WriteIRQ(0, (uint8_t*)&lineCoding, sizeof(lineCoding));
@@ -167,7 +171,7 @@ void usb_class_request(config_pack_t *req, uint8_t *data, uint16_t datalen){
                     DBG("SEND_BREAK");
                     CDCready = 0;
                     break_handler();
-                    break;
+                break;
                 default:
                     DBG("Wrong");
                     DBGs(uhex2str(req->bRequest));
@@ -181,41 +185,28 @@ void usb_class_request(config_pack_t *req, uint8_t *data, uint16_t datalen){
             DBGs(uhex2str(req->bRequest));
             if(dev2host) EP_WriteIRQ(0, NULL, 0);
     }
+    if(!dev2host) EP_WriteIRQ(0, NULL, 0);
 }
-
-#if 0
-		pl2303_vendor_read(serial, 0x8484, buf);
-		pl2303_vendor_write(serial, 0x0404, 0);
-		pl2303_vendor_read(serial, 0x8484, buf);
-		pl2303_vendor_read(serial, 0x8383, buf);
-		pl2303_vendor_read(serial, 0x8484, buf);
-		pl2303_vendor_write(serial, 0x0404, 1);
-		pl2303_vendor_read(serial, 0x8484, buf);
-		pl2303_vendor_read(serial, 0x8383, buf);
-		pl2303_vendor_write(serial, 0, 1);
-		pl2303_vendor_write(serial, 1, 0);
-		if (spriv->quirks & PL2303_QUIRK_LEGACY)
-			pl2303_vendor_write(serial, 2, 0x24);
-		else
-			pl2303_vendor_write(serial, 2, 0x44);
-#endif
 
 // Vendor request for PL2303
 void usb_vendor_request(config_pack_t *req, uint8_t _U_ *data, uint16_t _U_ datalen){
-    uint8_t c;
+    //uint8_t buf[8] = {0};
+    //uint16_t l = req->wLength;
+    //if(l > 8) l = 8;
+    uint8_t c = 0;
     if(req->bmRequestType & 0x80){ // read
         switch(req->wValue){
             case 0x8484:
-                c = 2;
+                c = 0x02;
                 break;
             case 0x0080:
-                c = 1;
+                c = 0x01;
                 break;
             case 0x8686:
                 c = 0xaa;
                 break;
-            default:
-                c = 0;
+            default: // c=0
+                break;
         }
         EP_WriteIRQ(0, &c, 1);
         DBG("Vendor read");

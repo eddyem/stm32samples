@@ -21,20 +21,19 @@
 #include "usb_descr.h"
 #include "usb_dev.h"
 
+/*
 #undef DBG
 #define DBG(x)
 #undef DBGs
 #define DBGs(x)
+*/
 
 static ep_t endpoints[STM32ENDPOINTS];
 
 static uint16_t USB_Addr = 0;
-static uint8_t ep0databuf[EP0DATABUF_SIZE], setupdatabuf[EP0DATABUF_SIZE];
-static uint8_t ep0dbuflen = 0;
+static uint8_t setupdatabuf[EP0DATABUF_SIZE];
 static config_pack_t *setup_packet = (config_pack_t*) setupdatabuf;
 volatile uint8_t usbON = 0; // device is configured and active
-
-const uint8_t HID_ReportDescriptor[] WEAK = {0};
 
 static uint16_t configuration = 0; // reply for GET_CONFIGURATION (==1 if configured)
 static inline void std_d2h_req(){
@@ -84,47 +83,26 @@ static inline void std_h2d_req(){
 void WEAK usb_standard_request(){
     uint8_t recipient = REQUEST_RECIPIENT(setup_packet->bmRequestType);
     uint8_t dev2host = (setup_packet->bmRequestType & 0x80) ? 1 : 0;
-    uint8_t reqtype = REQUEST_TYPE(setup_packet->bmRequestType);
     switch(recipient){
         case REQ_RECIPIENT_DEVICE:
             DBG("REQ_RECIPIENT_DEVICE");
             if(dev2host){
                 std_d2h_req();
-                return;
             }else{
                 std_h2d_req();
-                EP_WriteIRQ(0, NULL, 0);
+                //EP_WriteIRQ(0, NULL, 0);
             }
         break;
         case REQ_RECIPIENT_INTERFACE:
             DBG("REQ_RECIPIENT_INTERFACE");
-            switch(reqtype){
-                case REQ_TYPE_STANDARD:
-                    DBG("REQ_TYPE_STANDARD");
-                    if(dev2host && setup_packet->bRequest == GET_DESCRIPTOR){
-                        get_descriptor(setup_packet);
-                    }else EP_WriteIRQ(0, NULL, 0);
-                break;
-                case REQ_TYPE_CLASS:
-                    DBG("REQ_TYPE_CLASS");
-                    if(setup_packet->bRequest == GET_INTERFACE){
-                        EP_WriteIRQ(0, NULL, 0);
-                    }else{ DBG("Wrong"); }
-                    /*else if (setup_packet->bRequest == SET_FEAUTRE){
-                        //set_featuring = 1;
-                    }*/
-                break;
-                default:
-                    DBG("Wrong");
-                    DBGs(uhex2str(reqtype));
-                    if(dev2host) EP_WriteIRQ(0, NULL, 0);
-                break;
-            }
+            if(dev2host && setup_packet->bRequest == GET_DESCRIPTOR){
+                get_descriptor(setup_packet);
+            }//else EP_WriteIRQ(0, NULL, 0);
         break;
         case REQ_RECIPIENT_ENDPOINT:
             DBG("REQ_RECIPIENT_ENDPOINT");
             if(setup_packet->bRequest == CLEAR_FEATURE){
-                EP_WriteIRQ(0, NULL, 0);
+                //EP_WriteIRQ(0, NULL, 0);
             }else{
                 DBG("Wrong");
             }
@@ -134,16 +112,34 @@ void WEAK usb_standard_request(){
             DBGs(uhex2str(recipient));
         break;
     }
+    if(!dev2host) EP_WriteIRQ(0, NULL, 0);
 }
 
-void WEAK usb_class_request(config_pack_t _U_ *req, uint8_t _U_ *data, uint16_t _U_ datalen){
-    DBG("weak");
-    EP_WriteIRQ(0, NULL, 0);
+void WEAK usb_class_request(config_pack_t *req, uint8_t _U_ *data, uint16_t _U_ datalen){
+    DBG("REQ_TYPE_CLASS");
+    switch(req->bRequest){
+        case GET_INTERFACE:
+            DBG("GI");
+        break;
+        case SET_CONFIGURATION: // set featuring by req->wValue
+            DBG("SC");
+        break;
+        default:
+            DBG("Wrong");
+            DBGs(uhex2str(req->bmRequestType));
+            DBGs(uhex2str(req->bRequest));
+            DBGs(uhex2str(req->wIndex));
+            DBGs(uhex2str(req->wLength));
+            DBGs(uhex2str(req->wValue));
+    }
+    if(0 == (setup_packet->bmRequestType & 0x80)) // host2dev
+        EP_WriteIRQ(0, NULL, 0);
 }
 
 void WEAK usb_vendor_request(config_pack_t _U_ *packet, uint8_t _U_ *data, uint16_t _U_ datalen){
-    DBG("weak");
-    EP_WriteIRQ(0, NULL, 0);
+    DBG("vendor");
+    if(0 == (setup_packet->bmRequestType & 0x80)) // host2dev
+        EP_WriteIRQ(0, NULL, 0);
 }
 
 /*
@@ -156,59 +152,45 @@ bmRequestType: 76543210
  * Endpoint0 (control) handler
  */
 static void EP0_Handler(){
+    uint8_t ep0dbuflen = 0;
+    uint8_t ep0databuf[EP0DATABUF_SIZE];
     uint16_t epstatus = USB->EPnR[0]; // EP0R on input -> return this value after modifications
-    uint8_t reqtype = REQUEST_TYPE(setup_packet->bmRequestType);
-    int rxflag = RX_FLAG(epstatus);
-    DBG("EP0_Handler");
+    //DBG("EP0_Handler");
     // check direction
     if(USB->ISTR & USB_ISTR_DIR){ // OUT interrupt - receive data, CTR_RX==1 (if CTR_TX == 1 - two pending transactions: receive following by transmit)
             if(epstatus & USB_EPnR_SETUP){ // setup packet -> copy data to conf_pack
-                DBG("USB_EPnR_SETUP");
+                //DBG("USB_EPnR_SETUP");
                 EP_Read(0, setupdatabuf);
                 // interrupt handler will be called later
             }else if(epstatus & USB_EPnR_CTR_RX){ // data packet -> push received data to ep0databuf
-                if(endpoints[0].rx_cnt){ DBG("data");}
+                //if(endpoints[0].rx_cnt){ DBG("data");}
                 ep0dbuflen = EP_Read(0, ep0databuf);
             }
     }
-    if(rxflag && SETUP_FLAG(epstatus)){
+    int rxflag = RX_FLAG(epstatus);
+    if(rxflag){
+        uint8_t reqtype = REQUEST_TYPE(setup_packet->bmRequestType);
         switch(reqtype){
             case REQ_TYPE_STANDARD:
                 DBG("REQ_TYPE_STANDARD");
                 usb_standard_request();
-            break;
+                break;
             case REQ_TYPE_CLASS:
                 DBG("REQ_TYPE_CLASS");
-                usb_class_request(setup_packet, NULL, 0);
-            break;
+                usb_class_request(setup_packet, ep0databuf, ep0dbuflen);
+                break;
             case REQ_TYPE_VENDOR:
                 DBG("REQ_TYPE_VENDOR");
-                usb_vendor_request(setup_packet, NULL, 0);
-            break;
+                usb_vendor_request(setup_packet, ep0databuf, ep0dbuflen);
+                break;
             default:
                 DBG("Wrong");
                 DBGs(uhex2str(reqtype));
                 EP_WriteIRQ(0, NULL, 0);
-            break;
-        }
-    }else if(rxflag){ // got data over EP0 or host acknowlegement
-        if(ep0dbuflen){
-            switch(reqtype){
-                case REQ_TYPE_CLASS:
-                    DBG("REQ_TYPE_CLASS");
-                    usb_class_request(setup_packet, ep0databuf, ep0dbuflen);
                 break;
-                case REQ_TYPE_VENDOR:
-                    DBG("REQ_TYPE_VENDOR");
-                    usb_vendor_request(setup_packet, ep0databuf, ep0dbuflen);
-                break;
-                default:
-                    DBG("Wrong");
-                    DBGs(uhex2str(reqtype));
-            }
-            ep0dbuflen = 0;
         }
-    }else if(TX_FLAG(epstatus)){ // package transmitted
+    }
+    if(TX_FLAG(epstatus)){
         // now we can change address after enumeration
         if ((USB->DADDR & USB_DADDR_ADD) != USB_Addr){
             USB->DADDR = USB_DADDR_EF | USB_Addr;
@@ -218,7 +200,7 @@ static void EP0_Handler(){
         }
     }
     epstatus = KEEP_DTOG(USB->EPnR[0]);
-    if(rxflag) epstatus ^= USB_EPnR_STAT_TX; // start ZLP/data transmission
+    if(rxflag) epstatus ^= USB_EPnR_STAT_TX; // start ZLP or data transmission
     else epstatus &= ~USB_EPnR_STAT_TX; // or leave unchanged
     // keep DTOGs, clear CTR_RX,TX, set RX VALID
     USB->EPnR[0] = (epstatus & ~(USB_EPnR_CTR_RX|USB_EPnR_CTR_TX)) ^ USB_EPnR_STAT_RX;
@@ -302,18 +284,11 @@ static uint16_t lastaddr = LASTADDR_DEFAULT;
  * @return 0 if all OK
  */
 int EP_Init(uint8_t number, uint8_t type, uint16_t txsz, uint16_t rxsz, void (*func)(ep_t ep)){
-    /*DBG("num, type, txsz, rxsz");
-    DBGs(uhex2str(number));
-    DBGs(uhex2str(type));
-    DBGs(uhex2str(txsz));
-    DBGs(uhex2str(rxsz));*/
     if(number >= STM32ENDPOINTS) return 4; // out of configured amount
     if(txsz > USB_BTABLE_SIZE || rxsz > USB_BTABLE_SIZE) return 1; // buffer too large
     if(lastaddr + txsz + rxsz >= USB_BTABLE_SIZE/ACCESSZ) return 2; // out of btable
     USB->EPnR[number] = (type << 9) | (number & USB_EPnR_EA);
     USB->EPnR[number] ^= USB_EPnR_STAT_RX | USB_EPnR_STAT_TX_1;
-    /*DBG("EPnR=");
-    DBGs(uhex2str(USB->EPnR[number]));*/
     if(rxsz & 1 || rxsz > USB_BTABLE_SIZE) return 3; // wrong rx buffer size
     uint16_t countrx = 0;
     if(rxsz < 64) countrx = rxsz / 2;
@@ -321,32 +296,21 @@ int EP_Init(uint8_t number, uint8_t type, uint16_t txsz, uint16_t rxsz, void (*f
         if(rxsz & 0x1f) return 3; // should be multiple of 32
         countrx = 31 + rxsz / 32;
     }
-    //DBG("addrtx, txbuf, txbufsz");
     USB_BTABLE->EP[number].USB_ADDR_TX = lastaddr;
     endpoints[number].tx_buf = (uint16_t *)(USB_BTABLE_BASE + lastaddr * ACCESSZ);
     endpoints[number].txbufsz = txsz;
-    /*DBGs(uhex2str(USB_BTABLE->EP[number].USB_ADDR_TX));
-    DBGs(uhex2str((uint32_t)endpoints[number].tx_buf));
-    DBGs(uhex2str(endpoints[number].txbufsz));*/
     lastaddr += txsz;
     USB_BTABLE->EP[number].USB_COUNT_TX = 0;
     USB_BTABLE->EP[number].USB_ADDR_RX = lastaddr;
     endpoints[number].rx_buf = (uint8_t *)(USB_BTABLE_BASE + lastaddr * ACCESSZ);
-    /*DBG("Adrrx, rxbuf");
-    DBGs(uhex2str(USB_BTABLE->EP[number].USB_ADDR_RX));
-    DBGs(uhex2str((uint32_t)endpoints[number].rx_buf));*/
     lastaddr += rxsz;
     USB_BTABLE->EP[number].USB_COUNT_RX = countrx << 10;
-    /*DBG("countrx");
-    DBGs(uhex2str(USB_BTABLE->EP[number].USB_COUNT_RX));*/
     endpoints[number].func = func;
     return 0;
 }
 
 // standard IRQ handler
 void USB_IRQ(){
-    /*DBG("USB_IRQ");
-    DBGs(uhex2str(USB->ISTR));*/
     uint32_t CNTR = USB->CNTR;
     USB->CNTR = 0;
     if(USB->ISTR & USB_ISTR_RESET){
@@ -359,19 +323,19 @@ void USB_IRQ(){
         lastaddr = LASTADDR_DEFAULT;
         // clear address, leave only enable bit
         USB->DADDR = USB_DADDR_EF;
+        USB->ISTR = ~USB_ISTR_RESET;
         if(EP_Init(0, EP_TYPE_CONTROL, USB_EP0BUFSZ, USB_EP0BUFSZ, EP0_Handler)){
             DBG("Can't init EP0");
             return;
         };
     }
     if(USB->ISTR & USB_ISTR_CTR){
-        DBG("USB_ISTR_CTR");
         // EP number
         uint8_t n = USB->ISTR & USB_ISTR_EPID;
         // copy received bytes amount
         endpoints[n].rx_cnt = USB_BTABLE->EP[n].USB_COUNT_RX & 0x3FF; // low 10 bits is counter
         // call EP handler
-        if(endpoints[n].func) endpoints[n].func(endpoints[n]);
+        if(endpoints[n].func) endpoints[n].func();
     }
     if(USB->ISTR & USB_ISTR_WKUP){ // wakeup
         DBG("USB_ISTR_WKUP");
@@ -380,6 +344,7 @@ void USB_IRQ(){
 #else
         CNTR &= ~(USB_CNTR_FSUSP | USB_CNTR_LPMODE | USB_CNTR_WKUPM);
 #endif
+        USB->ISTR = ~USB_ISTR_WKUP;
     }
     if(USB->ISTR & USB_ISTR_SUSP){ // suspend -> still no connection, may sleep
         DBG("USB_ISTR_SUSP");
@@ -390,14 +355,13 @@ void USB_IRQ(){
         CNTR |= USB_CNTR_FSUSP | USB_CNTR_LPMODE | USB_CNTR_WKUPM;
 #endif
         CNTR &= ~(USB_CNTR_SUSPM);
+        USB->ISTR = ~USB_ISTR_SUSP;
     }
-    USB->ISTR = 0; // clear all flags
     USB->CNTR = CNTR; // rewoke interrupts
 }
 
 // here we suppose that all PIN settings done in hw_setup earlier
 void USB_setup(){
-    DBG(">\n>\n>\nUSB_setup");
 #if defined STM32F3
     NVIC_DisableIRQ(USB_LP_IRQn);
     // remap USB LP & Wakeup interrupts to 75 and 76 - works only on pure F303
@@ -437,7 +401,6 @@ void USB_setup(){
     USB->BCDR |= USB_BCDR_DPPU;
     NVIC_EnableIRQ(USB_IRQn);
 #endif
-    DBG("USB ready");
 }
 
 

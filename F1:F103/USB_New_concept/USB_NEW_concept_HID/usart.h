@@ -23,7 +23,7 @@
 
 #include <stdint.h>
 
-#define UARTBUFSZO  (1024)
+#define UARTBUFSZO  (2048)
 
 // macro for static strings
 #define USEND(str) usart_send(str)
