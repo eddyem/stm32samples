@@ -198,8 +198,14 @@ void get_descriptor(config_pack_t *pack){
             break;
         case STRING_DESCRIPTOR:
             DBG("STRING_DESCRIPTOR");
-            if(descridx < iDESCR_AMOUNT) wr0((const uint8_t *)StringDescriptor[descridx], *((uint8_t*)StringDescriptor[descridx]), pack->wLength);
-            else EP_WriteIRQ(0, NULL, 0);
+            if(descridx < iDESCR_AMOUNT){
+                wr0((const uint8_t *)StringDescriptor[descridx], *((uint8_t*)StringDescriptor[descridx]), pack->wLength);
+                DBGs(StringDescriptor[descridx]);
+            }else{
+                EP_WriteIRQ(0, NULL, 0);
+                DBG("Wrong index");
+                DBGs(uhex2str(descridx));
+            }
             break;
         case DEVICE_QUALIFIER_DESCRIPTOR:
             DBG("DEVICE_QUALIFIER_DESCRIPTOR");

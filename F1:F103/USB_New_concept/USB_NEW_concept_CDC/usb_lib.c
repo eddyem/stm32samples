@@ -21,12 +21,12 @@
 #include "usb_descr.h"
 #include "usb_dev.h"
 
-/*
+
 #undef DBG
 #define DBG(x)
 #undef DBGs
 #define DBGs(x)
-*/
+
 
 static ep_t endpoints[STM32ENDPOINTS];
 
@@ -54,6 +54,7 @@ static inline void std_d2h_req(){
         default:
             DBG("Wrong");
             DBGs(uhex2str(setup_packet->bRequest));
+            EP_WriteIRQ(0, NULL, 0);
         break;
     }
 }
@@ -90,19 +91,17 @@ void WEAK usb_standard_request(){
                 std_d2h_req();
             }else{
                 std_h2d_req();
-                //EP_WriteIRQ(0, NULL, 0);
             }
         break;
         case REQ_RECIPIENT_INTERFACE:
             DBG("REQ_RECIPIENT_INTERFACE");
             if(dev2host && setup_packet->bRequest == GET_DESCRIPTOR){
                 get_descriptor(setup_packet);
-            }//else EP_WriteIRQ(0, NULL, 0);
+            }
         break;
         case REQ_RECIPIENT_ENDPOINT:
             DBG("REQ_RECIPIENT_ENDPOINT");
             if(setup_packet->bRequest == CLEAR_FEATURE){
-                //EP_WriteIRQ(0, NULL, 0);
             }else{
                 DBG("Wrong");
             }

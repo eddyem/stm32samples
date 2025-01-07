@@ -17,9 +17,7 @@
  */
 
 #include "hardware.h"
-#ifdef EBUG
 #include "usart.h"
-#endif
 #include "usb_dev.h"
 
 volatile uint32_t Tms = 0;
@@ -33,7 +31,7 @@ void sys_tick_handler(void){
 
 int main(void){
     char inbuff[RBINSZ];
-    uint32_t lastT = 0;
+    uint32_t lastT = 0, lastS = 0;
     StartHSE();
     hw_setup();
     USBPU_OFF();
@@ -61,6 +59,16 @@ int main(void){
             __enable_irq();
         }
 #endif
+        if(Tms - lastS > 9999){
+            int n = 0;
+            USND(uhex2str(Tms));
+            do{
+                if(USB_send((uint8_t*)"112345678921234567893123456789412345678951234567896123456789712345678981234567899123456789a123456789\n", 101)) ++n;
+            }while(n < 40 && CDCready);
+            while(CDCready && !USB_sendstr(uhex2str(Tms)));
+            newline();
+            lastS = Tms;
+        }
         int l = USB_receivestr(inbuff, RBINSZ);
         if(l < 0) USB_sendstr("ERROR: USB buffer overflow or string was too long\n");
         else if(l){

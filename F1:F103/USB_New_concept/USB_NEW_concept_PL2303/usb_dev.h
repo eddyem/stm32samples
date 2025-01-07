@@ -34,6 +34,7 @@ typedef struct {
 } __attribute__ ((packed)) usb_LineCoding;
 
 extern usb_LineCoding lineCoding;
+extern volatile uint8_t CDCready;
 
 void break_handler();
 void clstate_handler(uint16_t val);
@@ -41,8 +42,8 @@ void linecoding_handler(usb_LineCoding *lc);
 
 
 // sizes of ringbuffers for outgoing and incoming data
-#define RBOUTSZ     (256)
-#define RBINSZ      (256)
+#define RBOUTSZ     (1024)
+#define RBINSZ      (1024)
 
 #define newline()   USB_putbyte('\n')
 #define USND(s)     do{USB_sendstr(s); USB_putbyte('\n');}while(0)

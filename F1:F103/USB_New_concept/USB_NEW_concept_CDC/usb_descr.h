@@ -21,8 +21,8 @@
 #include "usb_lib.h"
 
 // definition of parts common for USB_DeviceDescriptor & USB_DeviceQualifierDescriptor
-// bcdUSB: 2.00
-#define bcdUSB              0x0200
+// bcdUSB: 1.10
+#define bcdUSB              0x0110
 // Class - Misc (EF), subclass - common (2), protocol - interface association descr (1)
 #define bDeviceSubClass     0x02
 #define bDeviceProtocol     0x01

@@ -101,6 +101,7 @@ static void rxtx_handler(){
         }
         rcvbuflen = EP_Read(1, (uint8_t*)rcvbuf);
         USB->EPnR[1] = epstatus & ~(USB_EPnR_CTR_RX | USB_EPnR_STAT_RX | USB_EPnR_STAT_TX); // keep RX in STALL state until read data
+        chkin(); // try to write current data into RXbuf if it's not busy
     }else{ // tx successfull
         DBG("Tx OK");
         USB->EPnR[1] = (epstatus & ~(USB_EPnR_CTR_TX | USB_EPnR_STAT_TX)) ^ USB_EPnR_STAT_RX;
@@ -124,6 +125,7 @@ void WEAK clstate_handler(uint16_t val){
 
 // SEND_BREAK
 void WEAK break_handler(){
+    CDCready = 0;
     DBG("break_handler()");
 }
 
@@ -159,7 +161,6 @@ void usb_class_request(config_pack_t *req, uint8_t *data, uint16_t datalen){
                 break;
                 case SEND_BREAK:
                     DBG("SEND_BREAK");
-                    CDCready = 0;
                     break_handler();
                 break;
                 default:

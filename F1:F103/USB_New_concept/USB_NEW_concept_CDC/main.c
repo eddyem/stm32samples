@@ -38,6 +38,7 @@ int main(void){
     SysTick_Config(72000);
 #ifdef EBUG
     usart_setup();
+    DBG("Start");
     uint32_t tt = 0;
 #endif
     USB_setup();

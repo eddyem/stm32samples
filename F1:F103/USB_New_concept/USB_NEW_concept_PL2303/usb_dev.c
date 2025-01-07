@@ -47,7 +47,7 @@ static uint8_t volatile rcvbuflen = 0;
 // line coding
 usb_LineCoding WEAK lineCoding = {115200, 0, 0, 8};
 // CDC configured and ready to use
-static volatile uint8_t CDCready = 0;
+volatile uint8_t CDCready = 0;
 
 // ring buffers for incoming and outgoing data
 static uint8_t obuf[RBOUTSZ], ibuf[RBINSZ];
@@ -87,8 +87,6 @@ static void send_next(){
         return;
     }else if(buflen < 0){
         lastdsz = 0;
-        // Uncomment next line if you want 4Mbit/s instead of 6Mbit/s
-        //EP_Write(3, NULL, 0); // send ZLP if buffer is in writting state now
         return;
     }
     EP_Write(3, (uint8_t*)usbbuff, buflen);
@@ -111,6 +109,7 @@ static void receive_Handler(){ // EP2OUT
         rcvbuflen = 0;
     }
     rcvbuflen = EP_Read(2, (uint8_t*)rcvbuf);
+    chkin();
     USB->EPnR[2] = status & ~USB_EPnR_CTR_RX;
 }
 
@@ -119,16 +118,19 @@ static void receive_Handler(){ // EP2OUT
 void WEAK linecoding_handler(usb_LineCoding *lc){
     lineCoding = *lc;
     DBG("linecoding_handler");
+    CDCready = 1;
 }
 
 // SET_CONTROL_LINE_STATE
-void WEAK clstate_handler(uint16_t _U_ val){
+void WEAK clstate_handler(uint16_t val){
     DBG("clstate_handler");
+    CDCready = val;
 }
 
 // SEND_BREAK
 void WEAK break_handler(){
     DBG("break_handler()");
+    CDCready = 0;
 }
 
 
@@ -155,7 +157,6 @@ void usb_class_request(config_pack_t *req, uint8_t *data, uint16_t datalen){
                     if(!data || !datalen) break; // wait for data
                     if(datalen == sizeof(usb_LineCoding))
                         linecoding_handler((usb_LineCoding*)data);
-                    CDCready = 1;
                 break;
                 case 0x33: // -//-
                 case GET_LINE_CODING:
@@ -164,12 +165,10 @@ void usb_class_request(config_pack_t *req, uint8_t *data, uint16_t datalen){
                 break;
                 case SET_CONTROL_LINE_STATE:
                     DBG("SET_CONTROL_LINE_STATE");
-                    CDCready = 1;
                     clstate_handler(req->wValue);
                 break;
                 case SEND_BREAK:
                     DBG("SEND_BREAK");
-                    CDCready = 0;
                     break_handler();
                 break;
                 default:

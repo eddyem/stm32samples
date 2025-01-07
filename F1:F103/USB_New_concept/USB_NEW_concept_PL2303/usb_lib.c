@@ -21,12 +21,12 @@
 #include "usb_descr.h"
 #include "usb_dev.h"
 
-/*
+
 #undef DBG
 #define DBG(x)
 #undef DBGs
 #define DBGs(x)
-*/
+
 
 static ep_t endpoints[STM32ENDPOINTS];
 
@@ -54,6 +54,7 @@ static inline void std_d2h_req(){
         default:
             DBG("Wrong");
             DBGs(uhex2str(setup_packet->bRequest));
+            EP_WriteIRQ(0, NULL, 0);
         break;
     }
 }
@@ -90,19 +91,17 @@ void WEAK usb_standard_request(){
                 std_d2h_req();
             }else{
                 std_h2d_req();
-                //EP_WriteIRQ(0, NULL, 0);
             }
         break;
         case REQ_RECIPIENT_INTERFACE:
             DBG("REQ_RECIPIENT_INTERFACE");
             if(dev2host && setup_packet->bRequest == GET_DESCRIPTOR){
                 get_descriptor(setup_packet);
-            }//else EP_WriteIRQ(0, NULL, 0);
+            }
         break;
         case REQ_RECIPIENT_ENDPOINT:
             DBG("REQ_RECIPIENT_ENDPOINT");
             if(setup_packet->bRequest == CLEAR_FEATURE){
-                //EP_WriteIRQ(0, NULL, 0);
             }else{
                 DBG("Wrong");
             }
@@ -159,11 +158,11 @@ static void EP0_Handler(){
     // check direction
     if(USB->ISTR & USB_ISTR_DIR){ // OUT interrupt - receive data, CTR_RX==1 (if CTR_TX == 1 - two pending transactions: receive following by transmit)
             if(epstatus & USB_EPnR_SETUP){ // setup packet -> copy data to conf_pack
-                //DBG("USB_EPnR_SETUP");
+                DBG("USB_EPnR_SETUP");
                 EP_Read(0, setupdatabuf);
                 // interrupt handler will be called later
             }else if(epstatus & USB_EPnR_CTR_RX){ // data packet -> push received data to ep0databuf
-                //if(endpoints[0].rx_cnt){ DBG("data");}
+                if(endpoints[0].rx_cnt){ DBG("data"); DBGs(uhex2str(endpoints[0].rx_cnt));}
                 ep0dbuflen = EP_Read(0, ep0databuf);
             }
     }
@@ -243,8 +242,8 @@ void EP_WriteIRQ(uint8_t number, const uint8_t *buf, uint16_t size){
 void EP_Write(uint8_t number, const uint8_t *buf, uint16_t size){
     EP_WriteIRQ(number, buf, size);
     uint16_t epstatus = KEEP_DTOG(USB->EPnR[number]);
-    // keep DTOGs, clear CTR_TX & set TX VALID to start transmission
-    USB->EPnR[number] = (epstatus & ~(USB_EPnR_CTR_TX)) ^ USB_EPnR_STAT_TX;
+    // keep DTOGs and RX stat, clear CTR_TX & set TX VALID to start transmission
+    USB->EPnR[number] = (epstatus & ~(USB_EPnR_CTR_TX | USB_EPnR_STAT_RX)) ^ USB_EPnR_STAT_TX;
 }
 
 /*
