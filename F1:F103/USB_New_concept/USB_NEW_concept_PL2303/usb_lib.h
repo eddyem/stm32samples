@@ -184,6 +184,7 @@ typedef struct{
 #define USB_DT_INTERFACE                0x04
 #define USB_DT_ENDPOINT                 0x05
 #define USB_DT_QUALIFIER                0x06
+#define USB_DT_IAD                      0x0B
 
 #define USB_DT_HID                      0x21
 #define USB_DT_REPORT                   0x22
@@ -201,7 +202,7 @@ typedef struct{
 #define USB_DT_ENDPOINT_SIZE            7
 #define USB_DT_QUALIFIER_SIZE           10
 #define USB_DT_CS_INTERFACE_SIZE        5
-
+#define USB_DT_IAD_SIZE                 8
 
 
 // bmRequestType & 0x80 == dev2host (1) or host2dev (0)

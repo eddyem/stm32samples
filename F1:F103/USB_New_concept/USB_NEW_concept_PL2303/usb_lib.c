@@ -21,12 +21,10 @@
 #include "usb_descr.h"
 #include "usb_dev.h"
 
-
 #undef DBG
 #define DBG(x)
 #undef DBGs
 #define DBGs(x)
-
 
 static ep_t endpoints[STM32ENDPOINTS];
 
@@ -153,8 +151,9 @@ bmRequestType: 76543210
 static void EP0_Handler(){
     uint8_t ep0dbuflen = 0;
     uint8_t ep0databuf[EP0DATABUF_SIZE];
-    uint16_t epstatus = USB->EPnR[0]; // EP0R on input -> return this value after modifications
-    //DBG("EP0_Handler");
+    uint16_t epstatus = KEEP_DTOG(USB->EPnR[0]); // EP0R on input -> return this value after modifications
+    int rxflag = RX_FLAG(epstatus);
+    if(rxflag){ DBG("EP0_Handler"); }
     // check direction
     if(USB->ISTR & USB_ISTR_DIR){ // OUT interrupt - receive data, CTR_RX==1 (if CTR_TX == 1 - two pending transactions: receive following by transmit)
             if(epstatus & USB_EPnR_SETUP){ // setup packet -> copy data to conf_pack
@@ -166,13 +165,16 @@ static void EP0_Handler(){
                 ep0dbuflen = EP_Read(0, ep0databuf);
             }
     }
-    int rxflag = RX_FLAG(epstatus);
     if(rxflag){
         uint8_t reqtype = REQUEST_TYPE(setup_packet->bmRequestType);
         switch(reqtype){
             case REQ_TYPE_STANDARD:
-                DBG("REQ_TYPE_STANDARD");
-                usb_standard_request();
+                if(SETUP_FLAG(epstatus)){
+                    DBG("REQ_TYPE_STANDARD");
+                    usb_standard_request();
+                }else{
+                    DBG("REQ_TYPE_STANDARD without SETUP_FLAG");
+                }
                 break;
             case REQ_TYPE_CLASS:
                 DBG("REQ_TYPE_CLASS");
@@ -198,7 +200,7 @@ static void EP0_Handler(){
             DBGs(uhex2str(USB_Addr));
         }
     }
-    epstatus = KEEP_DTOG(USB->EPnR[0]);
+    //epstatus = KEEP_DTOG(USB->EPnR[0]);
     if(rxflag) epstatus ^= USB_EPnR_STAT_TX; // start ZLP or data transmission
     else epstatus &= ~USB_EPnR_STAT_TX; // or leave unchanged
     // keep DTOGs, clear CTR_RX,TX, set RX VALID
@@ -284,11 +286,11 @@ static uint16_t lastaddr = LASTADDR_DEFAULT;
  */
 int EP_Init(uint8_t number, uint8_t type, uint16_t txsz, uint16_t rxsz, void (*func)(ep_t ep)){
     if(number >= STM32ENDPOINTS) return 4; // out of configured amount
-    if(txsz > USB_BTABLE_SIZE || rxsz > USB_BTABLE_SIZE) return 1; // buffer too large
+    if(txsz > USB_BTABLE_SIZE/ACCESSZ || rxsz > USB_BTABLE_SIZE/ACCESSZ) return 1; // buffer too large
     if(lastaddr + txsz + rxsz >= USB_BTABLE_SIZE/ACCESSZ) return 2; // out of btable
     USB->EPnR[number] = (type << 9) | (number & USB_EPnR_EA);
     USB->EPnR[number] ^= USB_EPnR_STAT_RX | USB_EPnR_STAT_TX_1;
-    if(rxsz & 1 || rxsz > USB_BTABLE_SIZE) return 3; // wrong rx buffer size
+    if(rxsz & 1) return 3; // wrong rx buffer size
     uint16_t countrx = 0;
     if(rxsz < 64) countrx = rxsz / 2;
     else{

@@ -172,6 +172,7 @@ typedef struct{
 #define USB_CLASS_MASS_STORAGE          8
 #define USB_CLASS_HUB                   9
 #define USB_CLASS_DATA                  10
+#define USB_CLASS_MISC                  0xef
 #define USB_CLASS_VENDOR_SPEC           0xff
 
 /*
@@ -183,10 +184,12 @@ typedef struct{
 #define USB_DT_INTERFACE                0x04
 #define USB_DT_ENDPOINT                 0x05
 #define USB_DT_QUALIFIER                0x06
+#define USB_DT_IAD                      0x0B
 
 #define USB_DT_HID                      0x21
 #define USB_DT_REPORT                   0x22
 #define USB_DT_PHYSICAL                 0x23
+#define USB_DT_CS_INTERFACE             0x24
 #define USB_DT_HUB                      0x29
 
 /*
@@ -198,7 +201,8 @@ typedef struct{
 #define USB_DT_HID_SIZE                 9
 #define USB_DT_ENDPOINT_SIZE            7
 #define USB_DT_QUALIFIER_SIZE           10
-
+#define USB_DT_CS_INTERFACE_SIZE        5
+#define USB_DT_IAD_SIZE                 8
 
 
 // bmRequestType & 0x80 == dev2host (1) or host2dev (0)
