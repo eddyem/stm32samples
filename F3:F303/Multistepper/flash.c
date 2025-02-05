@@ -23,7 +23,7 @@
 #include "proto.h"
 #include "steppers.h"
 #include "strfunc.h"
-#include "usb.h"
+#include "usb_dev.h"
 
 extern const uint32_t __varsstart, _BLOCKSIZE;
 
@@ -32,7 +32,7 @@ static const uint32_t FLASH_blocksize = (uint32_t)&_BLOCKSIZE;
 // max amount of Config records stored (will be recalculate in flashstorage_init()
 static uint32_t maxCnum = 1024 / sizeof(user_conf); // can't use blocksize here
 
-#define DEFMF   {.donthold = 1, .drvtype = DRVTYPE_SIMPLE}
+#define DEFMF   {.donthold = 1, .drvtype = DRVTYPE_UART}
 
 #define USERCONF_INITIALIZER  {             \
      .userconf_sz = sizeof(user_conf)       \
@@ -45,6 +45,7 @@ static uint32_t maxCnum = 1024 / sizeof(user_conf); // can't use blocksize here
     ,.maxsteps = {500000,500000,500000,500000,500000,500000,500000,500000}\
     ,.motflags = {DEFMF,DEFMF,DEFMF,DEFMF,DEFMF,DEFMF,DEFMF,DEFMF} \
     ,.ESW_reaction = {ESW_IGNORE,ESW_IGNORE,ESW_IGNORE,ESW_IGNORE,ESW_IGNORE,ESW_IGNORE,ESW_IGNORE,ESW_IGNORE} \
+    ,.motcurrent = {31,31,31,31,31,31,31,31} \
     }
 
 static int write2flash(const void*, const void*, uint32_t);

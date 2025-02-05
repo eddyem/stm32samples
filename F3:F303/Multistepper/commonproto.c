@@ -25,7 +25,7 @@
 #include "pdnuart.h"
 #include "proto.h"
 #include "steppers.h"
-#include "usb.h"
+#include "usb_dev.h"
 
 
 #define NOPARCHK(par) do{if(PARBASE(par) != CANMESG_NOPAR) return ERR_BADPAR;}while(0)
@@ -36,10 +36,10 @@
 extern volatile uint32_t Tms;
 
 // common functions for CAN and USB (or CAN only functions)
-
+/*
 static errcodes cu_nosuchfn(uint8_t _U_ par, int32_t _U_ *val){
     return ERR_BADCMD;
-}
+}*/
 
 errcodes cu_abspos(uint8_t _U_ par, int32_t _U_ *val){
     uint8_t n; CHECKN(n, par);
@@ -87,8 +87,23 @@ errcodes cu_button(uint8_t par, int32_t *val){
     return (uint8_t) keystate(n, (uint32_t*)val);
 }
 
-errcodes cu_diagn(uint8_t _U_ par, int32_t _U_ *val){
-    return ERR_BADCMD;
+errcodes cu_diagn(uint8_t par, int32_t *val){
+    uint8_t n = PARBASE(par);
+#if MOTORSNO > 8
+#error "Change this code!"
+#endif
+    if(n == CANMESG_NOPAR){ // all motors
+        n = 0;
+        for(int i = MOTORSNO-1; i > -1; --i){
+            n <<= 1;
+            n |= motdiagn(i);
+        }
+        *val = n;
+        return ERR_OK;
+    }
+    CHECKN(n, par);
+    *val = motdiagn(n);
+    return ERR_OK;
 }
 
 errcodes cu_drvtype(uint8_t par, int32_t *val){
@@ -102,14 +117,15 @@ errcodes cu_drvtype(uint8_t par, int32_t *val){
     return ERR_OK;
 }
 
-errcodes cu_emstop(uint8_t _U_ par, int32_t _U_ *val){
-    uint8_t n; CHECKN(n, par);
+errcodes cu_emstop(uint8_t par, int32_t _U_ *val){
+    uint8_t n = PARBASE(par);
+    if(n == CANMESG_NOPAR){
+        for(int i = 0; i < MOTORSNO; ++i)
+            emstopmotor(i);
+        return ERR_OK;
+    }
+    CHECKN(n, par);
     emstopmotor(n);
-    return ERR_OK;
-}
-
-errcodes cu_emstopall(uint8_t _U_ par, int32_t _U_ *val){
-    for(int i = 0; i < MOTORSNO; ++i) emstopmotor(i);
     return ERR_OK;
 }
 
@@ -168,9 +184,8 @@ TRUE_INLINE void setextpar(uint8_t val, uint8_t i){
     }
 }
 
-// TODO: do it right
-errcodes cu_gpio(uint8_t _U_ par, int32_t _U_ *val){
-#if EXTNO > 4
+errcodes cu_gpio(uint8_t par, int32_t *val){
+#if EXTNO > 8
 #error "change the code!!!"
 #endif
     uint8_t n = PARBASE(par);
@@ -182,16 +197,22 @@ errcodes cu_gpio(uint8_t _U_ par, int32_t _U_ *val){
 #ifdef EBUG
         USND("ALL\n");
 #endif
-        uint8_t *arr = (uint8_t*)val;
+        uint8_t g = (uint8_t)*val;
         if(ISSETTER(par)){
-            for(int i = 0; i < EXTNO; ++i)
-                setextpar(arr[i], i);
+            for(int i = 0; i < EXTNO; ++i){
+                setextpar(g & 1, i);
+                g >>= 1;
+            }
         }
-        for(int i = 0; i < EXTNO; ++i){
-            arr[i] = EXT_CHK(i);
+        g = 0;
+        for(int i = EXTNO-1; i > -1; --i){
+            g <<= 1;
+            g |= EXT_CHK(i);
         }
+        *val = g;
         return ERR_OK;
     }else if(n > EXTNO-1) return ERR_BADPAR;
+    // single channel setter/getter
     if(ISSETTER(par))
         setextpar((uint8_t)*val, n);
     *val = (int32_t) EXT_CHK(n);
@@ -302,7 +323,7 @@ errcodes cu_motcurrent(uint8_t par, int32_t *val){
         motflags_t *f = the_conf.motflags;
         if(f->drvtype == DRVTYPE_UART){
             if(!pdnuart_setcurrent(n, *val)) return ERR_CANTRUN;
-        }
+        } else return ERR_BADCMD;
     }
     *val = the_conf.motcurrent[n];
     return ERR_OK;
@@ -435,8 +456,6 @@ errcodes cu_vfive(uint8_t par, int32_t *val){
 const fpointer cancmdlist[CCMD_AMOUNT] = {
     // different commands
     [CCMD_PING] = cu_ping,
-    [CCMD_RELAY] = cu_nosuchfn,
-    [CCMD_BUZZER] = cu_nosuchfn,
     [CCMD_ADC] = cu_adc,
     [CCMD_BUTTONS] = cu_button,
     [CCMD_ESWSTATE] = cu_esw,
@@ -444,19 +463,15 @@ const fpointer cancmdlist[CCMD_AMOUNT] = {
     [CCMD_MCUVDD] = cu_mcuvdd,
     [CCMD_RESET] = cu_reset,
     [CCMD_TIMEFROMSTART] = cu_time,
-    [CCMD_PWM] = cu_nosuchfn,
     [CCMD_EXT] = cu_gpio,
     // configuration
     [CCMD_SAVECONF] = cu_saveconf,
-    [CCMD_ENCSTEPMIN] = cu_nosuchfn,
-    [CCMD_ENCSTEPMAX] = cu_nosuchfn,
     [CCMD_MICROSTEPS] = cu_microsteps,
     [CCMD_ACCEL] = cu_accel,
     [CCMD_MAXSPEED] = cu_maxspeed,
     [CCMD_MINSPEED] = cu_minspeed,
     [CCMD_SPEEDLIMIT] = cu_speedlimit,
     [CCMD_MAXSTEPS] = cu_maxsteps,
-    [CCMD_ENCREV] = cu_nosuchfn,
     [CCMD_MOTFLAGS] = cu_motflags,
     [CCMD_ESWREACT] = cu_eswreact,
     // motor's commands
@@ -464,61 +479,58 @@ const fpointer cancmdlist[CCMD_AMOUNT] = {
     [CCMD_RELPOS] = cu_relpos,
     [CCMD_RELSLOW] = cu_relslow,
     [CCMD_EMERGSTOP] = cu_emstop,
-    [CCMD_EMERGSTOPALL] = cu_emstop, // without args
     [CCMD_STOP] = cu_stop,
     [CCMD_REINITMOTORS] = cu_motreinit,
     [CCMD_MOTORSTATE] = cu_state,
-    [CCMD_ENCPOS] = cu_nosuchfn,
     [CCMD_SETPOS] = cu_abspos,
     [CCMD_GOTOZERO] = cu_gotoz,
     [CCMD_MOTMUL] = cu_motmul,
     [CCMD_DIAGN] = cu_diagn,
     [CCMD_ERASEFLASH] = cu_eraseflash,
-    [CCMD_UDATA] = cu_udata,
-    [CCMD_USARTSTATUS] = cu_usartstatus,
+//  [CCMD_UDATA] = cu_udata,
+//  [CCMD_USARTSTATUS] = cu_usartstatus,
     [CCMD_VDRIVE] = cu_vdrive,
     [CCMD_VFIVE] = cu_vfive
     // Leave all commands upper for back-compatability with 3steppers
 };
 
 const char* cancmds[CCMD_AMOUNT] = {
-    [CCMD_PING] = "ping",
-    [CCMD_ADC] = "adc",
-    [CCMD_BUTTONS] = "button",
-    [CCMD_ESWSTATE] = "esw",
-    [CCMD_MCUT] = "mcut",
-    [CCMD_MCUVDD] = "mcuvdd",
-    [CCMD_RESET] = "reset",
-    [CCMD_TIMEFROMSTART] = "time",
-    [CCMD_EXT] = "gpio",
-    [CCMD_SAVECONF] = "saveconf",
-    [CCMD_MICROSTEPS] = "microsteps",
-    [CCMD_ACCEL] = "accel",
-    [CCMD_MAXSPEED] = "maxspeed",
-    [CCMD_MINSPEED] = "minspeed",
-    [CCMD_SPEEDLIMIT] = "speedlimit",
-    [CCMD_MAXSTEPS] = "maxsteps",
-    [CCMD_MOTFLAGS] = "motflags",
-    [CCMD_ESWREACT] = "eswreact",
-    [CCMD_ABSPOS] = "goto",
-    [CCMD_RELPOS] = "relpos",
-    [CCMD_RELSLOW] = "relslow",
-    [CCMD_EMERGSTOP] = "emstop N",
-    [CCMD_EMERGSTOPALL] = "emstop all",
-    [CCMD_STOP] = "stop",
-    [CCMD_REINITMOTORS] = "motreinit",
-    [CCMD_MOTORSTATE] = "state",
-    [CCMD_SETPOS] = "abspos",
-    [CCMD_GOTOZERO] = "gotoz",
-    [CCMD_MOTMUL] = "motmul",
-    [CCMD_DIAGN] = "diagn",
-    [CCMD_ERASEFLASH] = "eraseflash",
-    [CCMD_UDATA] = "udata",
-    [CCMD_USARTSTATUS] = "usartstatus",
-    [CCMD_VDRIVE] = "vdrive",
-    [CCMD_VFIVE] = "vfive",
-    [CCMD_PDN] = "pdn",
-    [CCMD_MOTNO] = "motno",
-    [CCMD_DRVTYPE] = "drvtype",
-    [CCMD_MOTCURRENT] = "motcurrent",
+    [CCMD_PING] = STR_PING,
+    [CCMD_ADC] = STR_ADC,
+    [CCMD_BUTTONS] = STR_BUTTON,
+    [CCMD_ESWSTATE] = STR_ESW,
+    [CCMD_MCUT] = STR_MCUT,
+    [CCMD_MCUVDD] = STR_MCUVDD,
+    [CCMD_RESET] = STR_RESET,
+    [CCMD_TIMEFROMSTART] = STR_TIME,
+    [CCMD_EXT] = STR_GPIO,
+    [CCMD_SAVECONF] = STR_SAVECONF,
+    [CCMD_MICROSTEPS] = STR_MICROSTEPS,
+    [CCMD_ACCEL] = STR_ACCEL,
+    [CCMD_MAXSPEED] = STR_MAXSPEED,
+    [CCMD_MINSPEED] = STR_MINSPEED,
+    [CCMD_SPEEDLIMIT] = STR_SPEEDLIMIT,
+    [CCMD_MAXSTEPS] = STR_MAXSTEPS,
+    [CCMD_MOTFLAGS] = STR_MOTFLAGS,
+    [CCMD_ESWREACT] = STR_ESWREACT,
+    [CCMD_ABSPOS] = STR_GOTO,
+    [CCMD_RELPOS] = STR_RELPOS,
+    [CCMD_RELSLOW] = STR_RELSLOW,
+    [CCMD_EMERGSTOP] = STR_EMSTOP,
+    [CCMD_STOP] = STR_STOP,
+    [CCMD_REINITMOTORS] = STR_MOTREINIT,
+    [CCMD_MOTORSTATE] = STR_STATE,
+    [CCMD_SETPOS] = STR_ABSPOS,
+    [CCMD_GOTOZERO] = STR_GOTOZ,
+    [CCMD_MOTMUL] = STR_MOTMUL,
+    [CCMD_DIAGN] = STR_DIAGN,
+    [CCMD_ERASEFLASH] = STR_ERASEFLASH,
+//  [CCMD_UDATA] = STR_UDATA,
+//  [CCMD_USARTSTATUS] = STR_USARTSTATUS,
+    [CCMD_VDRIVE] = STR_VDRIVE,
+    [CCMD_VFIVE] = STR_VFIVE,
+    [CCMD_PDN] = STR_PDN,
+    [CCMD_MOTNO] = STR_MOTNO,
+    [CCMD_DRVTYPE] = STR_DRVTYPE,
+    [CCMD_MOTCURRENT] = STR_MOTCURRENT,
 };

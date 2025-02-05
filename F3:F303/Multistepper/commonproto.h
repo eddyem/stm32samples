@@ -52,8 +52,8 @@ typedef errcodes (*fpointer)(uint8_t par, int32_t *val);
 enum{
      CCMD_NONE               // omit zero
     ,CCMD_PING               // ping device
-    ,CCMD_RELAY              // relay on/off
-    ,CCMD_BUZZER             // buzzer on/off
+    ,CCMD_RESERVED0          //
+    ,CCMD_RESERVED1          //
     ,CCMD_ADC                // ADC ch#
     ,CCMD_BUTTONS            // buttons
     ,CCMD_ESWSTATE           // end-switches state
@@ -61,18 +61,18 @@ enum{
     ,CCMD_MCUVDD             // MCU Vdd
     ,CCMD_RESET              // software reset
     ,CCMD_TIMEFROMSTART      // get time from start
-    ,CCMD_PWM                // PWM value
+    ,CCMD_RESERVED2          //
     ,CCMD_EXT                // value on EXTx outputs
     ,CCMD_SAVECONF           // save configuration
-    ,CCMD_ENCSTEPMIN         // min ticks of encoder per one step
-    ,CCMD_ENCSTEPMAX         // max ticks of encoder per one step
+    ,CCMD_RESERVED3          //
+    ,CCMD_RESERVED4          //
     ,CCMD_MICROSTEPS         // get/set microsteps
     ,CCMD_ACCEL              // set/get acceleration/deceleration
     ,CCMD_MAXSPEED           // set/get maximal speed
     ,CCMD_MINSPEED           // set/get minimal speed
     ,CCMD_SPEEDLIMIT         // get limit of speed for current microsteps settings
     ,CCMD_MAXSTEPS           // max steps (-max..+max)
-    ,CCMD_ENCREV             // encoder's pulses per revolution
+    ,CCMD_RESERVED5          //
     ,CCMD_MOTFLAGS           // motor flags
     ,CCMD_ESWREACT           // ESW reaction flags
     ,CCMD_REINITMOTORS       // re-init motors after configuration changing
@@ -81,7 +81,7 @@ enum{
     ,CCMD_RELSLOW            // change relative position at lowest speed
     ,CCMD_EMERGSTOP          // stop moving NOW
     ,CCMD_STOP               // smooth motor stop
-    ,CCMD_EMERGSTOPALL       // emergency stop for all motors
+    ,CCMD_RESERVED6          //
     ,CCMD_GOTOZERO           // go to zero's ESW
     ,CCMD_MOTORSTATE         // motor state
     ,CCMD_ENCPOS             // position of encoder (independing on settings)
@@ -113,7 +113,6 @@ errcodes cu_canid(uint8_t par, int32_t *val);
 errcodes cu_diagn(uint8_t par, int32_t *val);
 errcodes cu_drvtype(uint8_t par, int32_t *val);
 errcodes cu_emstop(uint8_t par, int32_t *val);
-errcodes cu_emstopall(uint8_t par, int32_t *val);
 errcodes cu_eraseflash(uint8_t par, int32_t *val);
 errcodes cu_esw(uint8_t par, int32_t *val);
 errcodes cu_eswreact(uint8_t par, int32_t *val);

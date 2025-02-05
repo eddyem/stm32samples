@@ -42,9 +42,10 @@ typedef enum{
 
 // end-switches reaction
 enum{
-    ESW_IGNORE,     // don't stop @ end-switch
+    ESW_IGNORE,     // don't stop @ any end-switch
+    ESW_IGNORE1,    // ignore ESW1
     ESW_ANYSTOP,    // stop @ esw in any moving direction
-    ESW_STOPMINUS,  // stop only when moving in given direction (e.g. to minus @ESW0)
+    ESW_STOPDIR,    // stop only when moving in given direction (e.g. to minus @ESW0 or to plus @ESW1)
     ESW_AMOUNT      // number of records
 };
 
@@ -68,4 +69,5 @@ uint8_t geteswreact(uint8_t i);
 void emstopmotor(uint8_t i);
 void stopmotor(uint8_t i);
 stp_state getmotstate(uint8_t i);
+uint8_t motdiagn(uint8_t i);
 void process_steppers();

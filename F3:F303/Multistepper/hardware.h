@@ -84,6 +84,10 @@ extern const uint32_t   EXTpins[EXTNO];
 #define EXT_TOGGLE(x)   do{ pin_toggle(EXTports[x], EXTpins[x]); }while(0)
 #define EXT_CHK(x)      (pin_read(EXTports[x], EXTpins[x]))
 
+// DIAG output of motors (PE2) & its multiplexer (PE3 - 0, PE4 - 1, PE5 - 2)
+#define DIAG()          (GPIOE->IDR & (1<<2) ? 0 : 1)
+#define DIAGMUL(x)      do{ register uint32_t v = x&7; GPIOE->BSRR = (v | (((~v)&7)<<16))<<3; }while(0)
+
 extern volatile TIM_TypeDef *mottimers[MOTORSNO];
 
 extern volatile uint32_t Tms;

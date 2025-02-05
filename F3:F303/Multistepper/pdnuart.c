@@ -70,7 +70,10 @@ void pdnuart_setup(){
 }
 
 static int rwreg(uint8_t reg, uint32_t data, int w){
-    if(motorno >= MOTORSNO || reg & 0x80) return FALSE;
+    if(motorno >= MOTORSNO || reg & 0x80){
+        DBG("Wrong motno or reg");
+        return FALSE;
+    }
     uint32_t x = Tms;
     while(Tms - x < 1);
     int no = motorno >> 2;
@@ -90,13 +93,24 @@ static int rwreg(uint8_t reg, uint32_t data, int w){
     calcCRC(outbuf, nbytes);
     ++nbytes;
     for(int i = 0; i < nbytes; ++i){
+        IWDG->KR = IWDG_REFRESH;
+        /*
+#ifdef EBUG
         USB_sendstr("Send byte "); USB_putbyte('0'+i); USB_sendstr(": "); printuhex(outbuf[i]); newline();
+#endif
+        */
         USART[no]->TDR = outbuf[i]; // transmit
         while(!(USART[no]->ISR & USART_ISR_TXE));
         int l = 0;
         for(; l < 10000; ++l) if(USART[no]->ISR & USART_ISR_RXNE) break;
+        // clear Rx
+        (void) USART[no]->RDR;
+        /*
+#ifdef EBUG
         if(l == 10000) USND("Nothing received");
         else {USB_sendstr("Rcv: "); printuhex(USART[no]->RDR); newline();}
+#endif
+        */
     }
     return TRUE;
 }
@@ -113,10 +127,18 @@ int pdnuart_readreg(uint8_t reg, uint32_t *data){
     uint8_t buf[8];
     int no = motorno >> 2;
     for(int i = 0; i < 8; ++i){
+        IWDG->KR = IWDG_REFRESH;
         while(!(USART[no]->ISR & USART_ISR_RXNE))
-            if(Tms - Tstart > PDNU_TMOUT) return FALSE;
+            if(Tms - Tstart > PDNU_TMOUT){
+                DBG("Read timeout");
+                return FALSE;
+            }
         buf[i] = USART[no]->RDR;
-        USB_sendstr("byte: "); printuhex(buf[i]); newline();
+/*
+#ifdef EBUG
+        USB_sendstr("Read byte: "); printuhex(buf[i]); newline();
+#endif
+*/
     }
     uint32_t o = 0;
     for(int i = 3; i < 7; ++i){
@@ -153,9 +175,12 @@ int pdnuart_setmotno(uint8_t no){
 
 // write val into IHOLD_IRUN over UART to n'th motor
 int pdnuart_setcurrent(uint8_t no, uint8_t val){
-    TMC2209_ihold_irun_reg_t regval;
-    if(!readregister(no, TMC2209Reg_IHOLD_IRUN, &regval.value)) return FALSE;
+    TMC2209_ihold_irun_reg_t regval = {0};
+    // IHOLD_IRUN is write-only register, so we should write all values!!!
+    //if(!readregister(no, TMC2209Reg_IHOLD_IRUN, &regval.value)) return FALSE;
+    if(the_conf.motflags[no].donthold == 0) regval.ihold = (1+val)/2; // hold current
     regval.irun = val;
+    regval.iholddelay = 1; // 2^18 clock delay before power down motor
     return writeregister(no, TMC2209Reg_IHOLD_IRUN, regval.value);
 }
 
@@ -172,12 +197,12 @@ int pdnuart_microsteps(uint8_t no, uint32_t val){
 // init driver number `no`, return FALSE if failed
 int pdnuart_init(uint8_t no){
     TMC2209_gconf_reg_t gconf;
+    if(!pdnuart_microsteps(no, the_conf.microsteps[no])) return FALSE;
+    if(!pdnuart_setcurrent(no, the_conf.motcurrent[no])) return FALSE;
     if(!readregister(no, TMC2209Reg_GCONF, &gconf.value)) return FALSE;
     gconf.pdn_disable = 1; // PDN now is UART
     gconf.mstep_reg_select = 1; // microsteps are by MSTEP
     if(!writeregister(no, TMC2209Reg_GCONF, gconf.value)) return FALSE;
-    if(!pdnuart_microsteps(no, the_conf.microsteps[no])) return FALSE;
-    if(!pdnuart_setcurrent(no, the_conf.motcurrent[no])) return FALSE;
     return TRUE;
 }
 

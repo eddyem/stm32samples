@@ -21,7 +21,7 @@
 #include "flash.h"
 #include "hardware.h"
 #include "strfunc.h"
-#include "usb.h"
+#include "usb_dev.h"
 #ifdef EBUG
 #include "proto.h"
 #endif
@@ -350,7 +350,7 @@ TRUE_INLINE void parseCANcommand(CAN_message *msg){
 #ifdef EBUG
     USB_sendstr("Index = "); USB_sendstr(u2str(Index)); newline();
 #endif
-    if(Index >= CCMD_AMOUNT){
+    if(Index >= CCMD_AMOUNT || !cancmdlist[Index]){
         formerr(msg, ERR_BADCMD);
         goto sendmessage;
     }
@@ -440,14 +440,14 @@ static void can_process_fifo(uint8_t fifo_num){
 
 void usb_lp_can1_rx0_isr(){ // Rx FIFO0 (overrun)
     if(CAN->RF0R & CAN_RF0R_FOVR0){ // FIFO overrun
-        CAN->RF0R &= ~CAN_RF0R_FOVR0;
+        CAN->RF0R = CAN_RF0R_FOVR0;
         can_status = CAN_FIFO_OVERRUN;
     }
 }
 
 void can1_rx1_isr(){ // Rx FIFO1 (overrun)
     if(CAN->RF1R & CAN_RF1R_FOVR1){
-        CAN->RF1R &= ~CAN_RF1R_FOVR1;
+        CAN->RF1R = CAN_RF1R_FOVR1;
         can_status = CAN_FIFO_OVERRUN;
     }
 }
@@ -457,7 +457,7 @@ void can1_sce_isr(){ // status changed
 #ifdef EBUG
         last_err_code = CAN->ESR;
 #endif
-        CAN->MSR &= ~CAN_MSR_ERRI;
+        CAN->MSR = CAN_MSR_ERRI; // clear flag
         // request abort for problem mailbox
         if(CAN->TSR & CAN_TSR_TERR0) CAN->TSR |= CAN_TSR_ABRQ0;
         if(CAN->TSR & CAN_TSR_TERR1) CAN->TSR |= CAN_TSR_ABRQ1;

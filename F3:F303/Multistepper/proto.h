@@ -21,7 +21,16 @@
 #include <stdint.h>
 
 #include "strfunc.h"
-#include "usb.h"
+#include "usb_dev.h"
+
+#define STR_HELPER(s)   #s
+#define STR(s)          STR_HELPER(s)
+
+#ifdef EBUG
+#define DBG(str)  do{USB_sendstr(__FILE__ " (L" STR(__LINE__) "): " str); newline();}while(0)
+#else
+#define DBG(str)
+#endif
 
 #define printu(x)       do{USB_sendstr(u2str(x));}while(0)
 #define printi(x)       do{USB_sendstr(i2str(x));}while(0)

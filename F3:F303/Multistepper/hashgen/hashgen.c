@@ -249,6 +249,12 @@ static void build(strhash *H, int hno, int hlen){
     }
     fprintf(source, "%s", ffooter);
     fclose(source);
+    fprintf(header, "\n\n");
+    for(int i = 0; i < hlen; ++i){
+        char *m = macroname(H[i].str);
+        fprintf(header, "#define STR_%-*s    \"%s\"\n", lmax, m, H[i].str);
+    }
+    
     fclose(header);
 }
 

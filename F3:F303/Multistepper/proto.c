@@ -403,9 +403,10 @@ static const char* motfl[MOTFLAGS_AMOUNT] = {
     "6,7: drvtype - driver type (0 - only step/dir, 1 - UART, 2 - SPI, 3 - reserved)"
 };
 static const char *eswfl[ESW_AMOUNT] = {
-    [ESW_IGNORE] = "ignore end-switches",
+    [ESW_IGNORE]  = "ignore both end-switches",
+    [ESW_IGNORE1] = "ignore ESW1, ESW0 stops only when negative mowing",
     [ESW_ANYSTOP] = "stop @ esw in any moving direction",
-    [ESW_STOPMINUS] = "stop only when moving in given direction (e.g. to minus @ESW0)"
+    [ESW_STOPDIR] = "stop only when moving in given direction (e.g. to minus @ESW0)"
 };
 int fn_dumpmotflags(uint32_t _U_ hash,  char _U_ *args){ // "dumpmotflags" (36159640)
     USB_sendstr("Motor flags:");
@@ -479,11 +480,13 @@ static int canusb_function(uint32_t hash, char *args){
     uint32_t N;
     int32_t val = 0;
     uint8_t par = CANMESG_NOPAR;
+/*
     DBG("CMD: hash=");
 #ifdef EBUG
     printu(hash); USB_sendstr(", args=");
     USND(args);
 #endif
+*/
     if(*args){
         const char *n = getnum(args, &N);
         if(n != args){ // get parameter
@@ -502,10 +505,12 @@ static int canusb_function(uint32_t hash, char *args){
             }
         }
     }
+/*
 #ifdef EBUG
     USB_sendstr("par="); printuhex(par);
     USB_sendstr(", val="); printi(val); newline();
 #endif
+*/
     switch(hash){
         case CMD_ADC:
             e = cu_adc(par, &val);
@@ -553,8 +558,7 @@ static int canusb_function(uint32_t hash, char *args){
             e = cu_drvtype(par, &val);
         break;
         case CMD_EMSTOP:
-            if(par == CANMESG_NOPAR) e = cu_emstopall(par, &val);
-            else e = cu_emstop(par, &val);
+            e = cu_emstop(par, &val);
             if(e == ERR_OK){ USND("OK"); return RET_GOOD;}
         break;
         case CMD_ESWREACT:

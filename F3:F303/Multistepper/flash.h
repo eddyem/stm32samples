@@ -63,10 +63,10 @@ typedef struct{
  * struct to save user configurations
  */
 typedef struct __attribute__((packed, aligned(4))){
-    uint32_t maxsteps[MOTORSNO];    // maximal amount of steps
-    uint16_t userconf_sz;           // "magick number"
+    uint16_t userconf_sz;           // "magick number" SHOULD ALWAYS BE FIRST!!!1111
     uint16_t CANspeed;              // default CAN speed
     uint16_t CANID;                 // identifier
+    uint32_t maxsteps[MOTORSNO];    // maximal amount of steps
     uint16_t microsteps[MOTORSNO];  // microsteps amount per step
     uint16_t accel[MOTORSNO];       // acceleration/deceleration (steps/s^2)
     uint16_t maxspd[MOTORSNO];      // max motor speed (steps per second)

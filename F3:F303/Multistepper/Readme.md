@@ -325,7 +325,7 @@ will be never implemented).
 ### absposN (35) GS
 Absolute stepper position in steps, setter just changes current value. E.g. you want to set current position 
 as zero (be carefull: `gotoz` will zero position again on a zero-point limit switch). Maximum absolute value is `maxstepsN`.
-###    accelN (17) GS
+### accelN (17) GS
 Stepper acceleration/deceleration on ramp (steps/s^2), only positive. Maximum value is `ACCELMAXSTEPS` from `flash.h`.
 ### adcN (4) G
 ADC value (N=0..3).
@@ -349,7 +349,7 @@ Send or clear (if empty) flood message: ID byte0 ... byteN.
 On empy message return `NO ID given, send nothing!` (and stops flooding), or `Message parsed OK`.
 ### canfloodT N
 Flood period, N in milliseconds (N >= 0ms).
-###  canid [ID]
+### canid [ID]
 Get or set CAN ID of device. Default CAN ID is "1".
 ### canignore [ID]
 Software ignore list (max 10 IDs), negative to delete all, non-negative to add next. 
@@ -370,8 +370,8 @@ CAN  bus speed (in kbps, 50 <= N <= 1500)
 In case of setter, store new speed value in global parameters (and if you call `saveconf` later, it will be saved in flash memory).
 ### canstat 
 Get CAN bus status: values of registers `CAN->MSR`, `CAN->TSR`, `CAN->RF0R` and `CAN->RF1F`.
-### diagn[N] (37) G *
-DIAG state of motor N (or all)\n"
+### diagn[N] (37) G
+DIAG state of motor N (or all, in this case motor 0 is LSB of answer etc.). One means "all OK", zero is error state.
 ### drvtypeN (45) GS 
 Nth driver type (0 - only step/dir, 1 - UART, 2 - SPI, 3 - reserved). This parameter is taken from `.drvtype` bits of `motflags` settings parameter.
 ### dumperr
@@ -420,7 +420,7 @@ Dump motors' state codes (for getter `stateN`):
     5 - stalled (not used here!)
     6 - error
 
-### emstop[N] (29 with `N` and 31 without)
+### emstop[N] (29)
 Emergency stop Nth motor or all (if `N` absent). Returns `OK` or error text.
 ### eraseflash [=N] (38)
 Erase flash data storage (full or only N'th page of it). Use this option only if you have problems
@@ -429,8 +429,11 @@ when try to save current configuration.
 Get end-switches state. Return two bits (for limit switches 0 and 1): 1 means "active", 0 - "passive". 
 If you use SPI-based driver, only one switch available, so return will be 1-bit.
 ### eswreactN (24) GS
-End-switches reaction: 0 - ignore, 1 - stop on any limit switch (both 0 and 1; moving will be available only backwards),
-2 - stop only on switch 0. You can modify this values on-the-fly (but only when steppers aren't moving). This can be usefull,
+End-switches (limit-switches) reaction: 0 - ignore both limits; 
+1 - ignore ESW1, stop on ESW0 only when moving to negative direction;
+2 - stop on any limit switch independently from direction;
+3 - stop only on switch corresponding to moving direction (i.e. ESW0 for negative and ESW1 for positive). 
+You can modify this values on-the-fly (but only when steppers aren't moving). This can be usefull,
 for example, to rotate filter turret into given position using switch 1 to both as limit switch and position stopper.
 But even in state 0 (ignore) active state of both switches estimates as error and you won't be able to move motor.
 ### gotoN (26) GS
@@ -440,9 +443,10 @@ Find zero position & refresh counters. The motor would rotate in reverse directi
 steps (parameter `maxsteps` of configuration) is exhausted.
 ### gpioconfN* GS
 GPIO configuration (0 - PUin, 1 - PPout, 2 - ODout), N=0..2.
-### gpio[N]* (12) GS
-GPIO values, N=0..2. Without `N` run for all GPIOs (each byte is state: 0/1).
-By default GPIOs are pulled up inputs. 
+### gpio[N] (12) GS
+GPIO values, N=0..2. Without `N` run for all GPIOs (each bit is state: 0/1, started from LSB which is zero channel).
+By default GPIOs are pulled up inputs, so setters won't do any effect. To reconfigure them as outputs use gpioconf when (if)
+it will be available.
 ### help
 Show this help.
 ### maxspeedN (18) GS

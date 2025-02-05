@@ -18,11 +18,13 @@
 
 #include "flash.h"
 #include "hardware.h"
+#include "hdr.h"
 #include "pdnuart.h"
 #include "proto.h"
 #include "steppers.h"
 #include "strfunc.h"
-#include "usb.h"
+#include "tmc2209.h"
+#include "usb_dev.h"
 
 // goto zero stages
 typedef enum{
@@ -174,10 +176,13 @@ static int esw_block(uint8_t i){
     uint8_t s = ESW_state(i);
     if(s){ // ESW active
         switch(ESW_reaction[i]){
+            case ESW_IGNORE1:
+                if(motdir[i] == -1 && (s & 1)) ret = TRUE; // stop @ESW0
+            break;
             case ESW_ANYSTOP: // stop motor in any direction
                 ret = TRUE;
             break;
-            case ESW_STOPMINUS: // stop only @ given direction
+            case ESW_STOPDIR: // stop only @ given direction
                 if(motdir[i] == -1 && (s & 1)) ret = TRUE; // stop @ESW0
                 if(motdir[i] == 1 && (s & 2)) ret = TRUE; // stop @ESW1
             break;
@@ -262,6 +267,15 @@ stp_state getmotstate(uint8_t i){
     return state[i];
 }
 
+// get DIAGN input
+uint8_t motdiagn(uint8_t i){
+    if(i > MOTORSNO-1) return 0;
+    DIAGMUL(i);
+    // small stupid pause
+    for(int _ = 0; _ < 1000; ++_) nop();
+    return DIAG();
+}
+
 // count steps @tim 14/15/16
 void addmicrostep(uint8_t i){
     static volatile uint16_t microsteps[MOTORSNO] = {0}; // current microsteps position
@@ -310,7 +324,34 @@ void addmicrostep(uint8_t i){
 // check state of i`th stepper
 static void chkstepper(int i){
     int32_t i32;
+    uint32_t u32;
     static uint8_t stopctr[MOTORSNO] = {0}; // counters for encoders/position zeroing after stopping @ esw
+    // check DIAGN only for UART/SPI
+    if(the_conf.motflags[i].drvtype == DRVTYPE_UART || the_conf.motflags[i].drvtype == DRVTYPE_SPI){
+        if(motdiagn(i) && state[i] != STP_ERR){ // error occured - DIAGN is low
+            DBG("Oldstate: "); USB_putbyte('0' + state[i]); newline();
+            char Nm = '0'+i;
+            USB_sendstr(STR_STATE); USB_putbyte(Nm); USB_sendstr("=6\n");
+            switch(the_conf.motflags[i].drvtype){
+                case DRVTYPE_UART:
+                    pdnuart_setmotno(i);
+                    if(pdnuart_readreg(TMC2209Reg_GSTAT, &u32)){
+                        USB_sendstr("GSTAT"); USB_putbyte(Nm); USB_putbyte('=');
+                        USB_sendstr(u2str(u32)); newline();
+                    }
+                    if(pdnuart_readreg(TMC2209Reg_DRV_STATUS, &u32)){
+                        USB_sendstr("DRV_STATUS"); USB_putbyte(Nm); USB_putbyte('=');
+                        USB_sendstr(u2str(u32)); newline();
+                    }
+                break;
+                default:
+                break;
+            }
+            emstopmotor(i);
+            state[i] = STP_ERR;
+            return;
+        }
+    }
 #ifdef EBUG
     if(stp[i]){
         stp[i] = 0;
@@ -391,13 +432,14 @@ static void chkstepper(int i){
                     mvzerostate[i] = M0RELAX;
                     ESW_reaction[i] = the_conf.ESW_reaction[i];
                 }else{
+                    DBG("->SLOW+");
                     mvzerostate[i] = M0SLOW;
                     stopctr[i] = 0;
                 }
             }
         break;
         case M0SLOW:
-            if(0 == ESW_state(i)){ // moved out of limit switch - can stop
+            if(0 == (ESW_state(i) & 1)){ // moved out of limit switch - can stop
                 emstopmotor(i);
             }
             if((state[i] == STP_RELAX || state[i] == STP_STALL) && ++stopctr[i] > 5){ // wait at least 50ms
@@ -417,8 +459,8 @@ static void chkstepper(int i){
 errcodes motor_goto0(uint8_t i){
     errcodes e = motor_absmove(i, -the_conf.maxsteps[i]);
     if(ERR_OK != e){
-        if(!ESW_state(i)) return e; // not @ limit switch -> error
-    }else  ESW_reaction[i] = ESW_STOPMINUS;
+        if(!esw_block(i)) return e; // limit switch not block -> error
+    }else  ESW_reaction[i] = ESW_IGNORE1;
     mvzerostate[i] = M0FAST;
     return e;
 }
@@ -452,6 +494,8 @@ void process_steppers(){
     static uint32_t Tlast = 0;
     if(Tms - Tlast < MOTCHKINTERVAL) return; // hit every 10ms
     Tlast = Tms;
+    static int firstrun = 1;
+    if(firstrun){ firstrun = 0; init_steppers(); return; }
     for(int i = 0; i < MOTORSNO; ++i){
         chkstepper(i);
     }

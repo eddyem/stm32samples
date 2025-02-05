@@ -24,7 +24,7 @@
 #include "pdnuart.h"
 #include "proto.h"
 #include "steppers.h"
-#include "usb.h"
+#include "usb_dev.h"
 
 #define MAXSTRLEN    RBINSZ
 
@@ -49,7 +49,7 @@ int main(void){
     CAN_setup(the_conf.CANspeed);
     adc_setup();
     pdnuart_setup();
-    init_steppers();
+    // steppers will be initted later, in process_steppers()
     USBPU_ON();
     uint32_t ctr = 0;
     CAN_message *can_mesg;
@@ -83,11 +83,13 @@ int main(void){
         int l = USB_receivestr(inbuff, MAXSTRLEN);
         if(l < 0) USB_sendstr("USB_BUF_OVERFLOW\n");
         else if(l){
+/*
 #ifdef EBUG
             USB_sendstr("USB GOT:\n");
             USB_sendstr(inbuff);
             USB_sendstr("\n--------\n");
 #endif
+*/
             const char *ans = cmd_parser(inbuff);
             if(ans) USB_sendstr(ans);
         }
