@@ -275,7 +275,6 @@ errcodes cu_mcuvdd(uint8_t par, int32_t *val){
 
 errcodes cu_microsteps(uint8_t _U_ par, int32_t _U_ *val){
     uint8_t n; CHECKN(n, par);
-    USB_sendstr("===> val="); printi(*val); newline();
     if(ISSETTER(par)){
 #if MICROSTEPSMAX > 512
 #error "Change the code anywhere!"
@@ -443,7 +442,7 @@ errcodes cu_usartstatus(uint8_t _U_ par, int32_t _U_ *val){
 // V*10
 errcodes cu_vdrive(uint8_t par, int32_t _U_ *val){
     NOPARCHK(par);
-    *val = getADCvoltage(ADC_VDRIVE);
+    *val = getADCvoltage(ADC_VDRIVE) * 11;
     return ERR_OK;
 }
 

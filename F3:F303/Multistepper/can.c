@@ -22,9 +22,7 @@
 #include "hardware.h"
 #include "strfunc.h"
 #include "usb_dev.h"
-#ifdef EBUG
 #include "proto.h"
-#endif
 
 // PD1 - Tx, PD0 - Rx !!!
 
@@ -304,17 +302,21 @@ CAN_status CAN_send(uint8_t *msg, uint8_t len, uint16_t target_id){
     return CAN_OK;
 }
 
-void CAN_flood(CAN_message *msg, int incr){
+// return: 1 - flood is ON, 0 - flood is OFF
+int CAN_flood(CAN_message *msg, int incr){
     if(incr){
         incrmessagectr = 0;
         incrflood = 1;
-        return;
+        return 1;
     }else incrflood = 0;
-    if(!msg) flood_msg = NULL;
-    else{
+    if(!msg){
+        flood_msg = NULL;
+        return 0;
+    }else{
         memcpy(&loc_flood_msg, msg, sizeof(CAN_message));
         flood_msg = &loc_flood_msg;
     }
+    return 1;
 }
 
 uint32_t CAN_speed(){

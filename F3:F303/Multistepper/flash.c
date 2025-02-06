@@ -152,9 +152,9 @@ static int write2flash(const void *start, const void *wrdata, uint32_t stor_size
 // erase Nth page of flash storage (flash should be prepared!)
 static int erase_pageN(int N){
     int ret = 0;
-#ifdef EBUG
+//#ifdef EBUG
     USB_sendstr("Erase block #"); printu(N); newline();
-#endif
+//#endif
     FLASH->AR = (uint32_t)Flash_Data + N*FLASH_blocksize;
     FLASH->CR |= FLASH_CR_STRT;
     while(FLASH->SR & FLASH_SR_BSY) IWDG->KR = IWDG_REFRESH;
@@ -185,13 +185,16 @@ int erase_storage(int npage){
         FLASH->KEYR = FLASH_KEY1;
         FLASH->KEYR = FLASH_KEY2;
     }
-    /*USB_sendstr("size/block size/nblocks/FLASH_SIZE: "); printu(flsz);
+//*
+    USB_sendstr("size/block size/nblocks/FLASH_SIZE: "); printu(flsz);
     USB_putbyte('/'); printu(FLASH_blocksize); USB_putbyte('/');
-    printu(nblocks); USB_putbyte('/'); printu(FLASH_SIZE); newline(); USB_sendall();*/
+    printu(flsz / FLASH_blocksize); USB_putbyte('/'); printu(FLASH_SIZE); newline();
+//*/
     while(FLASH->SR & FLASH_SR_BSY) IWDG->KR = IWDG_REFRESH;
     FLASH->SR = FLASH_SR_EOP | FLASH_SR_PGERR | FLASH_SR_WRPERR;
     FLASH->CR |= FLASH_CR_PER;
     for(uint32_t i = start; i < end; ++i){
+        IWDG->KR = IWDG_REFRESH;
         if(erase_pageN(i)){
             ret = 1;
             break;

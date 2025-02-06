@@ -40,6 +40,15 @@ uint8_t ShowMsgs = 1;
 static uint16_t Ignore_IDs[IGN_SIZE];
 static uint8_t IgnSz = 0;
 
+static const char* errtxt[ERR_AMOUNT] = {
+    [ERR_OK] =   "OK",
+    [ERR_BADPAR] =  "BADPAR",
+    [ERR_BADVAL] = "BADVAL",
+    [ERR_WRONGLEN] = "WRONGLEN",
+    [ERR_BADCMD] = "BADCMD",
+    [ERR_CANTRUN] = "CANTRUN",
+};
+
 // parse `txt` to CAN_message
 static CAN_message *parseCANmsg(const char *txt){
     static CAN_message canmsg;
@@ -134,7 +143,7 @@ int fn_canignore(uint32_t _U_ hash,  char *args){
 
 int fn_canreinit(uint32_t _U_ hash, char _U_ *args){
     CAN_reinit(0);
-    USND("OK");
+    USND(errtxt[ERR_OK]);
     return RET_GOOD;
 }
 
@@ -287,8 +296,10 @@ int fn_canfilter(uint32_t _U_ hash,  char *args){
 }
 
 int fn_canflood(uint32_t _U_ hash,  char *args){
-    CAN_flood(parseCANmsg(args), 0);
-    USB_sendstr("Simple flooding is ON (send with empty ID to stop)\n");
+    if(CAN_flood(parseCANmsg(args), 0))
+        USB_sendstr("Simple flooding is ON (send with empty ID to stop)\n");
+    else
+        USB_sendstr("CAN flooding is OFF\n");
     return RET_GOOD;
 }
 
@@ -343,8 +354,8 @@ int fn_canspeed(uint32_t _U_ hash,  char _U_ *args){
     uint32_t N;
     const char *n = getnum(args, &N);
     if(args == n){
-        USB_sendstr("No speed given");
-        return RET_GOOD;
+        USB_sendstr("canspeed=");
+        goto rtn;
     }
     if(N < 50){
         USND("Lower speed is 50kbps");
@@ -355,9 +366,10 @@ int fn_canspeed(uint32_t _U_ hash,  char _U_ *args){
     }
     CAN_reinit((uint16_t)N);
     uint32_t regval = 4500 / N;
-    the_conf.CANspeed = 4500 * regval;
+    the_conf.CANspeed = 4500 / regval;
     USB_sendstr("Reinit CAN bus with speed ");
-    printu(the_conf.CANspeed); USB_sendstr("kbps"); newline();
+rtn:
+    printu(the_conf.CANspeed); USND("kbps");
     return RET_GOOD;
 }
 
@@ -422,14 +434,6 @@ int fn_dumpmotflags(uint32_t _U_ hash,  char _U_ *args){ // "dumpmotflags" (3615
     return RET_GOOD;
 }
 
-static const char* errtxt[ERR_AMOUNT] = {
-    [ERR_OK] =   "OK",
-    [ERR_BADPAR] =  "BADPAR",
-    [ERR_BADVAL] = "BADVAL",
-    [ERR_WRONGLEN] = "WRONGLEN",
-    [ERR_BADCMD] = "BADCMD",
-    [ERR_CANTRUN] = "CANTRUN",
-};
 int fn_dumperr(uint32_t _U_ hash,  char _U_ *args){ // "dumperr" (1223989764)
     USND("Error codes:");
     for(int i = 0; i < ERR_AMOUNT; ++i){
@@ -559,7 +563,7 @@ static int canusb_function(uint32_t hash, char *args){
         break;
         case CMD_EMSTOP:
             e = cu_emstop(par, &val);
-            if(e == ERR_OK){ USND("OK"); return RET_GOOD;}
+            if(e == ERR_OK){ USND(errtxt[ERR_OK]); return RET_GOOD;}
         break;
         case CMD_ESWREACT:
             e = cu_eswreact(par, &val);
@@ -608,6 +612,7 @@ static int canusb_function(uint32_t hash, char *args){
         break;
         case CMD_MOTREINIT:
             e = cu_motreinit(par, &val);
+            if(e == ERR_OK){ USND(errtxt[ERR_OK]); return RET_GOOD;}
         break;
         case CMD_PDN:
             e = cu_pdn(par, &val);
@@ -623,6 +628,7 @@ static int canusb_function(uint32_t hash, char *args){
         break;
         case CMD_SAVECONF:
             e = cu_saveconf(par, &val);
+            if(e == ERR_OK){ USND(errtxt[ERR_OK]); return RET_GOOD;}
         break;
         case CMD_SCREEN:
             e = cu_screen(par, &val);
@@ -635,6 +641,7 @@ static int canusb_function(uint32_t hash, char *args){
         break;
         case CMD_STOP:
             e = cu_stop(par, &val);
+            if(e == ERR_OK){ USND(errtxt[ERR_OK]); return RET_GOOD;}
         break;
         case CMD_TIME:
             e = cu_time(par, &val);

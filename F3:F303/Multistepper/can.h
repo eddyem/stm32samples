@@ -56,5 +56,5 @@ void CAN_printerr();
 
 CAN_message *CAN_messagebuf_pop();
 
-void CAN_flood(CAN_message *msg, int incr);
+int CAN_flood(CAN_message *msg, int incr);
 uint32_t CAN_speed();

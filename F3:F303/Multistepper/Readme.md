@@ -368,6 +368,7 @@ In case of absence of `ACK` you can get message `CAN bus is off, try to restart 
 ### canspeed N
 CAN  bus speed (in kbps, 50 <= N <= 1500)
 In case of setter, store new speed value in global parameters (and if you call `saveconf` later, it will be saved in flash memory).
+As getter show string like `canspeed=250kbps`.
 ### canstat 
 Get CAN bus status: values of registers `CAN->MSR`, `CAN->TSR`, `CAN->RF0R` and `CAN->RF1F`.
 ### diagn[N] (37) G
@@ -404,9 +405,10 @@ Dump motor flags' bits (for `motflagsN`) and reaction to limit switches (`eswrea
     bit5 - 5: [reserved]
     bit6 - 6,7: drvtype - driver type (0 - only step/dir, 1 - UART, 2 - SPI, 3 - reserved)
     End-switches reaction:
-    0 - ignore end-switches
-    1 - stop @ esw in any moving direction
-    2 - stop only when moving in given direction (e.g. to minus @ESW0)
+    0 - ignore both end-switches
+    1 - ignore ESW1, ESW0 stops only when negative mowing
+    2 - stop @ esw in any moving direction
+    3 - stop only when moving in given direction (e.g. to minus @ESW0)
 
 ### dumpstates 
 Dump motors' state codes (for getter `stateN`):
@@ -484,6 +486,7 @@ external multiplexer status (<0 - disable, 0..7 - enable and set address).
 Motor number for next `pdn` commands (if you want to run custom commands by hands or in a batch).
 ### motreinit (25)
 Re-init motors after configuration changed. Some changes will run this automatically.
+Answer - "OK" or error text.
 ### pdnN (43) GS 
 Read/write TMC2209 (and other UART-based drivers) registers over uart @ motor number `motno`.
 For `pdnN=X` `N` is register number, `X` is data to write into it. Due to protocol's particulars
@@ -498,6 +501,7 @@ Like `relpos` but with constant slowest speed (you can change it with `minspeed`
 Software reset.
 ### saveconf (13)
 Save current configuration into MCU flash memory.
+Answer - "OK" or error text.
 ### screen*  GS
 Enable (1) or disable (0) screen.
 ### speedlimit (20) G
@@ -506,6 +510,7 @@ Get limiting speed for current microsteps setting.
 Get Nth motor state (`dumpstates`: 0-relax, 1-accel, 2-move, 3-mvslow, 4-decel, 5-stall, 6-err).
 ### stopN (30) 
 Stop Nth motor with deceleration (moving by ramp).
+Answer - "OK" or error text.
 ### time (10) G
 Get time from start (ms).
 ### tmcbus * GS 
@@ -554,22 +559,20 @@ Command codes described in USB answer for `dumpcmd`:
     26 - goto
     27 - relpos
     28 - relslow
-    29 - emstop N
+    29 - emstop 
     30 - stop
-    31 - emstop all
     32 - gotoz
     33 - state
     35 - abspos
     36 - motmul
     37 - diagn
     38 - eraseflash
-    39 - udata
-    40 - usartstatus
     41 - vdrive
     42 - vfive
     43 - pdn
     44 - motno
     45 - drvtype
+    46 - motcurrent
 
 Error codes (`dumperr`):
 
