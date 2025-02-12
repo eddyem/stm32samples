@@ -1,0 +1,5 @@
+Check all code: 
+
+1) No "free" messages should be, only answers to requests!
+2) gotozN should return "OK" or error, not "gotozN=0"!
+

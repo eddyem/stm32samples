@@ -329,8 +329,8 @@ static void chkstepper(int i){
     // check DIAGN only for UART/SPI
     if(the_conf.motflags[i].drvtype == DRVTYPE_UART || the_conf.motflags[i].drvtype == DRVTYPE_SPI){
         if(motdiagn(i) && state[i] != STP_ERR){ // error occured - DIAGN is low
-            DBG("Oldstate: "); USB_putbyte('0' + state[i]); newline();
-            char Nm = '0'+i;
+            //DBG("Oldstate: "); USB_putbyte('0' + state[i]); newline();
+            /*char Nm = '0'+i;
             USB_sendstr(STR_STATE); USB_putbyte(Nm); USB_sendstr("=6\n");
             switch(the_conf.motflags[i].drvtype){
                 case DRVTYPE_UART:
@@ -346,7 +346,7 @@ static void chkstepper(int i){
                 break;
                 default:
                 break;
-            }
+            }*/
             emstopmotor(i);
             state[i] = STP_ERR;
             return;
