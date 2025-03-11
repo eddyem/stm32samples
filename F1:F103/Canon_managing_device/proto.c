@@ -23,7 +23,7 @@
 #include "hardware.h"
 #include "proto.h"
 #include "spi.h"
-#include "usb.h"
+#include "usb_dev.h"
 #include "version.inc"
 
 static const char *OK = "OK", *FAIL = "FAIL";
@@ -185,20 +185,6 @@ const char* helpmsg =
     "X - save current config to flash\n"
 ;
 
-#define STBUFSZ 255
-static char stbuf[STBUFSZ+1], *bptr = NULL;
-static int blen = 0;
-static void initbuf(){bptr = stbuf; blen = STBUFSZ; *bptr = 0;}
-#define newline()   do{if(blen){ *bptr++ = '\n'; *bptr = 0; --blen; }}while(0)
-static void add2buf(const char *s){
-    while(blen && *s){
-        *bptr++ = *s++;
-        --blen;
-    }
-    *bptr = 0;
-}
-
-
 #define SPIBUFSZ    (64)
 // buffer for SPI sending
 static uint8_t spibuf[SPIBUFSZ];
@@ -212,7 +198,7 @@ static int initspibuf(const char *buf){
         if(buf == nxt) break;
         buf = nxt;
         if(D > 0xff){
-            USB_send("Number should be from 0 to 0xff\n");
+            USB_sendstr("Number should be from 0 to 0xff\n");
             return 0;
         }
         spibuf[spibuflen++] = (uint8_t)D;
@@ -224,24 +210,23 @@ static void sendspibuf(){
     uint8_t buf[SPIBUFSZ];
     memcpy(buf, spibuf, spibuflen);
     if(spibuflen == SPI_transmit((uint8_t*)buf, (uint8_t)spibuflen)){
-        USB_send("Got SPI answer: ");
+        USB_sendstr("Got SPI answer: ");
         for(int i = 0; i < spibuflen; ++i){
-            if(i) USB_send(", ");
-            USB_send(u2hexstr(buf[i]));
+            if(i) USB_sendstr(", ");
+            USB_sendstr(u2hexstr(buf[i]));
         }
-        USB_send("\n");
-    }else USB_send("Failed to send SPI buffer\n");
+        USB_sendstr("\n");
+    }else USB_sendstr("Failed to send SPI buffer\n");
 }
 
 static void errw(int e){
     if(e){
-        add2buf("Error with code ");
-        add2buf(u2str(e));
-        if(e == 1) add2buf(" (busy or need initialization)");
-    }else add2buf(OK);
+        USB_sendstr("Error with code ");
+        USB_sendstr(u2str(e));
+        if(e == 1) USB_sendstr(" (busy or need initialization)");
+    }else USB_sendstr(OK);
 }
 
-extern uint8_t usbON;
 const char *connmsgs[LENS_S_AMOUNT+1] = {
     [LENS_DISCONNECTED] = "disconnected",
     [LENS_SLEEPING] = "sleeping, need init",
@@ -262,15 +247,14 @@ const char *inimsgs[INI_S_AMOUNT+1] = {
     [INI_ERR] = "error in init procedure",
     [INI_S_AMOUNT] = "wrong state"
 };
-const char *parse_cmd(const char *buf){
+void parse_cmd(const char *buf){
     static uint32_t lastFloodTime = 0;
     if(lastFloodTime && (Tms - lastFloodTime > FLOODING_INTERVAL)){
         sendspibuf();
         lastFloodTime = Tms ? Tms : 1;
     }
-    if(!buf || *buf == 0) return NULL;
+    if(!buf || *buf == 0) return;
     lastFloodTime= FALSE;
-    initbuf();
     if(buf[1] == '\n' || !buf[1]){ // one symbol commands
         switch(*buf){
             case 'a':
@@ -296,67 +280,67 @@ const char *parse_cmd(const char *buf){
                 errw(canon_asku16(CANON_GETREG));
             break;
             case 'E':
-                if(erase_storage(-1)) add2buf(FAIL);
-                add2buf(OK);
+                if(erase_storage(-1)) USB_sendstr(FAIL);
+                USB_sendstr(OK);
             break;
             case 'F': // just watch SPI->CR1 value
-                add2buf("SPI1->CR1="); add2buf(u2hexstr(SPI_CR1));
+                USB_sendstr("SPI1->CR1="); USB_sendstr(u2hexstr(SPI_CR1));
             break;
             case 'G':
-                add2buf("SPI ");
+                USB_sendstr("SPI ");
                 switch(SPI_status){
                     case SPI_NOTREADY:
-                        add2buf("not ready");
+                        USB_sendstr("not ready");
                     break;
                     case SPI_READY:
-                        add2buf("ready");
+                        USB_sendstr("ready");
                     break;
                     case SPI_BUSY:
-                        add2buf("busy");
+                        USB_sendstr("busy");
                     break;
                     default:
-                        add2buf("unknown");
+                        USB_sendstr("unknown");
                 }
-                add2buf("\nstate=");
+                USB_sendstr("\nstate=");
                 uint16_t s = canon_getstate();
                 uint8_t idx = s & 0xff;
                 if(idx > LENS_S_AMOUNT) idx = LENS_S_AMOUNT;
-                add2buf(connmsgs[idx]);
+                USB_sendstr(connmsgs[idx]);
                 idx = s >> 8;
-                add2buf("\ninistate=");
+                USB_sendstr("\ninistate=");
                 if(idx > INI_S_AMOUNT) idx = INI_S_AMOUNT;
-                add2buf(inimsgs[idx]);
+                USB_sendstr(inimsgs[idx]);
             break;
             case 'h':
                 errw(canon_sendcmd(CANON_FOCBYHANDS));
             break;
             case 'I':
-                USB_send("Reinit SPI\n");
+                USB_sendstr("Reinit SPI\n");
                 spi_setup();
                 canon_init();
-                return NULL;
+                return;
             break;
             case 'P':
                 dump_userconf();
-                return NULL;
+                return;
             break;
             case 'R':
-                USB_send("Soft reset\n");
+                USB_sendstr("Soft reset\n");
                 NVIC_SystemReset();
             break;
             case 'T':
-                add2buf("Tms=");
-                add2buf(u2str(Tms));
+                USB_sendstr("Tms=");
+                USB_sendstr(u2str(Tms));
             break;
             case 'X':
-                if(store_userconf()) add2buf(FAIL);
-                else add2buf(OK);
+                if(store_userconf()) USB_sendstr(FAIL);
+                else USB_sendstr(OK);
             break;
             default:
-                return helpmsg;
+                USB_sendstr(helpmsg);
         }
         newline();
-        return stbuf;
+        return;
     }
     uint32_t D = 0;
     int16_t neg;
@@ -367,8 +351,8 @@ const char *parse_cmd(const char *buf){
             neg = 1;
             if(*buf == '-'){ ++buf; neg = -1; }
             nxt = getnum(buf, &D);
-            if(nxt == buf) add2buf("Need number");
-            else if(D > 0x7fff) add2buf("From -0x7fff to 0x7fff");
+            if(nxt == buf) USB_sendstr("Need number");
+            else if(D > 0x7fff) USB_sendstr("From -0x7fff to 0x7fff");
             else errw(canon_focus(neg * (int16_t)D));
         break;
         case 'A':
@@ -377,7 +361,7 @@ const char *parse_cmd(const char *buf){
                 if(D) the_conf.autoinit = 1;
                 else the_conf.autoinit = 0;
             }
-            USB_send("autoinit="); USB_send(u2str(the_conf.autoinit)); USB_send("\n");
+            USB_sendstr("autoinit="); USB_sendstr(u2str(the_conf.autoinit)); USB_sendstr("\n");
         break;
         case 'd':
             nxt = omit_spaces(buf);
@@ -388,26 +372,26 @@ const char *parse_cmd(const char *buf){
             neg = 1;
             if(*buf == '-'){ ++buf; neg = -1; }
             nxt = getnum(buf, &D);
-            if(nxt == buf) add2buf("Need number");
-            else if(D > 0x7fff) add2buf("From -0x7fff to 0x7fff");
+            if(nxt == buf) USB_sendstr("Need number");
+            else if(D > 0x7fff) USB_sendstr("From -0x7fff to 0x7fff");
             else{
-                if(canon_writeu16(CANON_FOCMOVE, neg * (int16_t)D)) add2buf(OK);
-                else add2buf(FAIL);
+                if(canon_writeu16(CANON_FOCMOVE, neg * (int16_t)D)) USB_sendstr(OK);
+                else USB_sendstr(FAIL);
             }
         break;
         case 'C':
             nxt = getnum(buf, &D);
             if(nxt != buf && D >= 25 && D <= 3000){
                 the_conf.canspeed = D;
-                add2buf("CAN_speed="); add2buf(u2str(the_conf.canspeed));
-            }else add2buf(FAIL);
+                USB_sendstr("CAN_speed="); USB_sendstr(u2str(the_conf.canspeed));
+            }else USB_sendstr(FAIL);
         break;
         case 'D':
             nxt = getnum(buf, &D);
             if(nxt != buf && D < 0x800){
                 the_conf.canID = D;
-                add2buf("CAN_ID="); add2buf(u2str(the_conf.canID));
-            }else add2buf(FAIL);
+                USB_sendstr("CAN_ID="); USB_sendstr(u2str(the_conf.canID));
+            }else USB_sendstr(FAIL);
         break;
         case 'F': // SPI flags
             nxt = omit_spaces(buf);
@@ -415,7 +399,10 @@ const char *parse_cmd(const char *buf){
             if(*nxt && *nxt != '\n'){
                 buf = nxt + 1;
                 nxt = getnum(buf, &D);
-                if(buf == nxt || D > 7) return helpmsg;
+                if(buf == nxt || D > 7){
+                    USB_sendstr(helpmsg);
+                    return;
+                }
             }
             switch(c){
                 case 'b':
@@ -435,39 +422,39 @@ const char *parse_cmd(const char *buf){
                     else SPI_CR1 &= ~SPI_CR1_CPOL;
                 break;
                 default:
-                    return helpmsg;
+                    USB_sendstr(helpmsg);
+                    return;
             }
-            add2buf("SPI_CR1="); add2buf(u2hexstr(SPI_CR1));
+            USB_sendstr("SPI_CR1="); USB_sendstr(u2hexstr(SPI_CR1));
         break;
         case 'L':
             if(0 == initspibuf(buf)){
-                USB_send("Enter data bytes\n");
-                return NULL;
+                USB_sendstr("Enter data bytes\n");
+                return;
             }
-            USB_send("OK, activated\n");
+            USB_sendstr("OK, activated\n");
             sendspibuf();
             lastFloodTime = Tms ? Tms : 1;
-            return NULL;
+            return;
         break;
         case 'S': // use stbuf here to store user data
             if(0 == initspibuf(buf)){
-                USB_send("Enter data bytes\n");
-                return NULL;
+                USB_sendstr("Enter data bytes\n");
+                return;
             }
-            USB_send("Send: ");
+            USB_sendstr("Send: ");
             for(int i = 0; i < spibuflen; ++i){
-                if(i) USB_send(", ");
-                USB_send(u2hexstr(spibuf[i]));
+                if(i) USB_sendstr(", ");
+                USB_sendstr(u2hexstr(spibuf[i]));
             }
-            USB_send("\n");
+            USB_sendstr("\n");
             sendspibuf();
-            return NULL;
+            return;
         break;
         default:
-            return --buf;
+            return;
     }
     newline();
-    return stbuf;
 }
 
 

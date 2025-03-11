@@ -22,7 +22,7 @@
 #include "hardware.h"
 #include "proto.h"
 #include "spi.h"
-#include "usb.h"
+#include "usb_dev.h"
 
 #define USBBUFSZ    127
 
@@ -32,47 +32,30 @@ void sys_tick_handler(void){
     ++Tms;
 }
 
-// usb getline
-char *get_USB(){
-    static char tmpbuf[USBBUFSZ+1], *curptr = tmpbuf;
-    static int rest = USBBUFSZ;
-    uint8_t x = USB_receive(curptr);
-    if(!x) return NULL;
-    curptr[x] = 0;
-    if(curptr[x-1] == '\n'){
-        curptr = tmpbuf;
-        rest = USBBUFSZ;
-        return tmpbuf;
-    }
-    curptr += x; rest -= x;
-    if(rest <= 0){ // buffer overflow
-        curptr = tmpbuf;
-        rest = USBBUFSZ;
-    }
-    return NULL;
-}
-
 int main(void){
+    char inbuff[256];
     sysreset();
     StartHSE();
     SysTick_Config(72000);
     flashstorage_init();
     hw_setup();
-    if(ISUSB()) USB_setup();
-    else CAN_setup(the_conf.canspeed, the_conf.canID);
+    if(ISUSB()){
+        USBPU_OFF();
+        USB_setup();
+        USBPU_ON();
+    }else CAN_setup(the_conf.canspeed, the_conf.canID);
     spi_setup();
 
     uint32_t SPIctr = Tms;
     while(1){
         IWDG->KR = IWDG_REFRESH;
-        char *txt = NULL;
-        usb_proc();
-        txt = get_USB();
-        const char *ans = parse_cmd(txt); // call it even for NULL (if `flood` is running)
-        if(ans) USB_send(ans);
-        if(Tms - SPIctr > CANONPROC_INTERVAL){ // not more than once per 10ms
-            SPIctr = Tms;
-            canon_proc();
+        int l = USB_receivestr(inbuff, 255);
+        if(l > 0){
+            parse_cmd(inbuff); // call it even for NULL (if `flood` is running)
+            if(Tms - SPIctr > CANONPROC_INTERVAL){ // not more than once per 10ms
+                SPIctr = Tms;
+                canon_proc();
+            }
         }
     }
 }

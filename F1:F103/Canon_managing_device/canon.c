@@ -21,7 +21,7 @@
 #include "hardware.h"
 #include "proto.h"
 #include "spi.h"
-#include "usb.h"
+#include "usb_dev.h"
 
 #define CU(a)   ((const uint8_t*)a)
 
@@ -99,7 +99,7 @@ typedef enum{
 static f_movstate Fstopped(uint16_t *oldF){
     uint16_t f = getfocval();
 #ifdef EBUG
-    USB_send("Curpos="); USB_send(u2str(f)); USB_send("\n");
+    USB_sendstr("Curpos="); USB_sendstr(u2str(f)); USB_sendstr("\n");
 #endif
     if(BADFOCVAL == f) return F_ERR;
     if(*oldF == f){
@@ -355,10 +355,10 @@ int canon_diaphragm(char command){
 int canon_focus(int16_t val){
     if(!ready || inistate != INI_READY) return 1;
     if(val < 0){
-        USB_send("Fsteps="); USB_send(u2str(getfocval())); USB_send("\n");
+        USB_sendstr("Fsteps="); USB_sendstr(u2str(getfocval())); USB_sendstr("\n");
     }else{
         if(val > Fmax){
-            USB_send("Fmax="); USB_send(u2str(Fmax)); USB_send("\n");
+            USB_sendstr("Fmax="); USB_sendstr(u2str(Fmax)); USB_sendstr("\n");
             return 2;
         }
         uint16_t curF = getfocval();
@@ -383,20 +383,20 @@ int canon_sendcmd(uint8_t cmd){
 // acquire 16bit value
 int canon_asku16(uint8_t cmd){
     if(!ready || !canon_read(cmd, 3)) return 1;
-    USB_send("par=");
-    USB_send(u2str((buf[1] << 8) | buf[2]));
-    USB_send("\n");
+    USB_sendstr("par=");
+    USB_sendstr(u2str((buf[1] << 8) | buf[2]));
+    USB_sendstr("\n");
     //canon_poll();
     return 0;
 }
 
 int canon_getinfo(){
     if(!ready || !canon_read(CANON_GETINFO, 6)) return 1;
-    USB_send("Info="); for(int i = 1; i < 7; ++i){
-        USB_send(u2hexstr(buf[i])); USB_send(" ");
+    USB_sendstr("Info="); for(int i = 1; i < 7; ++i){
+        USB_sendstr(u2hexstr(buf[i])); USB_sendstr(" ");
     }
     //canon_poll();
-    USB_send("\n");
+    USB_sendstr("\n");
     return 0;
 }
 

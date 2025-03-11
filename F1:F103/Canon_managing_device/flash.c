@@ -25,7 +25,7 @@
 
 #include "flash.h"
 #include "proto.h"
-#include "usb.h"    // printout
+#include "usb_dev.h"    // printout
 #include <string.h> // memcpy
 
 extern const uint32_t __varsstart, _BLOCKSIZE;
@@ -63,11 +63,11 @@ static int binarySearch(int r, const uint8_t *start, int stor_size){
     while(r >= l){
         int mid = l + (r - l) / 2;
 #ifdef EBUG
-        USB_send("mid/l/r=");
-        USB_send(u2str(mid)); USB_send("/");
-        USB_send(u2str(l)); USB_send("/");
-        USB_send(u2str(r)); USB_send("/");
-        USB_send("\n");
+        USB_sendstr("mid/l/r=");
+        USB_sendstr(u2str(mid)); USB_sendstr("/");
+        USB_sendstr(u2str(l)); USB_sendstr("/");
+        USB_sendstr(u2str(r)); USB_sendstr("/");
+        USB_sendstr("\n");
 #endif
         const uint8_t *s = start + mid * stor_size;
         if(*((const uint16_t*)s) == stor_size){
@@ -94,7 +94,7 @@ void flashstorage_init(){
         maxCnum = flsz / sizeof(user_conf);
     }
 #ifdef EBUG
-    USB_send("INIT\n");
+    USB_sendstr("INIT\n");
 #endif
     // -1 if there's no data at all & flash is clear; maxnum-1 if flash is full
     currentconfidx = binarySearch((int)maxCnum-2, (const uint8_t*)Flash_Data, sizeof(user_conf));
@@ -102,7 +102,7 @@ void flashstorage_init(){
         memcpy(&the_conf, &Flash_Data[currentconfidx], sizeof(user_conf));
     }
 #ifdef EBUG
-    USB_send("currentconfidx="); USB_send(u2str(currentconfidx)); USB_send("\n");
+    USB_sendstr("currentconfidx="); USB_sendstr(u2str(currentconfidx)); USB_sendstr("\n");
 #endif
 }
 
@@ -134,18 +134,18 @@ static int write2flash(const void *start, const void *wrdata, uint32_t stor_size
         *(volatile uint16_t*)(address + i) = data[i];
         while(FLASH->SR & FLASH_SR_BSY) IWDG->KR = IWDG_REFRESH;
         if(*(volatile uint16_t*)(address + i) != data[i]){
-            USB_send("DON'T MATCH!\n");
+            USB_sendstr("DON'T MATCH!\n");
             ret = 1;
             break;
         }
         if(FLASH->SR & FLASH_SR_PGERR){
-            USB_send("Prog err\n");
+            USB_sendstr("Prog err\n");
             ret = 1; // program error - meet not 0xffff
             break;
         }
 #ifdef EBUG
-        USB_send(u2str(stor_size)); USB_send("bytes stored @0x");
-        USB_send(u2hexstr((uint32_t)(address + i))); USB_send("\n");
+        USB_sendstr(u2str(stor_size)); USB_sendstr("bytes stored @0x");
+        USB_sendstr(u2hexstr((uint32_t)(address + i))); USB_sendstr("\n");
 #endif
         FLASH->SR = FLASH_SR_EOP | FLASH_SR_PGERR | FLASH_SR_WRPRTERR;
     }
@@ -157,7 +157,7 @@ static int write2flash(const void *start, const void *wrdata, uint32_t stor_size
 static int erase_pageN(int N){
     int ret = 0;
 #ifdef EBUG
-    USB_send("Erase page #"); USB_send(u2str(N)); USB_send("\n");
+    USB_sendstr("Erase page #"); USB_sendstr(u2str(N)); USB_sendstr("\n");
 #endif
     FLASH->AR = (uint32_t)Flash_Data + N*FLASH_blocksize;
     FLASH->CR |= FLASH_CR_STRT;
@@ -180,12 +180,12 @@ int erase_storage(int npage){
     }
     end = flsz / FLASH_blocksize;
 #ifdef EBUG
-    USB_send("FLASH_SIZE="); USB_send(u2str(FLASH_SIZE));
-    USB_send("\nflsz="); USB_send(u2str(flsz));
-    USB_send("\nend="); USB_send(u2str(end));
-    USB_send("\ncurrentconfidx="); USB_send(u2str(currentconfidx));
-    USB_send("\nmaxCnum="); USB_send(u2str(maxCnum));
-    USB_send("\n");
+    USB_sendstr("FLASH_SIZE="); USB_sendstr(u2str(FLASH_SIZE));
+    USB_sendstr("\nflsz="); USB_sendstr(u2str(flsz));
+    USB_sendstr("\nend="); USB_sendstr(u2str(end));
+    USB_sendstr("\ncurrentconfidx="); USB_sendstr(u2str(currentconfidx));
+    USB_sendstr("\nmaxCnum="); USB_sendstr(u2str(maxCnum));
+    USB_sendstr("\n");
 #endif
     if(end == 0 || end >= FLASH_SIZE) return 1;
     if(npage > -1){ // erase only one page
@@ -211,10 +211,12 @@ int erase_storage(int npage){
 }
 
 void dump_userconf(){
-    USB_send("userconf_sz="); printu(the_conf.userconf_sz);
-    USB_send("\ncurrentconfidx="); USB_send(u2str(currentconfidx));
-    USB_send("\nCAN_speed="); printu(the_conf.canspeed);
-    USB_send("\nCAN_ID="); printu(the_conf.canID);
-    USB_send("\nautoinit="); printu(the_conf.autoinit);
-    USB_send("\n");
+    USB_sendstr("userconf_sz="); printu(the_conf.userconf_sz);
+    USB_sendstr("\ncurrentconfidx=");
+    if(currentconfidx == -1) USB_sendstr("-1");
+    else USB_sendstr(u2str(currentconfidx));
+    USB_sendstr("\nCAN_speed="); printu(the_conf.canspeed);
+    USB_sendstr("\nCAN_ID="); printu(the_conf.canID);
+    USB_sendstr("\nautoinit="); printu(the_conf.autoinit);
+    USB_sendstr("\n");
 }

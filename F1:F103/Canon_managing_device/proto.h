@@ -22,8 +22,8 @@
 
 #include <stm32f1.h>
 
-#define printu(x)       do{USB_send(u2str(x));}while(0)
-#define printuhex(x)    do{USB_send(uhex2str(x));}while(0)
+#define printu(x)       do{USB_sendstr(u2str(x));}while(0)
+#define printuhex(x)    do{USB_sendstr(uhex2str(x));}while(0)
 
 #ifdef EBUG
 #define DBG(x)      do{USB_send(x); USB_send("\n");}while(0)
@@ -31,7 +31,7 @@
 #define DBG(x)
 #endif
 
-const char *parse_cmd(const char *buf);
+void parse_cmd(const char *buf);
 char *omit_spaces(const char *buf);
 char *getnum(const char *buf, uint32_t *N);
 char *u2str(uint32_t val);
