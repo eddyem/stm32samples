@@ -26,7 +26,7 @@ static const uint8_t USB_DeviceDescriptor[] = {
     USB_DT_DEVICE, // bDescriptorType
     L16(bcdUSB), // bcdUSB_L
     H16(bcdUSB), // bcdUSB_H
-    USB_CLASS_MISC, // bDeviceClass
+    USB_CLASS_COMM, // bDeviceClass
     bDeviceSubClass, // bDeviceSubClass
     bDeviceProtocol, // bDeviceProtocol
     USB_EP0BUFSZ, // bMaxPacketSize
