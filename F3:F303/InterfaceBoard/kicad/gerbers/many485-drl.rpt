@@ -1,0 +1,34 @@
+Drill report for many485.kicad_pcb
+Created on 2025-03-21T17:04:16+0300
+
+Copper Layer Stackup:
+    =============================================================
+    L1 :  F.Cu                      front
+    L2 :  B.Cu                      back
+
+
+Drill file 'many485.drl' contains
+    plated through holes:
+    =============================================================
+    T1  0.400mm  0.0157"  (58 holes)
+    T2  0.600mm  0.0236"  (10 holes)
+    T3  0.600mm  0.0236"  (4 holes)
+    T4  0.700mm  0.0276"  (6 holes)
+    T5  0.800mm  0.0315"  (9 holes)
+    T6  0.800mm  0.0315"  (48 holes)
+    T7  0.920mm  0.0362"  (4 holes)
+    T8  1.000mm  0.0394"  (26 holes)
+    T9  1.300mm  0.0512"  (20 holes)
+    T10  1.500mm  0.0591"  (3 holes)
+    T11  2.330mm  0.0917"  (2 holes)
+    T12  3.200mm  0.1260"  (2 holes)
+
+    Total plated holes count 192
+
+
+Not plated through holes are merged with plated holes
+    unplated through holes:
+    =============================================================
+    T13  3.200mm  0.1260"  (4 holes)
+
+    Total unplated holes count 4

@@ -2924,7 +2924,7 @@
 				)
 			)
 		)
-		(property "Reference" "C30"
+		(property "Reference" "C28"
 			(at 101.6 63.754 90)
 			(effects
 				(font
@@ -2976,7 +2976,7 @@
 		(instances
 			(project "many485"
 				(path "/8d999898-5824-4200-a5bb-e5cd72e34b91/80264a45-619f-4fbb-976c-6c15dcb432b8"
-					(reference "C30")
+					(reference "C28")
 					(unit 1)
 				)
 			)
@@ -3000,7 +3000,7 @@
 				)
 			)
 		)
-		(property "Reference" "U13"
+		(property "Reference" "U3"
 			(at 117.094 56.896 0)
 			(effects
 				(font
@@ -3096,7 +3096,7 @@
 		(instances
 			(project "many485"
 				(path "/8d999898-5824-4200-a5bb-e5cd72e34b91/80264a45-619f-4fbb-976c-6c15dcb432b8"
-					(reference "U13")
+					(reference "U3")
 					(unit 1)
 				)
 			)
@@ -3120,7 +3120,7 @@
 				)
 			)
 		)
-		(property "Reference" "R18"
+		(property "Reference" "R14"
 			(at 142.748 52.324 90)
 			(effects
 				(font
@@ -3174,7 +3174,7 @@
 		(instances
 			(project "many485"
 				(path "/8d999898-5824-4200-a5bb-e5cd72e34b91/80264a45-619f-4fbb-976c-6c15dcb432b8"
-					(reference "R18")
+					(reference "R14")
 					(unit 1)
 				)
 			)
@@ -3328,7 +3328,7 @@
 				)
 			)
 		)
-		(property "Reference" "C33"
+		(property "Reference" "C14"
 			(at 194.31 48.26 0)
 			(effects
 				(font
@@ -3382,7 +3382,7 @@
 		(instances
 			(project "many485"
 				(path "/8d999898-5824-4200-a5bb-e5cd72e34b91/80264a45-619f-4fbb-976c-6c15dcb432b8"
-					(reference "C33")
+					(reference "C14")
 					(unit 1)
 				)
 			)
@@ -3407,7 +3407,7 @@
 				)
 			)
 		)
-		(property "Reference" "D12"
+		(property "Reference" "D6"
 			(at 148.59 75.8909 0)
 			(effects
 				(font
@@ -3462,7 +3462,7 @@
 		(instances
 			(project "many485"
 				(path "/8d999898-5824-4200-a5bb-e5cd72e34b91/80264a45-619f-4fbb-976c-6c15dcb432b8"
-					(reference "D12")
+					(reference "D6")
 					(unit 1)
 				)
 			)
@@ -3557,7 +3557,7 @@
 				)
 			)
 		)
-		(property "Reference" "C32"
+		(property "Reference" "C15"
 			(at 173.736 48.006 0)
 			(effects
 				(font
@@ -3611,7 +3611,7 @@
 		(instances
 			(project "many485"
 				(path "/8d999898-5824-4200-a5bb-e5cd72e34b91/80264a45-619f-4fbb-976c-6c15dcb432b8"
-					(reference "C32")
+					(reference "C15")
 					(unit 1)
 				)
 			)
@@ -3635,7 +3635,7 @@
 				)
 			)
 		)
-		(property "Reference" "F6"
+		(property "Reference" "F3"
 			(at 168.91 53.848 90)
 			(effects
 				(font
@@ -3687,7 +3687,7 @@
 		(instances
 			(project "many485"
 				(path "/8d999898-5824-4200-a5bb-e5cd72e34b91/80264a45-619f-4fbb-976c-6c15dcb432b8"
-					(reference "F6")
+					(reference "F3")
 					(unit 1)
 				)
 			)
@@ -3777,7 +3777,7 @@
 				)
 			)
 		)
-		(property "Reference" "C31"
+		(property "Reference" "C29"
 			(at 130.81 96.52 0)
 			(effects
 				(font
@@ -3829,7 +3829,7 @@
 		(instances
 			(project "many485"
 				(path "/8d999898-5824-4200-a5bb-e5cd72e34b91/80264a45-619f-4fbb-976c-6c15dcb432b8"
-					(reference "C31")
+					(reference "C29")
 					(unit 1)
 				)
 			)
@@ -3988,7 +3988,7 @@
 				)
 			)
 		)
-		(property "Reference" "Q7"
+		(property "Reference" "Q4"
 			(at 182.88 40.4325 0)
 			(effects
 				(font
@@ -4046,7 +4046,7 @@
 		(instances
 			(project "many485"
 				(path "/8d999898-5824-4200-a5bb-e5cd72e34b91/80264a45-619f-4fbb-976c-6c15dcb432b8"
-					(reference "Q7")
+					(reference "Q4")
 					(unit 1)
 				)
 			)
@@ -4071,7 +4071,7 @@
 				)
 			)
 		)
-		(property "Reference" "D11"
+		(property "Reference" "D8"
 			(at 148.59 61.9209 0)
 			(effects
 				(font
@@ -4126,7 +4126,7 @@
 		(instances
 			(project "many485"
 				(path "/8d999898-5824-4200-a5bb-e5cd72e34b91/80264a45-619f-4fbb-976c-6c15dcb432b8"
-					(reference "D11")
+					(reference "D8")
 					(unit 1)
 				)
 			)
@@ -4151,7 +4151,7 @@
 				)
 			)
 		)
-		(property "Reference" "SW4"
+		(property "Reference" "SW2"
 			(at 139.7 54.3362 0)
 			(effects
 				(font
@@ -4204,7 +4204,7 @@
 		(instances
 			(project "many485"
 				(path "/8d999898-5824-4200-a5bb-e5cd72e34b91/80264a45-619f-4fbb-976c-6c15dcb432b8"
-					(reference "SW4")
+					(reference "SW2")
 					(unit 1)
 				)
 			)
@@ -4229,7 +4229,7 @@
 				)
 			)
 		)
-		(property "Reference" "J14"
+		(property "Reference" "J10"
 			(at 196.85 67.31 0)
 			(effects
 				(font
@@ -4237,7 +4237,7 @@
 				)
 			)
 		)
-		(property "Value" "SSI{slash}422"
+		(property "Value" "SSI/422"
 			(at 191.516 94.869 0)
 			(effects
 				(font
@@ -4305,7 +4305,7 @@
 		(instances
 			(project "many485"
 				(path "/8d999898-5824-4200-a5bb-e5cd72e34b91/80264a45-619f-4fbb-976c-6c15dcb432b8"
-					(reference "J14")
+					(reference "J10")
 					(unit 1)
 				)
 			)
