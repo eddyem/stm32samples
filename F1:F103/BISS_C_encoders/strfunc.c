@@ -18,14 +18,15 @@
 
 #include <stm32f1.h>
 #include <string.h>
+#include "usb_dev.h"
 
 /**
  * @brief hexdump - dump hex array by 16 bytes in string
- * @param sendfun - function to send data
+ * @param ifno - number of interface
  * @param arr - array to dump
  * @param len - length of `arr`
  */
-void hexdump(int (*sendfun)(const char *s), uint8_t *arr, uint16_t len){
+void hexdump(int ifno, uint8_t *arr, uint16_t len){
     char buf[52], *bptr = buf;
     for(uint16_t l = 0; l < len; ++l, ++arr){
         for(int16_t j = 1; j > -1; --j){
@@ -36,14 +37,14 @@ void hexdump(int (*sendfun)(const char *s), uint8_t *arr, uint16_t len){
         if(l % 16 == 15){
             *bptr++ = '\n';
             *bptr = 0;
-            sendfun(buf);
+            USB_sendstr(ifno, buf);
             bptr = buf;
         }else *bptr++ = ' ';
     }
     if(bptr != buf){
         *bptr++ = '\n';
         *bptr = 0;
-        sendfun(buf);
+        USB_sendstr(ifno, buf);
     }
 }
 

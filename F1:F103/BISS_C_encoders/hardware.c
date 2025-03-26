@@ -16,21 +16,27 @@
  */
 
 #include "hardware.h"
+#include "spi.h"
 
 static inline void gpio_setup(){
     // Enable clocks to the GPIO subsystems (PB for ADC), turn on AFIO clocking to disable SWD/JTAG
-    RCC->APB2ENR |= RCC_APB2ENR_IOPAEN | RCC_APB2ENR_IOPCEN | RCC_APB2ENR_AFIOEN;
+    RCC->APB2ENR |= RCC_APB2ENR_IOPAEN | RCC_APB2ENR_IOPBEN | RCC_APB2ENR_IOPCEN | RCC_APB2ENR_AFIOEN;
     // turn off SWJ/JTAG
 //    AFIO->MAPR = AFIO_MAPR_SWJ_CFG_DISABLE;
     AFIO->MAPR = AFIO_MAPR_SWJ_CFG_JTAGDISABLE; // for PA15
     // Set led as opendrain output
     GPIOC->CRH |= CRH(13, CNF_ODOUTPUT|MODE_SLOW);
+    GPIOA->CRL = CRL(5, CNF_AFPP|MODE_FAST) | CRL(6, CNF_FLINPUT);
     // USB pullup (PA15) - pushpull output
     GPIOA->CRH = CRH(15, CNF_PPOUTPUT|MODE_SLOW);
+    GPIOB->CRH = CRH(13, CNF_AFPP|MODE_FAST) | CRH(14, CNF_FLINPUT);
 }
 
 void hw_setup(){
     gpio_setup();
+    // setup both SPI channels
+    spi_setup(1);
+    spi_setup(2);
 }
 
 #ifndef EBUG

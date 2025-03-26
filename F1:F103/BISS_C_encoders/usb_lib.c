@@ -401,6 +401,7 @@ void USB_setup(){
     USB->BCDR |= USB_BCDR_DPPU;
     NVIC_EnableIRQ(USB_IRQn);
 #endif
+    setup_interfaces();
 }
 
 

@@ -19,12 +19,28 @@
 #pragma once
 
 #include <stdint.h>
+#include "usb_descr.h"
 
-void hexdump(int ifno, uint8_t *arr, uint16_t len);
-char *u2str(uint32_t val);
-char *i2str(int32_t i);
-char *uhex2str(uint32_t val);
-char *getnum(char *txt, uint32_t *N);
-char *omit_spaces(char *buf);
-char *getint(char *txt, int32_t *I);
+#define FLASH_SIZE_REG      ((uint32_t)0x1FFFF7E0)
+#define FLASH_SIZE          *((uint16_t*)FLASH_SIZE_REG)
+
+// maximal size (in letters) of iInterface for settings
+#define MAX_IINTERFACE_SZ   (16)
+
+/*
+ * struct to save user configurations
+ */
+typedef struct __attribute__((packed, aligned(4))){
+    uint16_t userconf_sz;       // "magick number"
+    uint16_t iInterface[bTotNumEndpoints][MAX_IINTERFACE_SZ]; // hryunikod!
+    uint8_t iIlengths[bTotNumEndpoints];
+} user_conf;
+
+extern user_conf the_conf;
+extern int currentconfidx;
+
+void flashstorage_init();
+int store_userconf();
+int erase_storage(int npage);
+
 

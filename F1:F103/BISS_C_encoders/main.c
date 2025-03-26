@@ -16,8 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "flash.h"
 #include "hardware.h"
 #include "proto.h"
+#include "spi.h"
 #include "strfunc.h"
 #include "usart.h"
 #include "usb_dev.h"
@@ -32,7 +34,9 @@ void sys_tick_handler(void){
 int main(){
     char inbuff[RBINSZ];
     uint32_t lastT = 0, lastS = 0;
+    uint8_t encbuf[ENCODER_BUFSZ];
     StartHSE();
+    flashstorage_init();
     hw_setup();
     USBPU_OFF();
     SysTick_Config(72000);
@@ -79,6 +83,9 @@ int main(){
                 CMDWR(inbuff);
                 CMDWR("'\n");
             }
+            if(spi_read_enc(0, encbuf)){ // send encoder data
+                hexdump(I_X, encbuf, ENCODER_BUFSZ);
+            }
         }
         if(CDCready[I_Y]){
             int l = USB_receivestr(I_Y, inbuff, RBINSZ);
@@ -87,6 +94,9 @@ int main(){
                 CMDWR("EncY got: '");
                 CMDWR(inbuff);
                 CMDWR("'\n");
+            }
+            if(spi_read_enc(1, encbuf)){ // send encoder data
+                hexdump(I_Y, encbuf, ENCODER_BUFSZ);
             }
         }
     }

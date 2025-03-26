@@ -1,3 +1,5 @@
+flash.c
+flash.h
 hardware.c
 hardware.h
 main.c
@@ -5,6 +7,8 @@ proto.c
 proto.h
 ringbuffer.c
 ringbuffer.h
+spi.c
+spi.h
 strfunc.c
 strfunc.h
 usart.c

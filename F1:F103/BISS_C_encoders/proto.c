@@ -18,19 +18,12 @@
 
 #include <string.h>
 
+#include "flash.h"
 #include "proto.h"
+#include "spi.h"
 #include "strfunc.h"
 #include "usb_dev.h"
 #include "version.inc"
-
-// commands indexes
-typedef enum{
-    C_dummy,
-    C_help,
-    C_sendX,
-    C_sendY,
-    C_AMOUNT
-} cmd_e;
 
 // error codes
 typedef enum {
@@ -50,6 +43,27 @@ static const char* const errors[ERR_AMOUNT] = {
     [ERR_SILENCE] = "",
 };
 
+// commands indexes
+typedef enum{
+    C_dummy,
+    C_help,
+    C_sendX,
+    C_sendY,
+    C_setiface1,
+    C_setiface2,
+    C_setiface3,
+    C_dumpconf,
+    C_erasestorage,
+    C_storeconf,
+    C_reboot,
+    C_fin,
+    C_encstart,
+    C_spistat,
+    C_spiinit,
+    C_spideinit,
+    C_AMOUNT
+} cmd_e;
+
 // command handler (idx - index of command in list, par - all after equal sign in "cmd = par")
 typedef errcode_e (*handler_t)(cmd_e idx, char *par);
 
@@ -65,6 +79,7 @@ static const funcdescr_t commands[C_AMOUNT];
                             CMDWR(i2str(ival)); CMDn(); return ERR_SILENCE; }while(0)
 
 static errcode_e help(cmd_e idx, char* par);
+static errcode_e dumpconf(cmd_e idx, char *par);
 
 static errcode_e dummy(cmd_e idx, char *par){
     static int32_t val = -111;
@@ -98,13 +113,132 @@ static errcode_e sendenc(cmd_e idx, char *par){
     return ERR_OK;
 }
 
+static errcode_e setiface(cmd_e idx, char *par){
+    if(idx < C_setiface1 || idx >= C_setiface1 + bTotNumEndpoints) return ERR_BADCMD;
+    idx -= C_setiface1; // now it is an index of iIlengths
+    if(par && *par){
+        int l = strlen(par);
+        DBGs(i2str(l));
+        if(l > MAX_IINTERFACE_SZ) return ERR_BADPAR; // too long
+        the_conf.iIlengths[idx] = (uint8_t) l * 2;
+        char *ptr = (char*)the_conf.iInterface[idx];
+        for(int i = 0; i < l; ++i){ // make fucking hryunicode
+            *ptr++ = *par++;
+            *ptr++ = 0;
+        }
+    }
+    // getter
+    int l = the_conf.iIlengths[idx] / 2;
+    char *ptr = (char*)the_conf.iInterface[idx];
+    CMDWR(commands[idx + C_setiface1].cmd);
+    CMDWR("=");
+    for(int i = 0; i < l; ++i){
+        USB_putbyte(I_CMD, *ptr);
+        ptr += 2;
+    }
+    CMDn();
+    return ERR_SILENCE;
+}
+
+static errcode_e erasestor(cmd_e _U_ idx, char *par){
+    int32_t npage = -1;
+    if(par){
+        if(par == getint(par, &npage)) return ERR_BADPAR;
+    }
+    if(erase_storage(npage)) return ERR_FAIL;
+    return ERR_OK;
+}
+
+static errcode_e storeconf(_U_ cmd_e idx, _U_ char *par){
+    if(store_userconf()) return ERR_FAIL;
+    return ERR_OK;
+}
+
+static errcode_e reboot(_U_ cmd_e idx, _U_ char *par){
+    NVIC_SystemReset();
+    return ERR_OK; // never reached
+}
+
+static errcode_e fini(_U_ cmd_e idx, _U_ char *par){
+    flashstorage_init();
+    return ERR_OK; // never reached
+}
+
+static errcode_e encstart(_U_ cmd_e idx, _U_ char *par){
+    if(!spi_start_enc(0)) return ERR_FAIL;
+    if(!spi_start_enc(1)) return ERR_FAIL;
+    return ERR_OK;
+}
+
+static errcode_e spistat(_U_ cmd_e idx, _U_ char *par){
+    for(int i = 1; i < 3; ++i){
+        USB_sendstr(I_CMD, "SPI");
+        USB_putbyte(I_CMD, '0' + i);
+        USB_sendstr(I_CMD, ": ");
+        switch(spi_status[i]){
+            case SPI_NOTREADY:
+                USB_sendstr(I_CMD, "not ready");
+            break;
+            case SPI_BUSY:
+                USB_sendstr(I_CMD, "busy");
+            break;
+            case SPI_READY:
+                USB_sendstr(I_CMD, "ready");
+            break;
+        }
+            newline(I_CMD);
+    }
+    return ERR_SILENCE;
+}
+
+static errcode_e spiinit(_U_ cmd_e idx, _U_ char *par){
+    for(int i = 1; i < 3; ++i){
+        USB_sendstr(I_CMD, "Init SPI");
+        USB_putbyte(I_CMD, '0' + i);
+        newline(I_CMD);
+        spi_setup(i);
+    }
+    return ERR_SILENCE;
+}
+
+static errcode_e spideinit(_U_ cmd_e idx, _U_ char *par){
+    for(int i = 1; i < 3; ++i){
+        USB_sendstr(I_CMD, "DEinit SPI");
+        USB_putbyte(I_CMD, '0' + i);
+        newline(I_CMD);
+        spi_deinit(i);
+    }
+    return ERR_SILENCE;
+}
+
 // text commands
 static const funcdescr_t commands[C_AMOUNT] = {
     [C_dummy] = {"dummy", dummy},
     [C_help] = {"help", help},
     [C_sendX] = {"sendx", sendenc},
     [C_sendY] = {"sendy", sendenc},
-    };
+    [C_setiface1] = {"setiface1", setiface},
+    [C_setiface2] = {"setiface2", setiface},
+    [C_setiface3] = {"setiface3", setiface},
+    [C_dumpconf] = {"dumpconf", dumpconf},
+    [C_erasestorage] = {"erasestorage", erasestor},
+    [C_storeconf] = {"storeconf", storeconf},
+    [C_reboot] = {"reboot", reboot},
+    [C_fin] = {"fin", fini},
+    [C_encstart] = {"readenc", encstart},
+    [C_spistat] = {"spistat", spistat},
+    [C_spiinit] = {"spiinit", spiinit},
+    [C_spideinit] = {"spideinit", spideinit},
+};
+
+static errcode_e dumpconf(cmd_e _U_ idx, char _U_ *par){
+    CMDWR("userconf_sz="); CMDWR(u2str(the_conf.userconf_sz));
+    CMDWR("\ncurrentconfidx="); CMDWR(i2str(currentconfidx));
+    CMDn();
+    for(int i = 0; i < bTotNumEndpoints; ++i)
+        setiface(C_setiface1 + i, NULL);
+    return ERR_SILENCE;
+}
 
 typedef struct{
     int idx;            // command index (if < 0 - just display `help` as grouping header)
@@ -113,18 +247,31 @@ typedef struct{
 
 // SHOUL be sorted and grouped
 static const help_t helpmessages[] = {
+    {-1, "Configuration"},
+    {C_dumpconf, "dump current configuration"},
+    {C_erasestorage, "erase full storage or current page (=n)"},
+    {C_setiface1, "set name of first (command) interface"},
+    {C_setiface2, "set name of second (axis X) interface"},
+    {C_setiface3, "set name of third (axis Y) interface"},
+    {C_storeconf, "store configuration in flash memory"},
     {-1, "Different commands"},
     {C_dummy, "dummy integer setter/getter"},
+    {C_encstart, "start reading encoders"},
     {C_help, "show this help"},
-    {-1, "Debug commands"},
-    {C_sendX, "send text string to X encoder"},
-    {C_sendY, "send text string to Y encoder"},
+    {C_reboot, "reboot MCU"},
+    {C_spideinit, "deinit SPI"},
+    {C_spiinit, "init SPI"},
+    {C_spistat, "get status of both SPI interfaces"},
+    {-1, "Debug"},
+    {C_sendX, "send text string to X encoder's terminal"},
+    {C_sendY, "send text string to Y encoder's terminal"},
+    {C_fin, "reinit flash"},
     {-1, NULL},
 };
 
 static errcode_e help(_U_ cmd_e idx, _U_ char*  par){
-    CMDWRn("https://github.com/eddyem/stm32samples/tree/master/F1:F103/ build #" BUILD_NUMBER " @ " BUILD_DATE);
-    CMDWRn("commands format: command[=setter]\\n");
+    CMDWRn("https://github.com/eddyem/stm32samples/tree/master/F1:F103/BISS_C_encoders build #" BUILD_NUMBER " @ " BUILD_DATE);
+    CMDWRn("\ncommands format: 'command[=setter]\\n'");
     const help_t *c = helpmessages;
     while(c->help){
         if(c->idx < 0){ // header
@@ -139,7 +286,7 @@ static errcode_e help(_U_ cmd_e idx, _U_ char*  par){
         CMDn();
         ++c;
     }
-    return ERR_OK;
+    return ERR_SILENCE;
 }
 
 // *cmd is "command" for commands/getters or "parameter=value" for setters
@@ -149,7 +296,7 @@ void parse_cmd(char *cmd){
     char *cmdstart = omit_spaces(cmd), *parstart = NULL;
     if(!cmdstart) goto retn;
     char *ptr = cmdstart;
-    while(*ptr > '@') ++ptr;
+    while(*ptr > ' ' && *ptr != '=') ++ptr;
     if(*ptr && *ptr <= ' '){ // there's spaces after command
         *ptr++ = 0;
         ptr = omit_spaces(ptr);

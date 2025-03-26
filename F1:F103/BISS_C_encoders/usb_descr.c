@@ -15,6 +15,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <string.h>
+
+#include "flash.h"
 #include "usb_descr.h"
 
 #undef DBG
@@ -166,18 +169,28 @@ _USB_LANG_ID_(LD, LANG_US);
 _USB_STRING_(SD, u"0.0.1");
 _USB_STRING_(MD, u"eddy@sao.ru");
 _USB_STRING_(PD, u"USB BISS-C encoders controller");
-_USB_STRING_(ID1, u"encoder_cmd");
-_USB_STRING_(ID2, u"encoder_X");
-_USB_STRING_(ID3, u"encoder_Y");
+
+// iInterface will change on initialisation by config
+#define _USB_IIDESCR_(str) {sizeof(str), 0x03, str}
+typedef struct{
+    uint8_t  bLength;
+    uint8_t  bDescriptorType;
+    uint16_t bString[MAX_IINTERFACE_SZ];
+}iidescr_t;
+static iidescr_t iids[bTotNumEndpoints] = {
+    _USB_IIDESCR_(u"encoder_cmd"),
+    _USB_IIDESCR_(u"encoder_X"),
+    _USB_IIDESCR_(u"encoder_Y"),
+};
 
 static const void* const StringDescriptor[iDESCR_AMOUNT] = {
     [iLANGUAGE_DESCR] = &LD,
     [iMANUFACTURER_DESCR] = &MD,
     [iPRODUCT_DESCR] = &PD,
     [iSERIAL_DESCR] = &SD,
-    [iINTERFACE_DESCR1] = &ID1,
-    [iINTERFACE_DESCR2] = &ID2,
-    [iINTERFACE_DESCR3] = &ID3,
+    [iINTERFACE_DESCR1] = &iids[0],
+    [iINTERFACE_DESCR2] = &iids[1],
+    [iINTERFACE_DESCR3] = &iids[2],
 };
 
 static void wr0(const uint8_t *buf, uint16_t size, uint16_t askedsize){
@@ -244,5 +257,16 @@ void get_descriptor(config_pack_t *pack){
             break;*/
         default:
             break;
+    }
+}
+
+// change values of iInterface by content of global config
+void setup_interfaces(){
+    for(int i = 0; i < bTotNumEndpoints; ++i){
+        if(the_conf.iIlengths[i]){
+            iids[i].bLength = the_conf.iIlengths[i];
+            memcpy(iids[i].bString, the_conf.iInterface[i], the_conf.iIlengths[i]);
+        }
+        iids[i].bDescriptorType = 0x03;
     }
 }

@@ -62,3 +62,4 @@ enum{
 };
 
 void get_descriptor(config_pack_t *pack);
+void setup_interfaces();
