@@ -11,8 +11,6 @@ spi.c
 spi.h
 strfunc.c
 strfunc.h
-usart.c
-usart.h
 usb_descr.c
 usb_descr.h
 usb_lib.c

@@ -55,9 +55,11 @@ typedef enum{
     C_dumpconf,
     C_erasestorage,
     C_storeconf,
-    C_reboot,
+    C_reset,
     C_fin,
     C_encstart,
+    C_encX,
+    C_encY,
     C_spistat,
     C_spiinit,
     C_spideinit,
@@ -154,7 +156,7 @@ static errcode_e storeconf(_U_ cmd_e idx, _U_ char *par){
     return ERR_OK;
 }
 
-static errcode_e reboot(_U_ cmd_e idx, _U_ char *par){
+static errcode_e reset(_U_ cmd_e idx, _U_ char *par){
     NVIC_SystemReset();
     return ERR_OK; // never reached
 }
@@ -164,9 +166,11 @@ static errcode_e fini(_U_ cmd_e idx, _U_ char *par){
     return ERR_OK; // never reached
 }
 
-static errcode_e encstart(_U_ cmd_e idx, _U_ char *par){
-    if(!spi_start_enc(0)) return ERR_FAIL;
-    if(!spi_start_enc(1)) return ERR_FAIL;
+static errcode_e encstart(cmd_e idx, _U_ char *par){
+    if(idx == C_encX || idx == C_encstart)
+        if(!spi_start_enc(0)) return ERR_FAIL;
+    if(idx == C_encY || idx == C_encstart)
+        if(!spi_start_enc(1)) return ERR_FAIL;
     return ERR_OK;
 }
 
@@ -223,9 +227,11 @@ static const funcdescr_t commands[C_AMOUNT] = {
     [C_dumpconf] = {"dumpconf", dumpconf},
     [C_erasestorage] = {"erasestorage", erasestor},
     [C_storeconf] = {"storeconf", storeconf},
-    [C_reboot] = {"reboot", reboot},
+    [C_reset] = {"reset", reset},
     [C_fin] = {"fin", fini},
     [C_encstart] = {"readenc", encstart},
+    [C_encX] = {"readX", encstart},
+    [C_encY] = {"readY", encstart},
     [C_spistat] = {"spistat", spistat},
     [C_spiinit] = {"spiinit", spiinit},
     [C_spideinit] = {"spideinit", spideinit},
@@ -257,8 +263,10 @@ static const help_t helpmessages[] = {
     {-1, "Different commands"},
     {C_dummy, "dummy integer setter/getter"},
     {C_encstart, "start reading encoders"},
+    {C_encX, "read only X encoder"},
+    {C_encY, "read only Y encoder"},
     {C_help, "show this help"},
-    {C_reboot, "reboot MCU"},
+    {C_reset, "reset MCU"},
     {C_spideinit, "deinit SPI"},
     {C_spiinit, "init SPI"},
     {C_spistat, "get status of both SPI interfaces"},

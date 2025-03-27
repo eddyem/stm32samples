@@ -40,11 +40,12 @@ int main(){
     hw_setup();
     USBPU_OFF();
     SysTick_Config(72000);
+/*
 #ifdef EBUG
     usart_setup();
-    DBG("Start");
     uint32_t tt = 0;
 #endif
+*/
     USB_setup();
 #ifndef EBUG
     iwdg_setup();
@@ -56,6 +57,7 @@ int main(){
             LED_blink(LED0);
             lastT = Tms;
         }
+/*
 #ifdef EBUG
         if(Tms != tt){
             __disable_irq();
@@ -64,6 +66,7 @@ int main(){
             __enable_irq();
         }
 #endif
+*/
         if(CDCready[I_CMD]){
             if(Tms - lastS > 9999){
                 USB_sendstr(I_CMD, "Tms=");
@@ -75,6 +78,12 @@ int main(){
             if(l < 0) CMDWRn("ERROR: CMD USB buffer overflow or string was too long");
             else if(l) parse_cmd(inbuff);
         }
+        int showval = spi_read_enc(0, encbuf);
+        if(CDCready[I_CMD] && showval){
+            CMDWR("ENCX=");
+            hexdump(I_CMD, encbuf, ENCODER_BUFSZ);
+            newline(I_CMD);
+        }
         if(CDCready[I_X]){
             int l = USB_receivestr(I_X, inbuff, RBINSZ);
             if(l < 0) CMDWRn("ERROR: encX USB buffer overflow or string was too long");
@@ -83,9 +92,14 @@ int main(){
                 CMDWR(inbuff);
                 CMDWR("'\n");
             }
-            if(spi_read_enc(0, encbuf)){ // send encoder data
+            if(showval) // send encoder data
                 hexdump(I_X, encbuf, ENCODER_BUFSZ);
-            }
+        }
+        showval = spi_read_enc(1, encbuf);
+        if(CDCready[I_CMD] && showval){
+            CMDWR("ENCY=");
+            hexdump(I_CMD, encbuf, ENCODER_BUFSZ);
+            newline(I_CMD);
         }
         if(CDCready[I_Y]){
             int l = USB_receivestr(I_Y, inbuff, RBINSZ);
@@ -95,9 +109,8 @@ int main(){
                 CMDWR(inbuff);
                 CMDWR("'\n");
             }
-            if(spi_read_enc(1, encbuf)){ // send encoder data
+            if(showval) // send encoder data
                 hexdump(I_Y, encbuf, ENCODER_BUFSZ);
-            }
         }
     }
     return 0;

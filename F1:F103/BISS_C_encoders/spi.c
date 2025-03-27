@@ -47,20 +47,20 @@ void spi_setup(uint8_t idx){
     RCC->AHBENR |= RCC_AHBENR_DMA1EN;
     volatile DMA_Channel_TypeDef *DMA = DMAs[idx];
     if(idx == 1){ // PA5/PA6; 72MHz
+        RCC->APB2ENR |= RCC_APB2ENR_SPI1EN;
         RCC->APB2RSTR = RCC_APB2RSTR_SPI1RST;
         RCC->APB2RSTR = 0; // clear reset
         GPIOA->CRL = (GPIOA->CRL & ~(GPIO_CRL_CNF5 | GPIO_CRL_CNF6))
                      | CRL(5, CNF_AFPP|MODE_FAST) | CRL(6, CNF_FLINPUT);
-        RCC->APB2ENR |= RCC_APB2ENR_SPI1EN;
-        SPI->CR1 = SPI_CR1_BR_0 | SPI_CR1_BR_2; // Fpclk/64
+        SPI->CR1 = SPI_CR1_BR_1 | SPI_CR1_BR_2; // Fpclk/128
         NVIC_EnableIRQ(DMA1_Channel2_IRQn); // enable Rx interrupt
-    }else if(idx == 2){ // PB12..PB15; 36MHz
+    }else if(idx == 2){ // PB13/PB14; 36MHz
+        RCC->APB1ENR |= RCC_APB1ENR_SPI2EN;
         RCC->APB1RSTR = RCC_APB1RSTR_SPI2RST;
         RCC->APB1RSTR = 0;
         GPIOB->CRH = (GPIOB->CRH & ~(GPIO_CRH_CNF13 | GPIO_CRH_CNF14))
                      | CRH(13, CNF_AFPP|MODE_FAST) | CRH(14, CNF_FLINPUT);
-        RCC->APB1ENR |= RCC_APB1ENR_SPI2EN;
-        SPI->CR1 = SPI_CR1_BR_2; // Fpclk/32
+        SPI->CR1 = SPI_CR1_BR_0 | SPI_CR1_BR_2; // Fpclk/64
         NVIC_EnableIRQ(DMA1_Channel4_IRQn);
     }else return; // err
     // Baudrate = 0b110 - fpclk/128
@@ -103,11 +103,15 @@ void spi_deinit(uint8_t idx){
     spi_status[idx] = SPI_NOTREADY;
 }
 
-int spi_waitbsy(uint8_t idx){
+static int spi_waitbsy(uint8_t idx){
     CHKIDXR(idx);
-    DBGs(u2str(idx));
-    DBG("wait busy");
-    WAITX(SPIs[idx]->SR & SPI_SR_BSY);
+    if(SPIs[idx]->SR & SPI_SR_BSY){
+        DBG("Busy - turn off");
+        spi_onoff(idx, 0); // turn off SPI if it's busy
+    }
+    //DBGs(u2str(idx));
+    //DBG("wait busy");
+    //WAITX(SPIs[idx]->SR & SPI_SR_BSY);
     return 1;
 }
 
@@ -143,6 +147,8 @@ int spi_start_enc(int encodernum){
 
 // SSI got fresh data
 void dma1_channel2_isr(){
+    // turn off DMA
+    DMA1_Channel2->CCR &= ~DMA_CCR_EN;
     if(DMA1->ISR & DMA_ISR_TEIF2){
         DMA1->IFCR = DMA_IFCR_CTEIF2;
     }
@@ -155,11 +161,11 @@ void dma1_channel2_isr(){
         //encoderbuf[7] = (ctr >> 0 ) & 0xff;
     }
     spi_onoff(1, 0);
-    // turn off DMA
-    DMA1_Channel2->CCR &= ~DMA_CCR_EN;
 }
 
 void dma1_channel4_isr(){
+    // turn off DMA
+    DMA1_Channel4->CCR &= ~DMA_CCR_EN;
     if(DMA1->ISR & DMA_ISR_TEIF4){
         DMA1->IFCR = DMA_IFCR_CTEIF4;
     }
@@ -168,7 +174,5 @@ void dma1_channel4_isr(){
         freshdata[1] = 1;
     }
     spi_onoff(2, 0);
-    // turn off DMA
-    DMA1_Channel4->CCR &= ~DMA_CCR_EN;
 }
 
