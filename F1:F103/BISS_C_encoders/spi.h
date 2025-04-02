@@ -4,7 +4,7 @@
 
 #define AMOUNT_OF_SPI   (2)
 
-#define ENCODER_BUFSZ   (8)
+#define ENCODER_BUFSZ   (12)
 
 typedef enum{
     SPI_NOTREADY,
@@ -18,4 +18,4 @@ void spi_onoff(uint8_t idx, uint8_t on);
 void spi_deinit(uint8_t idx);
 void spi_setup(uint8_t idx);
 int spi_start_enc(int encodernum);
-int spi_read_enc(uint8_t encno, uint8_t buf[8]);
+int spi_read_enc(uint8_t encno, uint8_t buf[ENCODER_BUFSZ]);

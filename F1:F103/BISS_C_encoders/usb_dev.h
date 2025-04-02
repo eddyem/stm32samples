@@ -48,8 +48,8 @@ void linecoding_handler(uint8_t ifno, usb_LineCoding *lc);
 
 
 // sizes of ringbuffers for outgoing and incoming data
-#define RBOUTSZ     (256)
-#define RBINSZ      (256)
+#define RBOUTSZ     (512)
+#define RBINSZ      (128)
 
 #define newline(ifno)   USB_putbyte(ifno, '\n')
 #define USND(ifno, s)   do{USB_sendstr(ifno, s); USB_putbyte(ifno, '\n');}while(0)
@@ -61,7 +61,7 @@ void linecoding_handler(uint8_t ifno, usb_LineCoding *lc);
 #define STR_HELPER(s)   #s
 #define STR(s)          STR_HELPER(s)
 #define DBG(str)  do{USB_sendstr(I_CMD, __FILE__ " (L" STR(__LINE__) "): " str); USB_putbyte(I_CMD, '\n');}while(0)
-#define DBGs(str) do{USB_sendstr(I_CMD, str); USB_sendstr(I_CMD, "<--\n");}while(0)
+#define DBGs(str) do{USB_sendstr(I_CMD, str); USB_sendstr(I_CMD, "\n");}while(0)
 #else
 #define DBG(s)
 #define DBGs(s)

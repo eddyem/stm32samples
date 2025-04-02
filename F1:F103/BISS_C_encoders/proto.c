@@ -25,6 +25,9 @@
 #include "usb_dev.h"
 #include "version.inc"
 
+// user runtime parameters
+parameters_t user_pars = {0};
+
 // error codes
 typedef enum {
     ERR_OK,         // no errors
@@ -63,6 +66,12 @@ typedef enum{
     C_spistat,
     C_spiinit,
     C_spideinit,
+    C_cpol,
+    C_cpha,
+    C_br,
+    C_encbits,
+    C_testX,
+    C_testY,
     C_AMOUNT
 } cmd_e;
 
@@ -81,7 +90,6 @@ static const funcdescr_t commands[C_AMOUNT];
                             CMDWR(i2str(ival)); CMDn(); return ERR_SILENCE; }while(0)
 
 static errcode_e help(cmd_e idx, char* par);
-static errcode_e dumpconf(cmd_e idx, char *par);
 
 static errcode_e dummy(cmd_e idx, char *par){
     static int32_t val = -111;
@@ -215,6 +223,110 @@ static errcode_e spideinit(_U_ cmd_e idx, _U_ char *par){
     return ERR_SILENCE;
 }
 
+static errcode_e setflags(cmd_e idx, char *par){
+    if(par){
+        if(*par < '0' || *par > '9') return ERR_BADPAR;
+        uint8_t val = *par - '0';
+        switch(idx){
+        case C_cpha:
+            if(val > 1) return ERR_BADPAR;
+            the_conf.flags.CPHA = val;
+            break;
+        case C_cpol:
+            if(val > 1) return ERR_BADPAR;
+            the_conf.flags.CPOL = val;
+            break;
+        case C_br:
+            if(val == 0 || val > 7) return ERR_BADPAR;
+            the_conf.flags.BR = val;
+            break;
+        default:
+            return ERR_BADCMD;
+        }
+    }
+    uint8_t val = 0;
+    switch(idx){
+    case C_cpha:
+        val = the_conf.flags.CPHA;
+        break;
+    case C_cpol:
+        val = the_conf.flags.CPOL;
+        break;
+    case C_br:
+        val = the_conf.flags.BR;
+        break;
+    default:
+        return ERR_BADCMD;
+    }
+    CMDWR(commands[idx].cmd);
+    USB_putbyte(I_CMD, '=');
+    USB_putbyte(I_CMD, '0' + val);
+    CMDn();
+    return ERR_SILENCE;
+}
+
+static errcode_e encbits(cmd_e idx, char *par){
+    if(par){
+        uint32_t N;
+        if(par == getnum(par, &N)) return ERR_BADPAR;
+        if(N < 26 || N > 32) return ERR_BADPAR; // don't support less than 26 of more than 32
+        the_conf.encbits = N;
+    }
+    CMDWR(commands[idx].cmd);
+    USB_putbyte(I_CMD, '=');
+    CMDWR(u2str(the_conf.encbits));
+    CMDn();
+    return ERR_SILENCE;
+}
+
+static errcode_e setboolpar(cmd_e idx, char *par){
+    uint8_t val;
+    if(par){
+        if(*par != '0' && *par != '1') return ERR_BADPAR;
+        val = *par - '0';
+        switch(idx){
+            case C_testX:
+                user_pars.testx = val;
+            break;
+            case C_testY:
+                user_pars.testy = val;
+            break;
+            default:
+                return ERR_BADCMD;
+        }
+    }
+    switch(idx){
+        case C_testX:
+            val = user_pars.testx;
+            if(val) spi_start_enc(0);
+        break;
+        case C_testY:
+            val = user_pars.testy;
+            if(val) spi_start_enc(1);
+        break;
+        default:
+            return ERR_BADCMD;
+    }
+    CMDWR(commands[idx].cmd);
+    USB_putbyte(I_CMD, '=');
+    USB_putbyte(I_CMD, '0' + val);
+    CMDn();
+    return ERR_SILENCE;
+}
+
+static errcode_e dumpconf(cmd_e _U_ idx, char _U_ *par){
+    CMDWR("userconf_sz="); CMDWR(u2str(the_conf.userconf_sz));
+    CMDWR("\ncurrentconfidx="); CMDWR(i2str(currentconfidx));
+    CMDn();
+    for(int i = 0; i < bTotNumEndpoints; ++i)
+        setiface(C_setiface1 + i, NULL);
+    setflags(C_br, NULL);
+    setflags(C_cpha, NULL);
+    setflags(C_cpol, NULL);
+    encbits(C_encbits, NULL);
+    return ERR_SILENCE;
+}
+
 // text commands
 static const funcdescr_t commands[C_AMOUNT] = {
     [C_dummy] = {"dummy", dummy},
@@ -235,16 +347,13 @@ static const funcdescr_t commands[C_AMOUNT] = {
     [C_spistat] = {"spistat", spistat},
     [C_spiinit] = {"spiinit", spiinit},
     [C_spideinit] = {"spideinit", spideinit},
+    [C_cpol] = {"CPOL", setflags},
+    [C_cpha] = {"CPHA", setflags},
+    [C_br] = {"BR", setflags},
+    [C_encbits] = {"encbits", encbits},
+    [C_testX] = {"testx", setboolpar},
+    [C_testY] = {"testy", setboolpar},
 };
-
-static errcode_e dumpconf(cmd_e _U_ idx, char _U_ *par){
-    CMDWR("userconf_sz="); CMDWR(u2str(the_conf.userconf_sz));
-    CMDWR("\ncurrentconfidx="); CMDWR(i2str(currentconfidx));
-    CMDn();
-    for(int i = 0; i < bTotNumEndpoints; ++i)
-        setiface(C_setiface1 + i, NULL);
-    return ERR_SILENCE;
-}
 
 typedef struct{
     int idx;            // command index (if < 0 - just display `help` as grouping header)
@@ -271,9 +380,15 @@ static const help_t helpmessages[] = {
     {C_spiinit, "init SPI"},
     {C_spistat, "get status of both SPI interfaces"},
     {-1, "Debug"},
+    {C_br, "change SPI BR register (1 - 18MHz ... 7 - 281kHz)"},
+    {C_cpha, "change CPHA value (0/1)"},
+    {C_cpol, "change CPOL value (0/1)"},
+    {C_encbits, "set encoder data bits amount"},
+    {C_fin, "reinit flash"},
     {C_sendX, "send text string to X encoder's terminal"},
     {C_sendY, "send text string to Y encoder's terminal"},
-    {C_fin, "reinit flash"},
+    {C_testX, "test X-axis throughput"},
+    {C_testY, "test Y-axis throughput"},
     {-1, NULL},
 };
 

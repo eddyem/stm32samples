@@ -45,9 +45,9 @@
 #define USB_EP0BUFSZ    64
 // virtual
 #define USB_EP1BUFSZ    10
-// Rx/Tx EPs: (512-64-128)/14 rouded to 8
-#define USB_RXBUFSZ     16
-#define USB_TXBUFSZ     16
+// Rx/Tx EPs: (512-64-128)/6 rouded to 8
+#define USB_RXBUFSZ     40
+#define USB_TXBUFSZ     64
 
 // string descriptors
 enum{

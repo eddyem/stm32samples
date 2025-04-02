@@ -215,7 +215,7 @@ static void wr0(const uint8_t *buf, uint16_t size, uint16_t askedsize){
             // keep DTOGs, clear CTR_RX,TX, set TX VALID, leave stat_Rx
             USB->EPnR[0] = (epstatus & ~(USB_EPnR_CTR_RX|USB_EPnR_CTR_TX|USB_EPnR_STAT_RX))
                            ^ USB_EPnR_STAT_TX;
-            uint32_t ctr = 1000000;
+            uint32_t ctr = 10000;
             while(--ctr && (USB->ISTR & USB_ISTR_CTR) == 0){IWDG->KR = IWDG_REFRESH;};
             if((USB->ISTR & USB_ISTR_CTR) == 0){
                 return;

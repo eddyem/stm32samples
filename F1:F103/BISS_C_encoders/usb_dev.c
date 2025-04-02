@@ -60,8 +60,8 @@ static uint8_t obuf[bTotNumEndpoints][RBOUTSZ], ibuf[bTotNumEndpoints][RBINSZ];
 static volatile ringbuffer rbout[bTotNumEndpoints] = {OBUF(0), OBUF(1), OBUF(2)};
 #define IBUF(N)  {.data = ibuf[N], .length = RBINSZ, .head = 0, .tail = 0}
 static volatile ringbuffer rbin[bTotNumEndpoints] = {IBUF(0), IBUF(1), IBUF(2)};
-// last send data size
-static volatile int lastdsz[bTotNumEndpoints] = {0};
+// last send data size (<0 if USB transfer ready)
+static volatile int lastdsz[bTotNumEndpoints] = {-1, -1, -1};
 
 static void chkin(uint8_t ifno){
     if(bufovrfl[ifno]) return; // allow user to know that previous buffer was overflowed and cleared
@@ -82,13 +82,19 @@ static void chkin(uint8_t ifno){
 static void send_next(uint8_t ifno){
     uint8_t usbbuff[USB_TXBUFSZ];
     int buflen = RB_read((ringbuffer*)&rbout[ifno], (uint8_t*)usbbuff, USB_TXBUFSZ);
+    if(!CDCready[ifno]){
+        lastdsz[ifno] = -1;
+        return;
+    }
     if(buflen == 0){
-        if(lastdsz[ifno] == 64) EP_Write(1+ifno, NULL, 0); // send ZLP after 64 bits packet when nothing more to send
-        lastdsz[ifno] = 0;
+        if(lastdsz[ifno] == USB_TXBUFSZ){
+            EP_Write(1+ifno, NULL, 0); // send ZLP after 64 bits packet when nothing more to send
+            lastdsz[ifno] = 0;
+        }else lastdsz[ifno] = -1; // OK. User can start sending data
         return;
     }else if(buflen < 0){
         DBG("Buff busy");
-        lastdsz[ifno] = 0;
+        lastdsz[ifno] = -1;
         return;
     }
     DBG("Got data in buf");
@@ -140,11 +146,13 @@ void WEAK clstate_handler(uint8_t ifno, uint16_t val){
     DBGs(uhex2str(ifno));
     DBGs(uhex2str(val));
     CDCready[ifno] = val; // CONTROL_DTR | CONTROL_RTS -> interface connected; 0 -> disconnected
+    lastdsz[ifno] = -1;
 }
 
 // SEND_BREAK
 void WEAK break_handler(uint8_t ifno){
     CDCready[ifno] = 0;
+    lastdsz[ifno] = -1;
     DBG("break_handler()");
     DBGs(uhex2str(ifno));
 }
@@ -154,6 +162,7 @@ void WEAK break_handler(uint8_t ifno){
 void set_configuration(){
     DBG("set_configuration()");
     for(int i = 0; i < bTotNumEndpoints; ++i){
+        IWDG->KR = IWDG_REFRESH;
         int r = EP_Init(1+i, EP_TYPE_BULK, USB_TXBUFSZ, USB_RXBUFSZ, rxtx_handler);
         if(r){
             DBG("Can't init EP");
@@ -215,6 +224,7 @@ void usb_class_request(config_pack_t *req, uint8_t *data, uint16_t datalen){
 int USB_sendall(uint8_t ifno){
     while(lastdsz[ifno] > 0){
         if(!CDCready[ifno]) return FALSE;
+        IWDG->KR = IWDG_REFRESH;
     }
     return TRUE;
 }
@@ -224,13 +234,17 @@ int USB_send(uint8_t ifno, const uint8_t *buf, int len){
     if(!buf || !CDCready[ifno] || !len) return FALSE;
     DBG("USB_send");
     while(len){
+        if(!CDCready[ifno]) return FALSE;
+        IWDG->KR = IWDG_REFRESH;
         int a = RB_write((ringbuffer*)&rbout[ifno], buf, len);
         if(a > 0){
             len -= a;
             buf += a;
-        } else if (a < 0) continue; // do nothing if buffer is in reading state
-        if(lastdsz[ifno] == 0) send_next(ifno); // need to run manually - all data sent, so no IRQ on IN
+        }else if(a == 0){ // overfull
+            if(lastdsz[ifno] < 0) send_next(ifno);
+        }
     }
+    if(buf[len-1] == '\n' && lastdsz[ifno] < 0) send_next(ifno);
     return TRUE;
 }
 
@@ -238,9 +252,15 @@ int USB_putbyte(uint8_t ifno, uint8_t byte){
     if(!CDCready[ifno]) return FALSE;
     int l = 0;
     while((l = RB_write((ringbuffer*)&rbout[ifno], &byte, 1)) != 1){
-        if(l < 0) continue;
+        if(!CDCready[ifno]) return FALSE;
+        IWDG->KR = IWDG_REFRESH;
+        if(l == 0){ // overfull
+            if(lastdsz[ifno] < 0) send_next(ifno);
+            continue;
+        }
     }
-    if(lastdsz[ifno] == 0) send_next(ifno); // need to run manually - all data sent, so no IRQ on IN
+    // send line if got EOL
+    if(byte == '\n' && lastdsz[ifno] < 0) send_next(ifno);
     return TRUE;
 }
 

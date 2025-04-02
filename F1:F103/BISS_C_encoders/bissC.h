@@ -20,11 +20,12 @@
 
 #include <stdint.h>
 
-typedef struct{
-    uint8_t testx : 1;
-    uint8_t testy : 1;
-} parameters_t;
+typedef struct {
+    uint32_t data;              // 26/32/36-bit data
+    uint8_t error : 1;          // error flag (0 - error: bad value or high temperature)
+    uint8_t warning : 1;        // warning flag (0 - warning: need to be cleaned)
+    uint8_t crc_valid : 1;      // CRC validation result
+    uint8_t frame_valid : 1;    // Overall frame validity
+} BiSS_Frame;
 
-extern parameters_t user_pars;
-
-void parse_cmd(char *cmd);
+BiSS_Frame parse_biss_frame(const uint8_t *bytes, uint32_t num_bytes);

@@ -16,25 +16,97 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "bissC.h"
 #include "flash.h"
 #include "hardware.h"
 #include "proto.h"
 #include "spi.h"
 #include "strfunc.h"
-#include "usart.h"
+//#include "usart.h"
 #include "usb_dev.h"
 
 volatile uint32_t Tms = 0;
+static char inbuff[RBINSZ];
 
 /* Called when systick fires */
 void sys_tick_handler(void){
     ++Tms;
 }
 
-int main(){
-    char inbuff[RBINSZ];
-    uint32_t lastT = 0, lastS = 0;
+// usefull data bytes: start/0+26bit+8bit=36
+#define USEFULL_DATA_BYTES (5)
+
+static void printResult(BiSS_Frame *result){
+    if(result->frame_valid){
+        CMDWR("Data: "); CMDWRn(uhex2str(result->data));
+        if(result->error) CMDWRn("ERROR flag set");
+        if(result->warning) CMDWRn("WARNING flag set");
+        CMDWR("CRC is "); if(!result->crc_valid) CMDWR("NOT ");
+        CMDWRn("valid");
+    }else CMDWRn("Invalid frame");
+}
+
+static void proc_enc(uint8_t idx){
     uint8_t encbuf[ENCODER_BUFSZ];
+    static uint32_t lastMSG[2], gotgood[2], gotwrong[2];
+    int iface = idx ? I_Y : I_X;
+    char ifacechr = idx ? 'Y' : 'X';
+    if(CDCready[iface]){
+        int l = USB_receivestr(iface, inbuff, RBINSZ);
+        if(CDCready[I_CMD]){
+            if(l){
+                CMDWR("Enc"); USB_putbyte(I_CMD, ifacechr);
+                CMDWR(": ");
+            }
+            if(l < 0) CMDWRn("ERROR! USB buffer overflow or string was too long");
+            else if(l){
+                CMDWR("got string: '");
+                CMDWR(inbuff);
+                CMDWR("'\n");
+            }
+        }
+    }
+    if(!spi_read_enc(idx, encbuf)) return;
+    BiSS_Frame result = parse_biss_frame(encbuf, ENCODER_BUFSZ);
+    char *str = result.crc_valid ? u2str(result.data) : NULL;
+    uint8_t testflag = (idx) ? user_pars.testy : user_pars.testx;
+    if(CDCready[I_CMD]){
+        if(testflag){
+            if(Tms - lastMSG[idx] > 9999){
+                USB_putbyte(I_CMD, ifacechr);
+                CMDWR(" 10sec stat: good=");
+                CMDWR(u2str(gotgood[idx]));
+                CMDWR(", bad=");
+                CMDWR(u2str(gotwrong[idx]));
+                CMDn();
+                gotgood[idx] = 0;
+                gotwrong[idx] = 0;
+                lastMSG[idx] = Tms;
+            }else{
+                if(str) ++gotgood[idx];
+                else ++gotwrong[idx];
+            }
+        }else{
+            printResult(&result);
+            CMDWR("ENC"); USB_putbyte(I_CMD, ifacechr);
+            USB_putbyte(I_CMD, '=');
+            hexdump(I_CMD, encbuf, ENCODER_BUFSZ);
+            CMDWR(" (");
+            if(str) CMDWR(str);
+            else CMDWR("wrong");
+            CMDWR(")\n");
+        }
+    }
+    if(CDCready[iface] && str && !result.error){
+        USB_sendstr(iface, str);
+        USB_putbyte(iface, '\n');
+    }
+    if(result.error) spi_setup(1+idx); // reinit SPI in case of error
+    if(testflag) spi_start_enc(idx);
+}
+
+int main(){
+    uint32_t lastT = 0;//, lastS = 0;
     StartHSE();
     flashstorage_init();
     hw_setup();
@@ -68,50 +140,18 @@ int main(){
 #endif
 */
         if(CDCready[I_CMD]){
-            if(Tms - lastS > 9999){
+            /*if(Tms - lastS > 9999){
                 USB_sendstr(I_CMD, "Tms=");
                 USB_sendstr(I_CMD, u2str(Tms));
-                newline(I_CMD);
+                CMDn();
                 lastS = Tms;
-            }
+            }*/
             int l = USB_receivestr(I_CMD, inbuff, RBINSZ);
             if(l < 0) CMDWRn("ERROR: CMD USB buffer overflow or string was too long");
             else if(l) parse_cmd(inbuff);
         }
-        int showval = spi_read_enc(0, encbuf);
-        if(CDCready[I_CMD] && showval){
-            CMDWR("ENCX=");
-            hexdump(I_CMD, encbuf, ENCODER_BUFSZ);
-            newline(I_CMD);
-        }
-        if(CDCready[I_X]){
-            int l = USB_receivestr(I_X, inbuff, RBINSZ);
-            if(l < 0) CMDWRn("ERROR: encX USB buffer overflow or string was too long");
-            else if(l){
-                CMDWR("EncX got: '");
-                CMDWR(inbuff);
-                CMDWR("'\n");
-            }
-            if(showval) // send encoder data
-                hexdump(I_X, encbuf, ENCODER_BUFSZ);
-        }
-        showval = spi_read_enc(1, encbuf);
-        if(CDCready[I_CMD] && showval){
-            CMDWR("ENCY=");
-            hexdump(I_CMD, encbuf, ENCODER_BUFSZ);
-            newline(I_CMD);
-        }
-        if(CDCready[I_Y]){
-            int l = USB_receivestr(I_Y, inbuff, RBINSZ);
-            if(l < 0) CMDWRn("ERROR: encY USB buffer overflow or string was too long");
-            else if(l){
-                CMDWR("EncY got: '");
-                CMDWR(inbuff);
-                CMDWR("'\n");
-            }
-            if(showval) // send encoder data
-                hexdump(I_Y, encbuf, ENCODER_BUFSZ);
-        }
+        proc_enc(0);
+        proc_enc(1);
     }
     return 0;
 }

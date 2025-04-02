@@ -27,13 +27,14 @@ extern const uint32_t __varsstart, _BLOCKSIZE;
 static const uint32_t FLASH_blocksize = (uint32_t)&_BLOCKSIZE;
 static uint32_t maxCnum = 1024 / sizeof(user_conf); // can't use blocksize here
 
-#define USERCONF_INITIALIZER  {         \
-     .userconf_sz = sizeof(user_conf)   \
-    }
-
 static int write2flash(const void*, const void*, uint32_t);
 const user_conf *Flash_Data = (const user_conf *)(&__varsstart);
-user_conf the_conf = USERCONF_INITIALIZER;
+user_conf the_conf = {
+    .userconf_sz = sizeof(user_conf),
+    .flags.CPOL = 1,
+    .flags.BR = 4,
+    .encbits = 26
+};
 
 int currentconfidx = -1; // index of current configuration
 
