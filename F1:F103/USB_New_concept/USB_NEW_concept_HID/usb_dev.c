@@ -40,6 +40,7 @@ int USB_send(uint8_t *buf, uint16_t size){
     if(!usbON || !size) return 0;
     uint16_t ctr = 0;
     while(size){
+        IWDG->KR = IWDG_REFRESH;
         uint16_t s = (size > USB_EP1BUFSZ) ? USB_EP1BUFSZ : size;
         tx_succesfull = 0;
         EP_Write(1, (uint8_t*)&buf[ctr], s);

@@ -183,6 +183,7 @@ void usb_class_request(config_pack_t *req, uint8_t *data, uint16_t datalen){
 int USB_sendall(){
     while(lastdsz > 0){
         if(!CDCready) return FALSE;
+        IWDG->KR = IWDG_REFRESH;
     }
     return TRUE;
 }
@@ -192,12 +193,13 @@ int USB_send(const uint8_t *buf, int len){
     if(!buf || !CDCready || !len) return FALSE;
     DBG("USB_send");
     while(len){
+        IWDG->KR = IWDG_REFRESH;
         int a = RB_write((ringbuffer*)&rbout, buf, len);
+        if(lastdsz == 0) send_next(); // need to run manually - all data sent, so no IRQ on IN
         if(a > 0){
             len -= a;
             buf += a;
         } else if (a < 0) continue; // do nothing if buffer is in reading state
-        if(lastdsz == 0) send_next(); // need to run manually - all data sent, so no IRQ on IN
     }
     return TRUE;
 }
@@ -206,9 +208,10 @@ int USB_putbyte(uint8_t byte){
     if(!CDCready) return FALSE;
     int l = 0;
     while((l = RB_write((ringbuffer*)&rbout, &byte, 1)) != 1){
+        IWDG->KR = IWDG_REFRESH;
+        if(lastdsz == 0) send_next(); // need to run manually - all data sent, so no IRQ on IN
         if(l < 0) continue;
     }
-    if(lastdsz == 0) send_next(); // need to run manually - all data sent, so no IRQ on IN
     return TRUE;
 }
 
