@@ -1,0 +1,5 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "iso3086")(type "KiCad")(uri "${KIPRJMOD}/iso3086.kicad_sym")(options "")(descr ""))
+  (lib (name "elements")(type "KiCad")(uri "${KIPRJMOD}/elements.kicad_sym")(options "")(descr ""))
+)
