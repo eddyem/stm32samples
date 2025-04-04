@@ -1,0 +1,22 @@
+#!/bin/bash
+
+trap ctrl_c INT
+
+function ctrl_c() {
+    echo "Terminated - exit" >&2
+    exit 0
+}
+
+if [[ $# != 1 ]]; then
+    echo  "Point device name, e.g. /dev/encoder_X0" >&2
+    exit 1
+fi
+
+stty -F $1 -echo
+
+START=$(date +%s)
+
+while read VAL; do
+    CUR=$(($(date +%s) - $START))
+    echo -e "$CUR.$(date +%N)\t$VAL"
+done < $1
