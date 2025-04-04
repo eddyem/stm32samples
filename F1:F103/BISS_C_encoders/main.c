@@ -27,6 +27,7 @@
 
 volatile uint32_t Tms = 0;
 static char inbuff[RBINSZ];
+static uint32_t monitT[2] = {0};
 
 /* Called when systick fires */
 void sys_tick_handler(void){
@@ -47,7 +48,6 @@ static void printResult(BiSS_Frame *result){
 }
 
 static void proc_enc(uint8_t idx){
-    uint8_t encbuf[ENCODER_BUFSZ];
     static uint32_t lastMSG[2], gotgood[2], gotwrong[2];
     int iface = idx ? I_Y : I_X;
     char ifacechr = idx ? 'Y' : 'X';
@@ -65,9 +65,11 @@ static void proc_enc(uint8_t idx){
                 CMDWR("'\n");
             }
         }
+        if(l > 0) spi_start_enc(idx); // start encoder reading on each request from given interface
     }
-    if(!spi_read_enc(idx, encbuf)) return;
-    BiSS_Frame result = parse_biss_frame(encbuf, ENCODER_BUFSZ);
+    uint8_t *encbuf = spi_read_enc(idx);
+    if(!encbuf) return;
+    BiSS_Frame result = parse_biss_frame(encbuf, the_conf.encbufsz);
     char *str = result.crc_valid ? u2str(result.data) : NULL;
     uint8_t testflag = (idx) ? user_pars.testy : user_pars.testx;
     if(CDCready[I_CMD]){
@@ -86,11 +88,11 @@ static void proc_enc(uint8_t idx){
                 if(str) ++gotgood[idx];
                 else ++gotwrong[idx];
             }
-        }else{
+        }else if(!the_conf.flags.monit){
             printResult(&result);
             CMDWR("ENC"); USB_putbyte(I_CMD, ifacechr);
             USB_putbyte(I_CMD, '=');
-            hexdump(I_CMD, encbuf, ENCODER_BUFSZ);
+            hexdump(I_CMD, encbuf, the_conf.encbufsz);
             CMDWR(" (");
             if(str) CMDWR(str);
             else CMDWR("wrong");
@@ -102,22 +104,17 @@ static void proc_enc(uint8_t idx){
         USB_putbyte(iface, '\n');
     }
     if(result.error) spi_setup(1+idx); // reinit SPI in case of error
-    if(testflag) spi_start_enc(idx);
+    if(the_conf.flags.monit) monitT[idx] = Tms;
+    else if(testflag) spi_start_enc(idx);
 }
 
 int main(){
-    uint32_t lastT = 0;//, lastS = 0;
+    uint32_t lastT = 0;
     StartHSE();
     flashstorage_init();
     hw_setup();
     USBPU_OFF();
     SysTick_Config(72000);
-/*
-#ifdef EBUG
-    usart_setup();
-    uint32_t tt = 0;
-#endif
-*/
     USB_setup();
 #ifndef EBUG
     iwdg_setup();
@@ -129,29 +126,18 @@ int main(){
             LED_blink(LED0);
             lastT = Tms;
         }
-/*
-#ifdef EBUG
-        if(Tms != tt){
-            __disable_irq();
-            usart_transmit();
-            tt = Tms;
-            __enable_irq();
-        }
-#endif
-*/
         if(CDCready[I_CMD]){
-            /*if(Tms - lastS > 9999){
-                USB_sendstr(I_CMD, "Tms=");
-                USB_sendstr(I_CMD, u2str(Tms));
-                CMDn();
-                lastS = Tms;
-            }*/
             int l = USB_receivestr(I_CMD, inbuff, RBINSZ);
             if(l < 0) CMDWRn("ERROR: CMD USB buffer overflow or string was too long");
             else if(l) parse_cmd(inbuff);
         }
         proc_enc(0);
         proc_enc(1);
+        if(the_conf.flags.monit){
+            for(int i = 0; i < 2; ++i){
+                if(Tms - monitT[i] >= the_conf.monittime) spi_start_enc(i);
+            }
+        }
     }
     return 0;
 }

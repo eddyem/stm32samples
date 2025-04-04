@@ -78,13 +78,19 @@ static void chkin(uint8_t ifno){
 static void send_next(uint8_t ifno){
     uint8_t usbbuff[USB_TXBUFSZ];
     int buflen = RB_read((ringbuffer*)&rbout[ifno], (uint8_t*)usbbuff, USB_TXBUFSZ);
+    if(!CDCready[ifno]){
+        lastdsz[ifno] = -1;
+        return;
+    }
     if(buflen == 0){
-        if(lastdsz[ifno] == 64) EP_Write(1+ifno, NULL, 0); // send ZLP after 64 bits packet when nothing more to send
-        lastdsz[ifno] = 0;
+        if(lastdsz[ifno] == USB_TXBUFSZ){
+            EP_Write(1+ifno, NULL, 0); // send ZLP after 64 bits packet when nothing more to send
+            lastdsz[ifno] = 0;
+        }else lastdsz[ifno] = -1; // OK. User can start sending data
         return;
     }else if(buflen < 0){
         DBG("Buff busy");
-        lastdsz[ifno] = 0;
+        lastdsz[ifno] = -1;
         return;
     }
     DBG("Got data in buf");
@@ -221,14 +227,17 @@ int USB_send(uint8_t ifno, const uint8_t *buf, int len){
     if(!buf || !CDCready[ifno] || !len) return FALSE;
     DBG("USB_send");
     while(len){
+        if(!CDCready[ifno]) return FALSE;
         IWDG->KR = IWDG_REFRESH;
         int a = RB_write((ringbuffer*)&rbout[ifno], buf, len);
-        if(lastdsz[ifno] == 0) send_next(ifno); // need to run manually - all data sent, so no IRQ on IN
         if(a > 0){
             len -= a;
             buf += a;
-        } else if (a < 0) continue; // do nothing if buffer is in reading state
+        }else if(a == 0){ // overfull
+            if(lastdsz[ifno] < 0) send_next(ifno);
+        }
     }
+    if(buf[len-1] == '\n' && lastdsz[ifno] < 0) send_next(ifno);
     return TRUE;
 }
 
@@ -236,10 +245,15 @@ int USB_putbyte(uint8_t ifno, uint8_t byte){
     if(!CDCready[ifno]) return FALSE;
     int l = 0;
     while((l = RB_write((ringbuffer*)&rbout[ifno], &byte, 1)) != 1){
+        if(!CDCready[ifno]) return FALSE;
         IWDG->KR = IWDG_REFRESH;
-        if(lastdsz[ifno] == 0) send_next(ifno); // need to run manually - all data sent, so no IRQ on IN
-        if(l < 0) continue;
+        if(l == 0){ // overfull
+            if(lastdsz[ifno] < 0) send_next(ifno);
+            continue;
+        }
     }
+    // send line if got EOL
+    if(byte == '\n' && lastdsz[ifno] < 0) send_next(ifno);
     return TRUE;
 }
 

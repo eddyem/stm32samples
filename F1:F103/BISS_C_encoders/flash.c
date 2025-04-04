@@ -33,7 +33,11 @@ user_conf the_conf = {
     .userconf_sz = sizeof(user_conf),
     .flags.CPOL = 1,
     .flags.BR = 4,
-    .encbits = 26
+    .encbits = 26,
+    .encbufsz = 12,
+    .minzeros = 4,
+    .maxzeros = 50,
+    .monittime = 1,
 };
 
 int currentconfidx = -1; // index of current configuration

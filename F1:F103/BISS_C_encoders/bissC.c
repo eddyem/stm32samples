@@ -17,16 +17,14 @@
  */
 
 #include "bissC.h"
-#include "usb_dev.h"
+#include "flash.h"
 #ifdef EBUG
 #include "strfunc.h"
 #endif
-#include "flash.h"
+#include "spi.h"
+#include "usb_dev.h"
 
-#define MAX_BITSTREAM_UINTS 4  // 4 * 32 = 128 bits capacity
-// min/max zeros before preambule
-#define MINZEROS    4
-#define MAXZEROS    40
+#define MAX_BITSTREAM_UINTS (ENCODER_BUFSZ_MAX / 4)  // ENCODER_BUFSZ_MAX bits capacity
 
 static uint32_t bitstream[MAX_BITSTREAM_UINTS] = {0};
 
@@ -50,11 +48,6 @@ static void bytes_to_bitstream(const uint8_t *bytes, uint32_t num_bytes, uint32_
             }
         }
     }
-    /* Store remaining bits if any
-    if(*num_bits % 32 != 0){
-        current <<= (32 - (*num_bits % 32));
-        bitstream[pos] = current;
-    }*/
 }
 
 // Compute CRC-6 using polynomial x^6 + x + 1
@@ -102,7 +95,7 @@ BiSS_Frame parse_biss_frame(const uint8_t *bytes, uint32_t num_bytes){
             if(!curbit){
                 zero_count++;
             }else{
-                if(zero_count >= MINZEROS && zero_count <= MAXZEROS){
+                if(zero_count >= the_conf.minzeros && zero_count <= the_conf.maxzeros){
                     if((i + 1) < num_bits && !get_bit(i + 1)){
                         data_start = i + 2;
                         found = 1;

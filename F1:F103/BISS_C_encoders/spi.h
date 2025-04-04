@@ -2,9 +2,13 @@
 #pragma once
 #include <stdint.h>
 
+// two SPI interfaces for two sensors
 #define AMOUNT_OF_SPI   (2)
-
-#define ENCODER_BUFSZ   (12)
+// static buffer size
+#define ENCODER_BUFSZ_MAX   (32)
+// encoder resolution
+#define ENCRESOL_MIN    (8)
+#define ENCRESOL_MAX    (32)
 
 typedef enum{
     SPI_NOTREADY,
@@ -18,4 +22,4 @@ void spi_onoff(uint8_t idx, uint8_t on);
 void spi_deinit(uint8_t idx);
 void spi_setup(uint8_t idx);
 int spi_start_enc(int encodernum);
-int spi_read_enc(uint8_t encno, uint8_t buf[ENCODER_BUFSZ]);
+uint8_t *spi_read_enc(uint8_t encno);

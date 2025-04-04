@@ -27,10 +27,17 @@
 // maximal size (in letters) of iInterface for settings
 #define MAX_IINTERFACE_SZ   (16)
 
+// min/max zeros before preambule
+#define MINZEROS_MIN    2
+#define MINZEROS_MAX    60
+#define MAXZEROS_MIN    4
+#define MAXZEROS_MAX    120
+
 typedef struct{
     uint8_t CPOL : 1;
     uint8_t CPHA : 1;
     uint8_t BR   : 3;
+    uint8_t monit: 1; // auto monitoring of encoder each `monittime` milliseconds
 } flags_t;
 
 /*
@@ -40,8 +47,12 @@ typedef struct __attribute__((packed, aligned(4))){
     uint16_t userconf_sz;       // "magick number"
     uint16_t iInterface[bTotNumEndpoints][MAX_IINTERFACE_SZ]; // hryunikod!
     uint8_t iIlengths[bTotNumEndpoints];
-    flags_t flags;      // flags: CPOL, CPHA etc
     uint8_t encbits;    // encoder bits: 26 or 32
+    uint8_t encbufsz;   // encoder buffer size (up to ENCODER_BUFSZ_MAX)
+    uint8_t minzeros;   // min/max zeros in preamble when searching start of record
+    uint8_t maxzeros;
+    uint8_t monittime;  // auto monitoring period (ms)
+    flags_t flags;      // flags: CPOL, CPHA etc
 } user_conf;
 
 extern user_conf the_conf;

@@ -81,12 +81,18 @@ static void chkin(){
 static void send_next(){
     uint8_t usbbuff[USB_TXBUFSZ];
     int buflen = RB_read((ringbuffer*)&rbout, (uint8_t*)usbbuff, USB_TXBUFSZ);
+    if(!CDCready){
+        lastdsz = -1;
+        return;
+    }
     if(buflen == 0){
-        if(lastdsz == 64) EP_Write(3, NULL, 0); // send ZLP after 64 bits packet when nothing more to send
-        lastdsz = 0;
+        if(lastdsz == 64){
+            EP_Write(3, NULL, 0); // send ZLP after 64 bits packet when nothing more to send
+            lastdsz = 0;
+        } else lastdsz = -1; // OK. User can start sending data
         return;
     }else if(buflen < 0){
-        lastdsz = 0;
+        lastdsz = -1;
         return;
     }
     EP_Write(3, (uint8_t*)usbbuff, buflen);
@@ -231,16 +237,19 @@ int USB_sendall(){
 // put `buf` into queue to send
 int USB_send(const uint8_t *buf, int len){
     if(!buf || !CDCready || !len) return FALSE;
-    DBG("send");
+    DBG("USB_send");
     while(len){
+        if(!CDCready) return FALSE;
         IWDG->KR = IWDG_REFRESH;
         int a = RB_write((ringbuffer*)&rbout, buf, len);
-        if(lastdsz == 0) send_next(); // need to run manually - all data sent, so no IRQ on IN
         if(a > 0){
             len -= a;
             buf += a;
-        } else if (a < 0) continue; // do nothing if buffer is in reading state
+        }else if(a == 0){ // overfull
+            if(lastdsz < 0) send_next();
         }
+    }
+    if(buf[len-1] == '\n' && lastdsz < 0) send_next();
     return TRUE;
 }
 
@@ -248,10 +257,15 @@ int USB_putbyte(uint8_t byte){
     if(!CDCready) return FALSE;
     int l = 0;
     while((l = RB_write((ringbuffer*)&rbout, &byte, 1)) != 1){
+        if(!CDCready) return FALSE;
         IWDG->KR = IWDG_REFRESH;
-        if(lastdsz == 0) send_next(); // need to run manually - all data sent, so no IRQ on IN
-        if(l < 0) continue;
+        if(l == 0){ // overfull
+            if(lastdsz < 0) send_next();
+            continue;
+        }
     }
+    // send line if got EOL
+    if(byte == '\n' && lastdsz < 0) send_next();
     return TRUE;
 }
 

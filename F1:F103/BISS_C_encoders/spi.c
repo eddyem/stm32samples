@@ -34,7 +34,7 @@ static volatile SPI_TypeDef* const SPIs[AMOUNT_OF_SPI+1] = {NULL, SPI1, SPI2};
 static volatile DMA_Channel_TypeDef * const DMAs[AMOUNT_OF_SPI+1] = {NULL, DMA1_Channel2, DMA1_Channel4};
 #define WAITX(x)  do{volatile uint32_t  wctr = 0; while((x) && (++wctr < 3600)) IWDG->KR = IWDG_REFRESH; if(wctr==3600){ DBG("timeout"); return 0;}}while(0)
 
-static uint8_t encoderbuf[AMOUNT_OF_SPI][ENCODER_BUFSZ] = {0};
+static uint8_t encoderbuf[AMOUNT_OF_SPI][ENCODER_BUFSZ_MAX] = {0};
 static uint8_t freshdata[AMOUNT_OF_SPI] = {0};
 
 // init SPI to work RX-only with DMA
@@ -81,8 +81,6 @@ void spi_onoff(uint8_t idx, uint8_t on){
     CHKIDX(idx);
     volatile SPI_TypeDef *SPI = SPIs[idx];
     if(on){
-        //DBGs(u2str(idx));
-        //DBG("turn on SPI");
         SPI->CR1 |= SPI_CR1_SPE;
         spi_status[idx] = SPI_BUSY;
     }else{
@@ -114,20 +112,15 @@ static int spi_waitbsy(uint8_t idx){
         DBG("Busy - turn off");
         spi_onoff(idx, 0); // turn off SPI if it's busy
     }
-    //DBGs(u2str(idx));
-    //DBG("wait busy");
-    //WAITX(SPIs[idx]->SR & SPI_SR_BSY);
     return 1;
 }
 
 // just copy last read encoder value into `buf`
-// @return TRUE if got fresh data
-int spi_read_enc(uint8_t encno, uint8_t buf[ENCODER_BUFSZ]){
-    if(encno > 1 || !freshdata[encno]) return FALSE;
-    //DBGs(u2str(encno)); DBG("Read encoder data");
-    memcpy(buf, encoderbuf[encno], ENCODER_BUFSZ);
+// @return pointer to buffer if got fresh data
+uint8_t *spi_read_enc(uint8_t encno){
+    if(encno > 1 || !freshdata[encno]) return NULL;
     freshdata[encno] = 0; // clear fresh status
-    return TRUE;
+    return encoderbuf[encno];
 }
 
 // start encoder reading over DMA
@@ -135,16 +128,12 @@ int spi_read_enc(uint8_t encno, uint8_t buf[ENCODER_BUFSZ]){
 // here `encodernum` is 0 (SPI1) or 1 (SPI2), not 1/2 as SPI index!
 int spi_start_enc(int encodernum){
     int spiidx = encodernum + 1;
-    //DBG("start enc");
     if(spiidx < 1 || spiidx > AMOUNT_OF_SPI) return FALSE;
     if(spi_status[spiidx] != SPI_READY) return FALSE;
     if(!spi_waitbsy(spiidx)) return FALSE;
-    if(SPI1->CR1 & SPI_CR1_SPE){ DBG("spi1 works!");}
-    if(SPI2->CR1 & SPI_CR1_SPE){ DBG("spi2 works!");}
     volatile DMA_Channel_TypeDef *DMA = DMAs[spiidx];
     DMA->CMAR = (uint32_t) encoderbuf[encodernum];
-    DMA->CNDTR = ENCODER_BUFSZ;
-    //DBG("turn on spi");
+    DMA->CNDTR = the_conf.encbufsz;
     spi_onoff(spiidx, 1);
     DMA->CCR |= DMA_CCR_EN;
     return TRUE;
@@ -159,12 +148,8 @@ void dma1_channel2_isr(){
         DMA1->IFCR = DMA_IFCR_CTEIF2;
     }
     if(DMA1->ISR & DMA_ISR_TCIF2){
-        //uint32_t ctr = TIM2->CNT;
         DMA1->IFCR = DMA_IFCR_CTCIF2;
         freshdata[0] = 1;
-        //encoderbuf[5] = (ctr >> 16) & 0xff;
-        //encoderbuf[6] = (ctr >> 8 ) & 0xff;
-        //encoderbuf[7] = (ctr >> 0 ) & 0xff;
     }
     spi_status[1] = SPI_READY;
 }

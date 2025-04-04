@@ -72,6 +72,11 @@ typedef enum{
     C_encbits,
     C_testX,
     C_testY,
+    C_encbufsz,
+    C_minzeros,
+    C_maxzeros,
+    C_autom,
+    C_amperiod,
     C_AMOUNT
 } cmd_e;
 
@@ -223,58 +228,64 @@ static errcode_e spideinit(_U_ cmd_e idx, _U_ char *par){
     return ERR_SILENCE;
 }
 
-static errcode_e setflags(cmd_e idx, char *par){
+static errcode_e setuintpar(cmd_e idx, char *par){
+    uint32_t val;
     if(par){
-        if(*par < '0' || *par > '9') return ERR_BADPAR;
-        uint8_t val = *par - '0';
+        if(par == getnum(par, &val)) return ERR_BADPAR;
         switch(idx){
-        case C_cpha:
-            if(val > 1) return ERR_BADPAR;
-            the_conf.flags.CPHA = val;
-            break;
-        case C_cpol:
-            if(val > 1) return ERR_BADPAR;
-            the_conf.flags.CPOL = val;
-            break;
+            case C_br:
+                if(val == 0 || val > 7) return ERR_BADPAR;
+                the_conf.flags.BR = val;
+                break;
+            case C_encbits:
+                if(val < ENCRESOL_MIN || val > ENCRESOL_MAX) return ERR_BADPAR; // don't support less than 8 of more than 32
+                the_conf.encbits = val;
+                break;
+            case C_encbufsz:
+                if(val < 8 || val > ENCODER_BUFSZ_MAX) return ERR_BADPAR;
+                the_conf.encbufsz = val;
+                break;
+            case C_minzeros:
+                if(val < MINZEROS_MIN || val > MINZEROS_MAX) return ERR_BADPAR;
+                the_conf.minzeros = val;
+                break;
+            case C_maxzeros:
+                if(val < MAXZEROS_MIN || val > MAXZEROS_MAX) return ERR_BADPAR;
+                the_conf.maxzeros = val;
+                break;
+            case C_amperiod:
+                if(val > 255 || val == 0) return ERR_BADPAR;
+                the_conf.monittime = val;
+                break;
+            default:
+                return ERR_BADCMD;
+        }
+    }
+    CMDWR(commands[idx].cmd);
+    USB_putbyte(I_CMD, '=');
+    switch(idx){
         case C_br:
-            if(val == 0 || val > 7) return ERR_BADPAR;
-            the_conf.flags.BR = val;
+            val = the_conf.flags.BR;
+            break;
+        case C_encbits:
+            val = the_conf.encbits;
+            break;
+        case C_encbufsz:
+            val = the_conf.encbufsz;
+            break;
+        case C_minzeros:
+            val = the_conf.minzeros;
+            break;
+        case C_maxzeros:
+            val = the_conf.maxzeros;
+            break;
+        case C_amperiod:
+            val = the_conf.monittime;
             break;
         default:
             return ERR_BADCMD;
-        }
     }
-    uint8_t val = 0;
-    switch(idx){
-    case C_cpha:
-        val = the_conf.flags.CPHA;
-        break;
-    case C_cpol:
-        val = the_conf.flags.CPOL;
-        break;
-    case C_br:
-        val = the_conf.flags.BR;
-        break;
-    default:
-        return ERR_BADCMD;
-    }
-    CMDWR(commands[idx].cmd);
-    USB_putbyte(I_CMD, '=');
-    USB_putbyte(I_CMD, '0' + val);
-    CMDn();
-    return ERR_SILENCE;
-}
-
-static errcode_e encbits(cmd_e idx, char *par){
-    if(par){
-        uint32_t N;
-        if(par == getnum(par, &N)) return ERR_BADPAR;
-        if(N < 26 || N > 32) return ERR_BADPAR; // don't support less than 26 of more than 32
-        the_conf.encbits = N;
-    }
-    CMDWR(commands[idx].cmd);
-    USB_putbyte(I_CMD, '=');
-    CMDWR(u2str(the_conf.encbits));
+    CMDWR(u2str(val));
     CMDn();
     return ERR_SILENCE;
 }
@@ -285,25 +296,43 @@ static errcode_e setboolpar(cmd_e idx, char *par){
         if(*par != '0' && *par != '1') return ERR_BADPAR;
         val = *par - '0';
         switch(idx){
+            case C_cpha:
+                the_conf.flags.CPHA = val;
+                break;
+            case C_cpol:
+                the_conf.flags.CPOL = val;
+                break;
             case C_testX:
                 user_pars.testx = val;
-            break;
+                if(val) spi_start_enc(0);
+                break;
             case C_testY:
                 user_pars.testy = val;
-            break;
+                if(val) spi_start_enc(1);
+                break;
+            case C_autom:
+                the_conf.flags.monit = val;
+                break;
             default:
                 return ERR_BADCMD;
         }
     }
     switch(idx){
+        case C_cpha:
+            val = the_conf.flags.CPHA;
+            break;
+        case C_cpol:
+            val = the_conf.flags.CPOL;
+            break;
         case C_testX:
             val = user_pars.testx;
-            if(val) spi_start_enc(0);
-        break;
+            break;
         case C_testY:
             val = user_pars.testy;
-            if(val) spi_start_enc(1);
-        break;
+            break;
+        case C_autom:
+            val = the_conf.flags.monit;
+            break;
         default:
             return ERR_BADCMD;
     }
@@ -320,10 +349,15 @@ static errcode_e dumpconf(cmd_e _U_ idx, char _U_ *par){
     CMDn();
     for(int i = 0; i < bTotNumEndpoints; ++i)
         setiface(C_setiface1 + i, NULL);
-    setflags(C_br, NULL);
-    setflags(C_cpha, NULL);
-    setflags(C_cpol, NULL);
-    encbits(C_encbits, NULL);
+    setboolpar(C_autom, NULL);
+    setuintpar(C_amperiod, NULL);
+    setuintpar(C_br, NULL);
+    setboolpar(C_cpha, NULL);
+    setboolpar(C_cpol, NULL);
+    setuintpar(C_encbits, NULL);
+    setuintpar(C_encbufsz, NULL);
+    setuintpar(C_maxzeros, NULL);
+    setuintpar(C_minzeros, NULL);
     return ERR_SILENCE;
 }
 
@@ -347,12 +381,17 @@ static const funcdescr_t commands[C_AMOUNT] = {
     [C_spistat] = {"spistat", spistat},
     [C_spiinit] = {"spiinit", spiinit},
     [C_spideinit] = {"spideinit", spideinit},
-    [C_cpol] = {"CPOL", setflags},
-    [C_cpha] = {"CPHA", setflags},
-    [C_br] = {"BR", setflags},
-    [C_encbits] = {"encbits", encbits},
+    [C_cpol] = {"CPOL", setboolpar},
+    [C_cpha] = {"CPHA", setboolpar},
+    [C_br] = {"BR", setuintpar},
+    [C_encbits] = {"encbits", setuintpar},
     [C_testX] = {"testx", setboolpar},
     [C_testY] = {"testy", setboolpar},
+    [C_encbufsz] = {"encbufsz", setuintpar},
+    [C_minzeros] = {"minzeros", setuintpar},
+    [C_maxzeros] = {"maxzeros", setuintpar},
+    [C_autom] = {"autom", setboolpar},
+    [C_amperiod] = {"amperiod", setuintpar},
 };
 
 typedef struct{
@@ -362,28 +401,33 @@ typedef struct{
 
 // SHOUL be sorted and grouped
 static const help_t helpmessages[] = {
-    {-1, "Configuration"},
-    {C_dumpconf, "dump current configuration"},
-    {C_erasestorage, "erase full storage or current page (=n)"},
-    {C_setiface1, "set name of first (command) interface"},
-    {C_setiface2, "set name of second (axis X) interface"},
-    {C_setiface3, "set name of third (axis Y) interface"},
-    {C_storeconf, "store configuration in flash memory"},
-    {-1, "Different commands"},
-    {C_dummy, "dummy integer setter/getter"},
-    {C_encstart, "start reading encoders"},
-    {C_encX, "read only X encoder"},
-    {C_encY, "read only Y encoder"},
+    {-1, "Base commands"},
+    {C_encstart, "read both encoders once"},
+    {C_encX, "read X encoder once"},
+    {C_encY, "read Y encoder once"},
     {C_help, "show this help"},
     {C_reset, "reset MCU"},
     {C_spideinit, "deinit SPI"},
     {C_spiinit, "init SPI"},
     {C_spistat, "get status of both SPI interfaces"},
-    {-1, "Debug"},
+    {-1, "Configuration"},
+    {C_autom, "turn on or off automonitoring"},
+    {C_amperiod, "period (ms) of monitoring, 1..255"},
     {C_br, "change SPI BR register (1 - 18MHz ... 7 - 281kHz)"},
     {C_cpha, "change CPHA value (0/1)"},
     {C_cpol, "change CPOL value (0/1)"},
-    {C_encbits, "set encoder data bits amount"},
+    {C_dumpconf, "dump current configuration"},
+    {C_encbits, "set encoder data bits amount (26/32)"},
+    {C_encbufsz, "change encoder auxiliary buffer size (8..32 bytes)"},
+    {C_erasestorage, "erase full storage or current page (=n)"},
+    {C_maxzeros, "maximal amount of zeros in preamble"},
+    {C_minzeros, "minimal amount of zeros in preamble"},
+    {C_setiface1, "set name of first (command) interface"},
+    {C_setiface2, "set name of second (axis X) interface"},
+    {C_setiface3, "set name of third (axis Y) interface"},
+    {C_storeconf, "store configuration in flash memory"},
+    {-1, "Debug commands"},
+    {C_dummy, "dummy integer setter/getter"},
     {C_fin, "reinit flash"},
     {C_sendX, "send text string to X encoder's terminal"},
     {C_sendY, "send text string to Y encoder's terminal"},

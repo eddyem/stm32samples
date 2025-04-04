@@ -20,6 +20,11 @@
 
 #include <stdint.h>
 
+#include "spi.h"
+#if ENCRESOL_MAX > 32
+#error "Change full code. Current don't support more than 32 bits of encoder resolution."
+#endif
+
 typedef struct {
     uint32_t data;              // 26/32/36-bit data
     uint8_t error : 1;          // error flag (0 - error: bad value or high temperature)
