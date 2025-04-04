@@ -5,7 +5,7 @@ This device works with two BISS-C encoders (resolution from 8 to 32 bit).
 
 If you want to test readout from device, run `./testDev /dev/encoder_X0` or `./testDev /dev/encoder_X0`.
 
-** Encoder cable pinout:
+## Encoder cable pinout:
 
 * 1 - NC or shield
 * 2 - CLK_A - positive of SSI clock out
@@ -18,7 +18,7 @@ If you want to test readout from device, run `./testDev /dev/encoder_X0` or `./t
 * 9 - Gnd - common ground
 
 
-** Device interfaces
+## Device interfaces
 
 After connection you will see device 0483:5740 with three CDC interfaces. Each interface
 have its own `iInterface` field, by default they are: 
@@ -35,7 +35,7 @@ will repeat each `amperiod` milliseconds. Also you always can ask for readout se
 data into encoder's interface or running commands `readenc`, `readX` or `readY` in command interface.
 
 
-** Protocol
+## Protocol
 
 The device have simple text protocol, each text string should be closed by '\n'.
 Base format is 'param [ = value]', where 'param' could be command to run some procedure
@@ -51,7 +51,7 @@ Answer for all getters is 'param=value'. Here are answers for setters and proced
 Some procedures (like 'help' or 'readenc') returns a lot of data after calling.
 
 
-*** Base commands on command interface
+### Base commands on command interface
 
 These are commands for directrly work with SPI interfaces:
 
@@ -65,7 +65,7 @@ These are commands for directrly work with SPI interfaces:
 * spistat - get status of both SPI interfaces
 
 
-*** Configuration commands
+### Configuration commands
 
 This set of commands allows to change current configuration (remember: each time SPI configuration changes
 you need to run `spiinit`) and store it into flash memory.
@@ -110,7 +110,7 @@ minzeros=4
 Empty field of `setifaceX` means default interface name.
 
 
-*** Debugging commands
+### Debugging commands
 
 Some of these commands could be usefull when you're trying to play with settings or want to measure maximal
 readout speed for encoders (when each reading starts immediately after parsing previous result).
