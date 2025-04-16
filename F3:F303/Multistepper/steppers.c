@@ -324,7 +324,6 @@ void addmicrostep(uint8_t i){
 // check state of i`th stepper
 static void chkstepper(int i){
     int32_t i32;
-    uint32_t u32;
     static uint8_t stopctr[MOTORSNO] = {0}; // counters for encoders/position zeroing after stopping @ esw
     // check DIAGN only for UART/SPI
     if(the_conf.motflags[i].drvtype == DRVTYPE_UART || the_conf.motflags[i].drvtype == DRVTYPE_SPI){
