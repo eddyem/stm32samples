@@ -22,7 +22,7 @@
 #include "proto.h"
 #include "spi.h"
 #include "strfunc.h"
-//#include "usart.h"
+#include "usart.h"
 #include "usb_dev.h"
 
 volatile uint32_t Tms = 0;
@@ -49,6 +49,7 @@ static void printResult(BiSS_Frame *result){
 
 static void proc_enc(uint8_t idx){
     static uint32_t lastMSG[2], gotgood[2], gotwrong[2];
+    static uint32_t lastXval = 0, usartT = 0;
     int iface = idx ? I_Y : I_X;
     char ifacechr = idx ? 'Y' : 'X';
     if(CDCready[iface]){
@@ -71,6 +72,13 @@ static void proc_enc(uint8_t idx){
     if(!encbuf) return;
     BiSS_Frame result = parse_biss_frame(encbuf, the_conf.encbufsz);
     char *str = result.crc_valid ? u2str(result.data) : NULL;
+    if(result.crc_valid){
+        if(idx == 0) lastXval = result.data;
+        else if(the_conf.send232_interval && Tms - usartT >= the_conf.send232_interval){
+            usart_send_enc(lastXval, result.data);
+            usartT = Tms;
+        }
+    }
     uint8_t testflag = (idx) ? user_pars.testy : user_pars.testx;
     if(CDCready[I_CMD]){
         if(testflag){
@@ -109,7 +117,7 @@ static void proc_enc(uint8_t idx){
 }
 
 int main(){
-    uint32_t lastT = 0;
+    uint32_t lastT = 0, usartT = 0;
     StartHSE();
     flashstorage_init();
     hw_setup();
@@ -119,11 +127,12 @@ int main(){
 #ifndef EBUG
     iwdg_setup();
 #endif
+    usart_setup();
     USBPU_ON();
     while (1){
         IWDG->KR = IWDG_REFRESH; // refresh watchdog
         if(Tms - lastT > 499){
-            LED_blink(LED0);
+            //LED_blink(LED0);
             lastT = Tms;
         }
         if(CDCready[I_CMD]){
@@ -133,10 +142,18 @@ int main(){
         }
         proc_enc(0);
         proc_enc(1);
+        int started[2] = {0, 0};
         if(the_conf.flags.monit){
             for(int i = 0; i < 2; ++i){
-                if(Tms - monitT[i] >= the_conf.monittime) spi_start_enc(i);
+                if(Tms - monitT[i] >= the_conf.monittime){
+                    spi_start_enc(i);
+                    started[i] = 1;
+                }
             }
+        }
+        if(the_conf.send232_interval && Tms - usartT >= the_conf.send232_interval){
+            for(int i = 0; i < 2; ++i) if(!started[i]) spi_start_enc(i);
+            usartT = Tms;
         }
     }
     return 0;

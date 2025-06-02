@@ -21,12 +21,10 @@
 
 #pragma once
 
+#include "stdint.h"
+
 #define UARTBUFSZ  (128)
 
-// macro for static strings
-#define USEND(str) usart_send(str)
-
-void usart_transmit();
+void usart_send(const uint8_t *buf, int buflen);
 void usart_setup();
-void usart_send(const char *str);
-void usart_putchar(const char ch);
+void usart_send_enc(uint32_t encX, uint32_t encY);

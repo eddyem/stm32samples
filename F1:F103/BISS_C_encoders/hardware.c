@@ -26,11 +26,11 @@ static inline void gpio_setup(){
 //    AFIO->MAPR = AFIO_MAPR_SWJ_CFG_DISABLE;
     AFIO->MAPR = AFIO_MAPR_SWJ_CFG_JTAGDISABLE; // for PA15
     // Set led as opendrain output
-    GPIOC->CRH |= CRH(13, CNF_ODOUTPUT|MODE_SLOW);
+    //GPIOC->CRH |= CRH(13, CNF_ODOUTPUT|MODE_SLOW);
     // SPI1 pins
     //GPIOA->CRL = CRL(5, CNF_AFPP|MODE_FAST) | CRL(6, CNF_FLINPUT);
-    // USB pullup (PA15) - pushpull output
-    GPIOA->CRH = CRH(15, CNF_PPOUTPUT|MODE_SLOW);
+    // USB pullup (PA10) - pushpull output
+    GPIOA->CRH = CRH(10, CNF_PPOUTPUT|MODE_SLOW);
     // SPI2 pins
     //GPIOB->CRH = CRH(13, CNF_AFPP|MODE_FAST) | CRH(14, CNF_FLINPUT);
 }

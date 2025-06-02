@@ -1,8 +1,8 @@
 BINARY      := encoders
 # MCU code
-MCU         ?= F103x8
+MCU         ?= F103xB
 # change this linking script depending on particular MCU model,
-LDSCRIPT    ?= stm32f103x8.ld
+LDSCRIPT    ?= stm32f103xB.ld
 DEFINES := -DSTM32F10X_MD
 
 include ../makefile.f1

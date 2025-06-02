@@ -22,6 +22,7 @@
 #include "proto.h"
 #include "spi.h"
 #include "strfunc.h"
+#include "usart.h"
 #include "usb_dev.h"
 #include "version.inc"
 
@@ -77,6 +78,8 @@ typedef enum{
     C_maxzeros,
     C_autom,
     C_amperiod,
+    C_usart,
+    C_ssii,
     C_AMOUNT
 } cmd_e;
 
@@ -257,6 +260,10 @@ static errcode_e setuintpar(cmd_e idx, char *par){
                 if(val > 255 || val == 0) return ERR_BADPAR;
                 the_conf.monittime = val;
                 break;
+            case C_ssii:
+                if(val > UINT16_MAX) return ERR_BADPAR;
+                the_conf.send232_interval = val;
+                break;
             default:
                 return ERR_BADCMD;
         }
@@ -281,6 +288,9 @@ static errcode_e setuintpar(cmd_e idx, char *par){
             break;
         case C_amperiod:
             val = the_conf.monittime;
+            break;
+        case C_ssii:
+            val = the_conf.send232_interval;
             break;
         default:
             return ERR_BADCMD;
@@ -358,7 +368,13 @@ static errcode_e dumpconf(cmd_e _U_ idx, char _U_ *par){
     setuintpar(C_encbufsz, NULL);
     setuintpar(C_maxzeros, NULL);
     setuintpar(C_minzeros, NULL);
+    setuintpar(C_ssii, NULL);
     return ERR_SILENCE;
+}
+
+static errcode_e usart(cmd_e _U_ idx, char _U_ *par){
+    usart_send_enc(0xdeadbeef, 0xbeefdead);
+    return ERR_OK;
 }
 
 // text commands
@@ -392,6 +408,8 @@ static const funcdescr_t commands[C_AMOUNT] = {
     [C_maxzeros] = {"maxzeros", setuintpar},
     [C_autom] = {"autom", setboolpar},
     [C_amperiod] = {"amperiod", setuintpar},
+    [C_usart] = {"usart", usart},
+    [C_ssii] = {"ssii", setuintpar},
 };
 
 typedef struct{
@@ -425,6 +443,7 @@ static const help_t helpmessages[] = {
     {C_setiface1, "set name of first (command) interface"},
     {C_setiface2, "set name of second (axis X) interface"},
     {C_setiface3, "set name of third (axis Y) interface"},
+    {C_ssii, "change interval (ms) of sending enc data to SSII (0 - don't send)"},
     {C_storeconf, "store configuration in flash memory"},
     {-1, "Debug commands"},
     {C_dummy, "dummy integer setter/getter"},
@@ -433,11 +452,18 @@ static const help_t helpmessages[] = {
     {C_sendY, "send text string to Y encoder's terminal"},
     {C_testX, "test X-axis throughput"},
     {C_testY, "test Y-axis throughput"},
+    {C_usart, "send test encoders data over usart"},
     {-1, NULL},
 };
 
 static errcode_e help(_U_ cmd_e idx, _U_ char*  par){
-    CMDWRn("https://github.com/eddyem/stm32samples/tree/master/F1:F103/BISS_C_encoders build #" BUILD_NUMBER " @ " BUILD_DATE);
+    CMDWRn("https://github.com/eddyem/stm32samples/tree/master/F1:F103/BISS_C_encoders "
+#ifdef EBUG
+            "debug "
+#else
+            "release "
+#endif
+           "build #" BUILD_NUMBER " @ " BUILD_DATE);
     CMDWRn("\ncommands format: 'command[=setter]\\n'");
     const help_t *c = helpmessages;
     while(c->help){

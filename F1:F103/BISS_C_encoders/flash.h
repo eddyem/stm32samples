@@ -45,6 +45,7 @@ typedef struct{
  */
 typedef struct __attribute__((packed, aligned(4))){
     uint16_t userconf_sz;       // "magick number"
+    uint16_t send232_interval;  // interval (ms) of sending data to SSII over RS-232 (or 0 - not to send)
     uint16_t iInterface[bTotNumEndpoints][MAX_IINTERFACE_SZ]; // hryunikod!
     uint8_t iIlengths[bTotNumEndpoints];
     uint8_t encbits;    // encoder bits: 26 or 32
