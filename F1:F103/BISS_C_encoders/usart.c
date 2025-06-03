@@ -50,18 +50,22 @@ typedef struct __attribute__((packed)){
     uint8_t crc[4];
 } enc_t;
 
+//#include "usb_dev.h"
+//#include "strfunc.h"
 void usart_send_enc(uint32_t encX, uint32_t encY){
     enc_t edata;
     uint8_t *databuf = (uint8_t*) &edata;
+    edata.encX = encX;
+    edata.encY = encY;
     uint32_t POS_SUM = 0;
     for(int i = 1; i < 9; ++i) POS_SUM += databuf[i];
+//    DBG("POSSUM:"); DBGs(uhex2str(POS_SUM));
     edata.crc[0] = POS_SUM >> 8;
     edata.crc[1] = ((0xFFFF - POS_SUM) & 0xFF) - edata.crc[0];
     edata.crc[2] = (0xFFFF - POS_SUM) >> 8;
     edata.crc[3] = 0;
     edata.magick = ENC_MAGICK;
-    edata.encX = encX;
-    edata.encY = encY;
+//    DBG("CRC:"); DBGs(uhex2str(*(uint32_t*)edata.crc));
     usart_send(databuf, sizeof(enc_t));
 }
 
