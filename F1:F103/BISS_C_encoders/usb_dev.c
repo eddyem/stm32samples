@@ -19,6 +19,7 @@
 #include <string.h>
 
 #include "ringbuffer.h"
+#include "strfunc.h" // for cmd interface
 #include "usb_descr.h"
 #include "usb_dev.h"
 
@@ -41,6 +42,8 @@
 #define DBG(x)
 #undef DBGs
 #define DBGs(x)
+
+extern volatile uint32_t Tms;
 
 // inbuf overflow when receiving
 static volatile uint8_t bufovrfl[bTotNumEndpoints] = {0};
@@ -110,7 +113,7 @@ static void rxtx_handler(){
     DBG("rxtx_handler");
     DBGs(uhex2str(ifno));
     if(ifno > bTotNumEndpoints-1){
-        DBG("wront ifno");
+        DBG("wrong ifno");
         return;
     }
     uint16_t epstatus = KEEP_DTOG(USB->EPnR[1+ifno]);
@@ -138,6 +141,8 @@ void WEAK linecoding_handler(uint8_t ifno, usb_LineCoding *lc){
     lineCoding[ifno] = *lc;
     DBG("linecoding_handler");
     DBGs(uhex2str(ifno));
+    CMDWR("Interface "); CMDWR(u2str(ifno));
+    CMDWR(" got linecoding with speed "); CMDWRn(u2str(lc->dwDTERate));
 }
 
 // SET_CONTROL_LINE_STATE
@@ -147,6 +152,9 @@ void WEAK clstate_handler(uint8_t ifno, uint16_t val){
     DBGs(uhex2str(val));
     CDCready[ifno] = val; // CONTROL_DTR | CONTROL_RTS -> interface connected; 0 -> disconnected
     lastdsz[ifno] = -1;
+    if(val == 0) CMDWR("dis");
+    CMDWR("connected interface ");
+    CMDWRn(u2str(ifno));
 }
 
 // SEND_BREAK
@@ -155,6 +163,8 @@ void WEAK break_handler(uint8_t ifno){
     lastdsz[ifno] = -1;
     DBG("break_handler()");
     DBGs(uhex2str(ifno));
+    CMDWR("Disconnected interface ");
+    CMDWRn(u2str(ifno));
 }
 
 
@@ -172,13 +182,13 @@ void set_configuration(){
     }
 }
 
-// PL2303 CLASS request
+// USB CDC CLASS request
 void usb_class_request(config_pack_t *req, uint8_t *data, uint16_t datalen){
     uint8_t recipient = REQUEST_RECIPIENT(req->bmRequestType);
     uint8_t dev2host = (req->bmRequestType & 0x80) ? 1 : 0;
     uint8_t ifno = req->wIndex >> 1;
     if(ifno > bTotNumEndpoints-1 && ifno != 0xff){
-        DBG("wront ifno");
+        DBG("wrong ifno");
         return;
     }
     DBG("usb_class_request");
@@ -222,7 +232,12 @@ void usb_class_request(config_pack_t *req, uint8_t *data, uint16_t datalen){
 
 // blocking send full content of ring buffer
 int USB_sendall(uint8_t ifno){
+    uint32_t T0 = Tms;
     while(lastdsz[ifno] > 0){
+        if(Tms - T0 > DISCONN_TMOUT){
+            break_handler(ifno);
+            return FALSE;
+        }
         if(!CDCready[ifno]) return FALSE;
         IWDG->KR = IWDG_REFRESH;
     }
