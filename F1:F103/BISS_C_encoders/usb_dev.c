@@ -38,6 +38,8 @@
 #define CONTROL_DTR                     0x01
 #define CONTROL_RTS                     0x02
 
+// It's good to use debug here ONLY to debug into USART!
+// never try to debug USB into USB!!!
 #undef DBG
 #define DBG(x)
 #undef DBGs
@@ -141,8 +143,17 @@ void WEAK linecoding_handler(uint8_t ifno, usb_LineCoding *lc){
     lineCoding[ifno] = *lc;
     DBG("linecoding_handler");
     DBGs(uhex2str(ifno));
-    CMDWR("Interface "); CMDWR(u2str(ifno));
-    CMDWR(" got linecoding with speed "); CMDWRn(u2str(lc->dwDTERate));
+}
+
+static void clearbufs(uint8_t ifno){
+    uint32_t T0 = Tms;
+    while(Tms - T0 < 10){ // wait no more than 10ms
+        if(1 == RB_clearbuf((ringbuffer*)&rbin[ifno])) break;
+    }
+    T0 = Tms;
+    while(Tms - T0 < 10){
+        if(1 == RB_clearbuf((ringbuffer*)&rbout[ifno])) break;
+    }
 }
 
 // SET_CONTROL_LINE_STATE
@@ -152,19 +163,14 @@ void WEAK clstate_handler(uint8_t ifno, uint16_t val){
     DBGs(uhex2str(val));
     CDCready[ifno] = val; // CONTROL_DTR | CONTROL_RTS -> interface connected; 0 -> disconnected
     lastdsz[ifno] = -1;
-    if(val == 0) CMDWR("dis");
-    CMDWR("connected interface ");
-    CMDWRn(u2str(ifno));
+    if(val) clearbufs(ifno);
 }
 
-// SEND_BREAK
+// SEND_BREAK - disconnect interface and clear its buffers
 void WEAK break_handler(uint8_t ifno){
     CDCready[ifno] = 0;
-    lastdsz[ifno] = -1;
     DBG("break_handler()");
     DBGs(uhex2str(ifno));
-    CMDWR("Disconnected interface ");
-    CMDWRn(u2str(ifno));
 }
 
 
@@ -297,7 +303,7 @@ int USB_receive(uint8_t ifno, uint8_t *buf, int len){
     if(bufovrfl[ifno]){
         DBG("Buffer overflow");
         DBGs(uhex2str(ifno));
-        while(1 != RB_clearbuf((ringbuffer*)&rbin[ifno]));
+        while(1 != RB_clearbuf((ringbuffer*)&rbin[ifno])); // run watchdog in case of problems
         bufovrfl[ifno] = 0;
         return -1;
     }

@@ -80,6 +80,7 @@ typedef enum{
     C_amperiod,
     C_usart,
     C_ssii,
+    C_debug,
     C_AMOUNT
 } cmd_e;
 
@@ -268,8 +269,6 @@ static errcode_e setuintpar(cmd_e idx, char *par){
                 return ERR_BADCMD;
         }
     }
-    CMDWR(commands[idx].cmd);
-    USB_putbyte(I_CMD, '=');
     switch(idx){
         case C_br:
             val = the_conf.flags.BR;
@@ -295,6 +294,8 @@ static errcode_e setuintpar(cmd_e idx, char *par){
         default:
             return ERR_BADCMD;
     }
+    CMDWR(commands[idx].cmd);
+    USB_putbyte(I_CMD, '=');
     CMDWR(u2str(val));
     CMDn();
     return ERR_SILENCE;
@@ -323,6 +324,9 @@ static errcode_e setboolpar(cmd_e idx, char *par){
             case C_autom:
                 the_conf.flags.monit = val;
                 break;
+            case C_debug:
+                the_conf.flags.debug = val;
+                break;
             default:
                 return ERR_BADCMD;
         }
@@ -342,6 +346,9 @@ static errcode_e setboolpar(cmd_e idx, char *par){
             break;
         case C_autom:
             val = the_conf.flags.monit;
+            break;
+        case C_debug:
+            val = the_conf.flags.debug;
             break;
         default:
             return ERR_BADCMD;
@@ -364,6 +371,7 @@ static errcode_e dumpconf(cmd_e _U_ idx, char _U_ *par){
     setuintpar(C_br, NULL);
     setboolpar(C_cpha, NULL);
     setboolpar(C_cpol, NULL);
+    setboolpar(C_debug, NULL);
     setuintpar(C_encbits, NULL);
     setuintpar(C_encbufsz, NULL);
     setuintpar(C_maxzeros, NULL);
@@ -410,6 +418,7 @@ static const funcdescr_t commands[C_AMOUNT] = {
     [C_amperiod] = {"amperiod", setuintpar},
     [C_usart] = {"usart", usart},
     [C_ssii] = {"ssii", setuintpar},
+    [C_debug] = {"debug", setboolpar},
 };
 
 typedef struct{
@@ -434,6 +443,7 @@ static const help_t helpmessages[] = {
     {C_br, "change SPI BR register (1 - 18MHz ... 7 - 281kHz)"},
     {C_cpha, "change CPHA value (0/1)"},
     {C_cpol, "change CPOL value (0/1)"},
+    {C_debug, "turn on debugging output of read encoders' values"},
     {C_dumpconf, "dump current configuration"},
     {C_encbits, "set encoder data bits amount (26/32)"},
     {C_encbufsz, "change encoder auxiliary buffer size (8..32 bytes)"},
@@ -486,6 +496,7 @@ static errcode_e help(_U_ cmd_e idx, _U_ char*  par){
 void parse_cmd(char *cmd){
     errcode_e ecode = ERR_BADCMD;
     // command and its parameter
+CMDWRn(cmd);
     char *cmdstart = omit_spaces(cmd), *parstart = NULL;
     if(!cmdstart) goto retn;
     char *ptr = cmdstart;
@@ -506,5 +517,9 @@ void parse_cmd(char *cmd){
     if(idx >= C_AMOUNT) goto retn; // not found
     ecode = commands[idx].handler(idx, parstart);
 retn:
-    if(ecode != ERR_SILENCE) CMDWRn(errors[ecode]);
+    if(ecode == ERR_BADCMD){
+        CMDWR(cmd);
+        USB_putbyte(I_CMD, '=');
+        CMDWRn(errors[ERR_BADCMD]);
+    } else if(ecode != ERR_SILENCE) CMDWRn(errors[ecode]);
 }

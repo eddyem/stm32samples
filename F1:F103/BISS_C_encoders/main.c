@@ -54,7 +54,7 @@ static void proc_enc(uint8_t idx){
     char ifacechr = idx ? 'Y' : 'X';
     if(CDCready[iface]){
         int l = USB_receivestr(iface, inbuff, RBINSZ);
-        if(CDCready[I_CMD]){
+        if(CDCready[I_CMD] && the_conf.flags.debug){
             if(l){
                 CMDWR("Enc"); USB_putbyte(I_CMD, ifacechr);
                 CMDWR(": ");
@@ -96,7 +96,7 @@ static void proc_enc(uint8_t idx){
                 if(str) ++gotgood[idx];
                 else ++gotwrong[idx];
             }
-        }else if(!the_conf.flags.monit){
+        }else if(!the_conf.flags.monit && the_conf.flags.debug){
             printResult(&result);
             CMDWR("ENC"); USB_putbyte(I_CMD, ifacechr);
             USB_putbyte(I_CMD, '=');
@@ -118,6 +118,7 @@ static void proc_enc(uint8_t idx){
 
 int main(){
     uint32_t lastT = 0, usartT = 0;
+    uint8_t oldCDCready[bTotNumEndpoints] = {0};
     StartHSE();
     flashstorage_init();
     hw_setup();
@@ -139,6 +140,18 @@ int main(){
             int l = USB_receivestr(I_CMD, inbuff, RBINSZ);
             if(l < 0) CMDWRn("ERROR: CMD USB buffer overflow or string was too long");
             else if(l) parse_cmd(inbuff);
+            // check if interface connected/disconnected
+            // (we CAN'T do much debug output in interrupt functions like linecoding_handler etc, so do it here)
+            for(int i = 0; i < bTotNumEndpoints; ++i){
+                if(oldCDCready[i] != CDCready[i]){
+                    CMDWR("Interface ");
+                    CMDWR(u2str(i));
+                    USB_putbyte(I_CMD, ' ');
+                    if(CDCready[i] == 0) CMDWR("dis");
+                    CMDWRn("connected");
+                    oldCDCready[i] = CDCready[i];
+                }
+            }
         }
         proc_enc(0);
         proc_enc(1);

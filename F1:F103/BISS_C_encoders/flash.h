@@ -38,6 +38,7 @@ typedef struct{
     uint8_t CPHA : 1;
     uint8_t BR   : 3;
     uint8_t monit: 1; // auto monitoring of encoder each `monittime` milliseconds
+    uint8_t debug: 1; // debug output of read data
 } flags_t;
 
 /*
