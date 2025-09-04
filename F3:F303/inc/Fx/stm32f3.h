@@ -23,7 +23,9 @@
 #define __STM32F3_H__
 
 #include "vector.h"
-#if defined STM32F303xb || defined STM32F303xc
+#if defined STM32F303x8
+#include "stm32f303x8.h"
+#elif defined STM32F303xb || defined STM32F303xc
 #include "stm32f303xc.h"
 #elif defined STM32F302xb || defined STM32F302xc
 #include "stm32f302xc.h"
