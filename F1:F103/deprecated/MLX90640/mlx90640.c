@@ -367,9 +367,9 @@ SEND("\n070a="); printuhex(IMD_VAL(REG_IGAIN)); newline();
                 Tar = Tar*Tar*Tar*Tar;
                 float ac3 = alphaComp*alphaComp*alphaComp;
                 float Sx = ac3*IRcompens + alphaComp*ac3*Tar;
-                Sx = params.KsTa * sqrt(sqrt(Sx));
+                Sx = params.KsTa * sqrtf(sqrtf(Sx));
                 float To = IRcompens / (alphaComp * (1.f - params.ksTo[1]) + Sx) + Tar;
-                curval = sqrt(sqrt(To)) - 273.15; // To
+                curval = sqrtf(sqrtf(To)) - 273.15; // To
                 // TODO: extended
             }
             mlx_image[pixno] = curval;
