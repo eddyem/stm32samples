@@ -123,6 +123,8 @@ TRUE_INLINE int StartHSE(){ // system bus 72MHz from PLL
     WAITWHILE(!(RCC->CR & RCC_CR_PLLRDY));
     // Select PLL as system clock source
     RCC->CFGR = (RCC->CFGR & ~RCC_CFGR_SW) | RCC_CFGR_SW_PLL;
+    // select system clock as I2C source
+    RCC->CFGR3 |= RCC_CFGR3_I2C1SW_SYSCLK | RCC_CFGR3_I2C1SW_SYSCLK;
     // Wait till PLL is used as system clock source
     WAITWHILE((RCC->CFGR & RCC_CFGR_SWS) != RCC_CFGR_SWS_PLL);
     SysFreq = 72000000;

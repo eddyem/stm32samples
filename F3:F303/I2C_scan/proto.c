@@ -46,19 +46,19 @@ const char *helpstring =
 static uint8_t i2cinited = 0;
 TRUE_INLINE const char *setupI2C(const char *buf){
     buf = omit_spaces(buf);
-    if(*buf < '0' || *buf > '2') return "Wrong speed";
+    if(*buf < '0' || *buf > '2') return "Wrong speed\n";
     i2c_setup(*buf - '0');
     i2cinited = 1;
-    return "OK";
+    return "OK\n";
 }
 
 static uint8_t I2Caddress = 0;
 TRUE_INLINE const char *saI2C(const char *buf){
     uint32_t addr;
-    if(!getnum(buf, &addr) || addr > 0x7f) return "Wrong address";
+    if(!getnum(buf, &addr) || addr > 0x7f) return "Wrong address\n";
     I2Caddress = (uint8_t) addr << 1;
     USND("I2Caddr="); USND(uhex2str(addr)); newline();
-    return "OK";
+    return "OK\n";
 }
 static void rdI2C(const char *buf, int is16){
     uint32_t N = 0;
@@ -111,7 +111,7 @@ static void rdI2C(const char *buf, int is16){
             }
         }
     }
-    if(N == 0){ USND("OK"); return; }
+    if(N == 0){ USND("OK\n"); return; }
     if(!noreg){USND("Register "); USND(uhex2str(reg)); USND(":\n");}
     hexdump(USB_sendstr, locBuffer, N);
 }
@@ -132,8 +132,8 @@ static const char *wrI2C(const char *buf, int isdma){
     uint16_t N = readNnumbers(buf);
     int result = isdma ? write_i2c_dma(I2Caddress, locBuffer, N) :
                          write_i2c(I2Caddress, locBuffer, N);
-    if(!result) return "Error writing I2C";
-    return "OK";
+    if(!result) return "Error writing I2C\n";
+    return "OK\n";
 }
 
 const char *parse_cmd(const char *buf){

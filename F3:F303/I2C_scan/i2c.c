@@ -64,15 +64,21 @@ void i2c_setup(I2C_SPEED speed){
     GPIOB->PUPDR = (GPIOB->PUPDR & !(GPIO_PUPDR_PUPDR6 | GPIO_PUPDR_PUPDR7)) |
             GPIO_PUPDR6_PU | GPIO_PUPDR7_PU; // pullup (what if there's no external pullup?)
     GPIOB->OTYPER |= GPIO_OTYPER_OT_6 | GPIO_OTYPER_OT_7; // both open-drain outputs
-    // I2C (default timing from PCLK - 64MHz)
+    // I2C (default timing from sys clock - 72MHz)
     RCC->APB1ENR |= RCC_APB1ENR_I2C1EN; // clocking
-    if(speed == LOW_SPEED){ // 10kHz
-        // PRESC=F, SCLDEL=4, SDADEL=2, SCLH=0xC3, SCLL=0xC7
-        I2C1->TIMINGR = (0xF<<28) | (4<<20) | (2<<16) | (0xC3<<8) | (0xC7);
-    }else if(speed == HIGH_SPEED){ // 100kHz
-        I2C1->TIMINGR = (0xF<<28) | (4<<20) | (2<<16) | (0xF<<8) | (0x13);
-    }else{ // VERYLOW_SPEED - the lowest speed by STM register: ~7.7kHz
-        I2C1->TIMINGR = (0xF<<28) | (4<<20) | (2<<16) | (0xff<<8) | (0xff);
+    if(speed == HIGH_SPEED){
+        // activate "fast mode plus"
+        SYSCFG->CFGR1 |= SYSCFG_CFGR1_I2C1_FMP | SYSCFG_CFGR1_I2C_PB6_FMP | SYSCFG_CFGR1_I2C_PB7_FMP;
+    }else{
+        SYSCFG->CFGR1 &= ~(SYSCFG_CFGR1_I2C1_FMP | SYSCFG_CFGR1_I2C_PB6_FMP | SYSCFG_CFGR1_I2C_PB7_FMP);
+    }
+    if(speed == LOW_SPEED){ // 100kHz
+        I2C1->TIMINGR = (0xf<<28) | (0x04<<20) | (0x03<<16) | (0x12<<8) | (0x15);
+        //                 PRESC      SCLDEL        SDADEL        SCLH      SCLL
+    }else if(speed == HIGH_SPEED){ // 400kHz
+        I2C1->TIMINGR = (0x06<<28) | (0x04<<20) | (0x03<<16) | (0x06<<8) | (0x08);
+    }else{ // VERYLOW_SPEED - 10kHz
+        I2C1->TIMINGR = (0xf<<28) | (0x04<<20) | (0x03<<16) | (0xc3<<8) | (0xc7);
     }
     I2C1->CR1 = I2CCR1;
     RCC->AHBENR |= RCC_AHBENR_DMA1EN;
@@ -97,31 +103,37 @@ static void i2cDMAsetup(int tx, uint8_t len){
     }
 }
 
-static uint8_t i2c_start(uint8_t busychk){
+static uint8_t i2c_chk(uint8_t busychk){
+    I2C1->CR2 = 0;
     if(busychk){
         cntr = Tms;
         while(I2C1->ISR & I2C_ISR_BUSY){
             IWDG->KR = IWDG_REFRESH;
             if(Tms - cntr > I2C_TIMEOUT){
-                USND("Line busy\n");
+                USND("i2c_chk: Line busy\n");
                 return 0;  // check busy
         }}
-    }
+    }/*
     cntr = Tms;
     while(I2C1->CR2 & I2C_CR2_START){
         IWDG->KR = IWDG_REFRESH;
         if(Tms - cntr > I2C_TIMEOUT){
-            USND("No start\n");
+            USND("i2c_chk: No start\n");
             return 0; // check start
-    }}
+    }}*/
     return 1;
 }
 
 // start writing
 static uint8_t i2c_startw(uint8_t addr, uint8_t nbytes, uint8_t stop){
-    if(!i2c_start(1)) return 0;
+    if(!i2c_chk(1)) return 0;
     I2C1->CR2 = nbytes << 16 | addr;
-    if(stop) I2C1->CR2 |= I2C_CR2_AUTOEND; // autoend
+    if(stop){
+        I2C1->CR2 |= I2C_CR2_AUTOEND; // autoend
+    }else{
+        //I2C1->CR2 &= ~I2C_CR2_AUTOEND;
+        //I2C1->CR2 |= I2C_CR2_RELOAD;
+    }
     // now start transfer
     I2C1->CR2 |= I2C_CR2_START;
     return 1;
@@ -143,21 +155,31 @@ static uint8_t write_i2cs(uint8_t addr, uint8_t *data, uint8_t nbytes, uint8_t s
             IWDG->KR = IWDG_REFRESH;
             if(I2C1->ISR & I2C_ISR_NACKF){
                 I2C1->ICR |= I2C_ICR_NACKCF;
-                //USND("NAK\n");
+                USND("write_i2cs: NAK\n");
                 return 0;
             }
             if(Tms - cntr > I2C_TIMEOUT){
-                //USND("Timeout\n");
+                USND("write_i2cs: Timeout\n");
                 return 0;
             }
         }
         I2C1->TXDR = data[i]; // send data
+        USND("write_i2cs: "); USND(uhex2str(data[i])); newline();
     }
     cntr = Tms;
-    // wait for data gone
-    while(I2C1->ISR & I2C_ISR_BUSY){
-        IWDG->KR = IWDG_REFRESH;
-        if(Tms - cntr > I2C_TIMEOUT){break;}
+    if(stop){
+        while(I2C1->ISR & I2C_ISR_BUSY){
+            IWDG->KR = IWDG_REFRESH;
+            if(Tms - cntr > I2C_TIMEOUT){USND("write_i2cs: Busy timeout\n"); break;}
+        }
+    }else{ // repeated start
+        while(!(I2C1->ISR & I2C_ISR_TC)){
+            IWDG->KR = IWDG_REFRESH;
+            if(Tms - cntr > I2C_TIMEOUT){
+                USND("write_i2cs: TC timeout\n");
+                return 0;
+            }
+        }
     }
     return 1;
 }
@@ -181,10 +203,11 @@ uint8_t write_i2c_dma(uint8_t addr, uint8_t *data, uint8_t nbytes){
 
 // start reading
 static uint8_t i2c_startr(uint8_t addr, uint8_t nbytes, uint8_t busychk){
-    if(!i2c_start(busychk)) return 0;
+    if(!i2c_chk(busychk)) return 0;
     // read N bytes
-    I2C1->CR2 = (nbytes<<16) | addr | 1 | I2C_CR2_AUTOEND | I2C_CR2_RD_WRN;
+    I2C1->CR2 = (nbytes<<16) | addr /*| I2C_CR2_AUTOEND*/ | I2C_CR2_RD_WRN;
     I2C1->CR2 |= I2C_CR2_START;
+    I2C1->CR2 |= I2C_CR2_AUTOEND;
     return 1;
 }
 
@@ -203,18 +226,27 @@ static uint8_t read_i2cb(uint8_t addr, uint8_t *data, uint8_t nbytes, uint8_t bu
             IWDG->KR = IWDG_REFRESH;
             if(I2C1->ISR & I2C_ISR_NACKF){
                 I2C1->ICR |= I2C_ICR_NACKCF;
-                //USND("NAK\n");
+                USND("read_i2_nostart: NAK\n");
                 return 0;
             }
             if(Tms - cntr > I2C_TIMEOUT){
-                //USND("Timeout\n");
+                USND("read_i2_nostart: Timeout\n");
                 return 0;
             }
         }
         *data++ = I2C1->RXDR;
+    }/*
+    cntr = Tms;
+    while(!(I2C1->ISR & I2C_ISR_TC)){
+        IWDG->KR = IWDG_REFRESH;
+        if(Tms - cntr > I2C_TIMEOUT){
+            USND("read_i2cs: TC timeout\n");
+            return 0;
+        }
     }
+    I2C1->CR2 = I2C_CR2_STOP;*/
     return 1;
- }
+}
 
 uint8_t read_i2c(uint8_t addr, uint8_t *data, uint8_t nbytes){
     if(isI2Cbusy()) return 0;
@@ -243,6 +275,7 @@ uint8_t read_i2c_reg(uint8_t addr, uint8_t reg, uint8_t *data, uint8_t nbytes){
 // read 16bit register reg
 uint8_t read_i2c_reg16(uint8_t addr, uint16_t reg16, uint8_t *data, uint8_t nbytes){
     if(isI2Cbusy()) return 0;
+    reg16 = __REV16(reg16);
     if(!write_i2cs(addr, (uint8_t*)&reg16, 2, 0)) return 0;
     return read_i2cb(addr, data, nbytes, 0);
 }
