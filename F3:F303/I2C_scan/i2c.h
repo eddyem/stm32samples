@@ -19,32 +19,36 @@
 #pragma once
 #include <stdint.h>
 
-#define I2C_ADDREND  (0x80)
+#define I2C_ADDREND     (0x80)
+#define I2C_BUFSIZE     (256)
 
 typedef enum{
-    VERYLOW_SPEED,
-    LOW_SPEED,
-    HIGH_SPEED,
-    CURRENT_SPEED
-} I2C_SPEED;
+    I2C_SPEED_10K,
+    I2C_SPEED_100K,
+    I2C_SPEED_400K,
+    I2C_SPEED_1M,
+    I2C_SPEED_2M, // EXPERIMENTAL! Could be unstable!!!  (speed near 1.9Mbaud)
+    I2C_SPEED_AMOUNT
+} i2c_speed_t;
 
-extern I2C_SPEED curI2Cspeed;
-extern volatile uint8_t I2C_scan_mode;
+extern i2c_speed_t i2c_curspeed;
+extern volatile uint8_t i2c_scanmode, i2c_got_DMA;
 
 // timeout of I2C bus in ms
 #define I2C_TIMEOUT             (100)
 
-void i2c_setup(I2C_SPEED speed);
-uint8_t read_i2c(uint8_t addr, uint8_t *data, uint8_t nbytes);
-uint8_t read_i2c_reg(uint8_t addr, uint8_t reg, uint8_t *data, uint8_t nbytes);
-uint8_t read_i2c_reg16(uint8_t addr, uint16_t reg16, uint8_t *data, uint8_t nbytes);
+void i2c_setup(i2c_speed_t speed);
+uint8_t *read_i2c(uint8_t addr, uint8_t nbytes);
+uint8_t *read_i2c_reg(uint8_t addr, uint8_t reg, uint8_t nbytes);
+uint16_t *read_i2c_reg16(uint8_t addr, uint16_t reg16, uint8_t nbytes);
 uint8_t write_i2c(uint8_t addr, uint8_t *data, uint8_t nbytes);
 uint8_t write_i2c_dma(uint8_t addr, uint8_t *data, uint8_t nbytes);
 uint8_t read_i2c_dma(uint8_t addr, uint8_t nbytes);
 
 void i2c_bufdudump();
-void i2c_have_DMA_Rx();
 int i2cdma_haderr();
+void endianness(uint8_t isbig);
+int i2c_getwords(uint16_t *buf, int bufsz);
 
 void i2c_init_scan_mode();
 int i2c_scan_next_addr(uint8_t *addr);

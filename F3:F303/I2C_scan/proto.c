@@ -28,37 +28,49 @@
 static uint8_t locBuffer[LOCBUFFSZ];
 extern volatile uint32_t Tms;
 
-const char *helpstring =
+static const char *OK = "OK\n";
+static const char *helpstring =
         "https://github.com/eddyem/stm32samples/tree/master/F3:F303/I2C_scan build#" BUILD_NUMBER " @ " BUILD_DATE "\n"
-        "i0..2 - setup I2C with lowest..highest speed (7.7, 10 and 100kHz)\n"
+        "i0..3 - setup I2C with speed 10k, 100k, 400k, 1M or 2M (experimental!)\n"
+        "B - switch to big-endian format for 16-bit registers\n"
         "Ia addr - set I2C address\n"
         "Ig - dump content of I2Cbuf\n"
         "Iw bytes - send bytes (hex/dec/oct/bin) to I2C\n"
         "IW bytes - the same over DMA\n"
         "Ir reg n - read n bytes from I2C reg\n"
-        "I2 reg16 n - read n bytes from 16-bit register\n"
+        "I2 reg16 n - read n words from 16-bit register\n"
         "In n - just read n bytes\n"
         "IN n - the same but with DMA\n"
         "Is - scan I2C bus\n"
+        "L - switch to little-endian (default) format for 16-bit registers\n"
         "T - print current Tms\n"
 ;
 
-static uint8_t i2cinited = 0;
 TRUE_INLINE const char *setupI2C(const char *buf){
+    if(!buf || !*buf){
+        USND("Current speed: "); USB_putbyte('0' + i2c_curspeed); newline();
+        return NULL;
+    }
     buf = omit_spaces(buf);
-    if(*buf < '0' || *buf > '2') return "Wrong speed\n";
-    i2c_setup(*buf - '0');
-    i2cinited = 1;
-    return "OK\n";
+    int speed = *buf - '0';
+    if(speed < 0 || speed >= I2C_SPEED_AMOUNT){
+        return "Wrong speed!\n";
+    }
+    i2c_setup((i2c_speed_t)speed);
+    return OK;
 }
 
 static uint8_t I2Caddress = 0;
 TRUE_INLINE const char *saI2C(const char *buf){
     uint32_t addr;
-    if(!getnum(buf, &addr) || addr > 0x7f) return "Wrong address\n";
-    I2Caddress = (uint8_t) addr << 1;
+    USND("saI2C: '"); USND(buf); USND("'\n");
+    const char *nxt = getnum(buf, &addr);
+    if(nxt && nxt != buf){
+        if(addr > 0x7f) return "Wrong address\n";
+        I2Caddress = (uint8_t) addr << 1;
+    }else addr = I2Caddress >> 1;
     USND("I2Caddr="); USND(uhex2str(addr)); newline();
-    return "OK\n";
+    return OK;
 }
 static void rdI2C(const char *buf, int is16){
     uint32_t N = 0;
@@ -85,35 +97,41 @@ static void rdI2C(const char *buf, int is16){
         return;
     }
     const char *erd = "Error reading I2C\n";
+    uint8_t *b8 = NULL; uint16_t *b16 = NULL;
     if(noreg){ // don't write register
         if(noreg == 1){
             USND("Simple read:\n");
-            if(!read_i2c(I2Caddress, locBuffer, N)){
+            if(!(b8 = read_i2c(I2Caddress, N))){
                 USND(erd);
                 return;
             }
         }else{
             USND("Try to read using DMA .. ");
             if(!read_i2c_dma(I2Caddress, N)) USND(erd);
-            else USND("OK\n");
+            else USND(OK);
             return;
         }
     }else{
         if(is16){
-            if(!read_i2c_reg16(I2Caddress, reg, locBuffer, N)){
+            if(!(b16 = read_i2c_reg16(I2Caddress, reg, N))){
                 USND(erd);
                 return;
             }
         }else{
-            if(!read_i2c_reg(I2Caddress, reg, locBuffer, N)){
+            if(!(b8 = read_i2c_reg(I2Caddress, reg, N))){
                 USND(erd);
                 return;
             }
         }
     }
-    if(N == 0){ USND("OK\n"); return; }
+    if(N == 0){ USND(OK); return; }
     if(!noreg){USND("Register "); USND(uhex2str(reg)); USND(":\n");}
-    hexdump(USB_sendstr, locBuffer, N);
+    if(!is16){ hexdump(USB_sendstr, b8, N); return; }
+    for(int i = 0; i < (int)N; ++i){
+        USND(uhex2str(b16[i])); USB_putbyte(' ');
+        if((i & 7) == 7) newline();
+    }
+    if(N & 7) newline();
 }
 // read N numbers from buf, @return 0 if wrong or none
 TRUE_INLINE uint16_t readNnumbers(const char *buf){
@@ -133,33 +151,49 @@ static const char *wrI2C(const char *buf, int isdma){
     int result = isdma ? write_i2c_dma(I2Caddress, locBuffer, N) :
                          write_i2c(I2Caddress, locBuffer, N);
     if(!result) return "Error writing I2C\n";
-    return "OK\n";
+    return OK;
 }
 
 const char *parse_cmd(const char *buf){
-    // "long" commands
-    switch(*buf){
+    if(!buf || !*buf) return NULL;
+    if(buf[1]) switch(*buf){ // "long" commands
         case 'i':
             return setupI2C(buf + 1);
         break;
         case 'I':
-            if(!i2cinited) return "Init I2C first";
             buf = omit_spaces(buf + 1);
-            if(*buf == 'a') return saI2C(buf + 1);
-            else if(*buf == 'r'){ rdI2C(buf + 1, 0); return NULL; }
-            else if(*buf == '2'){ rdI2C(buf + 1, 1); return NULL; }
-            else if(*buf == 'n'){ rdI2C(buf, 0); return NULL; }
-            else if(*buf == 'N'){ rdI2C(buf, 0); return NULL; }
-            else if(*buf == 'w') return wrI2C(buf + 1, 0);
-            else if(*buf == 'W') return wrI2C(buf + 1, 1);
-            else if(*buf == 's'){ i2c_init_scan_mode(); return "Start scan\n"; }
-            else if(*buf == 'g'){ i2c_bufdudump(); return NULL; }
-            else return "Command should be 'Ia', 'Iw', 'Ir' or 'Is'\n";
+            switch(*buf){
+                case 'a': return saI2C(buf + 1);
+                case 'r':
+                    rdI2C(buf + 1, 0); return NULL;
+                case '2':
+                    rdI2C(buf + 1, 1); return NULL;
+                case 'n':
+                case 'N':
+                    rdI2C(buf, 0); return NULL;
+                case 'w': return wrI2C(buf + 1, 0);
+                case 'W': return wrI2C(buf + 1, 1);
+                case 's':
+                    i2c_init_scan_mode(); return "Start scan\n";
+                case 'g':
+                    i2c_bufdudump(); return NULL;
+                default:
+                    return "Wrong I2C command, read help!\n";
+            }
         break;
+        default:
+            return("Wrong command, try '?' for help\n");
     }
-    // "short" commands
-    if(buf[1]) return buf; // echo wrong data
     switch(*buf){
+        case 'i': return setupI2C(NULL); // current settings
+        case 'B':
+            endianness(1);
+            return OK;
+        break;
+        case 'L':
+            endianness(0);
+            return OK;
+        break;
         case 'T':
             USND("T=");
             USND(u2str(Tms));
