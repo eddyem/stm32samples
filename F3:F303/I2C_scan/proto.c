@@ -20,7 +20,7 @@
 #include <string.h>
 #include "i2c.h"
 #include "strfunc.h"
-#include "usb.h"
+#include "usb_dev.h"
 #include "version.inc"
 
 #define LOCBUFFSZ       (32)
@@ -48,7 +48,7 @@ static const char *helpstring =
 
 TRUE_INLINE const char *setupI2C(const char *buf){
     if(!buf || !*buf){
-        USND("Current speed: "); USB_putbyte('0' + i2c_curspeed); newline();
+        U("Current speed: "); USB_putbyte('0' + i2c_curspeed); newline();
         return NULL;
     }
     buf = omit_spaces(buf);
@@ -63,13 +63,13 @@ TRUE_INLINE const char *setupI2C(const char *buf){
 static uint8_t I2Caddress = 0;
 TRUE_INLINE const char *saI2C(const char *buf){
     uint32_t addr;
-    USND("saI2C: '"); USND(buf); USND("'\n");
+    U("saI2C: '"); U(buf); U("'\n");
     const char *nxt = getnum(buf, &addr);
     if(nxt && nxt != buf){
         if(addr > 0x7f) return "Wrong address\n";
         I2Caddress = (uint8_t) addr << 1;
     }else addr = I2Caddress >> 1;
-    USND("I2Caddr="); USND(uhex2str(addr)); newline();
+    U("I2Caddr="); USND(uhex2str(addr));
     return OK;
 }
 static void rdI2C(const char *buf, int is16){
@@ -85,53 +85,50 @@ static void rdI2C(const char *buf, int is16){
     }else{
         nxt = getnum(buf, &N);
         if(!nxt || buf == nxt || N > 0xffff || (!is16 &&  N > 0xff)){
-            USND("Bad register number\n");
+            USND("Bad register number");
             return;
         }
         buf = nxt;
     }
     uint16_t reg = N;
     nxt = getnum(buf, &N);
-    if(!nxt || buf == nxt || N > LOCBUFFSZ){
-        USND("Bad length (<=32)\n");
+    uint32_t maxn = (is16) ? I2C_BUFSIZE : I2C_BUFSIZE / 2;
+    if(!nxt || buf == nxt || N > maxn){
+        USND("Bad length");
         return;
     }
     const char *erd = "Error reading I2C\n";
     uint8_t *b8 = NULL; uint16_t *b16 = NULL;
     if(noreg){ // don't write register
         if(noreg == 1){
-            USND("Simple read:\n");
+            USND("Simple read:");
             if(!(b8 = read_i2c(I2Caddress, N))){
-                USND(erd);
+                U(erd);
                 return;
             }
         }else{
-            USND("Try to read using DMA .. ");
-            if(!read_i2c_dma(I2Caddress, N)) USND(erd);
-            else USND(OK);
+            U("Try to read using DMA .. ");
+            if(!read_i2c_dma(I2Caddress, N)) U(erd);
+            else U(OK);
             return;
         }
     }else{
         if(is16){
             if(!(b16 = read_i2c_reg16(I2Caddress, reg, N))){
-                USND(erd);
+                U(erd);
                 return;
             }
         }else{
             if(!(b8 = read_i2c_reg(I2Caddress, reg, N))){
-                USND(erd);
+                U(erd);
                 return;
             }
         }
     }
-    if(N == 0){ USND(OK); return; }
-    if(!noreg){USND("Register "); USND(uhex2str(reg)); USND(":\n");}
-    if(!is16){ hexdump(USB_sendstr, b8, N); return; }
-    for(int i = 0; i < (int)N; ++i){
-        USND(uhex2str(b16[i])); USB_putbyte(' ');
-        if((i & 7) == 7) newline();
-    }
-    if(N & 7) newline();
+    if(N == 0){ U(OK); return; }
+    if(!noreg){U("Register "); U(uhex2str(reg)); U(":\n");}
+    if(is16) hexdump16(USB_sendstr, b16, N);
+    else hexdump(USB_sendstr, b8, N);
 }
 // read N numbers from buf, @return 0 if wrong or none
 TRUE_INLINE uint16_t readNnumbers(const char *buf){
@@ -141,9 +138,9 @@ TRUE_INLINE uint16_t readNnumbers(const char *buf){
     while((nxt = getnum(buf, &D)) && nxt != buf && N < LOCBUFFSZ){
         buf = nxt;
         locBuffer[N++] = (uint8_t) D&0xff;
-        USND("add byte: "); USND(uhex2str(D&0xff)); USND("\n");
+        U("add byte: "); USND(uhex2str(D&0xff));
     }
-    USND("Send "); USND(u2str(N)); USND(" bytes\n");
+    U("Send "); U(u2str(N)); USND(" bytes");
     return N;
 }
 static const char *wrI2C(const char *buf, int isdma){
@@ -195,12 +192,11 @@ const char *parse_cmd(const char *buf){
             return OK;
         break;
         case 'T':
-            USND("T=");
+            U("T=");
             USND(u2str(Tms));
-            newline();
         break;
         default: // help
-            USND(helpstring);
+            U(helpstring);
         break;
     }
     return NULL;

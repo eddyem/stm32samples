@@ -20,7 +20,7 @@
 #include "hardware.h"
 #include "proto.h"
 #include "strfunc.h"
-#include "usb.h"
+#include "usb_dev.h"
 
 #define MAXSTRLEN    RBINSZ
 
@@ -38,18 +38,19 @@ int main(void){
         StartHSI();
         SysTick_Config((uint32_t)48000); // 1ms
     }
+    USBPU_OFF();
     hw_setup();
     i2c_setup(I2C_SPEED_10K); // start from lowest speed
     USB_setup();
+    USBPU_ON();
     uint32_t ctr = Tms;
     while(1){
         if(Tms - ctr > 499){
             ctr = Tms;
             pin_toggle(GPIOB, 1 << 1 | 1 << 0); // toggle LED @ PB0
         }
-        USB_proc();
         int l = USB_receivestr(inbuff, MAXSTRLEN);
-        if(l < 0) USND("ERROR: USB buffer overflow or string was too long\n");
+        if(l < 0) USND("ERROR: USB buffer overflow or string was too long");
         else if(l){
             const char *ans = parse_cmd(inbuff);
             if(ans) USND(ans);
@@ -57,16 +58,14 @@ int main(void){
         if(i2c_scanmode){
             uint8_t addr;
             int ok = i2c_scan_next_addr(&addr);
-            if(addr == I2C_ADDREND) USND("Scan ends\n");
+            if(addr == I2C_ADDREND) USND("Scan ends");
             else if(ok){
-                USND(uhex2str(addr));
-                USND(" ("); USND(u2str(addr));
-                USND(") - found device\n");
+                U(uhex2str(addr));
+                U(" ("); U(u2str(addr));
+                U(") - found device\n");
             }
         }
-        if(i2c_got_DMA){
-            i2c_bufdudump();
-            i2c_got_DMA = 0;
-        }
+        if(i2cdma_haderr()) USND("Error reading I2C using DMA");
+        if(i2cdma_getbuf(NULL)) i2c_bufdudump();
     }
 }

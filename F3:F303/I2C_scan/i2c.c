@@ -21,17 +21,19 @@
 
 #include "i2c.h"
 #include "strfunc.h" // hexdump
-#include "usb.h"
+#include "usb_dev.h"
 
 i2c_speed_t i2c_curspeed = I2C_SPEED_AMOUNT;
 extern volatile uint32_t Tms;
 static uint32_t cntr;
 volatile uint8_t i2c_scanmode = 0; // == 1 when I2C is in scan mode
-volatile uint8_t i2c_got_DMA = 0; // got DMA data
+static volatile uint8_t i2c_got_DMA = 0; // got DMA data
 static uint8_t i2caddr  = I2C_ADDREND; // current address in scan mode
 static volatile int I2Cbusy = 0, goterr = 0; // busy==1 when DMA active, goterr==1 if 't was error @ last sent
-static uint8_t I2Cbuf[I2C_BUFSIZE], i2cbuflen = 0; // buffer for DMA tx/rx and its len
+static uint8_t I2Cbuf[I2C_BUFSIZE];
+static uint16_t i2cbuflen = 0; // buffer for DMA tx/rx and its len
 static uint8_t bigendian = 0; // ==1 for big-endian 16-bit data
+static uint8_t dma16bit = 0; // 16-bit reading - possible need conversion from bigendian
 
 // macros for I2C rx/tx
 #define DMARXCCR    (DMA_CCR_MINC | DMA_CCR_TCIE | DMA_CCR_TEIE)
@@ -43,7 +45,7 @@ static uint8_t bigendian = 0; // ==1 for big-endian 16-bit data
 static inline int isI2Cbusy(){
     cntr = Tms;
     do{
-        if(Tms - cntr > I2C_TIMEOUT){ USND("Timeout, DMA transfer in progress?\n"); return 1;}
+        if(Tms - cntr > I2C_TIMEOUT){ U("Timeout, DMA transfer in progress?"); return 1;}
     }while(I2Cbusy);
     return 0;
 }
@@ -82,7 +84,7 @@ void i2c_setup(i2c_speed_t speed){
             SCLL = 0x2;
         break;
         default:
-            USND("Wrong I2C speed!\n");
+            USND("Wrong I2C speed!");
             return; // wrong speed
     }
     RCC->AHBENR |= RCC_AHBENR_GPIOBEN;
@@ -114,7 +116,7 @@ void i2c_setup(i2c_speed_t speed){
 
 // setup DMA for rx (tx==0) or tx (tx==1)
 // DMA channels: 7 - I2C1_Rx, 6 - I2C1_Tx
-static void i2cDMAsetup(int tx, uint8_t len){
+static void i2cDMAsetup(int tx, uint16_t len){
     if(tx){
         DMA1_Channel6->CCR = DMATXCCR;
         DMA1_Channel6->CPAR = (uint32_t) &I2C1->TXDR;
@@ -134,8 +136,8 @@ static uint8_t i2c_chkbusy(){
     while(I2C1->ISR & I2C_ISR_BUSY){
         IWDG->KR = IWDG_REFRESH;
         if(Tms - cntr > I2C_TIMEOUT){
-            USND("i2c_chkbusy: Line busy;");
-            USND("I2c->ISR = "); USND(uhex2str(I2C1->ISR)); newline();
+            U("i2c_chkbusy: Line busy;");
+            U("I2c->ISR = "); USND(uhex2str(I2C1->ISR));
             I2C1->ICR = I2C_ICR_BERRCF;
             return 1;  // line busy
         }
@@ -143,8 +145,20 @@ static uint8_t i2c_chkbusy(){
     return 0;
 }
 
+static uint8_t tc_tmout(){
+    cntr = Tms;
+    while(!(I2C1->ISR & I2C_ISR_TC)){
+        IWDG->KR = IWDG_REFRESH;
+        if(Tms - cntr > I2C_TIMEOUT){
+            USND("i2c: TC timeout");
+            return 1;
+        }
+    }
+    return 0;
+}
+
 // start writing
-static uint8_t i2c_startw(uint8_t addr, uint8_t nbytes, uint8_t stop){
+static uint8_t i2c_startw(uint8_t addr, uint16_t nbytes, uint8_t stop){
     if(i2c_chkbusy()) return 0;
     I2C1->CR2 = nbytes << 16 | addr;
     if(stop){
@@ -160,13 +174,13 @@ static uint8_t i2c_startw(uint8_t addr, uint8_t nbytes, uint8_t stop){
 
 /**
  * write command byte to I2C
- * @param addr - device address (TSYS01_ADDR0 or TSYS01_ADDR1)
+ * @param addr - device address
  * @param data - bytes to write
  * @param nbytes - amount of bytes to write
  * @param stop - to set STOP
  * @return 0 if error
  */
-static uint8_t write_i2cs(uint8_t addr, uint8_t *data, uint8_t nbytes, uint8_t stop){
+static uint8_t write_i2cs(uint8_t addr, uint8_t *data, uint16_t nbytes, uint8_t stop){
     if(!i2c_startw(addr, nbytes, stop)) return 0;
     for(int i = 0; i < nbytes; ++i){
         cntr = Tms;
@@ -174,41 +188,57 @@ static uint8_t write_i2cs(uint8_t addr, uint8_t *data, uint8_t nbytes, uint8_t s
             IWDG->KR = IWDG_REFRESH;
             if(I2C1->ISR & I2C_ISR_NACKF){
                 I2C1->ICR |= I2C_ICR_NACKCF;
-                USND("write_i2cs: NAK\n");
+                USND("write_i2cs: NAK");
                 return 0;
             }
             if(Tms - cntr > I2C_TIMEOUT){
-                USND("write_i2cs: Timeout\n");
+                USND("write_i2cs: Timeout");
                 return 0;
             }
         }
         I2C1->TXDR = data[i]; // send data
-        USND("write_i2cs: "); USND(uhex2str(data[i])); newline();
+        U("write_i2cs: "); USND(uhex2str(data[i]));
     }
     cntr = Tms;
     if(stop){
         if(i2c_chkbusy()) return 0;
     }else{ // repeated start
-        while(!(I2C1->ISR & I2C_ISR_TC)){
-            IWDG->KR = IWDG_REFRESH;
-            if(Tms - cntr > I2C_TIMEOUT){
-                USND("write_i2cs: TC timeout\n");
-                return 0;
-            }
-        }
+        if(tc_tmout()) return 0;
     }
     return 1;
 }
 
-uint8_t write_i2c(uint8_t addr, uint8_t *data, uint8_t nbytes){
+uint8_t write_i2c(uint8_t addr, uint8_t *data, uint16_t nbytes){
     if(isI2Cbusy()) return 0;
     return write_i2cs(addr, data, nbytes, 1);
 }
 
-uint8_t write_i2c_dma(uint8_t addr, uint8_t *data, uint8_t nbytes){
-    if(!data || nbytes < 1) return 0;
+/*
+uint8_t write_i2c16(uint8_t addr, uint8_t *data, uint8_t nbytes){
     if(isI2Cbusy()) return 0;
-    memcpy((char*)I2Cbuf, (char*)data, nbytes);
+    return write_i2cs(addr, data, nbytes, 1);
+}*/
+
+uint8_t write_i2c_dma(uint8_t addr, uint8_t *data, uint16_t nbytes){
+    if(!data || nbytes < 1 || nbytes > I2C_BUFSIZE) return 0;
+    if(isI2Cbusy()) return 0;
+    memcpy(I2Cbuf, data, nbytes);
+    i2cDMAsetup(1, nbytes);
+    goterr = 0;
+    if(!i2c_startw(addr, nbytes, 1)) return 0;
+    I2Cbusy = 1;
+    DMA1_Channel6->CCR = DMATXCCR | DMA_CCR_EN; // start transfer
+    return 1;
+}
+
+uint8_t write_i2c_dma16(uint8_t addr, uint16_t *data, uint16_t nwords){
+    if(!data || nwords < 1 || nwords > I2C_BUFSIZE/2) return 0;
+    if(isI2Cbusy()) return 0;
+    uint16_t nbytes = nwords << 1;
+    if(bigendian){
+        for(uint16_t i = 0; i < nwords; ++i)
+            I2Cbuf[i] = __REV16(data[i]);
+    }else memcpy(I2Cbuf, (uint8_t*)data, nbytes);
     i2cDMAsetup(1, nbytes);
     goterr = 0;
     if(!i2c_startw(addr, nbytes, 1)) return 0;
@@ -218,9 +248,9 @@ uint8_t write_i2c_dma(uint8_t addr, uint8_t *data, uint8_t nbytes){
 }
 
 // start reading
-static uint8_t i2c_startr(uint8_t addr, uint8_t nbytes){
+static uint8_t i2c_startr(uint8_t addr, uint16_t nbytes){
     // read N bytes
-    I2C1->CR2 = (nbytes<<16) | addr /*| I2C_CR2_AUTOEND*/ | I2C_CR2_RD_WRN;
+    I2C1->CR2 = (nbytes<<16) | addr | I2C_CR2_RD_WRN;
     I2C1->CR2 |= I2C_CR2_START;
     I2C1->CR2 |= I2C_CR2_AUTOEND;
     return 1;
@@ -232,7 +262,7 @@ static uint8_t i2c_startr(uint8_t addr, uint8_t nbytes){
  * `data` should be an array with at least `nbytes` length
  * @return 1 if all OK, 0 if NACK or no device found
  */
-static uint8_t *read_i2cb(uint8_t addr, uint8_t nbytes, uint8_t busychk){
+static uint8_t *read_i2cb(uint8_t addr, uint16_t nbytes, uint8_t busychk){
     if(busychk && i2c_chkbusy()) return NULL;
     if(!i2c_startr(addr, nbytes)) return NULL;
     uint8_t i;
@@ -242,11 +272,11 @@ static uint8_t *read_i2cb(uint8_t addr, uint8_t nbytes, uint8_t busychk){
             IWDG->KR = IWDG_REFRESH;
             if(I2C1->ISR & I2C_ISR_NACKF){
                 I2C1->ICR |= I2C_ICR_NACKCF;
-                USND("read_i2cb: NAK\n");
+                USND("read_i2cb: NAK");
                 return NULL;
             }
             if(Tms - cntr > I2C_TIMEOUT){
-                USND("read_i2cb: Timeout\n");
+                USND("read_i2cb: Timeout");
                 return NULL;
             }
         }
@@ -255,44 +285,59 @@ static uint8_t *read_i2cb(uint8_t addr, uint8_t nbytes, uint8_t busychk){
     return I2Cbuf;
 }
 
-uint8_t *read_i2c(uint8_t addr, uint8_t nbytes){
+uint8_t *read_i2c(uint8_t addr, uint16_t nbytes){
     if(isI2Cbusy()) return 0;
     return read_i2cb(addr, nbytes, 1);
 }
 
-uint8_t read_i2c_dma(uint8_t addr, uint8_t nbytes){
-    if(nbytes < 1) return 0;
+static uint8_t dmard(uint8_t addr, uint16_t nbytes){
+    if(nbytes < 1 || nbytes > I2C_BUFSIZE) return 0;
     if(isI2Cbusy()) return 0;
     i2cDMAsetup(0, nbytes);
     goterr = 0;
-    if(i2c_chkbusy() || !i2c_startr(addr, nbytes)) return 0;
     i2c_got_DMA = 0;
+    DMA1_Channel7->CCR = DMARXCCR | DMA_CCR_EN; // init DMA before START sequence
+    if(i2c_chkbusy() || !i2c_startr(addr, nbytes)){
+        DMA1_Channel7->CCR = 0;
+        return 0;
+    }
     I2Cbusy = 1;
-    DMA1_Channel7->CCR = DMARXCCR | DMA_CCR_EN; // start transfer
     return 1;
 }
 
-static void swapbytes(uint16_t *data, int datalen){
+uint8_t read_i2c_dma(uint8_t addr, uint16_t nbytes){
+    uint8_t got = dmard(addr, nbytes);
+    if(got) dma16bit = 0;
+    return got;
+}
+
+uint8_t read_i2c_dma16(uint8_t addr, uint16_t nwords){
+    if(nwords > I2C_BUFSIZE/2) return 0; // what if `nwords` is very large? we should check it
+    uint8_t got = dmard(addr, nwords<<1);
+    if(got) dma16bit = 1;
+    return got;
+}
+
+static void swapbytes(uint16_t *data, uint16_t datalen){
     if(!datalen) return;
     for(int i = 0; i < datalen; ++i)
         data[i] = __REV16(data[i]);
 }
 
 // read register reg
-uint8_t *read_i2c_reg(uint8_t addr, uint8_t reg, uint8_t nbytes){
+uint8_t *read_i2c_reg(uint8_t addr, uint8_t reg, uint16_t nbytes){
     if(isI2Cbusy()) return NULL;
     if(!write_i2cs(addr, &reg, 1, 0)) return NULL;
     return read_i2cb(addr, nbytes, 0);
 }
 
 // read 16bit register reg
-uint16_t *read_i2c_reg16(uint8_t addr, uint16_t reg16, uint8_t nwords){
+uint16_t *read_i2c_reg16(uint8_t addr, uint16_t reg16, uint16_t nwords){
     if(isI2Cbusy() || nwords < 1 || nwords > I2C_BUFSIZE/2) return 0;
     if(bigendian) reg16 = __REV16(reg16);
     if(!write_i2cs(addr, (uint8_t*)&reg16, 2, 0)) return NULL;
     if(!read_i2cb(addr, nwords*2, 0)) return NULL;
     uint16_t *buf = (uint16_t*)I2Cbuf;
-    //hexdump(USB_sendstr, I2Cbuf, nwords*2);
     if(bigendian) swapbytes(buf, nwords);
     return buf;
 }
@@ -320,24 +365,28 @@ int i2c_scan_next_addr(uint8_t *addr){
 // dump I2Cbuf
 void i2c_bufdudump(){
     if(goterr){
-        USND("Last transfer ends with error!\n");
+        USND("Last transfer ends with error!");
         goterr = 0;
     }
-    USND("I2C buffer:\n");
+    if(i2cbuflen < 1) return;
+    USND("I2C buffer:");
+    if(dma16bit) hexdump16(USB_sendstr, (uint16_t*)I2Cbuf, i2cbuflen);
     hexdump(USB_sendstr, I2Cbuf, i2cbuflen);
 }
 
-// get DMA buffer with conversion to little-endian; return 0 if no data, -1 on err, or words amount
-// TODO: fix this function, it should be called only for DMA reading!
-int i2c_getwords(uint16_t *buf, int bufsz){
-    if(!buf || bufsz < 1) return -1;
-    if(i2cbuflen < 2) return 0;
-    if(bufsz > i2cbuflen / 2) bufsz = i2cbuflen / 2;
-    if(bigendian){
+// get DMA buffer with conversion to little-endian (if transfer was for 16-bit)
+uint8_t *i2cdma_getbuf(uint16_t *len){
+    if(!i2c_got_DMA || i2cbuflen < 1) return NULL;
+    i2c_got_DMA = 0;
+    if(dma16bit){
+        i2cbuflen >>= 1; // for hexdump16 - now buffer have uint16_t!
         uint16_t *b = (uint16_t*)I2Cbuf;
-        for(int i = 0; i < bufsz; ++i) buf[i] = __REV(b[i]);
-    }else memcpy(buf, I2Cbuf, bufsz * 2);
-    return bufsz;
+        if(bigendian){
+            for(int i = 0; i < i2cbuflen; ++i) b[i] = __REV(b[i]);
+        }
+    }
+    if(len) *len = i2cbuflen;
+    return I2Cbuf;
 }
 
 int i2cdma_haderr(){
@@ -355,7 +404,7 @@ static void I2C_isr(int rx){
     uint32_t isr = DMA1->ISR;
     DMA_Channel_TypeDef *ch = (rx) ? DMA1_Channel7 : DMA1_Channel6;
     if(isr & (DMA_ISR_TEIF6 | DMA_ISR_TEIF6)) goterr = 1;
-    if(rx) i2c_got_DMA = 1; // last transfer was Rx
+    else if(rx) i2c_got_DMA = 1; // last transfer was Rx
     ch->CCR = 0;
     I2Cbusy = 0;
     DMA1->IFCR = 0x0ff00000; // clear all flags for channel6/7

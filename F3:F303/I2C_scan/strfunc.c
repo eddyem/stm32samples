@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stm32f3.h>
+#include "strfunc.h"
 
 /**
  * @brief hexdump - dump hex array by 16 bytes in string
@@ -32,7 +32,33 @@ void hexdump(int (*sendfun)(const char *s), uint8_t *arr, uint16_t len){
             if(half < 10) *bptr++ = half + '0';
             else *bptr++ = half - 10 + 'a';
         }
-        if(l % 16 == 15){
+        if((l & 0xf) == 0xf){
+            *bptr++ = '\n';
+            *bptr = 0;
+            sendfun(buf);
+            bptr = buf;
+        }else *bptr++ = ' ';
+    }
+    if(bptr != buf){
+        *bptr++ = '\n';
+        *bptr = 0;
+        sendfun(buf);
+    }
+}
+
+// dump uint16_t by 8 values in string
+void hexdump16(int (*sendfun)(const char *s), uint16_t *arr, uint16_t len){
+    char buf[52], *bptr = buf;
+    for(uint16_t l = 0; l < len; ++l, ++arr){
+        uint16_t val = *arr;
+        for(int16_t j = 3; j > -1; --j){
+            register uint8_t q = val & 0xf;
+            val >>= 4;
+            if(q < 10) bptr[j] = q + '0';
+            else bptr[j] = q - 10 + 'a';
+        }
+        bptr += 4;
+        if((l & 7) == 7){
             *bptr++ = '\n';
             *bptr = 0;
             sendfun(buf);
@@ -52,7 +78,7 @@ void hexdump(int (*sendfun)(const char *s), uint8_t *arr, uint16_t len){
  * @param minus - ==0 if value > 0
  * @return buffer with number
  */
-static char *_2str(uint32_t  val, uint8_t minus){
+static const char *_2str(uint32_t  val, uint8_t minus){
     static char strbuf[12];
     char *bufptr = &strbuf[11];
     *bufptr = 0;
@@ -72,10 +98,10 @@ static char *_2str(uint32_t  val, uint8_t minus){
 }
 
 // return string with number `val`
-char *u2str(uint32_t val){
+const char *u2str(uint32_t val){
     return _2str(val, 0);
 }
-char *i2str(int32_t i){
+const char *i2str(int32_t i){
     uint8_t minus = 0;
     uint32_t val;
     if(i < 0){
@@ -90,7 +116,7 @@ char *i2str(int32_t i){
  * @param val - value
  * @return string with number
  */
-char *uhex2str(uint32_t val){
+const char *uhex2str(uint32_t val){
     static char buf[12] = "0x";
     int npos = 2;
     uint8_t *ptr = (uint8_t*)&val + 3;
@@ -265,10 +291,3 @@ const char *getint(const char *txt, int32_t *I){
     *I = sign * (int32_t)U;
     return nxt;
 }
-
-/*
-void mymemcpy(char *dest, const char *src, int len){
-    if(len < 1) return;
-    while(len--) *dest++ = *src++;
-}
-*/
