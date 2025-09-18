@@ -36,17 +36,16 @@ static const char *helpstring =
         "Ia addr - set I2C address\n"
         "Ig - dump content of I2Cbuf\n"
         "Iw bytes - send bytes (hex/dec/oct/bin) to I2C\n"
-        "IW bytes - the same over DMA\n"
         "Ir reg n - read n bytes from I2C reg\n"
         "I2 reg16 n - read n words from 16-bit register\n"
         "In n - just read n bytes\n"
-        "IN n - the same but with DMA\n"
         "Is - scan I2C bus\n"
+        "-- note: all rw commands for 'I' could be started from 'D', meaning DMA operations --\n"
         "L - switch to little-endian (default) format for 16-bit registers\n"
         "T - print current Tms\n"
 ;
 
-TRUE_INLINE const char *setupI2C(const char *buf){
+TRUE_INLINE const char *setupI2C(char *buf){
     if(!buf || !*buf){
         U("Current speed: "); USB_putbyte('0' + i2c_curspeed); newline();
         return NULL;
@@ -72,16 +71,13 @@ TRUE_INLINE const char *saI2C(const char *buf){
     U("I2Caddr="); USND(uhex2str(addr));
     return OK;
 }
-static void rdI2C(const char *buf, int is16){
+static void rdI2C(const char *buf, int is16, int dmaflag){
     uint32_t N = 0;
-    int noreg = 0; // write register  (==1 - just read, ==2 - -//- using DMA)
+    int noreg = 0; // ==1 - just read (without sending regno)
     const char *nxt = NULL;
     if(*buf == 'n'){
         ++buf;
         noreg = 1;
-    }else if(*buf == 'N'){
-        ++buf;
-        noreg = 2;
     }else{
         nxt = getnum(buf, &N);
         if(!nxt || buf == nxt || N > 0xffff || (!is16 &&  N > 0xff)){
@@ -92,7 +88,7 @@ static void rdI2C(const char *buf, int is16){
     }
     uint16_t reg = N;
     nxt = getnum(buf, &N);
-    uint32_t maxn = (is16) ? I2C_BUFSIZE : I2C_BUFSIZE / 2;
+    uint32_t maxn = (is16) ? I2C_BUFSIZE / 2 : I2C_BUFSIZE;
     if(!nxt || buf == nxt || N > maxn){
         USND("Bad length");
         return;
@@ -100,32 +96,32 @@ static void rdI2C(const char *buf, int is16){
     const char *erd = "Error reading I2C\n";
     uint8_t *b8 = NULL; uint16_t *b16 = NULL;
     if(noreg){ // don't write register
-        if(noreg == 1){
+        if(dmaflag){
+            U("Try to read using DMA .. ");
+            if(!read_i2c_dma(I2Caddress, N)) U(erd);
+            else U(OK);
+            return;
+        }else{
             USND("Simple read:");
             if(!(b8 = read_i2c(I2Caddress, N))){
                 U(erd);
                 return;
             }
-        }else{
-            U("Try to read using DMA .. ");
-            if(!read_i2c_dma(I2Caddress, N)) U(erd);
-            else U(OK);
-            return;
         }
     }else{
         if(is16){
-            if(!(b16 = read_i2c_reg16(I2Caddress, reg, N))){
+            if(!(b16 = read_i2c_reg16(I2Caddress, reg, N, dmaflag))){
                 U(erd);
                 return;
             }
         }else{
-            if(!(b8 = read_i2c_reg(I2Caddress, reg, N))){
+            if(!(b8 = read_i2c_reg(I2Caddress, reg, N, dmaflag))){
                 U(erd);
                 return;
             }
         }
     }
-    if(N == 0){ U(OK); return; }
+    if(N == 0 || dmaflag){ U(OK); return; }
     if(!noreg){U("Register "); U(uhex2str(reg)); U(":\n");}
     if(is16) hexdump16(USB_sendstr, b16, N);
     else hexdump(USB_sendstr, b8, N);
@@ -145,41 +141,46 @@ TRUE_INLINE uint16_t readNnumbers(const char *buf){
 }
 static const char *wrI2C(const char *buf, int isdma){
     uint16_t N = readNnumbers(buf);
+    if(N == 0) return "Enter at least one number\n";
     int result = isdma ? write_i2c_dma(I2Caddress, locBuffer, N) :
                          write_i2c(I2Caddress, locBuffer, N);
     if(!result) return "Error writing I2C\n";
     return OK;
 }
 
-const char *parse_cmd(const char *buf){
+const char *parse_cmd(char *buf){
     if(!buf || !*buf) return NULL;
-    if(buf[1]) switch(*buf){ // "long" commands
-        case 'i':
-            return setupI2C(buf + 1);
-        break;
-        case 'I':
-            buf = omit_spaces(buf + 1);
-            switch(*buf){
-                case 'a': return saI2C(buf + 1);
-                case 'r':
-                    rdI2C(buf + 1, 0); return NULL;
-                case '2':
-                    rdI2C(buf + 1, 1); return NULL;
-                case 'n':
-                case 'N':
-                    rdI2C(buf, 0); return NULL;
-                case 'w': return wrI2C(buf + 1, 0);
-                case 'W': return wrI2C(buf + 1, 1);
-                case 's':
-                    i2c_init_scan_mode(); return "Start scan\n";
-                case 'g':
-                    i2c_bufdudump(); return NULL;
-                default:
-                    return "Wrong I2C command, read help!\n";
-            }
-        break;
-        default:
-            return("Wrong command, try '?' for help\n");
+    int dmaflag = 0;
+    if(buf[1]){
+        if(*buf == 'D'){
+            dmaflag = 1; *buf = 'I'; // parse as for normal, but with DMA flag
+        }
+        switch(*buf){ // "long" commands
+            case 'i':
+                return setupI2C(buf + 1);
+            break;
+            case 'I':
+                buf = omit_spaces(buf + 1);
+                switch(*buf){
+                    case 'a': return saI2C(buf + 1);
+                    case 'r':
+                        rdI2C(buf + 1, 0, dmaflag); return NULL;
+                    case '2':
+                        rdI2C(buf + 1, 1, dmaflag); return NULL;
+                    case 'n':
+                        rdI2C(buf, 0, dmaflag); return NULL;
+                    case 'w': return wrI2C(buf + 1, dmaflag);
+                    case 's':
+                        i2c_init_scan_mode(); return "Start scan\n";
+                    case 'g':
+                        i2c_bufdudump(); return NULL;
+                    default:
+                        return "Wrong I2C command, read help!\n";
+                }
+            break;
+            default:
+                return("Wrong command, try '?' for help\n");
+        }
     }
     switch(*buf){
         case 'i': return setupI2C(NULL); // current settings

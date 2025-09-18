@@ -18,5 +18,5 @@
 
 #pragma once
 
-char *parse_cmd(char *buf);
+const char *parse_cmd(char *buf);
 

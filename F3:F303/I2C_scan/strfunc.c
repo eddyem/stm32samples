@@ -18,6 +18,16 @@
 
 #include "strfunc.h"
 
+// hex line number for hexdumps
+static void u16s(uint16_t n, char *buf){
+    for(int j = 3; j > -1; --j){
+        register uint8_t q = n & 0xf;
+        n >>= 4;
+        if(q < 10) buf[j] = q + '0';
+        else buf[j] = q - 10 + 'a';
+    }
+}
+
 /**
  * @brief hexdump - dump hex array by 16 bytes in string
  * @param sendfun - function to send data
@@ -25,7 +35,7 @@
  * @param len - length of `arr`
  */
 void hexdump(int (*sendfun)(const char *s), uint8_t *arr, uint16_t len){
-    char buf[52], *bptr = buf;
+    char buf[64] = "0000  ", *bptr = &buf[6];
     for(uint16_t l = 0; l < len; ++l, ++arr){
         for(int16_t j = 1; j > -1; --j){
             register uint8_t half = (*arr >> (4*j)) & 0x0f;
@@ -36,10 +46,11 @@ void hexdump(int (*sendfun)(const char *s), uint8_t *arr, uint16_t len){
             *bptr++ = '\n';
             *bptr = 0;
             sendfun(buf);
-            bptr = buf;
+            u16s(l + 1, buf);
+            bptr = &buf[6];
         }else *bptr++ = ' ';
     }
-    if(bptr != buf){
+    if(bptr != &buf[6]){
         *bptr++ = '\n';
         *bptr = 0;
         sendfun(buf);
@@ -48,24 +59,26 @@ void hexdump(int (*sendfun)(const char *s), uint8_t *arr, uint16_t len){
 
 // dump uint16_t by 8 values in string
 void hexdump16(int (*sendfun)(const char *s), uint16_t *arr, uint16_t len){
-    char buf[52], *bptr = buf;
+    char buf[64] = "0000  ", *bptr = &buf[6];
     for(uint16_t l = 0; l < len; ++l, ++arr){
-        uint16_t val = *arr;
-        for(int16_t j = 3; j > -1; --j){
+        //uint16_t val = *arr;
+        u16s(*arr, bptr);
+        /*for(int16_t j = 3; j > -1; --j){
             register uint8_t q = val & 0xf;
             val >>= 4;
             if(q < 10) bptr[j] = q + '0';
             else bptr[j] = q - 10 + 'a';
-        }
+        }*/
         bptr += 4;
         if((l & 7) == 7){
             *bptr++ = '\n';
             *bptr = 0;
             sendfun(buf);
-            bptr = buf;
+            u16s((l + 1)*2, buf); // number of byte, not word!
+            bptr = &buf[6];
         }else *bptr++ = ' ';
     }
-    if(bptr != buf){
+    if(bptr != &buf[6]){
         *bptr++ = '\n';
         *bptr = 0;
         sendfun(buf);
@@ -142,12 +155,12 @@ const char *uhex2str(uint32_t val){
  * @param buf - string
  * @return - pointer to first character in `buf` > ' '
  */
-const char *omit_spaces(const char *buf){
+char *omit_spaces(const char *buf){
     while(*buf){
         if(*buf > ' ') break;
         ++buf;
     }
-    return buf;
+    return (char*)buf;
 }
 
 /**

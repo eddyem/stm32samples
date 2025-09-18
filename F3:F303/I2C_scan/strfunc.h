@@ -27,5 +27,5 @@ const char *u2str(uint32_t val);
 const char *i2str(int32_t i);
 const char *uhex2str(uint32_t val);
 const char *getnum(const char *txt, uint32_t *N);
-const char *omit_spaces(const char *buf);
+char *omit_spaces(const char *buf);
 const char *getint(const char *txt, int32_t *I);

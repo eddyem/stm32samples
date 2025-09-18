@@ -20,7 +20,7 @@
 #include <stdint.h>
 
 #define I2C_ADDREND     (0x80)
-#define I2C_BUFSIZE     (1024)
+#define I2C_BUFSIZE     (2048)
 
 typedef enum{
     I2C_SPEED_10K,
@@ -35,12 +35,12 @@ extern i2c_speed_t i2c_curspeed;
 extern volatile uint8_t i2c_scanmode;
 
 // timeout of I2C bus in ms
-#define I2C_TIMEOUT             (100)
+#define I2C_TIMEOUT             (5)
 
 void i2c_setup(i2c_speed_t speed);
 uint8_t *read_i2c(uint8_t addr, uint16_t nbytes);
-uint8_t *read_i2c_reg(uint8_t addr, uint8_t reg, uint16_t nbytes);
-uint16_t *read_i2c_reg16(uint8_t addr, uint16_t reg16, uint16_t nbytes);
+uint8_t *read_i2c_reg(uint8_t addr, uint8_t reg, uint16_t nbytes, uint8_t isdma);
+uint16_t *read_i2c_reg16(uint8_t addr, uint16_t reg16, uint16_t nbytes, uint8_t isdma);
 uint8_t write_i2c(uint8_t addr, uint8_t *data, uint16_t nbytes);
 
 uint8_t write_i2c_dma(uint8_t addr, uint8_t *data, uint16_t nbytes);
