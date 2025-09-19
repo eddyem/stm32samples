@@ -26,6 +26,7 @@
 #define LOCBUFFSZ       (32)
 // local buffer for I2C data to send
 static uint8_t locBuffer[LOCBUFFSZ];
+static uint8_t I2Caddress = 0x33 << 1;
 extern volatile uint32_t Tms;
 
 static const char *OK = "OK\n";
@@ -33,6 +34,7 @@ static const char *helpstring =
         "https://github.com/eddyem/stm32samples/tree/master/F3:F303/I2C_scan build#" BUILD_NUMBER " @ " BUILD_DATE "\n"
         "i0..3 - setup I2C with speed 10k, 100k, 400k, 1M or 2M (experimental!)\n"
         "B - switch to big-endian format for 16-bit registers\n"
+        "G - get busy state\n"
         "Ia addr - set I2C address\n"
         "Ig - dump content of I2Cbuf\n"
         "Iw bytes - send bytes (hex/dec/oct/bin) to I2C\n"
@@ -59,7 +61,6 @@ TRUE_INLINE const char *setupI2C(char *buf){
     return OK;
 }
 
-static uint8_t I2Caddress = 0;
 TRUE_INLINE const char *saI2C(const char *buf){
     uint32_t addr;
     U("saI2C: '"); U(buf); U("'\n");
@@ -98,24 +99,24 @@ static void rdI2C(const char *buf, int is16, int dmaflag){
     if(noreg){ // don't write register
         if(dmaflag){
             U("Try to read using DMA .. ");
-            if(!read_i2c_dma(I2Caddress, N)) U(erd);
+            if(!i2c_read_dma(I2Caddress, N)) U(erd);
             else U(OK);
             return;
         }else{
             USND("Simple read:");
-            if(!(b8 = read_i2c(I2Caddress, N))){
+            if(!(b8 = i2c_read(I2Caddress, N))){
                 U(erd);
                 return;
             }
         }
     }else{
         if(is16){
-            if(!(b16 = read_i2c_reg16(I2Caddress, reg, N, dmaflag))){
+            if(!(b16 = i2c_read_reg16(I2Caddress, reg, N, dmaflag))){
                 U(erd);
                 return;
             }
         }else{
-            if(!(b8 = read_i2c_reg(I2Caddress, reg, N, dmaflag))){
+            if(!(b8 = i2c_read_reg(I2Caddress, reg, N, dmaflag))){
                 U(erd);
                 return;
             }
@@ -142,8 +143,8 @@ TRUE_INLINE uint16_t readNnumbers(const char *buf){
 static const char *wrI2C(const char *buf, int isdma){
     uint16_t N = readNnumbers(buf);
     if(N == 0) return "Enter at least one number\n";
-    int result = isdma ? write_i2c_dma(I2Caddress, locBuffer, N) :
-                         write_i2c(I2Caddress, locBuffer, N);
+    int result = isdma ? i2c_write_dma(I2Caddress, locBuffer, N) :
+                         i2c_write(I2Caddress, locBuffer, N);
     if(!result) return "Error writing I2C\n";
     return OK;
 }
@@ -185,12 +186,15 @@ const char *parse_cmd(char *buf){
     switch(*buf){
         case 'i': return setupI2C(NULL); // current settings
         case 'B':
-            endianness(1);
-            return OK;
+            i2c_endianness(1);
+        return OK;
+        break;
+        case 'G':
+            U("I2Cbusy="); USB_putbyte('0' + i2c_busy()); newline();
         break;
         case 'L':
-            endianness(0);
-            return OK;
+            i2c_endianness(0);
+        return OK;
         break;
         case 'T':
             U("T=");

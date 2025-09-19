@@ -35,23 +35,25 @@ extern i2c_speed_t i2c_curspeed;
 extern volatile uint8_t i2c_scanmode;
 
 // timeout of I2C bus in ms
-#define I2C_TIMEOUT             (5)
+#define I2C_TIMEOUT     (5)
 
 void i2c_setup(i2c_speed_t speed);
-uint8_t *read_i2c(uint8_t addr, uint16_t nbytes);
-uint8_t *read_i2c_reg(uint8_t addr, uint8_t reg, uint16_t nbytes, uint8_t isdma);
-uint16_t *read_i2c_reg16(uint8_t addr, uint16_t reg16, uint16_t nbytes, uint8_t isdma);
-uint8_t write_i2c(uint8_t addr, uint8_t *data, uint16_t nbytes);
+int i2c_busy();
 
-uint8_t write_i2c_dma(uint8_t addr, uint8_t *data, uint16_t nbytes);
-uint8_t write_i2c_dma16(uint8_t addr, uint16_t *data, uint16_t nwords);
-uint8_t read_i2c_dma(uint8_t addr, uint16_t nbytes);
+uint8_t *i2c_read(uint8_t addr, uint16_t nbytes);
+uint8_t i2c_read_dma(uint8_t addr, uint16_t nbytes);
+uint8_t i2c_read_dma16(uint8_t addr, uint16_t nwords);
+uint8_t *i2c_read_reg(uint8_t addr, uint8_t reg, uint16_t nbytes, uint8_t isdma);
+uint16_t *i2c_read_reg16(uint8_t addr, uint16_t reg16, uint16_t nbytes, uint8_t isdma);
+
+uint8_t i2c_write(uint8_t addr, uint8_t *data, uint8_t nbytes);
+uint8_t i2c_write_dma(uint8_t addr, uint8_t *data, uint8_t nbytes);
+uint8_t i2c_write_dma16(uint8_t addr, uint16_t *data, uint8_t nwords);
 
 void i2c_bufdudump();
-int i2cdma_haderr();
-uint8_t *i2cdma_getbuf(uint16_t *len);
-uint8_t read_i2c_dma16(uint8_t addr, uint16_t nwords);
-void endianness(uint8_t isbig);
+int i2c_dma_haderr();
+uint8_t *i2c_dma_getbuf(uint16_t *len);
+void i2c_endianness(uint8_t isbig);
 int i2c_getwords(uint16_t *buf, int bufsz);
 
 void i2c_init_scan_mode();

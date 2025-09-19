@@ -15,6 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <string.h>
+
 #include "ringbuffer.h"
 
 static int datalen(ringbuffer *b){
@@ -58,10 +60,11 @@ int RB_hasbyte(ringbuffer *b, uint8_t byte){
     return ret;
 }
 
+/*
 // poor memcpy
 static void mcpy(uint8_t *targ, const uint8_t *src, int l){
     while(l--) *targ++ = *src++;
-}
+}*/
 
 // increment head or tail
 TRUE_INLINE void incr(ringbuffer *b, volatile int *what, int n){
@@ -76,9 +79,9 @@ static int read(ringbuffer *b, uint8_t *s, int len){
     int _1st = b->length - b->head;
     if(_1st > l) _1st = l;
     if(_1st > len) _1st = len;
-    mcpy(s, b->data + b->head, _1st);
+    memcpy(s, b->data + b->head, _1st);
     if(_1st < len && l > _1st){
-        mcpy(s+_1st, b->data, l - _1st);
+        memcpy(s+_1st, b->data, l - _1st);
         incr(b, &b->head, l);
         return l;
     }
@@ -132,9 +135,9 @@ static int write(ringbuffer *b, const uint8_t *str, int l){
     if(l > r || !l) return 0;
     int _1st = b->length - b->tail;
     if(_1st > l) _1st = l;
-    mcpy(b->data + b->tail, str, _1st);
+    memcpy(b->data + b->tail, str, _1st);
     if(_1st < l){ // add another piece from start
-        mcpy(b->data, str+_1st, l-_1st);
+        memcpy(b->data, str+_1st, l-_1st);
     }
     incr(b, &b->tail, l);
     return l;

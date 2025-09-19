@@ -53,7 +53,7 @@ int main(void){
         if(l < 0) USND("ERROR: USB buffer overflow or string was too long");
         else if(l){
             const char *ans = parse_cmd(inbuff);
-            if(ans) USND(ans);
+            if(ans) U(ans);
         }
         if(i2c_scanmode){
             uint8_t addr;
@@ -65,7 +65,7 @@ int main(void){
                 U(") - found device\n");
             }
         }
-        if(i2cdma_haderr()) USND("Error reading I2C using DMA");
-        if(i2cdma_getbuf(NULL)) i2c_bufdudump();
+        if(i2c_dma_haderr()) USND("Error reading I2C using DMA");
+        if(i2c_dma_getbuf(NULL)) i2c_bufdudump();
     }
 }
