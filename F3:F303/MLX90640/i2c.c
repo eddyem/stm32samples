@@ -98,10 +98,12 @@ void i2c_setup(i2c_speed_t speed){
     GPIOB->AFR[0] = (GPIOB->AFR[0] & ~(GPIO_AFRL_AFRL6 | GPIO_AFRL_AFRL7)) |
                 AFRf(4, 6) | AFRf(4, 7);
     GPIOB->MODER = (GPIOB->MODER & ~(GPIO_MODER_MODER6 | GPIO_MODER_MODER7)) |
-                    GPIO_MODER_MODER6_AF | GPIO_MODER_MODER7_AF;
+                    MODER_AF(6) | MODER_AF(7);
     GPIOB->PUPDR = (GPIOB->PUPDR & !(GPIO_PUPDR_PUPDR6 | GPIO_PUPDR_PUPDR7)) |
-            GPIO_PUPDR6_PU | GPIO_PUPDR7_PU; // pullup (what if there's no external pullup?)
-    GPIOB->OTYPER |= GPIO_OTYPER_OT_6 | GPIO_OTYPER_OT_7; // both open-drain outputs
+            PUPD_PU(6) | PUPD_PU(7); // pullup (what if there's no external pullup?)
+    GPIOB->OTYPER |= OTYPER_OD(6) | OTYPER_OD(7); // both open-drain outputs
+    GPIOB->OSPEEDR = (GPIOB->OSPEEDR & OSPEED_CLR(6) & OSPEED_CLR(7)) |
+            OSPEED_HI(6) | OSPEED_HI(7);
     // I2C (default timing from sys clock - 72MHz)
     RCC->APB1ENR |= RCC_APB1ENR_I2C1EN; // clocking
     if(speed < I2C_SPEED_400K){ // slow cpeed - common mode
@@ -257,12 +259,12 @@ static uint8_t *i2c_readb(uint8_t addr, uint16_t nbytes){
 }
 
 uint8_t *i2c_read(uint8_t addr, uint16_t nbytes){
-    if(isI2Cbusy() || !waitISRbit(I2C_ISR_BUSY, 0)) return 0;
+    if(isI2Cbusy() || !waitISRbit(I2C_ISR_BUSY, 0) || nbytes < 1 || nbytes > I2C_BUFSIZE*2) return 0;
     return i2c_readb(addr, nbytes);
 }
 
 static uint8_t dmard(uint8_t addr, uint16_t nbytes){
-    if(nbytes < 1 || nbytes > I2C_BUFSIZE) return 0;
+    if(nbytes < 1 || nbytes > I2C_BUFSIZE*2) return 0;
     i2cDMAsetup(0, nbytes);
     goterr = 0;
     i2c_got_DMA = 0;
@@ -275,14 +277,14 @@ static uint8_t dmard(uint8_t addr, uint16_t nbytes){
 }
 
 uint8_t i2c_read_dma16(uint8_t addr, uint16_t nwords){
-    if(nwords > I2C_BUFSIZE/2) return 0; // what if `nwords` is very large? we should check it
+    if(nwords > I2C_BUFSIZE) return 0; // what if `nwords` is very large? we should check it
     if(isI2Cbusy() || !waitISRbit(I2C_ISR_BUSY, 0)) return 0;
     return dmard(addr, nwords<<1);
 }
 
 // read 16bit register reg
 uint16_t *i2c_read_reg16(uint8_t addr, uint16_t reg16, uint16_t nwords, uint8_t isdma){
-    if(isI2Cbusy() || !waitISRbit(I2C_ISR_BUSY, 0) || nwords < 1 || nwords > I2C_BUFSIZE/2) return 0;
+    if(isI2Cbusy() || !waitISRbit(I2C_ISR_BUSY, 0) || nwords < 1 || nwords > I2C_BUFSIZE) return 0;
     reg16 = __REV16(reg16);
     if(!i2c_writes(addr, (uint8_t*)&reg16, 2, 0)) return NULL;
     if(isdma){

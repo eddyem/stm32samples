@@ -19,22 +19,23 @@
 #pragma once
 
 #include <stdint.h>
-#include <string.h>
 
-#include "usb_dev.h"
+#include "mlx90640.h"
 
-#define printu(x)       do{USB_sendstr(u2str(x));}while(0)
-#define printi(x)       do{USB_sendstr(i2str(x));}while(0)
-#define printuhex(x)    do{USB_sendstr(uhex2str(x));}while(0)
-#define printfl(x,n)    do{USB_sendstr(float2str(x, n));}while(0)
+// maximal errors number to stop processing
+#define MLX_MAX_ERRORS      (11)
 
-void u16s(uint16_t n, char *buf);
-void hexdump16(int (*sendfun)(const char *s), uint16_t *arr, uint16_t len);
-void hexdump(int (*sendfun)(const char *s), uint8_t *arr, uint16_t len);
-const char *u2str(uint32_t val);
-const char *i2str(int32_t i);
-const char *uhex2str(uint32_t val);
-const char *getnum(const char *txt, uint32_t *N);
-char *omit_spaces(const char *buf);
-const char *getint(const char *txt, int32_t *I);
-char *float2str(float x, uint8_t prec);
+typedef enum{
+    MLX_NOTINIT,        // just start - need to get parameters
+    MLX_WAITPARAMS,     // wait for parameters DMA reading
+    MLX_WAITSUBPAGE,    // wait for subpage changing
+    MLX_READSUBPAGE,    // wait ending of subpage DMA reading
+    MLX_RELAX           // do nothing - pause
+} mlx_state_t;
+
+int mlx_setaddr(uint8_t addr);
+mlx_state_t mlx_state();
+void mlx_stop();
+void mlx_continue();
+void mlx_process();
+int mlx_getparams(MLX90640_params *pars);

@@ -20,6 +20,7 @@
 #include <string.h>
 
 #include "i2c.h"
+#include "mlxproc.h"
 #include "strfunc.h"
 #include "usb_dev.h"
 #include "version.inc"
@@ -35,6 +36,8 @@ const char *helpstring =
         "https://github.com/eddyem/stm32samples/tree/master/F3:F303/mlx90640 build#" BUILD_NUMBER " @ " BUILD_DATE "\n"
         "    management of single IR bolometer MLX90640\n"
         "i0..3 - setup I2C with speed 10k, 100k, 400k, 1M or 2M (experimental!)\n"
+        "D - dump MLX parameters\n"
+        "G - get MLX state\n"
         "Ia addr - set  device address\n"
         "Ir reg n - read n words from 16-bit register\n"
         "Iw words - send words (hex/dec/oct/bin) to I2C\n"
@@ -67,6 +70,7 @@ TRUE_INLINE const char *chaddr(const char *buf){
     const char *nxt = getnum(buf, &addr);
     if(nxt && nxt != buf){
         if(addr > 0x7f) return ERR;
+        mlx_setaddr(addr);
         I2Caddress = (uint8_t) addr << 1;
     }else addr = I2Caddress >> 1;
     U("I2CADDR="); USND(uhex2str(addr));
@@ -99,7 +103,7 @@ TRUE_INLINE uint16_t readNnumbers(const char *buf){
     uint16_t N = 0;
     while((nxt = getnum(buf, &D)) && nxt != buf && N < LOCBUFFSZ){
         buf = nxt;
-        locBuffer[N++] = (uint8_t) D&0xff;
+        locBuffer[N++] = (uint16_t) D;
     }
     return N;
 }
@@ -107,8 +111,78 @@ TRUE_INLINE uint16_t readNnumbers(const char *buf){
 static const char *wrI2C(const char *buf){
     uint16_t N = readNnumbers(buf);
     if(N == 0) return ERR;
+    for(int i = 0; i < N; ++i){
+        U("byte "); U(u2str(i)); U(" :"); USND(uhex2str(locBuffer[i]));
+    }
     if(!i2c_write(I2Caddress, locBuffer, N)) return ERR;
     return OK;
+}
+
+static void dumpfarr(float *arr){
+    for(int row = 0; row < 24; ++row){
+        for(int col = 0; col < 32; ++col){
+            printfl(*arr++, 2); USB_putbyte(' ');
+        }
+        newline();
+    }
+}
+// dump MLX parameters
+TRUE_INLINE void dumpparams(){
+    MLX90640_params params;
+    if(!mlx_getparams(&params)){ U(ERR); return; }
+    U("\nkVdd="); printi(params.kVdd);
+    U("\nvdd25="); printi(params.vdd25);
+    U("\nKvPTAT="); printfl(params.KvPTAT, 4);
+    U("\nKtPTAT="); printfl(params.KtPTAT, 4);
+    U("\nvPTAT25="); printi(params.vPTAT25);
+    U("\nalphaPTAT="); printfl(params.alphaPTAT, 2);
+    U("\ngainEE="); printi(params.gainEE);
+    U("\nPixel offset parameters:\n");
+    float *offset = params.offset;
+    for(int row = 0; row < 24; ++row){
+        for(int col = 0; col < 32; ++col){
+            printfl(*offset++, 2); USB_putbyte(' ');
+        }
+        newline();
+    }
+    U("K_talpha:\n");
+    dumpfarr(params.kta);
+    U("Kv: ");
+    for(int i = 0; i < 4; ++i){
+        printfl(params.kv[i], 2); USB_putbyte(' ');
+    }
+    U("\ncpOffset=");
+    printi(params.cpOffset[0]); U(", "); printi(params.cpOffset[1]);
+    U("\ncpKta="); printfl(params.cpKta, 2);
+    U("\ncpKv="); printfl(params.cpKv, 2);
+    U("\ntgc="); printfl(params.tgc, 2);
+    U("\ncpALpha="); printfl(params.cpAlpha[0], 2);
+    U(", "); printfl(params.cpAlpha[1], 2);
+    U("\nKsTa="); printfl(params.KsTa, 2);
+    U("\nAlpha:\n");
+    dumpfarr(params.alpha);
+    U("\nCT3="); printfl(params.CT[1], 2);
+    U("\nCT4="); printfl(params.CT[2], 2);
+    for(int i = 0; i < 4; ++i){
+        U("\nKsTo"); USB_putbyte('0'+i); USB_putbyte('=');
+        printfl(params.KsTo[i], 2);
+        U("\nalphacorr"); USB_putbyte('0'+i); USB_putbyte('=');
+        printfl(params.alphacorr[i], 2);
+    }
+    newline();
+}
+// get MLX state
+TRUE_INLINE void getst(){
+    static const char *states[] = {
+        [MLX_NOTINIT] = "not init",
+        [MLX_WAITPARAMS] = "wait parameters DMA read",
+        [MLX_WAITSUBPAGE] = "wait subpage",
+        [MLX_READSUBPAGE] = "wait subpage DMA read",
+        [MLX_RELAX] = "do nothing"
+    };
+    mlx_state_t s = mlx_state();
+    U("MLXSTATE=");
+    USND(states[s]);
 }
 
 const char *parse_cmd(char *buf){
@@ -139,6 +213,12 @@ const char *parse_cmd(char *buf){
     }
     switch(*buf){ // "short" (one letter) commands
         case 'i': return setupI2C(NULL); // current settings
+        case 'D':
+            dumpparams();
+        break;
+        case 'G':
+            getst();
+        break;
         case 'T':
             U("T=");
             USND(u2str(Tms));

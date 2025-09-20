@@ -3,6 +3,11 @@ hardware.h
 i2c.c
 i2c.h
 main.c
+mlx90640.c
+mlx90640.h
+mlx90640_regs.h
+mlxproc.c
+mlxproc.h
 proto.c
 proto.h
 ringbuffer.c

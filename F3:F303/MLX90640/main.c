@@ -18,6 +18,7 @@
 
 #include "hardware.h"
 #include "i2c.h"
+#include "mlxproc.h"
 #include "proto.h"
 #include "strfunc.h"
 #include "usb_dev.h"
@@ -64,5 +65,6 @@ int main(void){
                 USND(uhex2str(addr));
             }
         }
+        mlx_process();
     }
 }
