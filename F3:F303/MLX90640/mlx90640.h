@@ -59,6 +59,7 @@ typedef struct{
 // full amount of IMAGE data + EXTRA data (counts of uint16_t!)
 #define MLX_DMA_MAXLEN      (834)
 
+int ch_resolution(uint8_t newresol);
 int get_parameters(const uint16_t dataarray[MLX_DMA_MAXLEN], MLX90640_params *params);
 fp_t *process_subpage(MLX90640_params *params, const int16_t Frame[MLX_DMA_MAXLEN], int subpageno, int simpleimage);
 void dumpIma(const fp_t im[MLX_PIXNO]);

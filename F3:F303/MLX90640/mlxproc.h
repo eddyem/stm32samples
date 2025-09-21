@@ -24,6 +24,8 @@
 
 // maximal errors number to stop processing
 #define MLX_MAX_ERRORS      (11)
+// if there's no new data by this time - reset bus
+#define MLX_I2CERR_TMOUT    (5000)
 
 typedef enum{
     MLX_NOTINIT,        // just start - need to get parameters
@@ -39,3 +41,7 @@ void mlx_stop();
 void mlx_continue();
 void mlx_process();
 int mlx_getparams(MLX90640_params *pars);
+fp_t *mlx_getimage(uint32_t *Tgot);
+int mlx_setresolution(uint8_t newresol);
+uint8_t mlx_getresolution();
+int mlx_sethwaddr(uint8_t addr);

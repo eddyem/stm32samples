@@ -43,6 +43,8 @@
 #define REG_CONTROL_SUBPSEL     (1<<3)
 #define REG_CONTROL_DATAHOLD    (1<<2)
 #define REG_CONTROL_SUBPEN      (1<<0)
+#define REG_MLXADDR             0x8010
+#define REG_MLXADDR_MASK        (0xff)
 
 // default value
 #define REG_CONTROL_DEFAULT     (REG_CONTROL_CHESS|REG_CONTROL_RES18|REG_CONTROL_REFR_2HZ|REG_CONTROL_SUBPEN)

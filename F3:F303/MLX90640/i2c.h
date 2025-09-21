@@ -43,7 +43,7 @@ int i2c_busy();
 
 uint8_t *i2c_read(uint8_t addr, uint16_t nbytes);
 uint8_t i2c_read_dma16(uint8_t addr, uint16_t nwords);
-uint16_t *i2c_read_reg16(uint8_t addr, uint16_t reg16, uint16_t nbytes, uint8_t isdma);
+uint16_t *i2c_read_reg16(uint8_t addr, uint16_t reg16, uint16_t nwords, uint8_t isdma);
 
 uint8_t i2c_write(uint8_t addr, uint16_t *data, uint8_t nwords);
 uint8_t i2c_write_dma16(uint8_t addr, uint16_t *data, uint8_t nwords);

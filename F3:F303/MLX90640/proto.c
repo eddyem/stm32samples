@@ -30,12 +30,20 @@
 static uint16_t locBuffer[LOCBUFFSZ];
 static uint8_t I2Caddress = 0x33 << 1;
 extern volatile uint32_t Tms;
+uint8_t cartoon = 0; // "cartoon" mode: refresh image each time we get new
 
 static const char *OK = "OK\n", *ERR = "ERR\n";
 const char *helpstring =
         "https://github.com/eddyem/stm32samples/tree/master/F3:F303/mlx90640 build#" BUILD_NUMBER " @ " BUILD_DATE "\n"
         "    management of single IR bolometer MLX90640\n"
-        "i0..3 - setup I2C with speed 10k, 100k, 400k, 1M or 2M (experimental!)\n"
+        "aa - change I2C address to a (a should be non-shifted value!!!)\n"
+        "c - continue MLX\n"
+        "d - draw image in ASCII\n"
+        "i0..4 - setup I2C with speed 10k, 100k, 400k, 1M or 2M (experimental!)\n"
+        "p - pause MLX\n"
+        "r0..3 - change resolution (0 - 16bit, 3 - 19-bit)\n"
+        "t - show temperature map\n"
+        "C - \"cartoon\" mode on/off (show each new image)\n"
         "D - dump MLX parameters\n"
         "G - get MLX state\n"
         "Ia addr - set  device address\n"
@@ -62,6 +70,26 @@ TRUE_INLINE const char *setupI2C(char *buf){
         i2c_setup((i2c_speed_t)speed);
     }
     U("I2CSPEED="); USND(speeds[i2c_curspeed]);
+    return NULL;
+}
+
+TRUE_INLINE const char *chhwaddr(const char *buf){
+    uint32_t a;
+    if(buf && *buf){
+        const char *nxt = getnum(buf, &a);
+        if(nxt && nxt != buf) if(!mlx_sethwaddr(a)) return ERR;
+    } else return ERR;
+    return OK;
+}
+
+TRUE_INLINE const char *chres(const char *buf){
+    uint32_t r;
+    if(buf && *buf){
+        const char *nxt = getnum(buf, &r);
+        if(nxt && nxt != buf) if(!mlx_setresolution(r)) return ERR;
+    }
+    r = mlx_getresolution();
+    U("MLXRESOLUTION="); USND(u2str(r));
     return NULL;
 }
 
@@ -187,10 +215,15 @@ TRUE_INLINE void getst(){
 
 const char *parse_cmd(char *buf){
     if(!buf || !*buf) return NULL;
+    uint32_t u32;
     if(buf[1]){
         switch(*buf){ // "long" commands
+            case 'a':
+                return chhwaddr(buf + 1);
             case 'i':
                 return setupI2C(buf + 1);
+            case 'r':
+                return chres(buf + 1);
             case 'I':
                 buf = omit_spaces(buf + 1);
                 switch(*buf){
@@ -212,7 +245,26 @@ const char *parse_cmd(char *buf){
         }
     }
     switch(*buf){ // "short" (one letter) commands
+        case 'c':
+            mlx_continue(); return OK;
+        break;
+        case 'd':
+            {fp_t *i = mlx_getimage(&u32);
+            if(i){ U("Timage="); USND(u2str(u32)); drawIma(i); }
+            else U(ERR);}
+        break;
         case 'i': return setupI2C(NULL); // current settings
+        case 'p':
+            mlx_stop(); return OK;
+        break;
+        case 'r': return chres(NULL);
+        case 't':
+            {fp_t *i = mlx_getimage(&u32);
+            if(i){ U("Timage="); USND(u2str(u32)); dumpIma(i); }
+            else U(ERR);}
+        break;
+        case 'C':
+            cartoon = !cartoon; return OK;
         case 'D':
             dumpparams();
         break;

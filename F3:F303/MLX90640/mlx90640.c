@@ -24,6 +24,7 @@
 
 #include "mlx90640.h"
 #include "mlx90640_regs.h"
+#include "mlxproc.h"
 
 // static const char *OK = "OK\n", *OKs = "OK ", *NOTEQ = "NOT equal!\n", *NOTEQi = "NOT equal on index ";
 
@@ -57,15 +58,17 @@ void drawIma(const fp_t im[MLX_PIXNO]){
         }
     }
     fp_t range = max_val - min_val;
+    U("RANGE="); USND(float2str(range, 3));
+    U("MIN="); USND(float2str(min_val, 3));
+    U("MAX="); USND(float2str(max_val, 3));
     if(fabsf(range) < 0.001) range = 1.; // solid fill -> blank
     // Generate and print ASCII art
     iptr = im;
-    newline();
     for(int row = 0; row < MLX_H; ++row){
         for(int col = 0; col < MLX_W; ++col){
             fp_t normalized = ((*iptr++) - min_val) / range;
             // Map to character index (0 to 15)
-            int index = (int)(normalized * (GRAY_LEVELS-1) + 0.5);
+            int index = (int)(normalized * GRAY_LEVELS);
             // Ensure we stay within bounds
             if(index < 0) index = 0;
             else if(index > (GRAY_LEVELS-1)) index = (GRAY_LEVELS-1);
@@ -259,9 +262,7 @@ fp_t *process_subpage(MLX90640_params *params, const int16_t Frame[MLX_DMA_MAXLE
 #define IMD_VAL(reg) Frame[IMD_IDX(reg)]
     // 11.2.2.1. Resolution restore
     // temporary:
-    fp_t resol_corr = (fp_t)(1<<params->resolEE) / (1<<2); // calibrated resol/current resol
-    //fp_t resol_corr = (fp_t)(1<<params->resolEE) / (1<<((reg_control_val[subpageno]&0x0C00)>>10)); // calibrated resol/current resol
-    //DBG("resolEE=%d, resolCur=%d", params->resolEE, ((reg_control_val[subpageno]&0x0C00)>>10));
+    fp_t resol_corr = (fp_t)(1<<params->resolEE) / (1<<mlx_getresolution()); // calibrated resol/current resol
     // 11.2.2.2. Supply voltage value calculation
     int16_t i16a = (int16_t)IMD_VAL(REG_IVDDPIX);
     fp_t dvdd = resol_corr*i16a - params->vdd25;

@@ -44,7 +44,7 @@ int main(void){
     i2c_setup(I2C_SPEED_100K);
     USB_setup();
     USBPU_ON();
-    uint32_t ctr = Tms;
+    uint32_t ctr = Tms, Tlastima = 0;
     while(1){
         if(Tms - ctr > 499){
             ctr = Tms;
@@ -66,5 +66,13 @@ int main(void){
             }
         }
         mlx_process();
+        if(cartoon){
+            uint32_t Tnow;
+            fp_t *i = mlx_getimage(&Tnow);
+            if(i && Tnow != Tlastima){
+                U("Timage="); USND(u2str(Tnow)); drawIma(i);
+                Tlastima = Tnow;
+            }
+        }
     }
 }

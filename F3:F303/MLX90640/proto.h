@@ -18,5 +18,5 @@
 
 #pragma once
 
+extern uint8_t cartoon;
 char *parse_cmd(char *buf);
-
