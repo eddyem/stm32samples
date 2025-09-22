@@ -43,7 +43,6 @@
 #define REG_CONTROL_SUBPSEL     (1<<3)
 #define REG_CONTROL_DATAHOLD    (1<<2)
 #define REG_CONTROL_SUBPEN      (1<<0)
-#define REG_MLXADDR             0x8010
 #define REG_MLXADDR_MASK        (0xff)
 
 // default value
@@ -52,6 +51,9 @@
 // calibration data start & len
 #define REG_CALIDATA            0x2400
 #define REG_CALIDATA_LEN        832
+
+// address in EEPROM (writing to 0x8010 will only change address in RAM)
+#define REG_MLXADDR             0x240f
 
 #define REG_APTATOCCS           0x2410
 #define REG_OSAVG               0x2411

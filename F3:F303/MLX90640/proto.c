@@ -77,8 +77,16 @@ TRUE_INLINE const char *chhwaddr(const char *buf){
     uint32_t a;
     if(buf && *buf){
         const char *nxt = getnum(buf, &a);
-        if(nxt && nxt != buf) if(!mlx_sethwaddr(a)) return ERR;
-    } else return ERR;
+        if(nxt && nxt != buf){
+            if(!mlx_sethwaddr(a)) return ERR;
+        }else{
+            USND("Wrong number");
+            return ERR;
+        }
+    }else{
+        USND("Need address");
+        return ERR;
+    }
     return OK;
 }
 

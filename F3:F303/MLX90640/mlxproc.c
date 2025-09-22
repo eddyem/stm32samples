@@ -148,9 +148,27 @@ int mlx_sethwaddr(uint8_t addr){
     if(addr > 0x7f) return 0;
     uint16_t data[2], *ptr;
     if(!(ptr = i2c_read_reg16(MLX_address, REG_MLXADDR, 1, 0))) return 0;
-    data[0] = REG_MLXADDR;
-    data[1] = (*ptr & ~REG_MLXADDR_MASK) | addr;
+    //U("Old address: "); USND(uhex2str(*ptr));
+    data[0] = REG_MLXADDR; data[1] = 0;
+    uint16_t oldreg = *ptr;
+    if(!i2c_write(MLX_address, data, 2)) return 0; // clear address
+    uint32_t Told = Tms;
+    while(Tms - Told < 10);
+    ptr = i2c_read_reg16(MLX_address, REG_MLXADDR, 1, 0);
+    // should be zero
+    if(!ptr){
+        data[0] = REG_MLXADDR; data[1] = oldreg;
+        i2c_write(MLX_address, data, 2); // leave old address
+        return 0;
+    }
+    data[0] = REG_MLXADDR; // i2c_write swaps bytes, so we need init data again
+    data[1] = (oldreg & ~REG_MLXADDR_MASK) | addr;
+    //U("Write address: "); U(uhex2str(data[0])); U(", "); USND(uhex2str(data[1]));
     if(!i2c_write(MLX_address, data, 2)) return 0;
+    while(Tms - Told < 10);
+    if(!(ptr = i2c_read_reg16(MLX_address, REG_MLXADDR, 1, 0))) return 0;
+    //U("Got address: "); USND(uhex2str(*ptr));
+    if((*ptr & REG_MLXADDR_MASK) != addr) return 0;
     return 1;
 }
 
