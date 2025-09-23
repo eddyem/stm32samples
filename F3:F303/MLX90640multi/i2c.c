@@ -44,7 +44,7 @@ static volatile uint16_t dma_remain = 0; // remain bytes of DMA read/write
 static inline int isI2Cbusy(){
     cntr = Tms;
     do{
-        if(Tms - cntr > I2C_TIMEOUT){ U("Timeout, DMA transfer in progress?"); return 1;}
+        if(Tms - cntr > I2C_TIMEOUT){ USND("Timeout, DMA transfer in progress?"); return 1;}
     }while(I2Cbusy);
     return 0;
 }
@@ -329,6 +329,7 @@ void i2c_bufdudump(){
 
 // get DMA buffer with conversion to little-endian (if transfer was for 16-bit)
 uint16_t *i2c_dma_getbuf(uint16_t *len){
+    if(i2c_got_DMA) USND("DMA GOT!");
     if(!i2c_got_DMA || i2cbuflen < 1) return NULL;
     i2c_got_DMA = 0;
     i2cbuflen >>= 1; // for hexdump16 - now buffer have uint16_t!

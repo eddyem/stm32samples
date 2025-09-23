@@ -44,7 +44,8 @@ int main(void){
     i2c_setup(I2C_SPEED_100K);
     USB_setup();
     USBPU_ON();
-    uint32_t ctr = Tms, Tlastima = 0;
+    uint32_t ctr = Tms, Tlastima[N_SESORS] = {0};
+    mlx_continue(); // init state machine
     while(1){
         if(Tms - ctr > 499){
             ctr = Tms;
@@ -66,13 +67,13 @@ int main(void){
             }
         }
         mlx_process();
-        if(cartoon){
-            uint32_t Tnow = mlx_lastimT();
-            if(Tnow != Tlastima){
-                fp_t *i = mlx_getimage(&Tnow);
-                if(i){
-                    U("Timage="); USND(u2str(Tnow)); drawIma(i);
-                    Tlastima = Tnow;
+        if(cartoon) for(int i = 0; i < N_SESORS; ++i){
+            uint32_t Tnow = mlx_lastimT(i);
+            if(Tnow != Tlastima[i]){
+                fp_t *im = mlx_getimage(i);
+                if(im){
+                    U("Timage="); USND(u2str(Tnow)); drawIma(im);
+                    Tlastima[i] = Tnow;
                 }
             }
         }

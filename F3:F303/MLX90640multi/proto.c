@@ -41,12 +41,12 @@ const char *helpstring =
         "d - draw image in ASCII\n"
         "i0..4 - setup I2C with speed 10k, 100k, 400k, 1M or 2M (experimental!)\n"
         "p - pause MLX\n"
-        "r0..3 - change resolution (0 - 16bit, 3 - 19-bit)\n"
+        "s - stop MLX (and start from zero @ 'c'\n"
         "t - show temperature map\n"
         "C - \"cartoon\" mode on/off (show each new image)\n"
-        "D - dump MLX parameters\n"
+        "Dn - dump MLX parameters for sensor number n\n"
         "G - get MLX state\n"
-        "Ia addr - set  device address\n"
+        "Ia addr [n] - set  device address for interactive work or (with n) change address of n'th sensor\n"
         "Ir reg n - read n words from 16-bit register\n"
         "Iw words - send words (hex/dec/oct/bin) to I2C\n"
         "Is - scan I2C bus\n"
@@ -78,7 +78,7 @@ TRUE_INLINE const char *chhwaddr(const char *buf){
     if(buf && *buf){
         const char *nxt = getnum(buf, &a);
         if(nxt && nxt != buf){
-            if(!mlx_sethwaddr(a)) return ERR;
+            if(!mlx_sethwaddr(I2Caddress, a)) return ERR;
         }else{
             USND("Wrong number");
             return ERR;
@@ -90,24 +90,16 @@ TRUE_INLINE const char *chhwaddr(const char *buf){
     return OK;
 }
 
-TRUE_INLINE const char *chres(const char *buf){
-    uint32_t r;
-    if(buf && *buf){
-        const char *nxt = getnum(buf, &r);
-        if(nxt && nxt != buf) if(!mlx_setresolution(r)) return ERR;
-    }
-    r = mlx_getresolution();
-    U("MLXRESOLUTION="); USND(u2str(r));
-    return NULL;
-}
-
 TRUE_INLINE const char *chaddr(const char *buf){
-    uint32_t addr;
+    uint32_t addr, num;
     const char *nxt = getnum(buf, &addr);
     if(nxt && nxt != buf){
         if(addr > 0x7f) return ERR;
-        mlx_setaddr(addr);
         I2Caddress = (uint8_t) addr << 1;
+        buf = getnum(nxt, &num);
+        if(buf && nxt != buf && num < N_SESORS){
+            mlx_setaddr(num, addr);
+        }
     }else addr = I2Caddress >> 1;
     U("I2CADDR="); USND(uhex2str(addr));
     return NULL;
@@ -163,9 +155,13 @@ static void dumpfarr(float *arr){
     }
 }
 // dump MLX parameters
-TRUE_INLINE void dumpparams(){
+TRUE_INLINE void dumpparams(const char *buf){
+    uint32_t N = 0;
+    const char *nxt = getnum(buf, &N);
+    U(u2str(N)); USND("sn");
+    if(!nxt || buf == nxt || N > N_SESORS){ U(ERR); return; }
     MLX90640_params params;
-    if(!mlx_getparams(&params)){ U(ERR); return; }
+    if(!mlx_getparams(N, &params)){ U(ERR); return; }
     U("\nkVdd="); printi(params.kVdd);
     U("\nvdd25="); printi(params.vdd25);
     U("\nKvPTAT="); printfl(params.KvPTAT, 4);
@@ -221,17 +217,35 @@ TRUE_INLINE void getst(){
     USND(states[s]);
 }
 
+// `draw`==1 - draw, ==0 - show T map
+static const char *drawimg(const char *buf, int draw){
+    uint32_t sensno;
+    const char *nxt = getnum(buf, &sensno);
+    if(nxt && nxt != buf && sensno < N_SESORS){
+        uint32_t T = mlx_lastimT(sensno);
+        fp_t *img = mlx_getimage(sensno);
+        if(img){
+            U("Timage="); USND(u2str(T));
+            if(draw) drawIma(img);
+            else dumpIma(img);
+            return NULL;
+        }
+    }
+    return ERR;
+}
+
 const char *parse_cmd(char *buf){
     if(!buf || !*buf) return NULL;
-    uint32_t u32;
     if(buf[1]){
         switch(*buf){ // "long" commands
             case 'a':
                 return chhwaddr(buf + 1);
             case 'i':
                 return setupI2C(buf + 1);
-            case 'r':
-                return chres(buf + 1);
+            case 'D':
+                dumpparams(buf + 1);
+                return;
+            break;
             case 'I':
                 buf = omit_spaces(buf + 1);
                 switch(*buf){
@@ -257,25 +271,19 @@ const char *parse_cmd(char *buf){
             mlx_continue(); return OK;
         break;
         case 'd':
-            {fp_t *i = mlx_getimage(&u32);
-            if(i){ U("Timage="); USND(u2str(u32)); drawIma(i); }
-            else U(ERR);}
+            return drawimg(buf+1, 1);
         break;
         case 'i': return setupI2C(NULL); // current settings
         case 'p':
-            mlx_stop(); return OK;
+            mlx_pause(); return OK;
         break;
-        case 'r': return chres(NULL);
+        case 's':
+            mlx_stop(); return OK;
         case 't':
-            {fp_t *i = mlx_getimage(&u32);
-            if(i){ U("Timage="); USND(u2str(u32)); dumpIma(i); }
-            else U(ERR);}
+            return drawimg(buf+1, 0);
         break;
         case 'C':
             cartoon = !cartoon; return OK;
-        case 'D':
-            dumpparams();
-        break;
         case 'G':
             getst();
         break;

@@ -264,7 +264,8 @@ int get_parameters(const uint16_t dataarray[MLX_DMA_MAXLEN], MLX90640_params *pa
 fp_t *process_image(const MLX90640_params *params, const int16_t subpage1[REG_IMAGEDATA_LEN]){
 #define IMD_VAL(reg) subpage1[IMD_IDX(reg)]
     // 11.2.2.1. Resolution restore
-    fp_t resol_corr = (fp_t)(1<<params->resolEE) / (1<<mlx_getresolution()); // calibrated resol/current resol
+    //fp_t resol_corr = (fp_t)(1<<params->resolEE) / (1<<mlx_getresolution()); // calibrated resol/current resol
+    fp_t resol_corr = (fp_t)(1<<params->resolEE) / (1<<2); // ONLY DEFAULT!
     int16_t i16a;
     fp_t dvdd, dTa, Kgain, pixOS[2]; // values for both subpages
     // 11.2.2.2. Supply voltage value calculation

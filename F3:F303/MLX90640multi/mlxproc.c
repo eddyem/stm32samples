@@ -21,36 +21,44 @@
 #include "i2c.h"
 #include "mlxproc.h"
 #include "mlx90640_regs.h"
-//#include "usb_dev.h"
-//#include "strfunc.h"
+#include "usb_dev.h"
+#include "strfunc.h"
 
 extern volatile uint32_t Tms;
 
 // current state and state before `stop` called
-static mlx_state_t MLX_state = MLX_NOTINIT, MLX_oldstate = MLX_NOTINIT;
-static MLX90640_params p;
-static int parsrdy = 0;
-static uint8_t MLX_address = 0x33 << 1;
+static mlx_state_t MLX_state = MLX_RELAX, MLX_oldstate = MLX_RELAX;
 static int errctr = 0; // errors counter - cleared by mlx_continue
-static uint32_t Tlastimage = 0;
-static uint8_t resolution = 2; // default: 18bit
+static uint32_t Tlastimage[N_SESORS] = {0};
 
-static int16_t subpage1[REG_IMAGEDATA_LEN];
+// subpages and configs of all sensors
+static int16_t imdata[N_SESORS][REG_IMAGEDATA_LEN];
+static uint16_t confdata[N_SESORS][MLX_DMA_MAXLEN];
+static uint8_t sens_addresses[N_SESORS] = {0x10<<1, 0x11<<1, 0x12<<1, 0x13<<1, 0x14<<1}; // addresses of all sensors (if 0 - omit this one)
+static uint8_t sensaddr[N_SESORS];
+
+static int sensno = -1;
 
 // get current state
 mlx_state_t mlx_state(){ return MLX_state; }
 // set address
-int mlx_setaddr(uint8_t addr){
+int mlx_setaddr(int n, uint8_t addr){
+    if(n < 0 || n > N_SESORS) return 0;
     if(addr > 0x7f) return 0;
-    MLX_address = addr << 1;
-    Tlastimage = Tms; // refresh counter for autoreset I2C in case of error
+    sens_addresses[n] = addr << 1;
+    Tlastimage[n] = Tms; // refresh counter for autoreset I2C in case of error
     return 1;
 }
-// temporary stop
-void mlx_stop(){
+// pause state machine and stop
+void mlx_pause(){
     MLX_oldstate = MLX_state;
     MLX_state = MLX_RELAX;
 }
+void mlx_stop(){
+    MLX_oldstate = MLX_NOTINIT;
+    MLX_state = MLX_RELAX;
+}
+
 // continue processing
 void mlx_continue(){
     errctr = 0;
@@ -62,96 +70,145 @@ void mlx_continue(){
         //case MLX_NOTINIT:
         //case MLX_WAITPARAMS:
         default:
+            memcpy(sensaddr, sens_addresses, sizeof(sens_addresses));
             MLX_state = MLX_NOTINIT;
+            sensno = -1;
         break;
     }
 }
 
+static int nextsensno(int s){
+    if(mlx_nactive() == 0){
+        mlx_stop();
+        return -1;
+    }
+    int next = s + 1;
+    for(; next < N_SESORS; ++next) if(sensaddr[next]) break;
+    if(next == N_SESORS) return nextsensno(-1); // roll to start
+        U(i2str(next)); USND(" - new sensor number");
+    return next;
+}
+
+// count active sensors
+int mlx_nactive(){
+    int N = 0;
+    for(int i = 0; i < N_SESORS; ++i) if(sensaddr[i]) ++N;
+    return N;
+}
+
+/**
+ * @brief mlx_process - main state machine
+ * 1. Process conf data for each sensor
+ * 2. Start image processing and store subpage1 for each sensor
+ */
 void mlx_process(){
+    static uint32_t TT = 0;
+    if(Tms == TT) return;
+    TT = Tms;
     //    static uint32_t Tlast = 0;
     static int subpage = 0;
+    if(MLX_state == MLX_RELAX) return;
+    if(sensno == -1){ // init
+        sensno = nextsensno(-1);
+        if(-1 == sensno) return; // no sensors found
+    }
     switch(MLX_state){
         case MLX_NOTINIT: // start reading parameters
-            if(i2c_read_reg16(MLX_address, REG_CALIDATA, MLX_DMA_MAXLEN, 1)){
+            if(i2c_read_reg16(sensaddr[sensno], REG_CALIDATA, MLX_DMA_MAXLEN, 1)){
+                    U(i2str(sensno)); USND(" wait conf");
                 errctr = 0;
                 MLX_state = MLX_WAITPARAMS;
             }else ++errctr;
         break;
         case MLX_WAITPARAMS: // check DMA ends and calculate parameters
-            if(i2c_dma_haderr()) MLX_state = MLX_NOTINIT;
+            if(i2c_dma_haderr()){ MLX_state = MLX_NOTINIT; USND("DMA err");}
             else{
                 uint16_t len, *buf = i2c_dma_getbuf(&len);
-                if(buf){
-                    if(len != MLX_DMA_MAXLEN) MLX_state = MLX_NOTINIT;
-                    else if(get_parameters(buf, &p)){
-                        errctr = 0;
-                        MLX_state = MLX_WAITSUBPAGE; // fine! we could wait subpage
-                        parsrdy = 1;
-                    }
-                }
+                if(buf) USND("READ");
+                else break;
+                if(len != MLX_DMA_MAXLEN){ MLX_state = MLX_NOTINIT; break; }
+                memcpy(confdata[sensno], buf, MLX_DMA_MAXLEN * sizeof(uint16_t));
+                    U(i2str(sensno)); USND(" got conf");
+                int next = nextsensno(sensno);
+                errctr = 0;
+                if(next <= sensno) MLX_state = MLX_WAITSUBPAGE; // all configuration read
+                else MLX_state = MLX_NOTINIT; // read next
+                sensno = next;
+                return;
             }
         break;
         case MLX_WAITSUBPAGE: // wait for subpage 1 ready
-            {uint16_t *got = i2c_read_reg16(MLX_address, REG_STATUS, 1, 0);
+            {uint16_t *got = i2c_read_reg16(sensaddr[sensno], REG_STATUS, 1, 0);
             if(got && *got & REG_STATUS_NEWDATA){
                 if(subpage == (*got & REG_STATUS_SPNO)){
-                    if(subpage == 0){ subpage = 1; break; }
-                    if(i2c_read_reg16(MLX_address, REG_IMAGEDATA, REG_IMAGEDATA_LEN, 1)){
+                    errctr = 0;
+                    if(subpage == 0){ // omit zero subpage for each sensor
+                        int next = nextsensno(sensno);
+                        if(next <= sensno) subpage = 1; // all scanned - now wait for page 1
+                        break;
+                    }
+                    if(i2c_read_reg16(sensaddr[sensno], REG_IMAGEDATA, REG_IMAGEDATA_LEN, 1)){
                         errctr = 0;
                         MLX_state = MLX_READSUBPAGE;
                         //    U("spstart"); USB_putbyte('0'+subpage); USB_putbyte('='); USND(u2str(Tms - Tlast));
                     }else ++errctr;
                 }
-            }}
+            }else ++errctr;
+            }
         break;
         case MLX_READSUBPAGE: // wait ends of DMA read and calculate subpage
-            if(i2c_dma_haderr()) MLX_state = MLX_NOTINIT;
+            if(i2c_dma_haderr()) MLX_state = MLX_WAITSUBPAGE;
             else{
                 uint16_t len, *buf = i2c_dma_getbuf(&len);
                 if(buf){
                     //    U("spread="); USND(u2str(Tms - Tlast));
                     if(len != REG_IMAGEDATA_LEN){
-                        MLX_state = MLX_WAITSUBPAGE;
-                    }else{
+                        ++errctr;
+                    }else{ // fine! we could check next sensor
                         errctr = 0;
-                        memcpy(subpage1, buf, REG_IMAGEDATA_LEN * sizeof(int16_t));
-                        MLX_state = MLX_WAITSUBPAGE; // fine! we could wait next subpage
+                        memcpy(imdata[sensno], buf, REG_IMAGEDATA_LEN * sizeof(int16_t));
                         //  U("spgot="); USND(u2str(Tms - Tlast));
-                            Tlastimage = Tms;
-                            //  U("imgot="); USND(u2str(Tms - Tlast)); Tlast = Tms;
+                        Tlastimage[sensno] = Tms;
+                        //  U("imgot="); USND(u2str(Tms - Tlast)); Tlast = Tms;
+                        int next = nextsensno(sensno);
+                        if(next <= sensno) subpage = 0; // roll to start - omit page 0 for all
                     }
-                    subpage = 0;
+                    MLX_state = MLX_WAITSUBPAGE;
                 }
             }
         break;
         default:
             return;
     }
-    if(MLX_state != MLX_RELAX && Tms - Tlastimage > MLX_I2CERR_TMOUT){ i2c_setup(i2c_curspeed); Tlastimage = Tms; }
-    if(errctr > MLX_MAX_ERRORS) mlx_stop();
+    if(MLX_state != MLX_RELAX && Tms - Tlastimage[sensno] > MLX_I2CERR_TMOUT){ i2c_setup(i2c_curspeed); Tlastimage[sensno] = Tms; }
+    if(errctr > MLX_MAX_ERRORS){
+        errctr = 0;
+        sensaddr[sensno] = 0; // throw out this value
+        sensno = nextsensno(sensno);
+    }
 }
 
-// get parameters - memcpy to user's
-int mlx_getparams(MLX90640_params *pars){
-    if(!pars || !parsrdy) return 0;
-    memcpy(pars, &p, sizeof(p));
+// recalculate parameters
+int mlx_getparams(int n, MLX90640_params *pars){
+    if(!pars) return 0;
+    if(!get_parameters(confdata[n], pars)) return 0;
     return 1;
 }
 
-uint32_t mlx_lastimT(){ return Tlastimage; }
+uint32_t mlx_lastimT(int n){ return Tlastimage[n]; }
 
-fp_t *mlx_getimage(uint32_t *Tgot){
-    fp_t *ready_image = process_image(&p, subpage1);
+fp_t *mlx_getimage(int n){
+    if(n < 0 || n >= N_SESORS || !sensaddr[n]) return NULL;
+    MLX90640_params p;
+    if(!get_parameters(confdata[n], &p)) return NULL;
+    fp_t *ready_image = process_image(&p, imdata[n]);
     if(!ready_image) return NULL;
-    if(Tgot) *Tgot = Tlastimage;
     return ready_image;
 }
 
-uint8_t mlx_getresolution(){
-    return resolution;
-}
-
-int mlx_sethwaddr(uint8_t addr){
+// this function can be run only when state machine is paused/stopped!
+// WARNING: `MLX_address` is shifted, `addr` - NOT!
+int mlx_sethwaddr(uint8_t MLX_address, uint8_t addr){
     if(addr > 0x7f) return 0;
     uint16_t data[2], *ptr;
     if(!(ptr = i2c_read_reg16(MLX_address, REG_MLXADDR, 1, 0))) return 0;
@@ -179,13 +236,3 @@ int mlx_sethwaddr(uint8_t addr){
     return 1;
 }
 
-int mlx_setresolution(uint8_t newresol){
-    if(newresol > 3) return 0;
-    uint16_t data[2], *ptr;
-    if(!(ptr = i2c_read_reg16(MLX_address, REG_CONTROL, 1, 0))) return 0;
-    data[0] = REG_CONTROL;
-    data[1] = (*ptr & ~REG_CONTROL_RESMASK) | (newresol << 10);
-    if(!i2c_write(MLX_address, data, 2)) return 0;
-    resolution = newresol;
-    return 1;
-}
