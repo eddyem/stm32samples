@@ -32,17 +32,24 @@ static uint8_t I2Caddress = 0x33 << 1;
 extern volatile uint32_t Tms;
 uint8_t cartoon = 0; // "cartoon" mode: refresh image each time we get new
 
+// common names for frequent keys
+const char *Timage = "TIMAGE=";
+const char *Sensno = "SENSNO=";
+
 static const char *OK = "OK\n", *ERR = "ERR\n";
 const char *helpstring =
         "https://github.com/eddyem/stm32samples/tree/master/F3:F303/mlx90640 build#" BUILD_NUMBER " @ " BUILD_DATE "\n"
         "    management of single IR bolometer MLX90640\n"
         "aa - change I2C address to a (a should be non-shifted value!!!)\n"
         "c - continue MLX\n"
-        "d - draw image in ASCII\n"
+        "dn - draw nth image in ASCII\n"
+        "gn - get nth image 'as is' - float array of 768x4 bytes\n"
         "i0..4 - setup I2C with speed 10k, 100k, 400k, 1M or 2M (experimental!)\n"
+        "l - list active sensors IDs\n"
+        "tn - show temperature map of nth image\n"
         "p - pause MLX\n"
         "s - stop MLX (and start from zero @ 'c'\n"
-        "t - show temperature map\n"
+        "tn - show nth image aquisition time\n"
         "C - \"cartoon\" mode on/off (show each new image)\n"
         "Dn - dump MLX parameters for sensor number n\n"
         "G - get MLX state\n"
@@ -90,16 +97,23 @@ TRUE_INLINE const char *chhwaddr(const char *buf){
     return OK;
 }
 
+// read sensor's number from `buf`; return -1 if error
+static int getsensnum(const char *buf){
+    if(!buf || !*buf) return -1;
+    uint32_t num;
+    const char *nxt = getnum(buf, &num);
+    if(!nxt || nxt == buf || num >= N_SESORS) return -1;
+    return (int) num;
+}
+
 TRUE_INLINE const char *chaddr(const char *buf){
-    uint32_t addr, num;
+    uint32_t addr;
     const char *nxt = getnum(buf, &addr);
     if(nxt && nxt != buf){
         if(addr > 0x7f) return ERR;
         I2Caddress = (uint8_t) addr << 1;
-        buf = getnum(nxt, &num);
-        if(buf && nxt != buf && num < N_SESORS){
-            mlx_setaddr(num, addr);
-        }
+        int n = getsensnum(nxt);
+        if(n > -1) mlx_setaddr(n, addr);
     }else addr = I2Caddress >> 1;
     U("I2CADDR="); USND(uhex2str(addr));
     return NULL;
@@ -156,21 +170,20 @@ static void dumpfarr(float *arr){
 }
 // dump MLX parameters
 TRUE_INLINE void dumpparams(const char *buf){
-    uint32_t N = 0;
-    const char *nxt = getnum(buf, &N);
-    U(u2str(N)); USND("sn");
-    if(!nxt || buf == nxt || N > N_SESORS){ U(ERR); return; }
-    MLX90640_params params;
-    if(!mlx_getparams(N, &params)){ U(ERR); return; }
-    U("\nkVdd="); printi(params.kVdd);
-    U("\nvdd25="); printi(params.vdd25);
-    U("\nKvPTAT="); printfl(params.KvPTAT, 4);
-    U("\nKtPTAT="); printfl(params.KtPTAT, 4);
-    U("\nvPTAT25="); printi(params.vPTAT25);
-    U("\nalphaPTAT="); printfl(params.alphaPTAT, 2);
-    U("\ngainEE="); printi(params.gainEE);
+    int N = getsensnum(buf);
+    if(N < 0){ U(ERR); return; }
+    MLX90640_params *params = mlx_getparams(N);
+    if(!params){ U(ERR); return; }
+    U(Sensno); USND(i2str(N));
+    U("\nkVdd="); printi(params->kVdd);
+    U("\nvdd25="); printi(params->vdd25);
+    U("\nKvPTAT="); printfl(params->KvPTAT, 4);
+    U("\nKtPTAT="); printfl(params->KtPTAT, 4);
+    U("\nvPTAT25="); printi(params->vPTAT25);
+    U("\nalphaPTAT="); printfl(params->alphaPTAT, 2);
+    U("\ngainEE="); printi(params->gainEE);
     U("\nPixel offset parameters:\n");
-    float *offset = params.offset;
+    float *offset = params->offset;
     for(int row = 0; row < 24; ++row){
         for(int col = 0; col < 32; ++col){
             printfl(*offset++, 2); USB_putbyte(' ');
@@ -178,28 +191,28 @@ TRUE_INLINE void dumpparams(const char *buf){
         newline();
     }
     U("K_talpha:\n");
-    dumpfarr(params.kta);
+    dumpfarr(params->kta);
     U("Kv: ");
     for(int i = 0; i < 4; ++i){
-        printfl(params.kv[i], 2); USB_putbyte(' ');
+        printfl(params->kv[i], 2); USB_putbyte(' ');
     }
     U("\ncpOffset=");
-    printi(params.cpOffset[0]); U(", "); printi(params.cpOffset[1]);
-    U("\ncpKta="); printfl(params.cpKta, 2);
-    U("\ncpKv="); printfl(params.cpKv, 2);
-    U("\ntgc="); printfl(params.tgc, 2);
-    U("\ncpALpha="); printfl(params.cpAlpha[0], 2);
-    U(", "); printfl(params.cpAlpha[1], 2);
-    U("\nKsTa="); printfl(params.KsTa, 2);
+    printi(params->cpOffset[0]); U(", "); printi(params->cpOffset[1]);
+    U("\ncpKta="); printfl(params->cpKta, 2);
+    U("\ncpKv="); printfl(params->cpKv, 2);
+    U("\ntgc="); printfl(params->tgc, 2);
+    U("\ncpALpha="); printfl(params->cpAlpha[0], 2);
+    U(", "); printfl(params->cpAlpha[1], 2);
+    U("\nKsTa="); printfl(params->KsTa, 2);
     U("\nAlpha:\n");
-    dumpfarr(params.alpha);
-    U("\nCT3="); printfl(params.CT[1], 2);
-    U("\nCT4="); printfl(params.CT[2], 2);
+    dumpfarr(params->alpha);
+    U("\nCT3="); printfl(params->CT[1], 2);
+    U("\nCT4="); printfl(params->CT[2], 2);
     for(int i = 0; i < 4; ++i){
         U("\nKsTo"); USB_putbyte('0'+i); USB_putbyte('=');
-        printfl(params.KsTo[i], 2);
+        printfl(params->KsTo[i], 2);
         U("\nalphacorr"); USB_putbyte('0'+i); USB_putbyte('=');
-        printfl(params.alphacorr[i], 2);
+        printfl(params->alphacorr[i], 2);
     }
     newline();
 }
@@ -217,21 +230,60 @@ TRUE_INLINE void getst(){
     USND(states[s]);
 }
 
-// `draw`==1 - draw, ==0 - show T map
+// `draw`==1 - draw, ==0 - show T map, 2 - send raw float array with prefix 'SENSNO=x\nTimage=y\n' and postfix "ENDIMAGE\n"
 static const char *drawimg(const char *buf, int draw){
-    uint32_t sensno;
-    const char *nxt = getnum(buf, &sensno);
-    if(nxt && nxt != buf && sensno < N_SESORS){
+    int sensno = getsensnum(buf);
+    if(sensno > -1){
         uint32_t T = mlx_lastimT(sensno);
         fp_t *img = mlx_getimage(sensno);
         if(img){
-            U("Timage="); USND(u2str(T));
-            if(draw) drawIma(img);
-            else dumpIma(img);
+            U(Sensno); USND(u2str(sensno));
+            U(Timage); USND(u2str(T));
+            switch(draw){
+                case 0:
+                    dumpIma(img);
+                break;
+                case 1:
+                    drawIma(img);
+                break;
+                case 2:
+                {
+                    uint8_t *d = (uint8_t*)img;
+                    uint32_t _2send = MLX_PIXNO * sizeof(float);
+                    // send by portions of 256 bytes (as image is larger than ringbuffer)
+                    while(_2send){
+                        uint32_t portion = (_2send > 256) ? 256 : _2send;
+                        USB_send(d, portion);
+                        _2send -= portion;
+                        d += portion;
+                    }
+                }
+                    USND("ENDIMAGE");
+            }
             return NULL;
         }
     }
     return ERR;
+}
+
+TRUE_INLINE void listactive(){
+    int N =  mlx_nactive();
+    if(!N){ USND("No active sensors found!"); return; }
+    uint8_t *ids = mlx_activeids();
+    U("Found "); USB_putbyte('0'+N); USND(" active sensors:");
+    for(int i = 0; i < N_SESORS; ++i)
+        if(ids[i]){
+            U("SENSID"); U(u2str(i)); USB_putbyte('=');
+            U(uhex2str(ids[i] >> 1));
+            newline();
+        }
+}
+
+static void getimt(const char *buf){
+    int sensno = getsensnum(buf);
+    if(sensno > -1){
+        U(Timage); USND(u2str(mlx_lastimT(sensno)));
+    }else U(ERR);
 }
 
 const char *parse_cmd(char *buf){
@@ -240,11 +292,19 @@ const char *parse_cmd(char *buf){
         switch(*buf){ // "long" commands
             case 'a':
                 return chhwaddr(buf + 1);
+            case 'd':
+                return drawimg(buf+1, 1);
+            case 'g':
+                return drawimg(buf+1, 2);
             case 'i':
                 return setupI2C(buf + 1);
+            case 'm':
+                return drawimg(buf+1, 0);
+            case 't':
+                getimt(buf + 1); return NULL;
             case 'D':
                 dumpparams(buf + 1);
-                return;
+                return NULL;
             break;
             case 'I':
                 buf = omit_spaces(buf + 1);
@@ -270,18 +330,15 @@ const char *parse_cmd(char *buf){
         case 'c':
             mlx_continue(); return OK;
         break;
-        case 'd':
-            return drawimg(buf+1, 1);
-        break;
         case 'i': return setupI2C(NULL); // current settings
+        case 'l':
+            listactive();
+        break;
         case 'p':
             mlx_pause(); return OK;
         break;
         case 's':
             mlx_stop(); return OK;
-        case 't':
-            return drawimg(buf+1, 0);
-        break;
         case 'C':
             cartoon = !cartoon; return OK;
         case 'G':

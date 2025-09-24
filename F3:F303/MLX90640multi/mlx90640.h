@@ -59,7 +59,7 @@ typedef struct{
 } MLX90640_params;
 
 int ch_resolution(uint8_t newresol);
-int get_parameters(const uint16_t dataarray[MLX_DMA_MAXLEN], MLX90640_params *params);
-fp_t *process_image(const MLX90640_params *params, const int16_t subpage1[REG_IMAGEDATA_LEN]);
+MLX90640_params *get_parameters(const uint16_t dataarray[MLX_DMA_MAXLEN]);
+fp_t *process_image(const int16_t subpage1[REG_IMAGEDATA_LEN]);
 void dumpIma(const fp_t im[MLX_PIXNO]);
 void drawIma(const fp_t im[MLX_PIXNO]);

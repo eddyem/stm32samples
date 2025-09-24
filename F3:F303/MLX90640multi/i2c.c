@@ -33,6 +33,7 @@ static volatile int I2Cbusy = 0, goterr = 0; // busy==1 when DMA active, goterr=
 static uint16_t I2Cbuf[I2C_BUFSIZE];
 static uint16_t i2cbuflen = 0; // buffer for DMA rx and its len
 static volatile uint16_t dma_remain = 0; // remain bytes of DMA read/write
+static uint8_t dmaaddr = 0; // address to continuous read by DMA
 
 // macros for I2C rx/tx
 #define DMARXCCR    (DMA_CCR_MINC | DMA_CCR_TCIE | DMA_CCR_TEIE)
@@ -271,6 +272,7 @@ static uint8_t dmard(uint8_t addr, uint16_t nbytes){
     (void) I2C1->RXDR; // avoid wrong first byte
     DMA1_Channel7->CCR = DMARXCCR | DMA_CCR_EN; // init DMA before START sequence
     if(!i2c_startr(addr, nbytes, 1)) return 0;
+    dmaaddr = addr;
     dma_remain = nbytes > 255 ? nbytes - 255 : 0; // remainder after first read finish
     I2Cbusy = 1;
     return 1;
@@ -329,7 +331,8 @@ void i2c_bufdudump(){
 
 // get DMA buffer with conversion to little-endian (if transfer was for 16-bit)
 uint16_t *i2c_dma_getbuf(uint16_t *len){
-    if(i2c_got_DMA) USND("DMA GOT!");
+    //if(i2c_got_DMA) USND("DMA GOT!");
+    //U("T="); U(u2str(Tms)); U("; cndtr: "); USND(u2str(DMA1_Channel7->CNDTR));
     if(!i2c_got_DMA || i2cbuflen < 1) return NULL;
     i2c_got_DMA = 0;
     i2cbuflen >>= 1; // for hexdump16 - now buffer have uint16_t!
@@ -358,7 +361,7 @@ static void I2C_isr(int rx){
         uint16_t len = (dma_remain > 255) ? 255 : dma_remain;
         ch->CNDTR = len;
         if(rx){
-            if(!i2c_startr(0, dma_remain, 0)){
+            if(!i2c_startr(dmaaddr, dma_remain, 0)){
                 goterr = 1; goto ret;
             }
             ch->CMAR += 255;

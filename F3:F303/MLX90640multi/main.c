@@ -41,7 +41,7 @@ int main(void){
     }
     USBPU_OFF();
     hw_setup();
-    i2c_setup(I2C_SPEED_100K);
+    i2c_setup(I2C_SPEED_400K);
     USB_setup();
     USBPU_ON();
     uint32_t ctr = Tms, Tlastima[N_SESORS] = {0};
@@ -49,6 +49,7 @@ int main(void){
     while(1){
         if(Tms - ctr > 499){
             ctr = Tms;
+            if(!mlx_nactive()){ mlx_stop(); mlx_continue(); }
             pin_toggle(GPIOB, 1 << 1 | 1 << 0); // toggle LED @ PB0
         }
         int l = USB_receivestr(inbuff, MAXSTRLEN);
@@ -72,7 +73,8 @@ int main(void){
             if(Tnow != Tlastima[i]){
                 fp_t *im = mlx_getimage(i);
                 if(im){
-                    U("Timage="); USND(u2str(Tnow)); drawIma(im);
+                    U(Sensno); USND(i2str(i));
+                    U(Timage); USND(u2str(Tnow)); drawIma(im);
                     Tlastima[i] = Tnow;
                 }
             }

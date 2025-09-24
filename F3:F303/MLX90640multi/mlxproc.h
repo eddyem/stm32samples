@@ -41,11 +41,12 @@ typedef enum{
 int mlx_setaddr(int n, uint8_t addr);
 mlx_state_t mlx_state();
 int mlx_nactive();
+uint8_t *mlx_activeids();
 void mlx_pause();
 void mlx_stop();
 void mlx_continue();
 void mlx_process();
-int mlx_getparams(int sensno, MLX90640_params *pars);
+MLX90640_params *mlx_getparams(int sensno);
 fp_t *mlx_getimage(int sensno);
 int mlx_sethwaddr(uint8_t MLX_address, uint8_t addr);
 uint32_t mlx_lastimT(int sensno);

@@ -18,5 +18,7 @@
 
 #pragma once
 
+extern const char *Timage, *Sensno;
+
 extern uint8_t cartoon;
 char *parse_cmd(char *buf);
