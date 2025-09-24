@@ -38,7 +38,7 @@ const char *Sensno = "SENSNO=";
 
 static const char *OK = "OK\n", *ERR = "ERR\n";
 const char *helpstring =
-        "https://github.com/eddyem/stm32samples/tree/master/F3:F303/mlx90640 build#" BUILD_NUMBER " @ " BUILD_DATE "\n"
+        "https://github.com/eddyem/stm32samples/tree/master/F3:F303/MLX90640multi build#" BUILD_NUMBER " @ " BUILD_DATE "\n"
         "    management of single IR bolometer MLX90640\n"
         "aa - change I2C address to a (a should be non-shifted value!!!)\n"
         "c - continue MLX\n"
