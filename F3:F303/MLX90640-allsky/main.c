@@ -32,6 +32,8 @@ void sys_tick_handler(void){
     ++Tms;
 }
 
+const char *scanend = "SCANEND\n", *foundid = "FOUNDID=";
+
 int main(void){
     char inbuff[MAXSTRLEN+1];
     if(StartHSE()){
@@ -58,33 +60,40 @@ int main(void){
         int l = USB_receivestr(inbuff, MAXSTRLEN);
         if(l < 0) USB_sendstr("USBOVERFLOW\n");
         else if(l){
-            const char *ans = parse_cmd(inbuff);
+            const char *ans = parse_cmd(inbuff, SEND_USB);
             if(ans) USB_sendstr(ans);
         }
-        if(i2c_scanmode){
+        if(i2c_scanmode){ // send this to both
             uint8_t addr;
             int ok = i2c_scan_next_addr(&addr);
-            if(addr == I2C_ADDREND) USND("SCANEND");
-            else if(ok){
-                U("FOUNDID=");
-                USND(uhex2str(addr));
+            if(addr == I2C_ADDREND){
+                USB_sendstr(scanend); USB_putbyte('\n');
+                usart_sendstr(scanend); usart_putbyte('\n');
+            }else if(ok){
+                const char *straddr = uhex2str(addr);
+                USB_sendstr(foundid); USB_sendstr(straddr); USB_putbyte('\n');
+                usart_sendstr(foundid); usart_sendstr(straddr); usart_putbyte('\n');
             }
         }
         mlx_process();
-        if(cartoon) for(int i = 0; i < N_SESORS; ++i){
+        if(cartoon) for(int i = 0; i < N_SESORS; ++i){ // USB-only
             uint32_t Tnow = mlx_lastimT(i);
             if(Tnow != Tlastima[i]){
                 fp_t *im = mlx_getimage(i);
                 if(im){
-                    U(Sensno); USND(i2str(i));
-                    U(Timage); USND(u2str(Tnow)); drawIma(im);
+                    chsendfun(SEND_USB);
+                    U(Sensno); UN(i2str(i));
+                    U(Timage); UN(u2str(Tnow)); drawIma(im);
                     Tlastima[i] = Tnow;
                 }
             }
         }
         usart_process();
-        if(usart_ovr()) USND("USART_OVERFLOW\n");
+        if(usart_ovr()) usart_sendstr("USART_OVERFLOW\n");
         char *got = usart_getline(NULL);
-        if(got){ U("USART='"); U(got); USND("'"); }
+        if(got){
+            const char *ans = parse_cmd(got, SEND_USART);
+            if(ans) usart_sendstr(ans);
+        }
     }
 }

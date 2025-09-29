@@ -47,7 +47,7 @@ void linecoding_handler(usb_LineCoding *lc);
 #define RBINSZ      (128)
 
 #define newline()   USB_putbyte('\n')
-#define USND(s)     do{USB_sendstr(s); USB_putbyte('\n');}while(0)
+#define UN(s)     do{USB_sendstr(s); USB_putbyte('\n');}while(0)
 #define U(s)        USB_sendstr(s)
 
 int USB_sendall();

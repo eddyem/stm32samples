@@ -28,7 +28,7 @@
 #include "usb_dev.h"
 #include "strfunc.h"
 #define D(x)        U(x)
-#define DN(x)       USND(x)
+#define DN(x)       UN(x)
 #define DB(x)       USB_putbute(x)
 #else
 #define D(x)

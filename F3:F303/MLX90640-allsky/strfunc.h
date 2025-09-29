@@ -23,11 +23,6 @@
 
 #include "usb_dev.h"
 
-#define printu(x)       do{USB_sendstr(u2str(x));}while(0)
-#define printi(x)       do{USB_sendstr(i2str(x));}while(0)
-#define printuhex(x)    do{USB_sendstr(uhex2str(x));}while(0)
-#define printfl(x,n)    do{USB_sendstr(float2str(x, n));}while(0)
-
 void u16s(uint16_t n, char *buf);
 void hexdump16(int (*sendfun)(const char *s), uint16_t *arr, uint16_t len);
 void hexdump(int (*sendfun)(const char *s), uint8_t *arr, uint16_t len);

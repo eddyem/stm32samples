@@ -32,6 +32,7 @@ int usart_ovr(); // RX overfull occured
 void usart_process(); // send next data portion
 int usart_setup(uint32_t speed); // set USART1 with given speed
 char *usart_getline(int *len); // read from rbin to buf
+int usart_send(const uint8_t *data, int len);
 int usart_sendstr(const char *str);
-int usart_putchar(const char ch);
+int usart_putbyte(uint8_t ch);
 void usart_stop();

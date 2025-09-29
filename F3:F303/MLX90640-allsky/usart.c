@@ -85,11 +85,12 @@ static int transmit_tbuf(){
 }
 
 // return 0 if can't write to ringbuffer
-int usart_putchar(const char ch){
-    int r = RB_write(&dmarb, (uint8_t*)&ch, 1);
+int usart_putbyte(uint8_t ch){
+    int r = RB_write(&dmarb, &ch, 1);
     if(r != 1){
-        if(transmit_tbuf()) r = RB_write(&dmarb, (uint8_t*)&ch, 1);
+        if(transmit_tbuf()) r = RB_write(&dmarb, &ch, 1);
     }
+    if(r < 0) r = 0;
     return r;
 }
 
@@ -163,7 +164,7 @@ void usart1_exti25_isr(){
     USART1->ICR = USART_ICR_CMCF; // clear character match flag
     register int l = UARTBUFSZI - DMA1_Channel5->CNDTR - 1; // substitute '\n' with '\0', omit empty strings!
     if(l > 0){
-        if(recvdata){ // user didn't read old data - mark as buffer overflow
+        if(recvdatalen){ // user didn't read old data - mark as buffer overflow
             bufovr = 1;
         }
         recvdata = rbuf[rbufno];

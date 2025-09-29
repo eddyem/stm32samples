@@ -16,11 +16,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <math.h>
 #include <stm32f3.h>
 #include <string.h>
 
 #include "i2c.h"
 #include "mlxproc.h"
+#include "proto.h"
 #include "strfunc.h"
 #include "usart.h"
 #include "usb_dev.h"
@@ -32,6 +34,34 @@ static uint16_t locBuffer[LOCBUFFSZ];
 static uint8_t I2Caddress = 0x33 << 1;
 extern volatile uint32_t Tms;
 uint8_t cartoon = 0; // "cartoon" mode: refresh image each time we get new
+
+// functions to send data over USB or USART: to change them use flag in `parse_cmd`
+typedef struct{
+    int (*S)(const char*);          // send string
+    int (*P)(uint8_t);              // put byte
+    int (*B)(const uint8_t*, int);  // send raw bytes
+} sendfun_t;
+
+static sendfun_t usbsend = {
+    .S = USB_sendstr, .P = USB_putbyte, .B = USB_send
+};
+static sendfun_t usartsend = {
+    .S = usart_sendstr, .P = usart_putbyte, .B = usart_send
+};
+
+static sendfun_t *sendfun = &usbsend;
+
+void chsendfun(int sendto){
+    if(sendto == SEND_USB) sendfun = &usbsend;
+    else sendfun = &usartsend;
+}
+
+// newline
+#define N() sendfun->P('\n')
+#define printu(x)       do{sendfun->S(u2str(x));}while(0)
+#define printi(x)       do{sendfun->S(i2str(x));}while(0)
+#define printuhex(x)    do{sendfun->S(uhex2str(x));}while(0)
+#define printfl(x,n)    do{sendfun->S(float2str(x, n));}while(0)
 
 // common names for frequent keys
 const char *Timage = "TIMAGE=";
@@ -47,11 +77,11 @@ const char *helpstring =
         "gn - get nth image 'as is' - float array of 768x4 bytes\n"
         "i0..4 - setup I2C with speed 10k, 100k, 400k, 1M or 2M (experimental!)\n"
         "l - list active sensors IDs\n"
-        "tn - show temperature map of nth image\n"
+        "mn - show temperature map of nth image\n"
         "p - pause MLX\n"
-        "s - stop MLX (and start from zero @ 'c'\n"
+        "s - stop MLX (and start from zero @ 'c')\n"
         "tn - show nth image aquisition time\n"
-        "C - \"cartoon\" mode on/off (show each new image)\n"
+        "C - \"cartoon\" mode on/off (show each new image) - USB only!!!\n"
         "Dn - dump MLX parameters for sensor number n\n"
         "G - get MLX state\n"
         "Ia addr [n] - set  device address for interactive work or (with n) change address of n'th sensor\n"
@@ -59,7 +89,7 @@ const char *helpstring =
         "Iw words - send words (hex/dec/oct/bin) to I2C\n"
         "Is - scan I2C bus\n"
         "T - print current Tms\n"
-        "Us - send string 's' to USART\n"
+        "Us - send string 's' to other interface\n"
 ;
 
 TRUE_INLINE const char *setupI2C(char *buf){
@@ -78,7 +108,7 @@ TRUE_INLINE const char *setupI2C(char *buf){
         }
         i2c_setup((i2c_speed_t)speed);
     }
-    U("I2CSPEED="); USND(speeds[i2c_curspeed]);
+    sendfun->S("I2CSPEED="); sendfun->S(speeds[i2c_curspeed]); N();
     return NULL;
 }
 
@@ -89,11 +119,11 @@ TRUE_INLINE const char *chhwaddr(const char *buf){
         if(nxt && nxt != buf){
             if(!mlx_sethwaddr(I2Caddress, a)) return ERR;
         }else{
-            USND("Wrong number");
+            sendfun->S("Wrong number"); N();
             return ERR;
         }
     }else{
-        USND("Need address");
+        sendfun->S("Need address"); N();
         return ERR;
     }
     return OK;
@@ -117,7 +147,7 @@ TRUE_INLINE const char *chaddr(const char *buf){
         int n = getsensnum(nxt);
         if(n > -1) mlx_setaddr(n, addr);
     }else addr = I2Caddress >> 1;
-    U("I2CADDR="); USND(uhex2str(addr));
+    sendfun->S("I2CADDR="); sendfun->S(uhex2str(addr)); N();
     return NULL;
 }
 
@@ -135,8 +165,8 @@ static const char *rdI2C(const char *buf){
         char b[5];
         u16s(*b16, b);
         b[4] = 0;
-        USND(b);
-    }else hexdump16(USB_sendstr, b16, N);
+        sendfun->S(b); N();
+    }else hexdump16(sendfun->S, b16, N);
     return NULL;
 }
 
@@ -156,7 +186,8 @@ static const char *wrI2C(const char *buf){
     uint16_t N = readNnumbers(buf);
     if(N == 0) return ERR;
     for(int i = 0; i < N; ++i){
-        U("byte "); U(u2str(i)); U(" :"); USND(uhex2str(locBuffer[i]));
+        sendfun->S("byte "); sendfun->S(u2str(i));
+        sendfun->S(" :"); sendfun->S(uhex2str(locBuffer[i])); N();
     }
     if(!i2c_write(I2Caddress, locBuffer, N)) return ERR;
     return OK;
@@ -165,58 +196,58 @@ static const char *wrI2C(const char *buf){
 static void dumpfarr(float *arr){
     for(int row = 0; row < 24; ++row){
         for(int col = 0; col < 32; ++col){
-            printfl(*arr++, 2); USB_putbyte(' ');
+            printfl(*arr++, 2); sendfun->P(' ');
         }
-        newline();
+        N();
     }
 }
 // dump MLX parameters
 TRUE_INLINE void dumpparams(const char *buf){
     int N = getsensnum(buf);
-    if(N < 0){ U(ERR); return; }
+    if(N < 0){ sendfun->S(ERR); return; }
     MLX90640_params *params = mlx_getparams(N);
-    if(!params){ U(ERR); return; }
-    U(Sensno); USND(i2str(N));
-    U("\nkVdd="); printi(params->kVdd);
-    U("\nvdd25="); printi(params->vdd25);
-    U("\nKvPTAT="); printfl(params->KvPTAT, 4);
-    U("\nKtPTAT="); printfl(params->KtPTAT, 4);
-    U("\nvPTAT25="); printi(params->vPTAT25);
-    U("\nalphaPTAT="); printfl(params->alphaPTAT, 2);
-    U("\ngainEE="); printi(params->gainEE);
-    U("\nPixel offset parameters:\n");
+    if(!params){ sendfun->S(ERR); return; }
+    sendfun->S(Sensno); sendfun->S(i2str(N)); N();
+    sendfun->S("\nkVdd="); printi(params->kVdd);
+    sendfun->S("\nvdd25="); printi(params->vdd25);
+    sendfun->S("\nKvPTAT="); printfl(params->KvPTAT, 4);
+    sendfun->S("\nKtPTAT="); printfl(params->KtPTAT, 4);
+    sendfun->S("\nvPTAT25="); printi(params->vPTAT25);
+    sendfun->S("\nalphaPTAT="); printfl(params->alphaPTAT, 2);
+    sendfun->S("\ngainEE="); printi(params->gainEE);
+    sendfun->S("\nPixel offset parameters:\n");
     float *offset = params->offset;
     for(int row = 0; row < 24; ++row){
         for(int col = 0; col < 32; ++col){
-            printfl(*offset++, 2); USB_putbyte(' ');
+            printfl(*offset++, 2); sendfun->P(' ');
         }
-        newline();
+        N();
     }
-    U("K_talpha:\n");
+    sendfun->S("K_talpha:\n");
     dumpfarr(params->kta);
-    U("Kv: ");
+    sendfun->S("Kv: ");
     for(int i = 0; i < 4; ++i){
-        printfl(params->kv[i], 2); USB_putbyte(' ');
+        printfl(params->kv[i], 2); sendfun->P(' ');
     }
-    U("\ncpOffset=");
-    printi(params->cpOffset[0]); U(", "); printi(params->cpOffset[1]);
-    U("\ncpKta="); printfl(params->cpKta, 2);
-    U("\ncpKv="); printfl(params->cpKv, 2);
-    U("\ntgc="); printfl(params->tgc, 2);
-    U("\ncpALpha="); printfl(params->cpAlpha[0], 2);
-    U(", "); printfl(params->cpAlpha[1], 2);
-    U("\nKsTa="); printfl(params->KsTa, 2);
-    U("\nAlpha:\n");
+    sendfun->S("\ncpOffset=");
+    printi(params->cpOffset[0]); sendfun->S(", "); printi(params->cpOffset[1]);
+    sendfun->S("\ncpKta="); printfl(params->cpKta, 2);
+    sendfun->S("\ncpKv="); printfl(params->cpKv, 2);
+    sendfun->S("\ntgc="); printfl(params->tgc, 2);
+    sendfun->S("\ncpALpha="); printfl(params->cpAlpha[0], 2);
+    sendfun->S(", "); printfl(params->cpAlpha[1], 2);
+    sendfun->S("\nKsTa="); printfl(params->KsTa, 2);
+    sendfun->S("\nAlpha:\n");
     dumpfarr(params->alpha);
-    U("\nCT3="); printfl(params->CT[1], 2);
-    U("\nCT4="); printfl(params->CT[2], 2);
+    sendfun->S("\nCT3="); printfl(params->CT[1], 2);
+    sendfun->S("\nCT4="); printfl(params->CT[2], 2);
     for(int i = 0; i < 4; ++i){
-        U("\nKsTo"); USB_putbyte('0'+i); USB_putbyte('=');
+        sendfun->S("\nKsTo"); sendfun->P('0'+i); sendfun->P('=');
         printfl(params->KsTo[i], 2);
-        U("\nalphacorr"); USB_putbyte('0'+i); USB_putbyte('=');
+        sendfun->S("\nalphacorr"); sendfun->P('0'+i); sendfun->P('=');
         printfl(params->alphacorr[i], 2);
     }
-    newline();
+    N();
 }
 // get MLX state
 TRUE_INLINE void getst(){
@@ -228,8 +259,8 @@ TRUE_INLINE void getst(){
         [MLX_RELAX] = "do nothing"
     };
     mlx_state_t s = mlx_state();
-    U("MLXSTATE=");
-    USND(states[s]);
+    sendfun->S("MLXSTATE=");
+    sendfun->S(states[s]); N();
 }
 
 // `draw`==1 - draw, ==0 - show T map, 2 - send raw float array with prefix 'SENSNO=x\nTimage=y\n' and postfix "ENDIMAGE\n"
@@ -239,8 +270,8 @@ static const char *drawimg(const char *buf, int draw){
         uint32_t T = mlx_lastimT(sensno);
         fp_t *img = mlx_getimage(sensno);
         if(img){
-            U(Sensno); USND(u2str(sensno));
-            U(Timage); USND(u2str(T));
+            sendfun->S(Sensno); sendfun->S(u2str(sensno)); N();
+            sendfun->S(Timage); sendfun->S(u2str(T)); N();
             switch(draw){
                 case 0:
                     dumpIma(img);
@@ -255,12 +286,12 @@ static const char *drawimg(const char *buf, int draw){
                     // send by portions of 256 bytes (as image is larger than ringbuffer)
                     while(_2send){
                         uint32_t portion = (_2send > 256) ? 256 : _2send;
-                        USB_send(d, portion);
+                        sendfun->B(d, portion);
                         _2send -= portion;
                         d += portion;
                     }
                 }
-                    USND("ENDIMAGE");
+                    sendfun->S("ENDIMAGE"); N();
             }
             return NULL;
         }
@@ -270,26 +301,35 @@ static const char *drawimg(const char *buf, int draw){
 
 TRUE_INLINE void listactive(){
     int N =  mlx_nactive();
-    if(!N){ USND("No active sensors found!"); return; }
+    if(!N){ sendfun->S("No active sensors found!\n"); return; }
     uint8_t *ids = mlx_activeids();
-    U("Found "); USB_putbyte('0'+N); USND(" active sensors:");
+    sendfun->S("Found "); sendfun->P('0'+N);
+    sendfun->S(" active sensors:"); N();
     for(int i = 0; i < N_SESORS; ++i)
         if(ids[i]){
-            U("SENSID"); U(u2str(i)); USB_putbyte('=');
-            U(uhex2str(ids[i] >> 1));
-            newline();
+            sendfun->S("SENSID");
+            sendfun->S(u2str(i)); sendfun->P('=');
+            sendfun->S(uhex2str(ids[i] >> 1));
+            N();
         }
 }
 
 static void getimt(const char *buf){
     int sensno = getsensnum(buf);
     if(sensno > -1){
-        U(Timage); USND(u2str(mlx_lastimT(sensno)));
-    }else U(ERR);
+        sendfun->S(Timage); sendfun->S(u2str(mlx_lastimT(sensno))); N();
+    }else sendfun->S(ERR);
 }
 
-const char *parse_cmd(char *buf){
+/**
+ * @brief parse_cmd - user string parser
+ * @param buf - user data
+ * @param isusb - ==1 to send answer over usb, else send over USART1
+ * @return answer OK/ERR or NULL
+ */
+const char *parse_cmd(char *buf, int sendto){
     if(!buf || !*buf) return NULL;
+    chsendfun(sendto);
     if(buf[1]){
         switch(*buf){ // "long" commands
             case 'a':
@@ -325,7 +365,9 @@ const char *parse_cmd(char *buf){
                 }
                 break;
             case 'U':
-                if(usart_sendstr(buf + 1) && usart_putchar('\n')) return OK;
+                if(sendto == SEND_USB) chsendfun(SEND_USART);
+                else chsendfun(SEND_USB);
+                if(sendfun->S(buf + 1) && N()) return OK;
                 return ERR;
             default:
                 return ERR;
@@ -345,18 +387,18 @@ const char *parse_cmd(char *buf){
         case 's':
             mlx_stop(); return OK;
         case 'C':
+            if(sendto != SEND_USB) return ERR;
             cartoon = !cartoon; return OK;
         case 'G':
             getst();
         break;
         case 'T':
-            U("T=");
-            USND(u2str(Tms));
+            sendfun->S("T="); sendfun->S(u2str(Tms)); N();
         break;
         case '?': // help
         case 'h':
         case 'H':
-            U(helpstring);
+            sendfun->S(helpstring);
         break;
         default:
             return ERR;
@@ -364,3 +406,52 @@ const char *parse_cmd(char *buf){
     }
     return NULL;
 }
+
+// dump image as temperature matrix
+void dumpIma(const fp_t im[MLX_PIXNO]){
+    for(int row = 0; row < MLX_H; ++row){
+        for(int col = 0; col < MLX_W; ++col){
+            printfl(*im++, 1);
+            sendfun->P(' ');
+        }
+        N();
+    }
+}
+
+#define GRAY_LEVELS     (16)
+// 16-level character set ordered by fill percentage (provided by user)
+static const char* CHARS_16 = " .':;+*oxX#&%B$@";
+// draw image in ASCII-art
+void drawIma(const fp_t im[MLX_PIXNO]){
+    // Find min and max values
+    fp_t min_val = im[0], max_val = im[0];
+    const fp_t *iptr = im;
+    for(int row = 0; row < MLX_H; ++row){
+        for(int col = 0; col < MLX_W; ++col){
+            fp_t cur = *iptr++;
+            if(cur < min_val) min_val = cur;
+            else if(cur > max_val) max_val = cur;
+        }
+    }
+    fp_t range = max_val - min_val;
+    sendfun->S("RANGE="); sendfun->S(float2str(range, 3));
+    sendfun->S("\nMIN="); sendfun->S(float2str(min_val, 3));
+    sendfun->S("\nMAX="); sendfun->S(float2str(max_val, 3)); N();
+    if(fabsf(range) < 0.001) range = 1.; // solid fill -> blank
+    // Generate and print ASCII art
+    iptr = im;
+    for(int row = 0; row < MLX_H; ++row){
+        for(int col = 0; col < MLX_W; ++col){
+            fp_t normalized = ((*iptr++) - min_val) / range;
+            // Map to character index (0 to 15)
+            int index = (int)(normalized * GRAY_LEVELS);
+            // Ensure we stay within bounds
+            if(index < 0) index = 0;
+            else if(index > (GRAY_LEVELS-1)) index = (GRAY_LEVELS-1);
+            sendfun->P(CHARS_16[index]);
+        }
+        N();
+    }
+    N();
+}
+

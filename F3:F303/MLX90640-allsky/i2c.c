@@ -20,8 +20,6 @@
 #include <string.h>
 
 #include "i2c.h"
-#include "strfunc.h" // hexdump
-#include "usb_dev.h"
 
 i2c_speed_t i2c_curspeed = I2C_SPEED_AMOUNT;
 extern volatile uint32_t Tms;
@@ -45,7 +43,8 @@ static uint8_t dmaaddr = 0; // address to continuous read by DMA
 static inline int isI2Cbusy(){
     cntr = Tms;
     do{
-        if(Tms - cntr > I2C_TIMEOUT){ USND("Timeout, DMA transfer in progress?"); return 1;}
+        IWDG->KR = IWDG_REFRESH;
+        if(Tms - cntr > I2C_TIMEOUT) return 1;
     }while(I2Cbusy);
     return 0;
 }
@@ -90,7 +89,6 @@ void i2c_setup(i2c_speed_t speed){
             SCLL = 0x2;
         break;
         default:
-            USND("Wrong I2C speed!");
             return; // wrong speed
     }
     RCC->AHBENR |= RCC_AHBENR_GPIOBEN;
@@ -318,21 +316,8 @@ int i2c_scan_next_addr(uint8_t *addr){
     return 1;
 }
 
-// dump I2Cbuf
-void i2c_bufdudump(){
-    if(goterr){
-        USND("DMARDERR");
-        goterr = 0;
-    }
-    if(i2cbuflen < 1) return;
-    USND("DMARD=");
-    hexdump16(USB_sendstr, (uint16_t*)I2Cbuf, i2cbuflen);
-}
-
 // get DMA buffer with conversion to little-endian (if transfer was for 16-bit)
 uint16_t *i2c_dma_getbuf(uint16_t *len){
-    //if(i2c_got_DMA) USND("DMA GOT!");
-    //U("T="); U(u2str(Tms)); U("; cndtr: "); USND(u2str(DMA1_Channel7->CNDTR));
     if(!i2c_got_DMA || i2cbuflen < 1) return NULL;
     i2c_got_DMA = 0;
     i2cbuflen >>= 1; // for hexdump16 - now buffer have uint16_t!

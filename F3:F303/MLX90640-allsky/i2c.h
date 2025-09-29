@@ -48,7 +48,6 @@ uint16_t *i2c_read_reg16(uint8_t addr, uint16_t reg16, uint16_t nwords, uint8_t 
 uint8_t i2c_write(uint8_t addr, uint16_t *data, uint8_t nwords);
 uint8_t i2c_write_dma16(uint8_t addr, uint16_t *data, uint8_t nwords);
 
-void i2c_bufdudump();
 int i2c_dma_haderr();
 uint16_t *i2c_dma_getbuf(uint16_t *len);
 int i2c_getwords(uint16_t *buf, int bufsz);

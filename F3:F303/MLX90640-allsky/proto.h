@@ -20,5 +20,11 @@
 
 extern const char *Timage, *Sensno;
 
+#define SEND_USB    (1)
+#define SEND_USART  (0)
+
 extern uint8_t cartoon;
-char *parse_cmd(char *buf);
+void chsendfun(int sendto);
+const char *parse_cmd(char *buf, int sendto);
+void dumpIma(const fp_t im[MLX_PIXNO]);
+void drawIma(const fp_t im[MLX_PIXNO]);

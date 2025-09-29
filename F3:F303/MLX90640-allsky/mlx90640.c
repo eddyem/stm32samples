@@ -34,52 +34,6 @@ static fp_t mlx_image[MLX_PIXNO] = {0}; // ready image
 // 10100 bytes:
 static MLX90640_params params; // calculated parameters (in heap, not stack!) for other functions
 
-void dumpIma(const fp_t im[MLX_PIXNO]){
-    for(int row = 0; row < MLX_H; ++row){
-        for(int col = 0; col < MLX_W; ++col){
-            printfl(*im++, 1);
-            USB_putbyte(' ');
-        }
-        newline();
-    }
-}
-
-#define GRAY_LEVELS     (16)
-// 16-level character set ordered by fill percentage (provided by user)
-static const char* CHARS_16 = " .':;+*oxX#&%B$@";
-void drawIma(const fp_t im[MLX_PIXNO]){
-    // Find min and max values
-    fp_t min_val = im[0], max_val = im[0];
-    const fp_t *iptr = im;
-    for(int row = 0; row < MLX_H; ++row){
-        for(int col = 0; col < MLX_W; ++col){
-            fp_t cur = *iptr++;
-            if(cur < min_val) min_val = cur;
-            else if(cur > max_val) max_val = cur;
-        }
-    }
-    fp_t range = max_val - min_val;
-    U("RANGE="); USND(float2str(range, 3));
-    U("MIN="); USND(float2str(min_val, 3));
-    U("MAX="); USND(float2str(max_val, 3));
-    if(fabsf(range) < 0.001) range = 1.; // solid fill -> blank
-    // Generate and print ASCII art
-    iptr = im;
-    for(int row = 0; row < MLX_H; ++row){
-        for(int col = 0; col < MLX_W; ++col){
-            fp_t normalized = ((*iptr++) - min_val) / range;
-            // Map to character index (0 to 15)
-            int index = (int)(normalized * GRAY_LEVELS);
-            // Ensure we stay within bounds
-            if(index < 0) index = 0;
-            else if(index > (GRAY_LEVELS-1)) index = (GRAY_LEVELS-1);
-            USB_putbyte(CHARS_16[index]);
-        }
-        newline();
-    }
-    newline();
-}
-
 /*****************************************************************************
                 Calculate parameters & values
  *****************************************************************************/
@@ -109,7 +63,7 @@ MLX90640_params *get_parameters(const uint16_t dataarray[MLX_DMA_MAXLEN]){
     uint16_t val = CREG_VAL(REG_VDD);
     i8 = (int8_t) (val >> 8);
     params.kVdd = i8 * 32; // keep sign
-    if(params.kVdd == 0){USND("kvdd=0"); return NULL;}
+    if(params.kVdd == 0){UN("kvdd=0"); return NULL;}
     i16 = val & 0xFF;
     params.vdd25 = ((i16 - 0x100) * 32) - (1<<13);
     val = CREG_VAL(REG_KVTPTAT);
@@ -123,7 +77,7 @@ MLX90640_params *get_parameters(const uint16_t dataarray[MLX_DMA_MAXLEN]){
     val = CREG_VAL(REG_APTATOCCS) >> 12;
     params.alphaPTAT = val / 4. + 8.;
     params.gainEE = (int16_t)CREG_VAL(REG_GAIN);
-    if(params.gainEE == 0){USND("gainee=0"); return NULL;}
+    if(params.gainEE == 0){UN("gainee=0"); return NULL;}
     int8_t occRow[MLX_H];
     int8_t occColumn[MLX_W];
     occacc(occRow, MLX_H, &CREG_VAL(REG_OCCROW14));
@@ -151,7 +105,7 @@ MLX90640_params *get_parameters(const uint16_t dataarray[MLX_DMA_MAXLEN]){
     // so index of ktaavg is 2*(row&1)+(col&1)
     val = CREG_VAL(REG_KTAVSCALE);
     uint8_t scale1 = ((val & 0xFF)>>4) + 8, scale2 = (val&0xF);
-    if(scale1 == 0 || scale2 == 0){USND("scale1/2=0"); return NULL;}
+    if(scale1 == 0 || scale2 == 0){UN("scale1/2=0"); return NULL;}
     fp_t mul = (fp_t)(1<<scale2), div = (fp_t)(1<<scale1); // kta_scales
     uint16_t a_r = CREG_VAL(REG_SENSIVITY); // alpha_ref
     val = CREG_VAL(REG_SCALEACC);
@@ -271,10 +225,10 @@ fp_t *process_image(const int16_t subpage1[REG_IMAGEDATA_LEN]){
     fp_t dvdd, dTa, Kgain, pixOS[2]; // values for both subpages
     // 11.2.2.2. Supply voltage value calculation
     i16a = (int16_t)IMD_VAL(REG_IVDDPIX);
-    //U("rval="); USND(i2str(i16a));
+    //U("rval="); UN(i2str(i16a));
     dvdd = resol_corr*i16a - params.vdd25;
     dvdd /= params.kVdd;
-    //U("dvdd="); USND(float2str(dvdd, 2));
+    //U("dvdd="); UN(float2str(dvdd, 2));
     fp_t dV = i16a - params.vdd25; // for next step
     dV /= params.kVdd;
     // 11.2.2.3. Ambient temperature calculation
