@@ -20,15 +20,15 @@
 #include "spi.h"
 #include <string.h> // memcpy
 
-#ifdef EBUG
 #include "usb_dev.h"
+#ifdef EBUG
 #include "strfunc.h"
 #endif
 
 spiStatus spi_status = SPI_NOTREADY;
 #define WAITX(x)  do{volatile uint32_t  wctr = 0; while((x) && (++wctr < 360000)) IWDG->KR = IWDG_REFRESH; if(wctr==360000){ DBG("timeout"); return 0;}}while(0)
 
-// init SPI
+// init SPI @ ~280kHz (36MHz/128)
 void spi_setup(){
     SPI1->CR1 = 0; // clear EN
     SPI1->CR2 = 0;
@@ -65,7 +65,7 @@ void spi_deinit(){
     spi_status = SPI_NOTREADY;
 }
 
-int spi_waitbsy(){
+uint8_t spi_waitbsy(){
     WAITX(SPI1->SR & SPI_SR_BSY);
     return 1;
 }
@@ -76,12 +76,13 @@ int spi_waitbsy(){
  * @param n - length of data
  * @return 0 if failed
  */
-int spi_writeread(uint8_t *data, uint8_t n){
+uint8_t spi_writeread(uint8_t *data, uint8_t n){
     if(spi_status != SPI_READY || !data || !n){
         DBG("not ready");
         return 0;
     }
     // clear SPI Rx FIFO
+    spi_onoff(TRUE);
     for(int i = 0; i < 4; ++i) (void) SPI1->DR;
     for(int x = 0; x < n; ++x){
         WAITX(!(SPI1->SR & SPI_SR_TXE));
@@ -89,11 +90,12 @@ int spi_writeread(uint8_t *data, uint8_t n){
         WAITX(!(SPI1->SR & SPI_SR_RXNE));
         data[x] = *((volatile uint8_t*)&SPI1->DR);
     }
+    spi_onoff(FALSE); // turn off SPI
     return 1;
 }
 
-// read data through SPI in read-only mode
-int spi_read(uint8_t *data, uint8_t n){
+// read data through SPI
+uint8_t spi_read(uint8_t *data, uint8_t n){
     if(spi_status != SPI_READY || !data || !n){
         DBG("not ready");
         return 0;
@@ -102,12 +104,10 @@ int spi_read(uint8_t *data, uint8_t n){
     for(int i = 0; i < 4; ++i) (void) SPI1->DR;
     spi_onoff(TRUE);
     for(int x = 0; x < n; ++x){
-        if(x == n - 1) SPI1->CR1 &= ~SPI_CR1_RXONLY; // clear RXonly bit to stop CLK generation after next byte
         WAITX(!(SPI1->SR & SPI_SR_RXNE));
         data[x] = *((volatile uint8_t*)&SPI1->DR);
     }
     spi_onoff(FALSE); // turn off SPI
-    SPI1->CR1 |= SPI_CR1_RXONLY; // and return RXonly bit
     return 1;
 }
 

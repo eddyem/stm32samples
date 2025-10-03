@@ -42,16 +42,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "hardware.h"
 #include "i2c.h"
 #include "spi.h"
 #include "BMP280.h"
 
+#include "usb_dev.h" // DBG
 #ifdef EBUG
 #include "strfunc.h"
-#include "usb_dev.h"
 extern volatile uint32_t Tms;
 #endif
 
+#include <string.h>
 #include <math.h>
 
 #define BMP280_I2C_ADDRESS_MASK (0x76)
@@ -87,6 +89,8 @@ extern volatile uint32_t Tms;
 
 #define BMP280_MODE_FORSED      (1)  // force single measurement
 #define BMP280_MODE_NORMAL      (3)  // run continuosly
+#define BMP280_STATUS_IMCOPY    (1<<0) // im-copy (sensor busy)
+#define BME280_STATUS_MSRGOOD   (1<<2) // measurement is good (undocumented bit)
 #define BMP280_STATUS_MSRNG     (1<<3) // measuring in process
 
 static uint8_t curaddress = BMP280_I2C_ADDRESS_0<<1;
@@ -165,17 +169,27 @@ BMP280_status BMP280_get_status(){
 static uint8_t SPIbuf[SPI_BUFSIZE];
 
 // these functions for
-static uint8_t *spi_readregs(uint8_t address, uint8_t reg, uint8_t len){
+static uint8_t *spi_readregs(uint8_t _U_ address, uint8_t reg, uint8_t len){
     if(len > SPI_BUFSIZE-2) return NULL;
-    SPIbuf[0] = address | 0x80;
-    SPIbuf[1] = reg;
-    if(!spi_writeread(SPIbuf, len+2)) return NULL;
-    return SPIbuf + 2;
+    SPI_CS_0();
+    bzero(SPIbuf, sizeof(SPIbuf));
+    SPIbuf[0] = reg | 0x80;
+    int r = spi_writeread(SPIbuf, len+1);
+    SPI_CS_1();
+    if(!r) return NULL;
+#ifdef EBUG
+    USB_sendstr("Register "); USB_sendstr(uhex2str(reg)); USB_sendstr(": ");
+    hexdump(USB_sendstr, SPIbuf + 1, len);
+#endif
+    return SPIbuf + 1;
 }
-static uint8_t spi_write(uint8_t address, uint8_t *data, uint8_t n){
-    SPIbuf[0] = address;
-    memcpy(SPIbuf + 1, data, n);
-    return spi_writeread(SPIbuf, n+1);
+static uint8_t spi_write(uint8_t _U_ address, uint8_t *data, uint8_t n){
+    SPI_CS_0();
+    memcpy(SPIbuf, data, n);
+    SPIbuf[0] &= 0x7F; // clear MSbit
+    uint8_t r = spi_writeread(SPIbuf, n);
+    SPI_CS_1();
+    return r;
 }
 
 // address: 0 or 1
@@ -185,14 +199,13 @@ void BMP280_setup(uint8_t address, uint8_t isI2C){
         curaddress = (BMP280_I2C_ADDRESS_MASK | (address & 1))<<1;
         read_regs = i2c_read_regs;
         write_data = i2c_write;
-        i2c_setup(I2C_SPEED_10K);
+        i2c_setup(I2C_SPEED_400K);
     }else{
         curaddress = BMP280_I2C_ADDRESS_MASK | (address & 1);
         read_regs = spi_readregs;
         write_data = spi_write;
         spi_setup();
     }
-    BMP280_init();
 }
 
 // setters for `params`
@@ -233,43 +246,49 @@ static int readcompdata(){
 // read compensation data & write registers
 int BMP280_init(){
     IWDG->KR = IWDG_REFRESH;
-    DBG("INI:\n");
+    DBG("INI:");
     if(!read_reg(BMP280_REG_ID, &params.ID)){
-        DBG("Can't get ID\n");
+        DBG("Can't get ID");
         return 0;
     }
     if(params.ID != BMP280_CHIP_ID && params.ID != BME280_CHIP_ID){
-        DBG("Not BMP/BME\n");
+        DBG("Not BMP/BME");
         return 0;
     }
     if(!write_reg(BMP280_REG_RESET, BMP280_RESET_VALUE)){
-        DBG("Can't reset\n");
+        DBG("Can't reset");
         return 0;
     }
     uint8_t reg = 1;
-    while(reg & 1){
+    int ntries = 100;
+    while((reg & BMP280_STATUS_IMCOPY) && --ntries){
+        IWDG->KR = IWDG_REFRESH;
         if(!read_reg(BMP280_REG_STATUS, &reg)){
-            DBG("can't get status\n");
+            DBG("can't get status");
             return 0;
         }
     }
+    if(ntries < 0){
+        DBG("Timeout getting status");
+        return 0;
+    }
     if(!readcompdata()){
-        DBG("Can't read calibration data\n");
+        DBG("Can't read calibration data");
         return 0;
     }
     // write filter configuration
     reg = params.filter << 2;
-    if(!write_reg(BMP280_REG_CONFIG, reg)){DBG("Can't save filter settings\n");}
+    if(!write_reg(BMP280_REG_CONFIG, reg)){DBG("Can't save filter settings");}
     reg = (params.t_os << 5) | (params.p_os << 2); // oversampling for P/T, sleep mode
     if(!write_reg(BMP280_REG_CTRL, reg)){
-        DBG("Can't write settings for P/T\n");
+        DBG("Can't write settings for P/T");
         return 0;
     }
     params.regctl = reg;
     if(params.ID == BME280_CHIP_ID){ // write CTRL_HUM only AFTER CTRL!
         reg = params.h_os;
         if(!write_reg(BMP280_REG_CTRL_HUM, reg)){
-            DBG("Can't write settings for H\n");
+            DBG("Can't write settings for H");
             return 0;
         }
     }
@@ -296,7 +315,7 @@ int BMP280_start(){
     }
     uint8_t reg = params.regctl | BMP280_MODE_FORSED;
     if(!write_reg(BMP280_REG_CTRL, reg)){
-        DBG("Can't write CTRL reg\n");
+        DBG("Can't write CTRL reg");
         return 0;
     }
     bmpstatus = BMP280_BUSY;
@@ -311,7 +330,13 @@ void BMP280_process(){
     // BUSY state: poll data ready
     uint8_t reg;
     if(!read_reg(BMP280_REG_STATUS, &reg)) return;
-    if(reg & BMP280_STATUS_MSRNG) return; // still busy
+    if(reg & (BMP280_STATUS_MSRNG | BMP280_STATUS_IMCOPY)) return; // still busy
+   /* if(params.ID == BME280_CHIP_ID && !(reg & BME280_STATUS_MSRGOOD)){ // check if data is good
+        DBG("Wrong data!");
+        bmpstatus = BMP280_RELAX;
+        read_regs(curaddress, BMP280_REG_ALLDATA, 8);
+        return;
+    }*/
     bmpstatus = BMP280_RDY; // data ready
 }
 
@@ -382,8 +407,10 @@ int BMP280_getdata(float *T, float *P, float *H){
     int32_t p = (data[0] << 12) | (data[1] << 4) | (data[2] >> 4);
     int32_t t = (data[3] << 12) | (data[4] << 4) | (data[5] >> 4);
     int32_t t_fine;
-    int32_t Temp = compTemp(t, &t_fine);
-    if(T) *T = ((float)Temp)/100.f;
+    if(T){
+        int32_t Temp = compTemp(t, &t_fine);
+        *T = ((float)Temp)/100.f;
+    }
     if(P) *P = ((float)compPres(p, t_fine)) / 256.f;
     if(H){
         int32_t h = (data[6] << 8) | data[7];
@@ -394,6 +421,8 @@ int BMP280_getdata(float *T, float *P, float *H){
 
 // dewpoint calculation (T in degrC, H in percents)
 float Tdew(float T, float H){
+    if(H < 1e-3) return -300.f;
     float gamma = 17.27f * T / (237.7f + T) + logf(H/100.f);
-    return (237.7f * gamma)/(17.27 - gamma);
+    if(fabsf(17.27f - gamma) < 1e-3) return -300.f;
+    return (237.7f * gamma)/(17.27f - gamma);
 }

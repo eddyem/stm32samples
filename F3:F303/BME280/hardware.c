@@ -24,8 +24,9 @@ static inline void gpio_setup(){
     // USB - alternate function 14 @ pins PA11/PA12; SWD - AF0 @PA13/14
     GPIOA->AFR[1] = AFRf(14, 11) | AFRf(14, 12);
     GPIOA->MODER = MODER_AF(11) | MODER_AF(12) | MODER_AF(13) | MODER_AF(14) | MODER_O(15);
-    GPIOB->MODER = MODER_O(0) | MODER_O(1);
-    GPIOB->ODR = 1;
+    GPIOB->MODER = MODER_O(0) | MODER_O(1) | MODER_O(2);
+    pin_set(GPIOB, 1<<1);
+    SPI_CS_1();
 }
 
 void hw_setup(){

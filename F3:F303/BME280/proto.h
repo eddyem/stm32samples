@@ -18,5 +18,6 @@
 
 #pragma once
 
+extern int contmeas;
 char *parse_cmd(char *buf);
 

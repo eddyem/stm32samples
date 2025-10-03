@@ -47,9 +47,9 @@ void linecoding_handler(usb_LineCoding *lc);
 #define RBINSZ      (1024)
 
 #ifdef EBUG
-#define DBG(x)  USB_sendstr(x)
+#define DBG(s)      do{USB_sendstr(s); USB_putbyte('\n');}while(0)
 #else
-#define DBG()
+#define DBG(s)
 #endif
 
 #define newline()   USB_putbyte('\n')

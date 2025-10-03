@@ -25,6 +25,10 @@
 #define USBPU_ON()  pin_clear(USBPU_port, USBPU_pin)
 #define USBPU_OFF() pin_set(USBPU_port, USBPU_pin)
 
+// SPI_CS - PB2 (pin 20)
+#define SPI_CS_1()      pin_set(GPIOB, 1<<2)
+#define SPI_CS_0()      pin_clear(GPIOB, 1<<2)
+
 extern volatile uint32_t Tms;
 
 void hw_setup();

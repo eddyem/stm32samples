@@ -43,7 +43,7 @@ int main(void){
     hw_setup();
     USBPU_OFF();
     USB_setup();
-    BMP280_setup(0, 1);
+    //BMP280_setup(0, 1);
     uint32_t ctr = Tms, Tmeas = 0;
     USBPU_ON();
     while(1){
@@ -57,20 +57,35 @@ int main(void){
             const char *ans = parse_cmd(inbuff);
             if(ans) USB_sendstr(ans);
         }
-        BMP280_process();
-        if(Tms - Tmeas > 9999){
-            BMP280_status s = BMP280_get_status();
-            float Temperature, Pressure, Humidity, Dewpoint;
-            if(s == BMP280_NOTINIT || s == BMP280_ERR) BMP280_init();
-            else if(s == BMP280_RDY && BMP280_getdata(&Temperature, &Pressure, &Humidity)){
-                Dewpoint = Tdew(Temperature, Humidity);
-                USB_sendstr("Tdeg="); USB_sendstr(float2str(Temperature, 2)); USB_sendstr("\nPpa=");
-                USB_sendstr(float2str(Pressure, 1));
-                USB_sendstr("\nPmm="); USB_sendstr(float2str(Pressure * 0.00750062f, 1));
-                USB_sendstr("\nH="); USB_sendstr(float2str(Humidity, 1));
-                USB_sendstr("\nTdew="); USB_sendstr(float2str(Dewpoint, 1));
-                newline();
-                Tmeas += 10000;
+        BMP280_status s = BMP280_get_status();
+        if(s != BMP280_NOTINIT){
+            if(s == BMP280_ERR) BMP280_init();
+            else{
+                BMP280_process();
+                s = BMP280_get_status(); // refresh status after processing
+                float Temperature, Pressure, Humidity, Dewpoint;
+                if(s == BMP280_RDY && BMP280_getdata(&Temperature, &Pressure, &Humidity)){
+                    Dewpoint = Tdew(Temperature, Humidity);
+                    USB_sendstr("Tdeg="); USB_sendstr(float2str(Temperature, 2)); USB_sendstr("\nPpa=");
+                    USB_sendstr(float2str(Pressure, 3));
+                    USB_sendstr("\nPmm="); USB_sendstr(float2str(Pressure * 0.00750062f, 2));
+                    USB_sendstr("\nH="); USB_sendstr(float2str(Humidity, 2));
+                    USB_sendstr("\nTdew="); USB_sendstr(float2str(Dewpoint, 1));
+                    newline();
+                }
+                if(contmeas && (Tms - Tmeas > 999)){
+                    if(BMP280_start()) Tmeas = Tms;
+                }
+            }
+        }
+        if(i2c_scanmode){
+            uint8_t addr;
+            int ok = i2c_scan_next_addr(&addr);
+            if(addr == I2C_ADDREND) USND("End scan");
+            else if(ok){
+                USB_sendstr(uhex2str(addr));
+                USB_sendstr(" ("); USB_sendstr(u2str(addr));
+                USB_sendstr(") - found device\n");
             }
         }
     }
