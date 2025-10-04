@@ -17,14 +17,19 @@
  */
 
 #pragma once
+#include <stm32f3.h>
 
-extern const char *const Timage;
+typedef enum{
+    SPI_NOTREADY,
+    SPI_READY,
+    SPI_BUSY
+} spiStatus;
 
-#define SEND_USB    (1)
-#define SEND_USART  (0)
+extern spiStatus spi_status;
 
-extern uint8_t cartoon;
-void chsendfun(int sendto);
-const char *parse_cmd(char *buf, int sendto);
-void dumpIma(const fp_t im[MLX_PIXNO]);
-void drawIma(const fp_t im[MLX_PIXNO]);
+void spi_onoff(uint8_t on);
+void spi_deinit();
+void spi_setup();
+uint8_t spi_waitbsy();
+uint8_t spi_writeread(uint8_t *data, uint8_t n);
+uint8_t spi_read(uint8_t *data, uint8_t n);

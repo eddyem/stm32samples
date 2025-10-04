@@ -165,7 +165,16 @@ int USB_sendall(){
 int USB_send(const uint8_t *buf, int len){
     if(!buf || !CDCready || !len) return FALSE;
     while(len){
-        int a = RB_write((ringbuffer*)&rbout, buf, len);
+        IWDG->KR = IWDG_REFRESH;
+        int l = RB_datalen((ringbuffer*)&rbout);
+        if(l < 0) continue;
+        int portion = rbout.length - 1 - l;
+        if(portion < 1){
+            if(lastdsz == 0) send_next();
+            continue;
+        }
+        if(portion > len) portion = len;
+        int a = RB_write((ringbuffer*)&rbout, buf, portion);
         if(a > 0){
             len -= a;
             buf += a;

@@ -32,7 +32,7 @@ void sys_tick_handler(void){
     ++Tms;
 }
 
-const char *scanend = "SCANEND\n", *foundid = "FOUNDID=";
+static const char *const scanend = "SCANEND\n", *const foundid = "FOUNDID=";
 
 int main(void){
     char inbuff[MAXSTRLEN+1];
@@ -45,6 +45,7 @@ int main(void){
     USBPU_OFF();
     hw_setup();
     i2c_setup(I2C_SPEED_400K);
+    bme_init();
     USB_setup();
     usart_setup(115200);
     USBPU_ON();
@@ -82,8 +83,9 @@ int main(void){
                 fp_t *im = mlx_getimage(i);
                 if(im){
                     chsendfun(SEND_USB);
-                    U(Sensno); UN(i2str(i));
-                    U(Timage); UN(u2str(Tnow)); drawIma(im);
+                    //U(Sensno); UN(i2str(i));
+                    U(Timage); USB_putbyte('0'+i); USB_putbyte('='); UN(u2str(Tnow));
+                    drawIma(im);
                     Tlastima[i] = Tnow;
                 }
             }
@@ -95,5 +97,6 @@ int main(void){
             const char *ans = parse_cmd(got, SEND_USART);
             if(ans) usart_sendstr(ans);
         }
+        bme_process();
     }
 }

@@ -50,6 +50,12 @@ void linecoding_handler(usb_LineCoding *lc);
 #define UN(s)     do{USB_sendstr(s); USB_putbyte('\n');}while(0)
 #define U(s)        USB_sendstr(s)
 
+#ifdef EBUG
+#define DBG(s)      do{USB_sendstr(s); USB_putbyte('\n');}while(0)
+#else
+#define DBG(s)
+#endif
+
 int USB_sendall();
 int USB_send(const uint8_t *buf, int len);
 int USB_putbyte(uint8_t byte);

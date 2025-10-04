@@ -20,6 +20,7 @@
 #include <stm32f3.h>
 #include <string.h>
 
+#include "hardware.h"
 #include "i2c.h"
 #include "mlxproc.h"
 #include "proto.h"
@@ -64,36 +65,41 @@ void chsendfun(int sendto){
 #define printfl(x,n)    do{sendfun->S(float2str(x, n));}while(0)
 
 // common names for frequent keys
-const char *Timage = "TIMAGE=";
-const char *Sensno = "SENSNO=";
+const char* const Timage = "TIMAGE";
+const char* const Image = "IMAGE";
+static const char *const Sensno = "SENSNO=";
 
-static const char *OK = "OK\n", *ERR = "ERR\n";
-const char *helpstring =
+static const char *const OK = "OK\n", *const ERR = "ERR\n";
+const char *const helpstring =
         "https://github.com/eddyem/stm32samples/tree/master/F3:F303/MLX90640multi build#" BUILD_NUMBER " @ " BUILD_DATE "\n"
         "    management of single IR bolometer MLX90640\n"
-        "aa - change I2C address to a (a should be non-shifted value!!!)\n"
-        "c - continue MLX\n"
         "dn - draw nth image in ASCII\n"
         "gn - get nth image 'as is' - float array of 768x4 bytes\n"
-        "i0..4 - setup I2C with speed 10k, 100k, 400k, 1M or 2M (experimental!)\n"
         "l - list active sensors IDs\n"
         "mn - show temperature map of nth image\n"
+        "tn - show nth image aquisition time\n"
+        "B - reinit BME280\n"
+        "E - get environment parameters (temperature etc)\n"
+        "G - get MLX state\n"
+        "R - reset device\n"
+        "T - print current Tms\n"
+        "    Debugging options:\n"
+        "aa - change I2C address to a (a should be non-shifted value!!!)\n"
+        "c - continue MLX\n"
+        "i0..4 - setup I2C with speed 10k, 100k, 400k, 1M or 2M (experimental!)\n"
         "p - pause MLX\n"
         "s - stop MLX (and start from zero @ 'c')\n"
-        "tn - show nth image aquisition time\n"
         "C - \"cartoon\" mode on/off (show each new image) - USB only!!!\n"
         "Dn - dump MLX parameters for sensor number n\n"
-        "G - get MLX state\n"
         "Ia addr [n] - set  device address for interactive work or (with n) change address of n'th sensor\n"
         "Ir reg n - read n words from 16-bit register\n"
         "Iw words - send words (hex/dec/oct/bin) to I2C\n"
         "Is - scan I2C bus\n"
-        "T - print current Tms\n"
         "Us - send string 's' to other interface\n"
 ;
 
 TRUE_INLINE const char *setupI2C(char *buf){
-    static const char *speeds[I2C_SPEED_AMOUNT] = {
+    static const char * const speeds[I2C_SPEED_AMOUNT] = {
         [I2C_SPEED_10K] = "10K",
         [I2C_SPEED_100K] = "100K",
         [I2C_SPEED_400K] = "400K",
@@ -207,7 +213,7 @@ TRUE_INLINE void dumpparams(const char *buf){
     if(N < 0){ sendfun->S(ERR); return; }
     MLX90640_params *params = mlx_getparams(N);
     if(!params){ sendfun->S(ERR); return; }
-    sendfun->S(Sensno); sendfun->S(i2str(N)); N();
+    N(); sendfun->S(Sensno); sendfun->S(i2str(N));
     sendfun->S("\nkVdd="); printi(params->kVdd);
     sendfun->S("\nvdd25="); printi(params->vdd25);
     sendfun->S("\nKvPTAT="); printfl(params->KvPTAT, 4);
@@ -263,15 +269,15 @@ TRUE_INLINE void getst(){
     sendfun->S(states[s]); N();
 }
 
-// `draw`==1 - draw, ==0 - show T map, 2 - send raw float array with prefix 'SENSNO=x\nTimage=y\n' and postfix "ENDIMAGE\n"
+// `draw`==1 - draw, ==0 - show T map, 2 - send raw float array with prefix 'TIMAGEX=y\nIMAGEX=' and postfix "ENDIMAGE\n"
 static const char *drawimg(const char *buf, int draw){
     int sensno = getsensnum(buf);
     if(sensno > -1){
         uint32_t T = mlx_lastimT(sensno);
         fp_t *img = mlx_getimage(sensno);
         if(img){
-            sendfun->S(Sensno); sendfun->S(u2str(sensno)); N();
-            sendfun->S(Timage); sendfun->S(u2str(T)); N();
+            //sendfun->S(Sensno); sendfun->S(u2str(sensno)); N();
+            sendfun->S(Timage); sendfun->P('0'+sensno); sendfun->P('='); sendfun->S(u2str(T)); N();
             switch(draw){
                 case 0:
                     dumpIma(img);
@@ -280,7 +286,7 @@ static const char *drawimg(const char *buf, int draw){
                     drawIma(img);
                 break;
                 case 2:
-                {
+                    sendfun->S(Image); sendfun->P('0'+sensno); sendfun->P('=');
                     uint8_t *d = (uint8_t*)img;
                     uint32_t _2send = MLX_PIXNO * sizeof(float);
                     // send by portions of 256 bytes (as image is larger than ringbuffer)
@@ -290,8 +296,8 @@ static const char *drawimg(const char *buf, int draw){
                         _2send -= portion;
                         d += portion;
                     }
-                }
                     sendfun->S("ENDIMAGE"); N();
+                break;
             }
             return NULL;
         }
@@ -317,8 +323,20 @@ TRUE_INLINE void listactive(){
 static void getimt(const char *buf){
     int sensno = getsensnum(buf);
     if(sensno > -1){
-        sendfun->S(Timage); sendfun->S(u2str(mlx_lastimT(sensno))); N();
+        sendfun->S(Timage); sendfun->P('0'+sensno); sendfun->P('='); sendfun->S(u2str(mlx_lastimT(sensno))); N();
     }else sendfun->S(ERR);
+}
+
+TRUE_INLINE void getenv(){
+    bme280_t env;
+    if(!get_environment(&env)) sendfun->S("BADENVIRONMENT\n");
+    sendfun->S("TEMPERATURE="); sendfun->S(float2str(env.T, 2));
+    sendfun->S("\nPRESSURE_HPA="); sendfun->S(float2str(env.P/100.f, 2));
+    sendfun->S("\nPRESSURE_MM="); sendfun->S(float2str(env.P * 0.00750062f, 2));
+    sendfun->S("\nHUMIDITY="); sendfun->S(float2str(env.H, 2));
+    sendfun->S("\nTEMP_DEW="); sendfun->S(float2str(env.Tdew, 1));
+    sendfun->S("\nT_MEASUREMENT="); sendfun->S(u2str(env.Tmeas));
+    N();
 }
 
 /**
@@ -386,11 +404,20 @@ const char *parse_cmd(char *buf, int sendto){
         break;
         case 's':
             mlx_stop(); return OK;
+        case 'B':
+            if(bme_init()) return OK;
+            return ERR;
         case 'C':
             if(sendto != SEND_USB) return ERR;
             cartoon = !cartoon; return OK;
+        case 'E':
+            getenv();
+        break;
         case 'G':
             getst();
+        break;
+        case 'R':
+            NVIC_SystemReset();
         break;
         case 'T':
             sendfun->S("T="); sendfun->S(u2str(Tms)); N();
@@ -420,7 +447,7 @@ void dumpIma(const fp_t im[MLX_PIXNO]){
 
 #define GRAY_LEVELS     (16)
 // 16-level character set ordered by fill percentage (provided by user)
-static const char* CHARS_16 = " .':;+*oxX#&%B$@";
+static const char *const CHARS_16 = " .':;+*oxX#&%B$@";
 // draw image in ASCII-art
 void drawIma(const fp_t im[MLX_PIXNO]){
     // Find min and max values

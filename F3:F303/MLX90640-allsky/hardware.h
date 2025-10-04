@@ -25,7 +25,24 @@
 #define USBPU_ON()  pin_clear(USBPU_port, USBPU_pin)
 #define USBPU_OFF() pin_set(USBPU_port, USBPU_pin)
 
+// SPI_CS - PB2
+#define SPI_CS_1()      pin_set(GPIOB, 1<<2)
+#define SPI_CS_0()      pin_clear(GPIOB, 1<<2)
+
+// interval of environment measurements, ms
+#define ENV_MEAS_PERIOD (10000)
+
+typedef struct{
+    float T;    // temperature, degC
+    float Tdew; // dew point, degC
+    float P;    // pressure, Pa
+    float H;    // humidity, percents
+    uint32_t Tmeas; // time of measurement
+} bme280_t;
+
 extern volatile uint32_t Tms;
 
 void hw_setup();
-
+int bme_init();
+void bme_process();
+int get_environment(bme280_t *env);
