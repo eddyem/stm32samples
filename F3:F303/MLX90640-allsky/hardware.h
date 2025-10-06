@@ -32,11 +32,26 @@
 // interval of environment measurements, ms
 #define ENV_MEAS_PERIOD (10000)
 
+// External heater PWM: TIM3_CH1 or TIM16_CH1
+// Max PWM CCR1 value (->1)
+#define PWM_CCR_MAX (100)
+// PWM channels (start from 0 - CH1)
+// external heater
+#define PWM_CH_HEATER   (0)
+// propto humidity (the higher - the brighter)
+#define PWM_CH_HUMIDITY (1)
+// propto external T (the higher - the brighter)
+#define PWM_CH_TEXT     (2)
+// propto Tsky - Text (the higher - the brighter)
+#define PWM_CH_TSKY     (3)
+
 typedef struct{
     float T;    // temperature, degC
     float Tdew; // dew point, degC
     float P;    // pressure, Pa
     float H;    // humidity, percents
+    float Tsky; // mean Tsky, degC
+    // TODO: add here values of NTC on ADC channels 1/2
     uint32_t Tmeas; // time of measurement
 } bme280_t;
 
@@ -46,3 +61,4 @@ void hw_setup();
 int bme_init();
 void bme_process();
 int get_environment(bme280_t *env);
+int setPWM(uint8_t ch, uint8_t val);

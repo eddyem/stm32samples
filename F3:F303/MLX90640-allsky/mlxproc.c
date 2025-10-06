@@ -41,15 +41,15 @@ extern volatile uint32_t Tms;
 // current state and state before `stop` called
 static mlx_state_t MLX_state = MLX_RELAX, MLX_oldstate = MLX_RELAX;
 static int errctr = 0; // errors counter - cleared by mlx_continue
-static uint32_t Tlastimage[N_SESORS] = {0};
+static uint32_t Tlastimage[N_SENSORS] = {0};
 
 // subpages and configs of all sensors
 // 8320 bytes:
-static int16_t imdata[N_SESORS][REG_IMAGEDATA_LEN];
+static int16_t imdata[N_SENSORS][REG_IMAGEDATA_LEN];
 // 8340 bytes:
-static uint16_t confdata[N_SESORS][MLX_DMA_MAXLEN];
-static uint8_t sens_addresses[N_SESORS] = {0x10<<1, 0x11<<1, 0x12<<1, 0x13<<1, 0x14<<1}; // addresses of all sensors (if 0 - omit this one)
-static uint8_t sensaddr[N_SESORS];
+static uint16_t confdata[N_SENSORS][MLX_DMA_MAXLEN];
+static uint8_t sens_addresses[N_SENSORS] = {0x10<<1, 0x11<<1, 0x12<<1, 0x13<<1, 0x14<<1}; // addresses of all sensors (if 0 - omit this one)
+static uint8_t sensaddr[N_SENSORS];
 
 // get compile-time size: (gcc shows it in error message)
 //char (*__kaboom)[sizeof( confdata )] = 1;
@@ -63,7 +63,7 @@ static int sensno = -1;
 mlx_state_t mlx_state(){ return MLX_state; }
 // set address
 int mlx_setaddr(int n, uint8_t addr){
-    if(n < 0 || n > N_SESORS) return 0;
+    if(n < 0 || n > N_SENSORS) return 0;
     if(addr > 0x7f) return 0;
     sens_addresses[n] = addr << 1;
     Tlastimage[n] = Tms; // refresh counter for autoreset I2C in case of error
@@ -106,8 +106,8 @@ static int nextsensno(int s){
         return -1;
     }
     int next = s + 1;
-    for(; next < N_SESORS; ++next) if(sensaddr[next]) break;
-    if(next == N_SESORS) return nextsensno(-1); // roll to start
+    for(; next < N_SENSORS; ++next) if(sensaddr[next]) break;
+    if(next == N_SENSORS) return nextsensno(-1); // roll to start
         D(i2str(next)); DB('('); D(i2str(s)); DB(')'); DN(" - new sensor number");
     return next;
 }
@@ -115,7 +115,7 @@ static int nextsensno(int s){
 // count active sensors
 int mlx_nactive(){
     int N = 0;
-    for(int i = 0; i < N_SESORS; ++i) if(sensaddr[i]) ++N;
+    for(int i = 0; i < N_SENSORS; ++i) if(sensaddr[i]) ++N;
     return N;
 }
 
@@ -230,7 +230,7 @@ MLX90640_params *mlx_getparams(int n){
 uint32_t mlx_lastimT(int n){ return Tlastimage[n]; }
 
 fp_t *mlx_getimage(int n){
-    if(n < 0 || n >= N_SESORS || !sensaddr[n]) return NULL;
+    if(n < 0 || n >= N_SENSORS || !sensaddr[n]) return NULL;
     MLX90640_params *p = get_parameters(confdata[n]);
     if(!p) return NULL;
     fp_t *ready_image = process_image(imdata[n]);

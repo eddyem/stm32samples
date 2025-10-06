@@ -20,6 +20,7 @@
 #include <stm32f3.h>
 #include <string.h>
 
+#include "adc.h"
 #include "hardware.h"
 #include "i2c.h"
 #include "mlxproc.h"
@@ -89,12 +90,16 @@ const char *const helpstring =
         "i0..4 - setup I2C with speed 10k, 100k, 400k, 1M or 2M (experimental!)\n"
         "p - pause MLX\n"
         "s - stop MLX (and start from zero @ 'c')\n"
+        "A - get ADC values\n"
         "C - \"cartoon\" mode on/off (show each new image) - USB only!!!\n"
         "Dn - dump MLX parameters for sensor number n\n"
         "Ia addr [n] - set  device address for interactive work or (with n) change address of n'th sensor\n"
         "Ir reg n - read n words from 16-bit register\n"
         "Iw words - send words (hex/dec/oct/bin) to I2C\n"
         "Is - scan I2C bus\n"
+        "M - get MCU temperature and Vdd value\n"
+        "O - set output of DAC (0..4095)\n"
+        "Px - set PWM output (0..100%) or get current value\n"
         "Us - send string 's' to other interface\n"
 ;
 
@@ -140,7 +145,7 @@ static int getsensnum(const char *buf){
     if(!buf || !*buf) return -1;
     uint32_t num;
     const char *nxt = getnum(buf, &num);
-    if(!nxt || nxt == buf || num >= N_SESORS) return -1;
+    if(!nxt || nxt == buf || num >= N_SENSORS) return -1;
     return (int) num;
 }
 
@@ -311,7 +316,7 @@ TRUE_INLINE void listactive(){
     uint8_t *ids = mlx_activeids();
     sendfun->S("Found "); sendfun->P('0'+N);
     sendfun->S(" active sensors:"); N();
-    for(int i = 0; i < N_SESORS; ++i)
+    for(int i = 0; i < N_SENSORS; ++i)
         if(ids[i]){
             sendfun->S("SENSID");
             sendfun->S(u2str(i)); sendfun->P('=');
@@ -331,12 +336,50 @@ TRUE_INLINE void getenv(){
     bme280_t env;
     if(!get_environment(&env)) sendfun->S("BADENVIRONMENT\n");
     sendfun->S("TEMPERATURE="); sendfun->S(float2str(env.T, 2));
+    sendfun->S("\nSKYTEMPERATURE="); sendfun->S(float2str(env.Tsky, 2));
     sendfun->S("\nPRESSURE_HPA="); sendfun->S(float2str(env.P/100.f, 2));
     sendfun->S("\nPRESSURE_MM="); sendfun->S(float2str(env.P * 0.00750062f, 2));
     sendfun->S("\nHUMIDITY="); sendfun->S(float2str(env.H, 2));
     sendfun->S("\nTEMP_DEW="); sendfun->S(float2str(env.Tdew, 1));
     sendfun->S("\nT_MEASUREMENT="); sendfun->S(u2str(env.Tmeas));
     N();
+}
+
+TRUE_INLINE const char *DAC_chval(const char *buf){
+    uint32_t D;
+    const char *nxt = getnum(buf, &D);
+    if(!nxt || nxt == buf || D > 4095) return ERR;
+    DAC1->DHR12R1 = D;
+    return OK;
+}
+
+
+TRUE_INLINE void getADC(){
+    sendfun->S("AIN0="); sendfun->S(u2str(getADCval(ADC_AIN0)));
+    sendfun->S("\nAIN1="); sendfun->S(u2str(getADCval(ADC_AIN1)));
+    sendfun->S("\nAIN5="); sendfun->S(u2str(getADCval(ADC_AIN5)));
+    N();
+}
+
+TRUE_INLINE void getMCUvals(){
+    sendfun->S("MCUTEMP="); sendfun->S(float2str(getMCUtemp(), 2));
+    sendfun->S("\nMCUVDD="); sendfun->S(float2str(getVdd(), 2));
+    N();
+}
+
+TRUE_INLINE const char* setpwm(const char *buf){
+    uint32_t D;
+    if(!buf || !*buf){
+        sendfun->S("PWM1="); sendfun->S(u2str(TIM3->CCR1));
+        sendfun->S("\nPWM2="); sendfun->S(u2str(TIM3->CCR2));
+        sendfun->S("\nPWM3="); sendfun->S(u2str(TIM3->CCR3));
+        sendfun->S("\nPWM4="); sendfun->S(u2str(TIM3->CCR4));
+        N();
+        return NULL;
+    }
+    const char *nxt = getnum(buf, &D);
+    if(!nxt || nxt == buf || !setPWM(PWM_CH_HEATER, D)) return ERR;
+    return OK;
 }
 
 /**
@@ -349,32 +392,32 @@ const char *parse_cmd(char *buf, int sendto){
     if(!buf || !*buf) return NULL;
     chsendfun(sendto);
     if(buf[1]){
-        switch(*buf){ // "long" commands
+        switch(*buf++){ // "long" commands
             case 'a':
-                return chhwaddr(buf + 1);
+                return chhwaddr(buf);
             case 'd':
-                return drawimg(buf+1, 1);
+                return drawimg(buf, 1);
             case 'g':
-                return drawimg(buf+1, 2);
+                return drawimg(buf, 2);
             case 'i':
-                return setupI2C(buf + 1);
+                return setupI2C(buf);
             case 'm':
-                return drawimg(buf+1, 0);
+                return drawimg(buf, 0);
             case 't':
-                getimt(buf + 1); return NULL;
+                getimt(buf); return NULL;
             case 'D':
-                dumpparams(buf + 1);
+                dumpparams(buf);
                 return NULL;
             break;
             case 'I':
-                buf = omit_spaces(buf + 1);
+                buf = omit_spaces(buf);
                 switch(*buf){
                     case 'a':
-                        return chaddr(buf + 1);
+                        return chaddr(buf);
                     case 'r':
-                        return rdI2C(buf + 1);
+                        return rdI2C(buf);
                     case 'w':
-                        return wrI2C(buf + 1);
+                        return wrI2C(buf);
                     case 's':
                         i2c_init_scan_mode();
                         return OK;
@@ -382,16 +425,23 @@ const char *parse_cmd(char *buf, int sendto){
                         return ERR;
                 }
                 break;
+            case 'O':
+                return DAC_chval(buf);
+            case 'P':
+                return setpwm(buf);
             case 'U':
                 if(sendto == SEND_USB) chsendfun(SEND_USART);
                 else chsendfun(SEND_USB);
-                if(sendfun->S(buf + 1) && N()) return OK;
+                if(sendfun->S(buf) && N()) return OK;
                 return ERR;
             default:
                 return ERR;
         }
     }
     switch(*buf){ // "short" (one letter) commands
+        case 'A':
+            getADC();
+        break;
         case 'c':
             mlx_continue(); return OK;
         break;
@@ -416,6 +466,11 @@ const char *parse_cmd(char *buf, int sendto){
         case 'G':
             getst();
         break;
+        case 'M':
+            getMCUvals();
+        break;
+        case 'P':
+            return setpwm(NULL);
         case 'R':
             NVIC_SystemReset();
         break;

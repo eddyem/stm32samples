@@ -1,5 +1,7 @@
 BMP280.c
 BMP280.h
+adc.c
+adc.h
 hardware.c
 hardware.h
 i2c.c

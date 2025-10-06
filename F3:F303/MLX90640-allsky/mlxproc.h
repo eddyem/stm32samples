@@ -23,7 +23,7 @@
 #include "mlx90640.h"
 
 // amount of sensors processing
-#define N_SESORS            (5)
+#define N_SENSORS           (5)
 
 // maximal errors number to stop processing
 #define MLX_MAX_ERRORS      (11)

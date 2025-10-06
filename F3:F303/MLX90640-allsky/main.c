@@ -16,6 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "adc.h"
 #include "hardware.h"
 #include "i2c.h"
 #include "mlxproc.h"
@@ -44,12 +45,13 @@ int main(void){
     }
     USBPU_OFF();
     hw_setup();
+    adc_setup();
     i2c_setup(I2C_SPEED_400K);
     bme_init();
     USB_setup();
     usart_setup(115200);
     USBPU_ON();
-    uint32_t ctr = Tms, Tlastima[N_SESORS] = {0};
+    uint32_t ctr = Tms, Tlastima[N_SENSORS] = {0};
     mlx_continue(); // init state machine
     while(1){
         IWDG->KR = IWDG_REFRESH;
@@ -77,7 +79,7 @@ int main(void){
             }
         }
         mlx_process();
-        if(cartoon) for(int i = 0; i < N_SESORS; ++i){ // USB-only
+        if(cartoon) for(int i = 0; i < N_SENSORS; ++i){ // USB-only
             uint32_t Tnow = mlx_lastimT(i);
             if(Tnow != Tlastima[i]){
                 fp_t *im = mlx_getimage(i);
