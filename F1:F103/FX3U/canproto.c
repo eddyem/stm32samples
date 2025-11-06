@@ -139,7 +139,7 @@ static errcodes eswg(CAN_message *msg){
     }
     uint32_t curval = get_ab_esw();
     if(no > INMAX) MSGP_SET_U32(msg, curval);
-    else MSGP_SET_U32(msg, (curval & (1<<no)) ? 0 : 1);
+    else MSGP_SET_U32(msg, (curval & (1<<no)) ? 1 : 0);
     FIXDL(msg);
     return ERR_OK;
 }

@@ -227,7 +227,7 @@ static int readpins(uint8_t Nch, const pin_t *pins, uint8_t max){
             int p = gpin(i);
             if(p == 1){
                 //usart_send("pin"); usart_send(u2str(i)); usart_send("=1\n");
-                val |= p;
+                val |= 1;
             }
         }
         //usart_send("readpins, val="); usart_send(i2str(val)); newline();
@@ -274,6 +274,7 @@ void proc_esw(){
             CAN_message msg = {.ID = the_conf.CANIDin, .length = 8, .data = {0}};
             MSG_SET_CMD(msg, CMD_GETESW);
             MSG_SET_U32(msg, ESW_ab_values);
+            MSG_SET_PARNO(msg, NO_PARNO); // all ESW
             uint32_t Tstart = Tms;
             while(Tms - Tstart < SEND_TIMEOUT_MS){
                 IWDG->KR = IWDG_REFRESH;

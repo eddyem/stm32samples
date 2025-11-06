@@ -233,7 +233,7 @@ static errcodes dumpconf(const char _U_ *str, text_cmd _U_ cmd){
     newline(); usart_send(S_bounce); EQ(); printu(the_conf.bouncetime);
     const char ** const *p = bitfields;
     int bit = 0;
-    newline(); usart_send(S_flags); printuhex(the_conf.flags.u32);
+    newline(); usart_send(S_flags); EQ(); printuhex(the_conf.flags.u32);
     while(*p){
         IWDG->KR = IWDG_REFRESH;
         newline(); usart_putchar(' ');
