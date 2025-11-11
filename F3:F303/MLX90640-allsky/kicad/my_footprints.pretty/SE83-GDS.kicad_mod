@@ -1,0 +1,105 @@
+(footprint "SE83-GDS"
+	(version 20241229)
+	(generator "pcbnew")
+	(generator_version "9.0")
+	(layer "F.Cu")
+	(property "Reference" "REF**"
+		(at 0 -5.2 0)
+		(unlocked yes)
+		(layer "F.SilkS")
+		(uuid "57cb4bd0-28c2-4839-98ec-c89b6b4dadf3")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Value" "SE83-GDS"
+		(at -0.2 -2.4 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(uuid "28f592bb-0584-4f17-a1b7-db9fae33e478")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Datasheet" ""
+		(at 0 0 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "1aab44f6-4bc2-498b-b821-826ea047f5bc")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Description" ""
+		(at 0 0 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "4bd19781-ddbe-49dc-9ebd-841722f58b4b")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(attr through_hole)
+	(fp_rect
+		(start -7 -4)
+		(end 7 4)
+		(stroke
+			(width 0.15)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.SilkS")
+		(uuid "ebfe72d0-ad90-4047-965c-506ddd5e63f3")
+	)
+	(fp_text user "${REFERENCE}"
+		(at 0 2.5 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(uuid "4915b0bf-fd86-4154-b16a-836532a4dd65")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(pad "1" thru_hole circle
+		(at -4.4 0)
+		(size 2.54 2.54)
+		(drill 1.1)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "53d93c65-764a-4bef-b290-b1b986506127")
+	)
+	(pad "2" thru_hole circle
+		(at 0 0)
+		(size 2.54 2.54)
+		(drill 1.1)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "a2a47564-1fee-491a-9e15-f057be4e750a")
+	)
+	(pad "3" thru_hole circle
+		(at 4.4 0)
+		(size 2.54 2.54)
+		(drill 1.1)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "26af9a07-df37-406c-86f0-2934baee03ce")
+	)
+	(embedded_fonts no)
+)
