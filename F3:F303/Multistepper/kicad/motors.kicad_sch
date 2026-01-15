@@ -1,12 +1,14 @@
 (kicad_sch
-	(version 20231120)
+	(version 20250114)
 	(generator "eeschema")
-	(generator_version "8.0")
+	(generator_version "9.0")
 	(uuid "5d01265a-07ca-4492-92b7-6283b8a306cf")
 	(paper "A4")
 	(lib_symbols
 		(symbol "Device:R"
-			(pin_numbers hide)
+			(pin_numbers
+				(hide yes)
+			)
 			(pin_names
 				(offset 0)
 			)
@@ -125,10 +127,13 @@
 					)
 				)
 			)
+			(embedded_fonts no)
 		)
 		(symbol "Device:R_Pack04"
 			(pin_names
-				(offset 0) hide)
+				(offset 0)
+				(hide yes)
+			)
 			(exclude_from_sim no)
 			(in_bom yes)
 			(on_board yes)
@@ -216,22 +221,12 @@
 						(type none)
 					)
 				)
-				(rectangle
-					(start -3.175 1.905)
-					(end -1.905 -1.905)
-					(stroke
-						(width 0.254)
-						(type default)
+				(polyline
+					(pts
+						(xy -5.08 1.905) (xy -5.08 2.54)
 					)
-					(fill
-						(type none)
-					)
-				)
-				(rectangle
-					(start -0.635 1.905)
-					(end 0.635 -1.905)
 					(stroke
-						(width 0.254)
+						(width 0)
 						(type default)
 					)
 					(fill
@@ -250,9 +245,20 @@
 						(type none)
 					)
 				)
+				(rectangle
+					(start -3.175 1.905)
+					(end -1.905 -1.905)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
 				(polyline
 					(pts
-						(xy -5.08 1.905) (xy -5.08 2.54)
+						(xy -2.54 1.905) (xy -2.54 2.54)
 					)
 					(stroke
 						(width 0)
@@ -274,9 +280,20 @@
 						(type none)
 					)
 				)
+				(rectangle
+					(start -0.635 1.905)
+					(end 0.635 -1.905)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
 				(polyline
 					(pts
-						(xy -2.54 1.905) (xy -2.54 2.54)
+						(xy 0 1.905) (xy 0 2.54)
 					)
 					(stroke
 						(width 0)
@@ -298,9 +315,20 @@
 						(type none)
 					)
 				)
+				(rectangle
+					(start 1.905 1.905)
+					(end 3.175 -1.905)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
 				(polyline
 					(pts
-						(xy 0 1.905) (xy 0 2.54)
+						(xy 2.54 1.905) (xy 2.54 2.54)
 					)
 					(stroke
 						(width 0)
@@ -322,31 +350,26 @@
 						(type none)
 					)
 				)
-				(polyline
-					(pts
-						(xy 2.54 1.905) (xy 2.54 2.54)
-					)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(rectangle
-					(start 1.905 1.905)
-					(end 3.175 -1.905)
-					(stroke
-						(width 0.254)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
 			)
 			(symbol "R_Pack04_1_1"
+				(pin passive line
+					(at -5.08 5.08 270)
+					(length 2.54)
+					(name "R1.2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "8"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
 				(pin passive line
 					(at -5.08 -5.08 90)
 					(length 2.54)
@@ -358,96 +381,6 @@
 						)
 					)
 					(number "1"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at -2.54 -5.08 90)
-					(length 2.54)
-					(name "R2.1"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "2"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 0 -5.08 90)
-					(length 2.54)
-					(name "R3.1"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "3"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 2.54 -5.08 90)
-					(length 2.54)
-					(name "R4.1"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "4"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 2.54 5.08 270)
-					(length 2.54)
-					(name "R4.2"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "5"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 0 5.08 270)
-					(length 2.54)
-					(name "R3.2"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "6"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -474,16 +407,88 @@
 					)
 				)
 				(pin passive line
-					(at -5.08 5.08 270)
+					(at -2.54 -5.08 90)
 					(length 2.54)
-					(name "R1.2"
+					(name "R2.1"
 						(effects
 							(font
 								(size 1.27 1.27)
 							)
 						)
 					)
-					(number "8"
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 0 5.08 270)
+					(length 2.54)
+					(name "R3.2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "6"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 0 -5.08 90)
+					(length 2.54)
+					(name "R3.1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 2.54 5.08 270)
+					(length 2.54)
+					(name "R4.2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "5"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 2.54 -5.08 90)
+					(length 2.54)
+					(name "R4.1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "4"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -492,10 +497,13 @@
 					)
 				)
 			)
+			(embedded_fonts no)
 		)
 		(symbol "Jumper:SolderJumper_2_Bridged"
 			(pin_names
-				(offset 0) hide)
+				(offset 0)
+				(hide yes)
+			)
 			(exclude_from_sim no)
 			(in_bom yes)
 			(on_board yes)
@@ -572,30 +580,6 @@
 						(type outline)
 					)
 				)
-				(arc
-					(start -0.254 1.016)
-					(mid -1.2656 0)
-					(end -0.254 -1.016)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(arc
-					(start -0.254 1.016)
-					(mid -1.2656 0)
-					(end -0.254 -1.016)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type outline)
-					)
-				)
 				(polyline
 					(pts
 						(xy -0.254 1.016) (xy -0.254 -1.016)
@@ -608,6 +592,54 @@
 						(type none)
 					)
 				)
+				(arc
+					(start -0.254 -1.016)
+					(mid -1.2656 0)
+					(end -0.254 1.016)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(arc
+					(start -0.254 -1.016)
+					(mid -1.2656 0)
+					(end -0.254 1.016)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type outline)
+					)
+				)
+				(arc
+					(start 0.254 1.016)
+					(mid 1.2656 0)
+					(end 0.254 -1.016)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(arc
+					(start 0.254 1.016)
+					(mid 1.2656 0)
+					(end 0.254 -1.016)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type outline)
+					)
+				)
 				(polyline
 					(pts
 						(xy 0.254 1.016) (xy 0.254 -1.016)
@@ -618,30 +650,6 @@
 					)
 					(fill
 						(type none)
-					)
-				)
-				(arc
-					(start 0.254 -1.016)
-					(mid 1.2656 0)
-					(end 0.254 1.016)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(arc
-					(start 0.254 -1.016)
-					(mid 1.2656 0)
-					(end 0.254 1.016)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type outline)
 					)
 				)
 			)
@@ -683,6 +691,7 @@
 					)
 				)
 			)
+			(embedded_fonts no)
 		)
 		(symbol "power:GND"
 			(power)
@@ -762,7 +771,8 @@
 			(symbol "GND_1_1"
 				(pin power_in line
 					(at 0 0 270)
-					(length 0) hide
+					(length 0)
+					(hide yes)
 					(name "GND"
 						(effects
 							(font
@@ -779,12 +789,17 @@
 					)
 				)
 			)
+			(embedded_fonts no)
 		)
 		(symbol "power:PWR_FLAG"
 			(power)
-			(pin_numbers hide)
+			(pin_numbers
+				(hide yes)
+			)
 			(pin_names
-				(offset 0) hide)
+				(offset 0)
+				(hide yes)
+			)
 			(exclude_from_sim no)
 			(in_bom yes)
 			(on_board yes)
@@ -875,6 +890,7 @@
 					)
 				)
 			)
+			(embedded_fonts no)
 		)
 		(symbol "power:Vdrive"
 			(power)
@@ -952,7 +968,7 @@
 				)
 				(polyline
 					(pts
-						(xy 0 0) (xy 0 2.54)
+						(xy 0 2.54) (xy 0.762 1.27)
 					)
 					(stroke
 						(width 0)
@@ -964,7 +980,7 @@
 				)
 				(polyline
 					(pts
-						(xy 0 2.54) (xy 0.762 1.27)
+						(xy 0 0) (xy 0 2.54)
 					)
 					(stroke
 						(width 0)
@@ -978,7 +994,8 @@
 			(symbol "Vdrive_1_1"
 				(pin power_in line
 					(at 0 0 90)
-					(length 0) hide
+					(length 0)
+					(hide yes)
 					(name "Vdrive"
 						(effects
 							(font
@@ -995,6 +1012,7 @@
 					)
 				)
 			)
+			(embedded_fonts no)
 		)
 		(symbol "stm32-rescue:74HC4051"
 			(pin_names
@@ -1067,17 +1085,17 @@
 				)
 			)
 			(symbol "74HC4051_1_1"
-				(pin bidirectional line
-					(at 17.78 -1.27 180)
+				(pin input line
+					(at -17.78 8.89 0)
 					(length 7.62)
-					(name "Y4"
+					(name "S0"
 						(effects
 							(font
 								(size 1.27 1.27)
 							)
 						)
 					)
-					(number "1"
+					(number "11"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -1104,16 +1122,88 @@
 					)
 				)
 				(pin input line
-					(at -17.78 8.89 0)
+					(at -17.78 3.81 0)
 					(length 7.62)
-					(name "S0"
+					(name "S2"
 						(effects
 							(font
 								(size 1.27 1.27)
 							)
 						)
 					)
-					(number "11"
+					(number "9"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin power_in line
+					(at -17.78 0 0)
+					(length 7.62)
+					(name "VEE"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "7"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin power_in line
+					(at -17.78 -2.54 0)
+					(length 7.62)
+					(name "VCC"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "16"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin power_in line
+					(at -17.78 -5.08 0)
+					(length 7.62)
+					(name "GND"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "8"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin input inverted
+					(at -17.78 -8.89 0)
+					(length 7.62)
+					(name "~{E}"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "6"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -1122,16 +1212,16 @@
 					)
 				)
 				(pin bidirectional line
-					(at 17.78 1.27 180)
+					(at 0 -19.05 90)
 					(length 7.62)
-					(name "Y3"
+					(name "Z"
 						(effects
 							(font
 								(size 1.27 1.27)
 							)
 						)
 					)
-					(number "12"
+					(number "3"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -1193,17 +1283,53 @@
 						)
 					)
 				)
-				(pin power_in line
-					(at -17.78 -2.54 0)
+				(pin bidirectional line
+					(at 17.78 1.27 180)
 					(length 7.62)
-					(name "VCC"
+					(name "Y3"
 						(effects
 							(font
 								(size 1.27 1.27)
 							)
 						)
 					)
-					(number "16"
+					(number "12"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin bidirectional line
+					(at 17.78 -1.27 180)
+					(length 7.62)
+					(name "Y4"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin bidirectional line
+					(at 17.78 -3.81 180)
+					(length 7.62)
+					(name "Y5"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "5"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -1230,24 +1356,6 @@
 					)
 				)
 				(pin bidirectional line
-					(at 0 -19.05 90)
-					(length 7.62)
-					(name "Z"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "3"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin bidirectional line
 					(at 17.78 -8.89 180)
 					(length 7.62)
 					(name "Y7"
@@ -1265,97 +1373,8 @@
 						)
 					)
 				)
-				(pin bidirectional line
-					(at 17.78 -3.81 180)
-					(length 7.62)
-					(name "Y5"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "5"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin input inverted
-					(at -17.78 -8.89 0)
-					(length 7.62)
-					(name "~{E}"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "6"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin power_in line
-					(at -17.78 0 0)
-					(length 7.62)
-					(name "VEE"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "7"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin power_in line
-					(at -17.78 -5.08 0)
-					(length 7.62)
-					(name "GND"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "8"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin input line
-					(at -17.78 3.81 0)
-					(length 7.62)
-					(name "S2"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "9"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
 			)
+			(embedded_fonts no)
 		)
 	)
 	(junction
@@ -1466,7 +1485,6 @@
 	)
 	(label "DIAG0"
 		(at 125.222 20.828 0)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1477,7 +1495,6 @@
 	)
 	(label "DIAG3"
 		(at 125.603 84.836 180)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1488,7 +1505,6 @@
 	)
 	(label "Vm"
 		(at 155.321 80.01 180)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1499,7 +1515,6 @@
 	)
 	(label "DIAG4"
 		(at 155.321 84.836 180)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1510,7 +1525,6 @@
 	)
 	(label "USART4-7"
 		(at 155.321 102.616 180)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1521,7 +1535,6 @@
 	)
 	(label "DIAG7"
 		(at 125.222 38.608 0)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1532,7 +1545,6 @@
 	)
 	(label "USART0-3"
 		(at 65.532 102.616 180)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1543,7 +1555,6 @@
 	)
 	(label "DIAG1"
 		(at 65.532 84.836 180)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1554,7 +1565,6 @@
 	)
 	(label "DIAG7"
 		(at 246.888 84.836 180)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1565,7 +1575,6 @@
 	)
 	(label "MISO"
 		(at 35.052 60.198 0)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1576,7 +1585,6 @@
 	)
 	(label "USART0-3"
 		(at 95.123 102.616 180)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1587,7 +1595,6 @@
 	)
 	(label "Vm"
 		(at 34.29 80.01 180)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1598,7 +1605,6 @@
 	)
 	(label "MOSI"
 		(at 246.888 113.03 180)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1609,7 +1615,6 @@
 	)
 	(label "USART0-3"
 		(at 34.29 102.616 180)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1620,7 +1625,6 @@
 	)
 	(label "SCK"
 		(at 65.532 118.11 180)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1631,7 +1635,6 @@
 	)
 	(label "SCK"
 		(at 95.123 118.11 180)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1642,7 +1645,6 @@
 	)
 	(label "DIAG3"
 		(at 125.222 28.448 0)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1653,7 +1655,6 @@
 	)
 	(label "SCK"
 		(at 186.182 118.11 180)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1664,7 +1665,6 @@
 	)
 	(label "MISO"
 		(at 186.182 115.57 180)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1675,7 +1675,6 @@
 	)
 	(label "DIAG6"
 		(at 125.222 36.068 0)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1686,7 +1685,6 @@
 	)
 	(label "MOSI"
 		(at 214.503 113.03 180)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1697,7 +1695,6 @@
 	)
 	(label "SCK"
 		(at 125.603 118.11 180)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1708,7 +1705,6 @@
 	)
 	(label "MISO"
 		(at 65.532 115.57 180)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1719,7 +1715,6 @@
 	)
 	(label "SCK"
 		(at 34.29 118.11 180)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1730,7 +1725,6 @@
 	)
 	(label "Vm"
 		(at 246.888 80.01 180)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1741,7 +1735,6 @@
 	)
 	(label "Vm"
 		(at 25.654 19.558 0)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1752,7 +1745,6 @@
 	)
 	(label "MOSI"
 		(at 186.182 113.03 180)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1763,7 +1755,6 @@
 	)
 	(label "MISO"
 		(at 125.603 115.57 180)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1774,7 +1765,6 @@
 	)
 	(label "SCK"
 		(at 35.052 62.738 0)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1785,7 +1775,6 @@
 	)
 	(label "DIAG5"
 		(at 186.182 84.836 180)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1796,7 +1785,6 @@
 	)
 	(label "USART4-7"
 		(at 214.503 102.616 180)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1807,7 +1795,6 @@
 	)
 	(label "MOSI"
 		(at 35.052 57.658 0)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1818,7 +1805,6 @@
 	)
 	(label "USART4-7"
 		(at 62.738 27.432 0)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1829,7 +1815,6 @@
 	)
 	(label "DIAG6"
 		(at 214.503 84.836 180)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1840,7 +1825,6 @@
 	)
 	(label "USART4-7"
 		(at 246.888 102.616 180)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1851,7 +1835,6 @@
 	)
 	(label "Vm"
 		(at 214.503 80.01 180)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1862,7 +1845,6 @@
 	)
 	(label "SCK"
 		(at 155.321 118.11 180)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1873,7 +1855,6 @@
 	)
 	(label "DIAG1"
 		(at 125.222 23.368 0)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1884,7 +1865,6 @@
 	)
 	(label "DIAG0"
 		(at 34.29 84.836 180)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1895,7 +1875,6 @@
 	)
 	(label "DIAG2"
 		(at 95.123 84.836 180)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1906,7 +1885,6 @@
 	)
 	(label "Vm"
 		(at 95.123 80.01 180)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1917,7 +1895,6 @@
 	)
 	(label "DIAG2"
 		(at 125.222 25.908 0)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1928,7 +1905,6 @@
 	)
 	(label "USART4-7"
 		(at 186.182 102.616 180)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1939,7 +1915,6 @@
 	)
 	(label "USART0-3"
 		(at 62.992 44.196 0)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1950,7 +1925,6 @@
 	)
 	(label "MISO"
 		(at 155.321 115.57 180)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1961,7 +1935,6 @@
 	)
 	(label "Vm"
 		(at 65.532 80.01 180)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1972,7 +1945,6 @@
 	)
 	(label "MOSI"
 		(at 34.29 113.03 180)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1983,7 +1955,6 @@
 	)
 	(label "MOSI"
 		(at 155.321 113.03 180)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1994,7 +1965,6 @@
 	)
 	(label "Vm"
 		(at 186.182 80.01 180)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -2005,7 +1975,6 @@
 	)
 	(label "DIAG5"
 		(at 125.222 33.528 0)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -2016,7 +1985,6 @@
 	)
 	(label "MOSI"
 		(at 95.123 113.03 180)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -2027,7 +1995,6 @@
 	)
 	(label "MOSI"
 		(at 125.603 113.03 180)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -2038,7 +2005,6 @@
 	)
 	(label "MISO"
 		(at 95.123 115.57 180)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -2049,7 +2015,6 @@
 	)
 	(label "SCK"
 		(at 246.888 118.11 180)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -2060,7 +2025,6 @@
 	)
 	(label "USART0-3"
 		(at 125.603 102.616 180)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -2071,7 +2035,6 @@
 	)
 	(label "MISO"
 		(at 214.503 115.57 180)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -2082,7 +2045,6 @@
 	)
 	(label "MISO"
 		(at 246.888 115.57 180)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -2093,7 +2055,6 @@
 	)
 	(label "MOSI"
 		(at 65.532 113.03 180)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -2104,7 +2065,6 @@
 	)
 	(label "DIAG4"
 		(at 125.222 30.988 0)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -2115,7 +2075,6 @@
 	)
 	(label "SCK"
 		(at 214.503 118.11 180)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -2126,7 +2085,6 @@
 	)
 	(label "MISO"
 		(at 34.29 115.57 180)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -2137,7 +2095,6 @@
 	)
 	(label "Vm"
 		(at 125.603 80.01 180)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -4220,6 +4177,10 @@
 	(sheet
 		(at 186.182 77.724)
 		(size 12.7 42.926)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
 		(stroke
 			(width 0.1524)
 			(type solid)
@@ -4248,123 +4209,123 @@
 		)
 		(pin "Vm" input
 			(at 186.182 80.01 180)
+			(uuid "8ca39483-2672-4636-b89c-d12e4320fad5")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "8ca39483-2672-4636-b89c-d12e4320fad5")
 		)
 		(pin "Diag" output
 			(at 186.182 84.836 180)
+			(uuid "24f7df2b-f47c-44d1-9c32-fc226f0cab25")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "24f7df2b-f47c-44d1-9c32-fc226f0cab25")
 		)
 		(pin "~{EN}" input
 			(at 186.182 89.154 180)
+			(uuid "a632369b-cee5-4120-8798-b48f9958dfb4")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "a632369b-cee5-4120-8798-b48f9958dfb4")
 		)
 		(pin "STEP" input
 			(at 186.182 93.218 180)
+			(uuid "e85712bf-ff7a-4a2d-b7b3-760bc8c605fb")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "e85712bf-ff7a-4a2d-b7b3-760bc8c605fb")
 		)
 		(pin "DIR" input
 			(at 186.182 97.536 180)
+			(uuid "cc7d270d-f65d-4984-bf18-2437060fc22b")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "cc7d270d-f65d-4984-bf18-2437060fc22b")
 		)
 		(pin "MOSI" input
 			(at 186.182 113.03 180)
+			(uuid "915ff922-2646-4ee1-b2ca-04e73b3a182c")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "915ff922-2646-4ee1-b2ca-04e73b3a182c")
 		)
 		(pin "MISO" output
 			(at 186.182 115.57 180)
+			(uuid "e60c4cc6-217f-4f43-a4a1-8fc6e1c6af83")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "e60c4cc6-217f-4f43-a4a1-8fc6e1c6af83")
 		)
 		(pin "SCK" input
 			(at 186.182 118.11 180)
+			(uuid "9255b045-0584-4c58-a41e-3f97788cac8b")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "9255b045-0584-4c58-a41e-3f97788cac8b")
 		)
 		(pin "L1{slash}CS" bidirectional
 			(at 186.182 109.728 180)
+			(uuid "8b92e3ef-b17c-4e86-b628-a35579563156")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "8b92e3ef-b17c-4e86-b628-a35579563156")
 		)
 		(pin "UART" input
 			(at 186.182 102.616 180)
+			(uuid "71cbe2e2-b4de-482b-a4a6-5027db1cea7e")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "71cbe2e2-b4de-482b-a4a6-5027db1cea7e")
 		)
 		(pin "L0" output
 			(at 186.182 106.934 180)
+			(uuid "45a909d7-81e4-4fec-b792-bc0f20aa2875")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "45a909d7-81e4-4fec-b792-bc0f20aa2875")
 		)
 		(pin "V3v3" input
 			(at 198.882 81.915 0)
+			(uuid "369a07c6-5890-4131-9828-c350436c96cf")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify right)
 			)
-			(uuid "369a07c6-5890-4131-9828-c350436c96cf")
 		)
 		(instances
 			(project "multistepper"
@@ -4377,6 +4338,10 @@
 	(sheet
 		(at 34.29 77.724)
 		(size 12.7 42.926)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
 		(stroke
 			(width 0.1524)
 			(type solid)
@@ -4405,123 +4370,123 @@
 		)
 		(pin "Vm" input
 			(at 34.29 80.01 180)
+			(uuid "5c196b4e-766e-4e00-af6a-7121d2df4a4b")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "5c196b4e-766e-4e00-af6a-7121d2df4a4b")
 		)
 		(pin "Diag" output
 			(at 34.29 84.836 180)
+			(uuid "4e273d2e-8a0a-4305-996b-772a3ca0335f")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "4e273d2e-8a0a-4305-996b-772a3ca0335f")
 		)
 		(pin "~{EN}" input
 			(at 34.29 89.154 180)
+			(uuid "4f7dc6a5-1b1d-4260-9cf9-1de965997c03")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "4f7dc6a5-1b1d-4260-9cf9-1de965997c03")
 		)
 		(pin "STEP" input
 			(at 34.29 93.218 180)
+			(uuid "bc7c2836-e7b4-4de9-9c59-80701111df70")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "bc7c2836-e7b4-4de9-9c59-80701111df70")
 		)
 		(pin "DIR" input
 			(at 34.29 97.536 180)
+			(uuid "d0dc953f-5b63-441b-85f7-d4c12a9e7195")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "d0dc953f-5b63-441b-85f7-d4c12a9e7195")
 		)
 		(pin "MOSI" input
 			(at 34.29 113.03 180)
+			(uuid "4e56d90a-4bc3-45ff-9096-3192324b33c5")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "4e56d90a-4bc3-45ff-9096-3192324b33c5")
 		)
 		(pin "MISO" output
 			(at 34.29 115.57 180)
+			(uuid "dc1c4901-6f86-4d60-8b50-95f76f87c64f")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "dc1c4901-6f86-4d60-8b50-95f76f87c64f")
 		)
 		(pin "SCK" input
 			(at 34.29 118.11 180)
+			(uuid "7385e410-2a2e-423e-9f12-1af3610a553d")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "7385e410-2a2e-423e-9f12-1af3610a553d")
 		)
 		(pin "L1{slash}CS" bidirectional
 			(at 34.29 109.728 180)
+			(uuid "7f91668e-afa4-45c6-bce7-bf56c72f6e94")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "7f91668e-afa4-45c6-bce7-bf56c72f6e94")
 		)
 		(pin "UART" input
 			(at 34.29 102.616 180)
+			(uuid "59985126-6d6c-4f08-bbdd-6fd1c6e29d29")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "59985126-6d6c-4f08-bbdd-6fd1c6e29d29")
 		)
 		(pin "L0" output
 			(at 34.29 106.934 180)
+			(uuid "2f4678ee-97a9-41ad-a468-94afc9312f8b")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "2f4678ee-97a9-41ad-a468-94afc9312f8b")
 		)
 		(pin "V3v3" input
 			(at 46.99 81.915 0)
+			(uuid "cc72b110-020b-4099-a40b-9bbb8af9977b")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify right)
 			)
-			(uuid "cc72b110-020b-4099-a40b-9bbb8af9977b")
 		)
 		(instances
 			(project "multistepper"
@@ -4534,6 +4499,10 @@
 	(sheet
 		(at 246.888 77.724)
 		(size 12.7 42.926)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
 		(stroke
 			(width 0.1524)
 			(type solid)
@@ -4562,123 +4531,123 @@
 		)
 		(pin "Vm" input
 			(at 246.888 80.01 180)
+			(uuid "eae1d773-2847-4a38-97ac-a5a962d26c63")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "eae1d773-2847-4a38-97ac-a5a962d26c63")
 		)
 		(pin "Diag" output
 			(at 246.888 84.836 180)
+			(uuid "0977454a-0ad5-43cd-bcf7-6b1b0b5959a3")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "0977454a-0ad5-43cd-bcf7-6b1b0b5959a3")
 		)
 		(pin "~{EN}" input
 			(at 246.888 89.154 180)
+			(uuid "4bc0ec1c-4e36-4b3d-b9df-9929ac35578d")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "4bc0ec1c-4e36-4b3d-b9df-9929ac35578d")
 		)
 		(pin "STEP" input
 			(at 246.888 93.218 180)
+			(uuid "f5ed4e05-c1c4-441a-9caf-b4d32a0fc64c")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "f5ed4e05-c1c4-441a-9caf-b4d32a0fc64c")
 		)
 		(pin "DIR" input
 			(at 246.888 97.536 180)
+			(uuid "4c460ec1-b977-420e-ba18-2ea51013d057")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "4c460ec1-b977-420e-ba18-2ea51013d057")
 		)
 		(pin "MOSI" input
 			(at 246.888 113.03 180)
+			(uuid "958971bc-512e-4459-862f-7574b2db7269")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "958971bc-512e-4459-862f-7574b2db7269")
 		)
 		(pin "MISO" output
 			(at 246.888 115.57 180)
+			(uuid "4c7f5533-7204-4c2c-a759-45554c2d79f0")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "4c7f5533-7204-4c2c-a759-45554c2d79f0")
 		)
 		(pin "SCK" input
 			(at 246.888 118.11 180)
+			(uuid "1b4099b0-e4f3-48f4-93be-305cbb3d7c9a")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "1b4099b0-e4f3-48f4-93be-305cbb3d7c9a")
 		)
 		(pin "L1{slash}CS" bidirectional
 			(at 246.888 109.728 180)
+			(uuid "d3ae2856-29ae-4254-a1a8-50449c9adbf8")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "d3ae2856-29ae-4254-a1a8-50449c9adbf8")
 		)
 		(pin "UART" input
 			(at 246.888 102.616 180)
+			(uuid "33e2cd4b-5ab8-4bd6-be05-c4e4b3d92add")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "33e2cd4b-5ab8-4bd6-be05-c4e4b3d92add")
 		)
 		(pin "L0" output
 			(at 246.888 106.934 180)
+			(uuid "492430c5-1820-4dd8-9ec6-e41261a6366b")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "492430c5-1820-4dd8-9ec6-e41261a6366b")
 		)
 		(pin "V3v3" input
 			(at 259.588 81.915 0)
+			(uuid "b9981124-d866-4f5b-96fe-2458fbd6719a")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify right)
 			)
-			(uuid "b9981124-d866-4f5b-96fe-2458fbd6719a")
 		)
 		(instances
 			(project "multistepper"
@@ -4691,6 +4660,10 @@
 	(sheet
 		(at 214.503 77.724)
 		(size 12.7 42.926)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
 		(stroke
 			(width 0.1524)
 			(type solid)
@@ -4719,123 +4692,123 @@
 		)
 		(pin "Vm" input
 			(at 214.503 80.01 180)
+			(uuid "961bb77d-51b3-4b6c-96e7-7cfbc69d63bd")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "961bb77d-51b3-4b6c-96e7-7cfbc69d63bd")
 		)
 		(pin "Diag" output
 			(at 214.503 84.836 180)
+			(uuid "f6719ec0-1d32-40ba-bdb6-e40b031297cb")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "f6719ec0-1d32-40ba-bdb6-e40b031297cb")
 		)
 		(pin "~{EN}" input
 			(at 214.503 89.154 180)
+			(uuid "5eb18c27-a5fe-4a5e-b67a-336cf6eb8ab7")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "5eb18c27-a5fe-4a5e-b67a-336cf6eb8ab7")
 		)
 		(pin "STEP" input
 			(at 214.503 93.218 180)
+			(uuid "b165eb3d-27ee-4ed4-90d3-38af6b659572")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "b165eb3d-27ee-4ed4-90d3-38af6b659572")
 		)
 		(pin "DIR" input
 			(at 214.503 97.536 180)
+			(uuid "524f5948-34b6-453c-bd5e-d5f143b99e1e")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "524f5948-34b6-453c-bd5e-d5f143b99e1e")
 		)
 		(pin "MOSI" input
 			(at 214.503 113.03 180)
+			(uuid "c183f344-93b2-4320-9dc1-4165e6dcdb66")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "c183f344-93b2-4320-9dc1-4165e6dcdb66")
 		)
 		(pin "MISO" output
 			(at 214.503 115.57 180)
+			(uuid "4ff02574-9f4a-402e-81d8-41fffcc8e691")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "4ff02574-9f4a-402e-81d8-41fffcc8e691")
 		)
 		(pin "SCK" input
 			(at 214.503 118.11 180)
+			(uuid "ec93e45f-efe7-4b7e-abd1-6b0f3515d584")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "ec93e45f-efe7-4b7e-abd1-6b0f3515d584")
 		)
 		(pin "L1{slash}CS" bidirectional
 			(at 214.503 109.728 180)
+			(uuid "5c206eee-3890-4fa5-9b98-8fe1d1d6b26f")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "5c206eee-3890-4fa5-9b98-8fe1d1d6b26f")
 		)
 		(pin "UART" input
 			(at 214.503 102.616 180)
+			(uuid "6e15adce-2148-4d46-a35c-91f02b4b79b6")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "6e15adce-2148-4d46-a35c-91f02b4b79b6")
 		)
 		(pin "L0" output
 			(at 214.503 106.934 180)
+			(uuid "cc09a5b4-6afe-473d-861e-5123e990e176")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "cc09a5b4-6afe-473d-861e-5123e990e176")
 		)
 		(pin "V3v3" input
 			(at 227.203 81.915 0)
+			(uuid "3bf0c14b-f3f5-4ad1-a170-08d8aaadfc2a")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify right)
 			)
-			(uuid "3bf0c14b-f3f5-4ad1-a170-08d8aaadfc2a")
 		)
 		(instances
 			(project "multistepper"
@@ -4848,6 +4821,10 @@
 	(sheet
 		(at 125.603 77.724)
 		(size 12.7 42.926)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
 		(stroke
 			(width 0.1524)
 			(type solid)
@@ -4876,123 +4853,123 @@
 		)
 		(pin "Vm" input
 			(at 125.603 80.01 180)
+			(uuid "99508956-e9c6-4412-bc0f-f070b974511d")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "99508956-e9c6-4412-bc0f-f070b974511d")
 		)
 		(pin "Diag" output
 			(at 125.603 84.836 180)
+			(uuid "c7b3fbb3-534f-4920-92ac-811997f64106")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "c7b3fbb3-534f-4920-92ac-811997f64106")
 		)
 		(pin "~{EN}" input
 			(at 125.603 89.154 180)
+			(uuid "a918b19f-fced-4259-95aa-e2936030330d")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "a918b19f-fced-4259-95aa-e2936030330d")
 		)
 		(pin "STEP" input
 			(at 125.603 93.218 180)
+			(uuid "659a7665-f993-4fc6-8627-6b06bb7aac5c")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "659a7665-f993-4fc6-8627-6b06bb7aac5c")
 		)
 		(pin "DIR" input
 			(at 125.603 97.536 180)
+			(uuid "5d4a42e5-80a6-4baa-8a8a-e3d1a5667850")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "5d4a42e5-80a6-4baa-8a8a-e3d1a5667850")
 		)
 		(pin "MOSI" input
 			(at 125.603 113.03 180)
+			(uuid "ee754412-793e-4b0f-b8a0-2431a031afd2")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "ee754412-793e-4b0f-b8a0-2431a031afd2")
 		)
 		(pin "MISO" output
 			(at 125.603 115.57 180)
+			(uuid "f46935a1-d2ba-43c9-bd62-df09b89740ab")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "f46935a1-d2ba-43c9-bd62-df09b89740ab")
 		)
 		(pin "SCK" input
 			(at 125.603 118.11 180)
+			(uuid "13e37727-696f-4a93-b765-27a198219262")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "13e37727-696f-4a93-b765-27a198219262")
 		)
 		(pin "L1{slash}CS" bidirectional
 			(at 125.603 109.728 180)
+			(uuid "158a16c2-02f0-4a03-887c-5362c0182826")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "158a16c2-02f0-4a03-887c-5362c0182826")
 		)
 		(pin "UART" input
 			(at 125.603 102.616 180)
+			(uuid "647dc984-be35-4de8-8214-29b981922a19")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "647dc984-be35-4de8-8214-29b981922a19")
 		)
 		(pin "L0" output
 			(at 125.603 106.934 180)
+			(uuid "5cf13f1d-3a02-466e-8ab1-17c7bbae55b4")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "5cf13f1d-3a02-466e-8ab1-17c7bbae55b4")
 		)
 		(pin "V3v3" input
 			(at 138.303 81.915 0)
+			(uuid "b3ce0503-274a-47b1-800a-c4180524fbbc")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify right)
 			)
-			(uuid "b3ce0503-274a-47b1-800a-c4180524fbbc")
 		)
 		(instances
 			(project "multistepper"
@@ -5005,6 +4982,10 @@
 	(sheet
 		(at 65.532 77.724)
 		(size 12.7 42.926)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
 		(stroke
 			(width 0.1524)
 			(type solid)
@@ -5033,123 +5014,123 @@
 		)
 		(pin "Vm" input
 			(at 65.532 80.01 180)
+			(uuid "530bc7f3-5175-4f41-86ef-e8990646e01a")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "530bc7f3-5175-4f41-86ef-e8990646e01a")
 		)
 		(pin "Diag" output
 			(at 65.532 84.836 180)
+			(uuid "422d5275-3542-4647-849c-cb8eb0a463b6")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "422d5275-3542-4647-849c-cb8eb0a463b6")
 		)
 		(pin "~{EN}" input
 			(at 65.532 89.154 180)
+			(uuid "46594f54-938c-4b56-9da5-49703d34f4b6")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "46594f54-938c-4b56-9da5-49703d34f4b6")
 		)
 		(pin "STEP" input
 			(at 65.532 93.218 180)
+			(uuid "8c8d9f41-4a67-4869-9dc5-3355f91f50bc")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "8c8d9f41-4a67-4869-9dc5-3355f91f50bc")
 		)
 		(pin "DIR" input
 			(at 65.532 97.536 180)
+			(uuid "f0809e04-45d5-4fa7-b012-356c750101d9")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "f0809e04-45d5-4fa7-b012-356c750101d9")
 		)
 		(pin "MOSI" input
 			(at 65.532 113.03 180)
+			(uuid "78f90782-37cd-41fb-95fe-0c3b7d646d5f")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "78f90782-37cd-41fb-95fe-0c3b7d646d5f")
 		)
 		(pin "MISO" output
 			(at 65.532 115.57 180)
+			(uuid "5f870567-11ce-4bca-a824-da498be6d77a")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "5f870567-11ce-4bca-a824-da498be6d77a")
 		)
 		(pin "SCK" input
 			(at 65.532 118.11 180)
+			(uuid "4340081b-e952-421c-9291-ad45fc5acd4e")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "4340081b-e952-421c-9291-ad45fc5acd4e")
 		)
 		(pin "L1{slash}CS" bidirectional
 			(at 65.532 109.728 180)
+			(uuid "3af0c415-a958-4d1a-a388-a754ccd25c9a")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "3af0c415-a958-4d1a-a388-a754ccd25c9a")
 		)
 		(pin "UART" input
 			(at 65.532 102.616 180)
+			(uuid "680077ae-5e50-473c-8a7c-75a20fc12f7e")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "680077ae-5e50-473c-8a7c-75a20fc12f7e")
 		)
 		(pin "L0" output
 			(at 65.532 106.934 180)
+			(uuid "e4480888-92de-4f83-9fa1-0dfdf1aae9ea")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "e4480888-92de-4f83-9fa1-0dfdf1aae9ea")
 		)
 		(pin "V3v3" input
 			(at 78.232 81.915 0)
+			(uuid "b73186b1-a5aa-41c5-8ecd-79b495d5b843")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify right)
 			)
-			(uuid "b73186b1-a5aa-41c5-8ecd-79b495d5b843")
 		)
 		(instances
 			(project "multistepper"
@@ -5162,6 +5143,10 @@
 	(sheet
 		(at 95.123 77.724)
 		(size 12.7 42.926)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
 		(stroke
 			(width 0.1524)
 			(type solid)
@@ -5190,123 +5175,123 @@
 		)
 		(pin "Vm" input
 			(at 95.123 80.01 180)
+			(uuid "c8e61d41-799d-4abf-a584-d2eed8800d39")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "c8e61d41-799d-4abf-a584-d2eed8800d39")
 		)
 		(pin "Diag" output
 			(at 95.123 84.836 180)
+			(uuid "77d98ed2-a45e-4aaa-954d-06b730bc4606")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "77d98ed2-a45e-4aaa-954d-06b730bc4606")
 		)
 		(pin "~{EN}" input
 			(at 95.123 89.154 180)
+			(uuid "48339c32-1ed8-4db4-a53f-cc8af1d5e65b")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "48339c32-1ed8-4db4-a53f-cc8af1d5e65b")
 		)
 		(pin "STEP" input
 			(at 95.123 93.218 180)
+			(uuid "ac550893-8bb6-4819-bb8e-bb5f8cf4e209")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "ac550893-8bb6-4819-bb8e-bb5f8cf4e209")
 		)
 		(pin "DIR" input
 			(at 95.123 97.536 180)
+			(uuid "eff09673-b63b-42b8-940a-578d1b4e1f09")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "eff09673-b63b-42b8-940a-578d1b4e1f09")
 		)
 		(pin "MOSI" input
 			(at 95.123 113.03 180)
+			(uuid "f4a4793a-700d-49d3-a6fa-66a4aeeb2724")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "f4a4793a-700d-49d3-a6fa-66a4aeeb2724")
 		)
 		(pin "MISO" output
 			(at 95.123 115.57 180)
+			(uuid "d6ddca91-df2f-494a-b163-1e18551c6418")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "d6ddca91-df2f-494a-b163-1e18551c6418")
 		)
 		(pin "SCK" input
 			(at 95.123 118.11 180)
+			(uuid "ed915d08-7fa2-4c22-bdad-db3a961700a2")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "ed915d08-7fa2-4c22-bdad-db3a961700a2")
 		)
 		(pin "L1{slash}CS" bidirectional
 			(at 95.123 109.728 180)
+			(uuid "8b53b447-41bc-49f9-9322-980de492303f")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "8b53b447-41bc-49f9-9322-980de492303f")
 		)
 		(pin "UART" input
 			(at 95.123 102.616 180)
+			(uuid "a2a59939-7a31-41e8-bc37-888b1df28d19")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "a2a59939-7a31-41e8-bc37-888b1df28d19")
 		)
 		(pin "L0" output
 			(at 95.123 106.934 180)
+			(uuid "a6757898-de24-4a44-83b4-c54fb04007ff")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "a6757898-de24-4a44-83b4-c54fb04007ff")
 		)
 		(pin "V3v3" input
 			(at 107.823 81.915 0)
+			(uuid "d802c931-e141-424b-b48e-18fcec815e7d")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify right)
 			)
-			(uuid "d802c931-e141-424b-b48e-18fcec815e7d")
 		)
 		(instances
 			(project "multistepper"
@@ -5319,6 +5304,10 @@
 	(sheet
 		(at 155.321 77.724)
 		(size 12.7 42.926)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
 		(stroke
 			(width 0.1524)
 			(type solid)
@@ -5347,123 +5336,123 @@
 		)
 		(pin "Vm" input
 			(at 155.321 80.01 180)
+			(uuid "01e449d6-47ef-4a74-b242-7becb77d2a68")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "01e449d6-47ef-4a74-b242-7becb77d2a68")
 		)
 		(pin "Diag" output
 			(at 155.321 84.836 180)
+			(uuid "8610bf9e-53f9-40f4-b44a-532f1837498d")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "8610bf9e-53f9-40f4-b44a-532f1837498d")
 		)
 		(pin "~{EN}" input
 			(at 155.321 89.154 180)
+			(uuid "b25f795d-7d96-4f42-89a8-d50d27b65fe4")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "b25f795d-7d96-4f42-89a8-d50d27b65fe4")
 		)
 		(pin "STEP" input
 			(at 155.321 93.218 180)
+			(uuid "b54aac93-f787-4bf6-b844-6502fce56f8c")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "b54aac93-f787-4bf6-b844-6502fce56f8c")
 		)
 		(pin "DIR" input
 			(at 155.321 97.536 180)
+			(uuid "4b053983-b9e0-499b-9200-9cbbdf47b096")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "4b053983-b9e0-499b-9200-9cbbdf47b096")
 		)
 		(pin "MOSI" input
 			(at 155.321 113.03 180)
+			(uuid "333d0bc8-a252-42c5-8565-a76c05a9b271")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "333d0bc8-a252-42c5-8565-a76c05a9b271")
 		)
 		(pin "MISO" output
 			(at 155.321 115.57 180)
+			(uuid "265bd74c-163a-42d2-b00e-127d280131ca")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "265bd74c-163a-42d2-b00e-127d280131ca")
 		)
 		(pin "SCK" input
 			(at 155.321 118.11 180)
+			(uuid "2b9c91d3-9e97-495c-8eaa-cf7c7d92f56f")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "2b9c91d3-9e97-495c-8eaa-cf7c7d92f56f")
 		)
 		(pin "L1{slash}CS" bidirectional
 			(at 155.321 109.728 180)
+			(uuid "2a54c695-9666-4953-8518-119b6cede580")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "2a54c695-9666-4953-8518-119b6cede580")
 		)
 		(pin "UART" input
 			(at 155.321 102.616 180)
+			(uuid "f6286007-2899-4ec2-afce-7e905d767246")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "f6286007-2899-4ec2-afce-7e905d767246")
 		)
 		(pin "L0" output
 			(at 155.321 106.934 180)
+			(uuid "b501d329-962f-4f28-9c34-97d50b2ac60f")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "b501d329-962f-4f28-9c34-97d50b2ac60f")
 		)
 		(pin "V3v3" input
 			(at 168.021 81.915 0)
+			(uuid "ab3a08ff-1db8-489f-a5df-b9eaf3e13494")
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify right)
 			)
-			(uuid "ab3a08ff-1db8-489f-a5df-b9eaf3e13494")
 		)
 		(instances
 			(project "multistepper"
