@@ -325,38 +325,48 @@ void addmicrostep(uint8_t i){
 static void chkstepper(int i){
     int32_t i32;
     static uint8_t stopctr[MOTORSNO] = {0}; // counters for encoders/position zeroing after stopping @ esw
-    // check DIAGN only for UART/SPI
-    if(the_conf.motflags[i].drvtype == DRVTYPE_UART || the_conf.motflags[i].drvtype == DRVTYPE_SPI){
-        if(motdiagn(i) && state[i] != STP_ERR){ // error occured - DIAGN is low
-            //DBG("Oldstate: "); USB_putbyte('0' + state[i]); newline();
-            /*char Nm = '0'+i;
-            USB_sendstr(STR_STATE); USB_putbyte(Nm); USB_sendstr("=6\n");
+    char Nch = '0' + i;
+    // check driver status only for UART/SPI
+    if(!the_conf.motflags[i].nocheck){
+    if(state[i] != STP_ERR && (the_conf.motflags[i].drvtype == DRVTYPE_UART || the_conf.motflags[i].drvtype == DRVTYPE_SPI)){
+        if(the_conf.motflags[i].nodiag){ // check by pdn-uart
+            uint32_t u32;
             switch(the_conf.motflags[i].drvtype){
                 case DRVTYPE_UART:
                     pdnuart_setmotno(i);
                     if(pdnuart_readreg(TMC2209Reg_GSTAT, &u32)){
-                        USB_sendstr("GSTAT"); USB_putbyte(Nm); USB_putbyte('=');
-                        USB_sendstr(u2str(u32)); newline();
-                    }
-                    if(pdnuart_readreg(TMC2209Reg_DRV_STATUS, &u32)){
-                        USB_sendstr("DRV_STATUS"); USB_putbyte(Nm); USB_putbyte('=');
-                        USB_sendstr(u2str(u32)); newline();
+                        TMC2209_gstat_reg_t s;
+                        s.value = u32;
+                        if(s.drv_err || s.uv_cp){
+                            if(pdnuart_readreg(TMC2209Reg_DRV_STATUS, &u32)){
+                                //TMC2209_drv_status_reg_t d;
+                                //d.value = u32;
+                                USB_sendstr("DRV_STATUS"); USB_putbyte(Nch);
+                                USB_putbyte('='); USB_sendstr(u2str(u32));
+                                newline();
+                            }
+                            USB_sendstr("state"); USB_putbyte(Nch);
+                            USB_sendstr("=6\n");
+                            emstopmotor(i);
+                            state[i] = STP_ERR;
+                        }
                     }
                 break;
                 default:
                 break;
-            }*/
+            }
+        }else if(DIAG()){ // error occured - DIAGN is low
             emstopmotor(i);
             state[i] = STP_ERR;
             return;
         }
-    }
+    }}
 #ifdef EBUG
     if(stp[i]){
         stp[i] = 0;
         // motor state could be changed outside of interrupt, so return it to relax
         state[i] = STP_RELAX;
-        USB_sendstr("MOTOR"); USB_putbyte('0'+i); USB_sendstr(" stop @"); printi(stppos[i]);
+        USB_sendstr("MOTOR"); USB_putbyte(Nch); USB_sendstr(" stop @"); printi(stppos[i]);
         USB_sendstr(", V="); printu(curspeed[i]);
         USB_sendstr(", curstate="); printu(state[i]); newline();
     }
@@ -368,7 +378,7 @@ static void chkstepper(int i){
                 curspeed[i] = the_conf.maxspd[i];
                 state[i] = STP_MOVE;
 #ifdef EBUG
-                USB_sendstr("MOTOR"); USB_putbyte('0'+i);
+                USB_sendstr("MOTOR"); USB_putbyte(Nch);
                 USB_sendstr("  -> MOVE@"); printi(stppos[i]); USB_sendstr(", V="); printu(curspeed[i]); newline();
 #endif
             }else{ // increase speed
@@ -407,7 +417,7 @@ static void chkstepper(int i){
                 curspeed[i] = the_conf.minspd[i];
                 state[i] = STP_MVSLOW;
 #ifdef EBUG
-                USB_sendstr("MOTOR"); USB_putbyte('0'+i);
+                USB_sendstr("MOTOR"); USB_putbyte(Nch);
                 USB_sendstr("  -> MVSLOW@"); printi(stppos[i]); newline();
 #endif
             }
@@ -420,7 +430,7 @@ static void chkstepper(int i){
         case M0FAST:
             if(state[i] == STP_RELAX || state[i] == STP_STALL){ // stopped -> move to +
 #ifdef EBUG
-                USB_putbyte('M'); USB_putbyte('0'+i); USB_sendstr("FAST: motor stopped\n");
+                USB_putbyte('M'); USB_putbyte(Nch); USB_sendstr("FAST: motor stopped\n");
 #endif
                 if(ERR_OK != motor_relslow(i, 1000)){
 #ifdef EBUG
@@ -443,7 +453,7 @@ static void chkstepper(int i){
             }
             if((state[i] == STP_RELAX || state[i] == STP_STALL) && ++stopctr[i] > 5){ // wait at least 50ms
 #ifdef EBUG
-                USB_putbyte('M'); USB_putbyte('0'+i); USND("SLOW: motor stopped");
+                USB_putbyte('M'); USB_putbyte(Nch); USND("SLOW: motor stopped");
 #endif
                 ESW_reaction[i] = the_conf.ESW_reaction[i];
                 prevstppos[i] = targstppos[i] = stppos[i] = 0;
@@ -489,15 +499,20 @@ void stopmotor(uint8_t i){
     TODECEL();
 }
 
+// process only one stepper per run
 void process_steppers(){
     static uint32_t Tlast = 0;
-    if(Tms - Tlast < MOTCHKINTERVAL) return; // hit every 10ms
+    if(Tms - Tlast < MOTCHKINTERVAL / MOTORSNO) return; // hit every ~10ms for full circle
     Tlast = Tms;
     static int firstrun = 1;
-    if(firstrun){ firstrun = 0; init_steppers(); return; }
-    for(int i = 0; i < MOTORSNO; ++i){
+    if(firstrun){ firstrun = 0; init_steppers(); DIAGMUL(0); return; }
+    static int curmotno = 0;
+    chkstepper(curmotno++);
+    if(curmotno == MOTORSNO) curmotno = 0;
+    DIAGMUL(curmotno);
+    /*for(int i = 0; i < MOTORSNO; ++i){
         chkstepper(i);
-    }
+    }*/
 }
 
 uint8_t geteswreact(uint8_t i){

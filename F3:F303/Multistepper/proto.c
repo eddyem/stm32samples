@@ -407,11 +407,11 @@ int fn_reset(uint32_t _U_ hash,  char _U_ *args){ // "reset" (1907803304)
 
 static const char* motfl[MOTFLAGS_AMOUNT] = {
     "0: reverse - invert motor's rotation",
-    "1: [reserved]",
+    "1: nocheck - don't check driver for errors",
     "2: [reserved]",
     "3: donthold - clear motor's power after stop",
     "4: eswinv - inverse end-switches (1->0 instead of 0->1)",
-    "5: [reserved]",
+    "5: nodiag - don't check DIAG output",
     "6,7: drvtype - driver type (0 - only step/dir, 1 - UART, 2 - SPI, 3 - reserved)"
 };
 static const char *eswfl[ESW_AMOUNT] = {

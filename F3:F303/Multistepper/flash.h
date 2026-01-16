@@ -51,11 +51,11 @@ enum{
 // motor flags
 typedef struct{
     uint8_t reverse : 1;        // bit0 - reversing motor rotation
-    uint8_t encreverse : 1;     // bit1 - reversing encoder rotation - NOT USED HERE!!!
+    uint8_t nocheck : 1;        // bit1 - don't check drivers for error state
     uint8_t haveencoder : 1;    // bit2 - have encoder - NOT USED HERE!!!
     uint8_t donthold : 1;       // bit3 - clear power @ stop (don't hold motor when stopped)
     uint8_t eswinv : 1;         // bit4 - inverse end-switches
-    uint8_t keeppos : 1;        // bit5 - keep current position (as servo motor) - NOT USED HERE!!!
+    uint8_t nodiag : 1;         // bit5 - don't check DIAG output
     uint8_t drvtype : 2;        // bits 6,7 - driver type (0 - only step/dir, 1 - UART, 2 - SPI, 3 - reserved)
 } motflags_t;
 

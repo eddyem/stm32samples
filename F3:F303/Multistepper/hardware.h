@@ -87,6 +87,7 @@ extern const uint32_t   EXTpins[EXTNO];
 // DIAG output of motors (PE2) & its multiplexer (PE3 - 0, PE4 - 1, PE5 - 2)
 #define DIAG()          (GPIOE->IDR & (1<<2) ? 0 : 1)
 #define DIAGMUL(x)      do{ register uint32_t v = x&7; GPIOE->BSRR = (v | (((~v)&7)<<16))<<3; }while(0)
+#define DIAGMULCUR()    ((GPIOE->ODR >> 3) & 7)
 
 extern volatile TIM_TypeDef *mottimers[MOTORSNO];
 

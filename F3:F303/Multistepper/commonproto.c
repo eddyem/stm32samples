@@ -89,6 +89,7 @@ errcodes cu_button(uint8_t par, int32_t *val){
 
 errcodes cu_diagn(uint8_t par, int32_t *val){
     uint8_t n = PARBASE(par);
+    uint8_t oldstate = DIAGMULCUR();
 #if MOTORSNO > 8
 #error "Change this code!"
 #endif
@@ -99,10 +100,12 @@ errcodes cu_diagn(uint8_t par, int32_t *val){
             n |= motdiagn(i);
         }
         *val = n;
+        DIAGMUL(oldstate);
         return ERR_OK;
     }
     CHECKN(n, par);
     *val = motdiagn(n);
+    DIAGMUL(oldstate);
     return ERR_OK;
 }
 

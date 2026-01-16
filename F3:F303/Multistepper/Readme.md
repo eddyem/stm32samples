@@ -398,11 +398,11 @@ Dump motor flags' bits (for `motflagsN`) and reaction to limit switches (`eswrea
 
     Motor flags:
     bit0 - 0: reverse - invert motor's rotation
-    bit1 - 1: [reserved]
+    bit1 - 1: nocheck - don't check driver for errors
     bit2 - 2: [reserved]
     bit3 - 3: donthold - clear motor's power after stop
     bit4 - 4: eswinv - inverse end-switches (1->0 instead of 0->1)
-    bit5 - 5: [reserved]
+    bit5 - 5: nodiag - don't check DIAG output
     bit6 - 6,7: drvtype - driver type (0 - only step/dir, 1 - UART, 2 - SPI, 3 - reserved)
     End-switches reaction:
     0 - ignore both end-switches
