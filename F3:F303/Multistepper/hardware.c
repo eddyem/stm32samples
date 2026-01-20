@@ -103,8 +103,8 @@ TRUE_INLINE void gpio_setup(){
     RCC->AHBENR |= RCC_AHBENR_GPIOAEN | RCC_AHBENR_GPIOBEN | RCC_AHBENR_GPIOCEN | RCC_AHBENR_GPIODEN
                 | RCC_AHBENR_GPIOEEN | RCC_AHBENR_GPIOFEN;
     // enable timers: 1,2,3,4,8,15,16,17
-    RCC->APB1ENR |= RCC_APB1ENR_TIM2EN | RCC_APB1ENR_TIM3EN | RCC_APB1ENR_TIM4EN;
-    RCC->APB2ENR |= RCC_APB2ENR_TIM1EN | RCC_APB2ENR_TIM8EN | RCC_APB2ENR_TIM15EN | RCC_APB2ENR_TIM16EN | RCC_APB2ENR_TIM17EN;
+    RCC->APB1ENR |= RCC_APB1ENR_TIM2EN | RCC_APB1ENR_TIM3EN | RCC_APB1ENR_TIM4EN; // 36MHz
+    RCC->APB2ENR |= RCC_APB2ENR_TIM1EN | RCC_APB2ENR_TIM8EN | RCC_APB2ENR_TIM15EN | RCC_APB2ENR_TIM16EN | RCC_APB2ENR_TIM17EN; // 72MHz
     for(int i = 0; i < 10000; ++i) nop();
     GPIOA->ODR = 0;
     GPIOA->AFR[0] = AFRf(5, 5) | AFRf(5, 6) | AFRf(5, 7);
@@ -194,28 +194,33 @@ TRUE_INLINE void iwdg_setup(){
 static void setup_mpwm(int i){
     volatile TIM_TypeDef *TIM = mottimers[i];
     TIM->CR1 = TIM_CR1_ARPE; // buffered ARR
-    TIM->PSC = MOTORTIM_PSC; // 26MHz
+    TIM->PSC = MOTORTIM_PSC; // 24MHz
     // PWM mode 1 (active -> inactive)
     uint8_t n = mottchannels[i];
+    volatile uint32_t *CCRx = &TIM->CCR1;
     switch(n){
         case 1:
             TIM->CCMR1 = TIM_CCMR1_OC1M_2 | TIM_CCMR1_OC1M_1;
+            //CCRx = &TIM->CCR1;
         break;
         case 2:
             TIM->CCMR1 = TIM_CCMR1_OC2M_2 | TIM_CCMR1_OC2M_1;
+            //CCRx = &TIM->CCR2;
         break;
         case 3:
             TIM->CCMR2 = TIM_CCMR2_OC3M_2 | TIM_CCMR2_OC3M_1;
+            //CCRx = &TIM->CCR3;
         break;
         default:
             TIM->CCMR2 = TIM_CCMR2_OC4M_2 | TIM_CCMR2_OC4M_1;
+            //CCRx = &TIM->CCR4;
     }
 #if MOTORTIM_ARRMIN < 5
 #error "change the code!"
 #endif
-    TIM->CCR1 = MOTORTIM_ARRMIN - 3; // ~10us for pulse duration
-    TIM->ARR = 0xffff;
-//    TIM->EGR = TIM_EGR_UG; // generate update to refresh ARR
+    CCRx[n-1] = MOTORTIM_ARRMIN - 3; // ~10us for pulse duration
+    TIM->ARR = MOTORTIM_ARRMIN * 2;
+    TIM->EGR = TIM_EGR_UG; // generate update to refresh ARR
     TIM->BDTR |= TIM_BDTR_MOE; // enable main output
     TIM->CCER = 1<<((n-1)*4); // turn it on, active high
     TIM->DIER = 1<<n; // allow CC interrupt (we should count steps)

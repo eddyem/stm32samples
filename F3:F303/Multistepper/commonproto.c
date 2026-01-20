@@ -359,9 +359,14 @@ errcodes cu_motmul(uint8_t _U_ par, int32_t _U_ *val){
     return ERR_BADCMD;
 }
 
+// witout parameter - reinit all steppers; with parameter - just update current
 errcodes cu_motreinit(uint8_t _U_ par, int32_t _U_ *val){
-    NOPARCHK(par);
-    init_steppers();
+    uint8_t n = PARBASE(par);
+    if(n == CANMESG_NOPAR) init_steppers();
+    else{
+        if(n > MOTORSNO - 1) return ERR_BADPAR;
+        if(!update_stepper(n)) return ERR_CANTRUN;
+    }
     return ERR_OK;
 }
 

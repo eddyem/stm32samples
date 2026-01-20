@@ -75,8 +75,21 @@ TRUE_INLINE void recalcARR(int i){
     uint32_t ARR = (((PCLK/(MOTORTIM_PSC+1)) / curspeed[i]) >> ustepsshift[i]) - 1;
     if(ARR < MOTORTIM_ARRMIN) ARR = MOTORTIM_ARRMIN;
     else if(ARR > 0xffff) ARR = 0xffff;
+/*
+#ifdef EBUG
+    USB_sendstr("motor"); USB_putbyte('0'+i); USB_sendstr(", ARR=");
+    USB_sendstr(u2str(ARR)); USB_sendstr(", curspeed=");
+    USB_sendstr(u2str(curspeed[i]));
+#endif
+*/
     mottimers[i]->ARR = ARR;
     curspeed[i] = (((PCLK/(MOTORTIM_PSC+1)) / (ARR+1)) >> ustepsshift[i]); // recalculate speed due to new val
+/*
+#ifdef EBUG
+    USB_sendstr(", curspeedNEW=");
+    USB_sendstr(u2str(curspeed[i])); newline();
+#endif
+*/
 }
 
 // update stepper's settings
@@ -103,10 +116,9 @@ void init_steppers(){
         stopflag[i] = 0;
         motdir[i] = 0;
         curspeed[i] = 0;
-        state[i] = STP_RELAX;
         if(!the_conf.motflags[i].donthold) MOTOR_EN(i);
         else MOTOR_DIS(i);
-        update_stepper(i);
+        state[i] = update_stepper(i) ? STP_RELAX : STP_ERR;
     }
 }
 
@@ -148,8 +160,13 @@ static void calcacceleration(uint8_t i){
         }else{ // triangle speed profile
             decelstartpos[i] = stppos[i] + delta/2;
         }
-        if(the_conf.motflags[i].reverse) MOTOR_CCW(i);
-        else MOTOR_CW(i);
+        if(the_conf.motflags[i].reverse){
+            DBG("positive - CCW (r)");
+            MOTOR_CCW(i);
+        }else{
+            DBG("positive - CW");
+            MOTOR_CW(i);
+        }
     }else{ // negative direction
         delta = -delta;
         if(delta > 2*(int32_t)accdecsteps[i]){ // can move by trapezoid
@@ -157,8 +174,13 @@ static void calcacceleration(uint8_t i){
         }else{ // triangle speed profile
             decelstartpos[i] = stppos[i] - delta/2;
         }
-        if(the_conf.motflags[i].reverse) MOTOR_CW(i);
-        else MOTOR_CCW(i);
+        if(the_conf.motflags[i].reverse){
+            DBG("negative - CW (r)");
+            MOTOR_CW(i);
+        }else{
+            DBG("negative - CCW");
+            MOTOR_CCW(i);
+        }
     }
     if(state[i] != STP_MVSLOW){
         DBG("->accel");
@@ -365,7 +387,7 @@ static void chkstepper(int i){
     if(stp[i]){
         stp[i] = 0;
         // motor state could be changed outside of interrupt, so return it to relax
-        state[i] = STP_RELAX;
+        //state[i] = STP_RELAX;
         USB_sendstr("MOTOR"); USB_putbyte(Nch); USB_sendstr(" stop @"); printi(stppos[i]);
         USB_sendstr(", V="); printu(curspeed[i]);
         USB_sendstr(", curstate="); printu(state[i]); newline();

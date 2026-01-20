@@ -1,0 +1,4 @@
+#!/bin/bash
+
+stty -F /dev/multistepper0 -brkint -icrnl -imaxbel -opost -onlcr -isig -icanon -iexten -echo -echoe -echok -echoctl -echoke min 0 time 5
+while read x; do echo $x > /dev/multistepper0; cat /dev/multistepper0; done < esprif.conf

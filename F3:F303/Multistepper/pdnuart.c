@@ -184,25 +184,47 @@ int pdnuart_setcurrent(uint8_t no, uint8_t val){
     return writeregister(no, TMC2209Reg_IHOLD_IRUN, regval.value);
 }
 
-// set microsteps over UART
+// set microsteps over UART && clear error flags
 int pdnuart_microsteps(uint8_t no, uint32_t val){
     if(val > 256) return FALSE;
     TMC2209_chopconf_reg_t regval;
     if(!readregister(no, TMC2209Reg_CHOPCONF, &regval.value)) return FALSE;
     if(val == 256) regval.mres = 0;
     else regval.mres = 8 - MSB(val);
-    return writeregister(no, TMC2209Reg_CHOPCONF, regval.value);
+    uint32_t toff = regval.toff;
+    if(toff == 0) toff = 1;
+    regval.toff = 0; // disable drive to clear errors
+    int e = writeregister(no, TMC2209Reg_CHOPCONF, regval.value);
+    TMC2209_gstat_reg_t stat = {.value = 0};
+    stat.drv_err = 1;
+    // clear error flags
+    if(!writeregister(no, TMC2209Reg_GSTAT, stat.value)) e = FALSE;
+    regval.toff = toff; // now enable drive
+    if(!writeregister(no, TMC2209Reg_CHOPCONF, regval.value)) e = FALSE;
+    return e;
 }
 
 // init driver number `no`, return FALSE if failed
 int pdnuart_init(uint8_t no){
     TMC2209_gconf_reg_t gconf;
-    if(!pdnuart_microsteps(no, the_conf.microsteps[no])) return FALSE;
-    if(!pdnuart_setcurrent(no, the_conf.motcurrent[no])) return FALSE;
-    if(!readregister(no, TMC2209Reg_GCONF, &gconf.value)) return FALSE;
+    if(!pdnuart_microsteps(no, the_conf.microsteps[no])){
+        USB_sendstr("No usteps\n");
+        return FALSE;
+    }
+    if(!pdnuart_setcurrent(no, the_conf.motcurrent[no])){
+        USB_sendstr("No current\n");
+        return FALSE;
+    }
+    if(!readregister(no, TMC2209Reg_GCONF, &gconf.value)){
+        USB_sendstr("Can't read GCONF\n");
+        return FALSE;
+    }
     gconf.pdn_disable = 1; // PDN now is UART
     gconf.mstep_reg_select = 1; // microsteps are by MSTEP
-    if(!writeregister(no, TMC2209Reg_GCONF, gconf.value)) return FALSE;
+    if(!writeregister(no, TMC2209Reg_GCONF, gconf.value)){
+        USB_sendstr("Can't write GCONF\n");
+        return FALSE;
+    }
     return TRUE;
 }
 
