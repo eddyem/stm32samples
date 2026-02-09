@@ -254,7 +254,12 @@ int USB_sendall(uint8_t ifno){
 int USB_send(uint8_t ifno, const uint8_t *buf, int len){
     if(!buf || !CDCready[ifno] || !len) return FALSE;
     DBG("USB_send");
+    uint32_t T0 = Tms;
     while(len){
+        if(Tms - T0 > DISCONN_TMOUT){
+            break_handler(ifno);
+            return FALSE;
+        }
         if(!CDCready[ifno]) return FALSE;
         IWDG->KR = IWDG_REFRESH;
         int a = RB_write((ringbuffer*)&rbout[ifno], buf, len);
@@ -272,7 +277,12 @@ int USB_send(uint8_t ifno, const uint8_t *buf, int len){
 int USB_putbyte(uint8_t ifno, uint8_t byte){
     if(!CDCready[ifno]) return FALSE;
     int l = 0;
+    uint32_t T0 = Tms;
     while((l = RB_write((ringbuffer*)&rbout[ifno], &byte, 1)) != 1){
+        if(Tms - T0 > DISCONN_TMOUT){
+            break_handler(ifno);
+            return FALSE;
+        }
         if(!CDCready[ifno]) return FALSE;
         IWDG->KR = IWDG_REFRESH;
         if(l == 0){ // overfull
@@ -299,7 +309,7 @@ int USB_sendstr(uint8_t ifno, const char *string){
  * @return amount of received bytes (negative, if overfull happened)
  */
 int USB_receive(uint8_t ifno, uint8_t *buf, int len){
-    chkin(ifno);
+    chkin(ifno); // rxtx_handler could leave last message unwritten if buffer was busy
     if(bufovrfl[ifno]){
         DBG("Buffer overflow");
         DBGs(uhex2str(ifno));
@@ -320,7 +330,7 @@ int USB_receive(uint8_t ifno, uint8_t *buf, int len){
  * @return strlen or negative value indicating overflow (if so, string won't be ends with 0 and buffer should be cleared)
  */
 int USB_receivestr(uint8_t ifno, char *buf, int len){
-    chkin(ifno);
+    chkin(ifno); // rxtx_handler could leave last message unwritten if buffer was busy
     if(bufovrfl[ifno]){
         while(1 != RB_clearbuf((ringbuffer*)&rbin[ifno]));
         bufovrfl[ifno] = 0;

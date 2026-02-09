@@ -496,7 +496,7 @@ static errcode_e help(_U_ cmd_e idx, _U_ char*  par){
 void parse_cmd(char *cmd){
     errcode_e ecode = ERR_BADCMD;
     // command and its parameter
-CMDWRn(cmd);
+//CMDWRn(cmd);
     char *cmdstart = omit_spaces(cmd), *parstart = NULL;
     if(!cmdstart) goto retn;
     char *ptr = cmdstart;

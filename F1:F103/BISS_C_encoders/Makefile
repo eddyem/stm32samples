@@ -6,4 +6,4 @@ LDSCRIPT    ?= stm32f103xB.ld
 DEFINES := -DSTM32F10X_MD
 
 include ../makefile.f1
-include ../../makefile.stm32
+include ../makefile.stm32
