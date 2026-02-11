@@ -43,15 +43,20 @@ int main(void){
     //uint32_t ctr = Tms;
     USBPU_ON();
     while(1){
-        /*if(Tms - ctr > 499){
-            ctr = Tms;
-        }*/
+        // Put here code working WITOUT USB connected
         if(!usbON) continue;
-        int l = USB_receivestr(inbuff, MAXSTRLEN);
-        if(l < 0) USB_sendstr("ERROR: USB buffer overflow or string was too long\n");
-        else if(l){
-            const char *ans = parse_cmd(inbuff);
-            if(ans) USB_sendstr(ans);
+        for(int i = 0; i < 6; ++i){ // just echo for first time
+            int l = USB_receive(i, (uint8_t*)inbuff, MAXSTRLEN);
+            if(l) USB_send(i, (uint8_t*)inbuff, l);
+        }
+        // and here is code what should run when USB connected
+        if(Config_mode){
+            int l = USB_receivestr(ICFG, inbuff, MAXSTRLEN);
+            if(l < 0) CFGWR("ERROR: USB buffer overflow or string was too long\n");
+            else if(l){
+                const char *ans = parse_cmd(inbuff);
+                if(ans) CFGWR(ans);
+            }
         }
     }
 }

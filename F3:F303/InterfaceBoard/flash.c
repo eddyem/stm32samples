@@ -32,15 +32,15 @@ const user_conf *Flash_Data = (const user_conf *)(&__varsstart);
 user_conf the_conf = {
     .userconf_sz = sizeof(user_conf),
     .iInterface = {
-        [ISerial0] = u"usbserial0",
-        [ISerial1] = u"usbserial1",
-        [ISerial2] = u"usbserial2",
-        [ISerial3] = u"usbserial3",
-        [ISerial4] = u"usbserial4",
+        [ISerial0] = u"usbserial0.",
+        [ISerial1] = u"usbserial1.",
+        [ISerial2] = u"usbserial2.",
+        [ISerial3] = u"usbserial3.",
+        [ISerial4] = u"usbserial4.",
         [ISPI]     = u"usbSPI",
         [ICAN]     = u"usbCAN"
     },
-    .iIlengths = {20,20,20,20,20,12,12},
+    .iIlengths = {22,22,22,22,22,12,12},
 };
 
 int currentconfidx = -1; // index of current configuration
@@ -117,12 +117,12 @@ static int write2flash(const void *start, const void *wrdata, uint32_t stor_size
         *(volatile uint16_t*)(address + i) = data[i];
         while(FLASH->SR & FLASH_SR_BSY) IWDG->KR = IWDG_REFRESH;
         if(*(volatile uint16_t*)(address + i) != data[i]){
-            USB_sendstr("DON'T MATCH!\n");
+            CFGWR("DON'T MATCH!\n");
             ret = 1;
             break;
         }
         if(FLASH->SR & FLASH_SR_PGERR){
-            USB_sendstr("Prog err\n");
+            CFGWR("Prog err\n");
             ret = 1; // program error - meet not 0xffff
             break;
         }
@@ -136,7 +136,7 @@ static int write2flash(const void *start, const void *wrdata, uint32_t stor_size
 static int erase_pageN(int N){
     int ret = 0;
 #ifdef EBUG
-    //CMDWR("Erase page #"); CMDWR(u2str(N)); CMDn();
+    CFGWR("Erase page #"); CFGWRn(u2str(N));
 #endif
     FLASH->AR = (uint32_t)Flash_Data + N*FLASH_blocksize;
     FLASH->CR |= FLASH_CR_STRT;
@@ -158,16 +158,13 @@ int erase_storage(int npage){
         flsz -= (uint32_t)Flash_Data - FLASH_BASE;
     }
     end = flsz / FLASH_blocksize;
-/*
 #ifdef EBUG
-    CMDWR("FLASH_SIZE="); CMDWR(u2str(FLASH_SIZE));
-    CMDWR("\nflsz="); CMDWR(u2str(flsz));
-    CMDWR("\nend="); CMDWR(u2str(end));
-    CMDWR("\ncurrentconfidx="); CMDWR(u2str(currentconfidx));
-    CMDWR("\nmaxCnum="); CMDWR(u2str(maxCnum));
-    CMDn();
+    CFGWR("FLASH_SIZE="); CFGWR(u2str(FLASH_SIZE));
+    CFGWR("\nflsz="); CFGWR(u2str(flsz));
+    CFGWR("\nend="); CFGWR(u2str(end));
+    CFGWR("\ncurrentconfidx="); CFGWR(u2str(currentconfidx));
+    CFGWR("\nmaxCnum="); CFGWRn(u2str(maxCnum));
 #endif
-*/
     if(end == 0 || end >= FLASH_SIZE) return 1;
     if(npage > -1){ // erase only one page
         if((uint32_t)npage >= end) return 1;

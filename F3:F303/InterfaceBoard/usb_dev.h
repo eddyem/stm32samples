@@ -18,6 +18,7 @@
 
 #include <stm32f3.h>
 #include "usb_lib.h"
+#include "usb_descr.h"
 
 typedef struct {
     uint32_t dwDTERate;
@@ -34,24 +35,29 @@ typedef struct {
     uint8_t bDataBits;
 } __attribute__ ((packed)) usb_LineCoding;
 
-extern usb_LineCoding lineCoding;
-extern volatile uint8_t CDCready;
+extern volatile uint8_t CDCready[InterfacesAmount];
 
-void break_handler();
-void clstate_handler(uint16_t val);
-void linecoding_handler(usb_LineCoding *lc);
+void break_handler(uint8_t ifno);
+void clstate_handler(uint8_t ifno, uint16_t val);
+void linecoding_handler(uint8_t ifno, usb_LineCoding *lc);
 
+// as ugly CDC have no BREAK after disconnected client in non-canonical mode, we should use timeout - more than 2ms
+#define DISCONN_TMOUT   (2)
 
 // sizes of ringbuffers for outgoing and incoming data
-#define RBOUTSZ     (1024)
-#define RBINSZ      (1024)
+#define RBOUTSZ     (256)
+#define RBINSZ      (256)
 
-#define newline()   USB_putbyte('\n')
-#define USND(s)     do{USB_sendstr(s); USB_putbyte('\n');}while(0)
+#define newline(ifno)   USB_putbyte(ifno, '\n')
+#define USND(ifno, s)   do{USB_sendstr(ifno, s); USB_putbyte(ifno, '\n');}while(0)
+// configuratin interface macros
+#define CFGWR(s)        USB_sendstr(ICFG, s)
+#define CFGWRn(s)       do{USB_sendstr(ICFG, s); USB_putbyte(ICFG, '\n');}while(0)
+#define CFGn()          USB_putbyte(ICFG, '\n')
 
-int USB_sendall();
-int USB_send(const uint8_t *buf, int len);
-int USB_putbyte(uint8_t byte);
-int USB_sendstr(const char *string);
-int USB_receive(uint8_t *buf, int len);
-int USB_receivestr(char *buf, int len);
+int USB_sendall(uint8_t ifno);
+int USB_send(uint8_t ifno, const uint8_t *buf, int len);
+int USB_putbyte(uint8_t ifno, uint8_t byte);
+int USB_sendstr(uint8_t ifno, const char *string);
+int USB_receive(uint8_t ifno, uint8_t *buf, int len);
+int USB_receivestr(uint8_t ifno, char *buf, int len);

@@ -31,21 +31,24 @@
 #define bcdDevice_Ver       0x0200
 #define bNumConfigurations  1
 
-// amount of interfaces and endpoints (except 0) used
-#define bNumInterfaces      2
-#define bTotNumEndpoints    3
-#define bNumCsInterfaces    4
-
 // amount of interfaces
 #define InterfacesAmount    7
+// index of interface (ep number minus one)
 #define ISerial0            0
-#define ICFG                0
 #define ISerial1            1
 #define ISerial2            2
 #define ISerial3            3
 #define ISerial4            4
-#define ISPI                5
-#define ICAN                6
+#define ICAN                5
+#define ISPI                6
+#define ICFG                6
+// EP number of interface
+#define EPNO(i) (i + 1)
+
+// amount of interfaces (including virtual) except 0
+#define bNumInterfaces      (2*InterfacesAmount)
+// amount of endpoints used
+#define bTotNumEndpoints    (1+InterfacesAmount)
 
 // powered
 #define BusPowered          (1<<7)
@@ -55,10 +58,14 @@
 // buffer sizes
 // for USB FS EP0 buffers are from 8 to 64 bytes long
 #define USB_EP0BUFSZ    64
+// virtual
 #define USB_EP1BUFSZ    10
-// Rx/Tx EPs
-#define USB_RXBUFSZ     64
-#define USB_TXBUFSZ     64
+// Rx/Tx EPs (USB_BTABLE_SIZE-64-2*USB_EP0BUFSZ)/(2*InterfacesAmount) rounded to 8
+// 534 / 112 -> 4
+#define _RTBUFSZ8       (((USB_BTABLE_SIZE) - 64 - (2 * (USB_EP0BUFSZ)))/(16 * (InterfacesAmount)))
+// 32 bytes; so we have free 86 bytes which can't be used
+#define USB_RXBUFSZ     (8 * (_RTBUFSZ8))
+#define USB_TXBUFSZ     (8 * (_RTBUFSZ8))
 
 // string descriptors
 enum{
@@ -67,7 +74,14 @@ enum{
     iPRODUCT_DESCR,
     iSERIAL_DESCR,
     iINTERFACE_DESCR1,
+    iINTERFACE_DESCR2,
+    iINTERFACE_DESCR3,
+    iINTERFACE_DESCR4,
+    iINTERFACE_DESCR5,
+    iINTERFACE_DESCR6,
+    iINTERFACE_DESCR7,
     iDESCR_AMOUNT
 };
 
 void get_descriptor(config_pack_t *pack);
+void setup_interfaces();

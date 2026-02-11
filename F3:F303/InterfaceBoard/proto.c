@@ -1,3 +1,21 @@
+/*
+ * This file is part of the multiiface project.
+ * Copyright 2026 Edward V. Emelianov <edward.emelianoff@gmail.com>.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include <stm32f3.h>
 #include <string.h>
 
@@ -5,6 +23,8 @@
 #include "strfunc.h"
 #include "usb_dev.h"
 #include "version.inc"
+
+// all functions of this file could be run only in configuration mode
 
 static const char *const sOKn = "OK\n", *const sERRn = "ERR\n";
 
@@ -25,19 +45,18 @@ const char *helpstring =
 ;
 
 static void dumpflash(){
-    USB_sendstr("userconf_sz="); USB_sendstr(u2str(the_conf.userconf_sz));
-    USB_sendstr("\ncurrentconfidx="); USB_sendstr(i2str(currentconfidx));
-    USB_putbyte('\n');
+    CFGWR("userconf_sz="); CFGWR(u2str(the_conf.userconf_sz));
+    CFGWR("\ncurrentconfidx="); CFGWRn(i2str(currentconfidx));
     for(int i = 0; i < InterfacesAmount; ++i){
-        USB_sendstr("interface"); USB_putbyte('0' + i);
-        USB_putbyte('=');
+        CFGWR("interface"); USB_putbyte(ICFG, '0' + i);
+        USB_putbyte(ICFG, '=');
         int l = the_conf.iIlengths[i] / 2;
         char *ptr = (char*) the_conf.iInterface[i];
         for(int j = 0; j < l; ++j){
-            USB_putbyte(*ptr);
+            USB_putbyte(ICFG, *ptr);
             ptr += 2;
         }
-        USB_putbyte('\n');
+        CFGn();
     }
 }
 
@@ -58,10 +77,10 @@ static void setiface(const char *str){
         *ptr++ = *nxt++;
         *ptr++ = 0;
     }
-    USB_sendstr(sOKn);
+    CFGWR(sOKn);
     return;
 err:
-    USB_sendstr(sERRn);
+    CFGWR(sERRn);
 }
 
 static const char* erpg(const char *str){
@@ -106,12 +125,11 @@ const char *parse_cmd(const char *buf){
             if(store_userconf()) return sERRn;
             return sOKn;
         case 'T':
-            USB_sendstr("T=");
-            USB_sendstr(u2str(Tms));
-            newline();
+            CFGWR("T=");
+            CFGWRn(u2str(Tms));
             break;
         default: // help
-            USB_sendstr(helpstring);
+            CFGWR(helpstring);
         break;
     }
     return NULL;

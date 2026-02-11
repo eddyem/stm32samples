@@ -34,8 +34,9 @@
  */
 typedef struct __attribute__((packed, aligned(4))){
     uint16_t userconf_sz;       // "magick number"
+    // we store iInterface "as is"
     uint16_t iInterface[InterfacesAmount][MAX_IINTERFACE_SZ]; // hryunikod!
-    uint8_t iIlengths[InterfacesAmount];
+    uint8_t  iIlengths[InterfacesAmount];
 } user_conf;
 
 extern user_conf the_conf;

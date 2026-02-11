@@ -1,15 +1,95 @@
-7 interfaces over USB
-======================
+Multiport board
+====================================
+
+Seven isolated interfaces:
 
 - 1 CAN
 - 3 RS-485
 - 2 or 1 RS-232
-- 1 SSI or 1 RS-422 (in this case 1 RS-232)
+- 1 SSI or 1 RS-422 (in this case only one RS-232)
 
 Inner USB interfaces (IFx):
-1..3 - RS-485 (1..3)
-4 - RS-232 (1)
-5 - RS-232 (2) or RS-485
-6 - CAN
-7 - SSI (over SPI) or configuration interface (if "Config mode" jumper shortened)
+
+1.  RS-485 (1)
+2.  RS-485 (2)
+3.  RS-485 (3)
+4.  RS-232 (1)
+5.  RS-232 (2) or RS-422 (by jumpers)
+6.  CAN
+7.  SSI (over SPI, by jumpers) or configuration interface (if "Config mode" jumper opened)
+
+# Pinout
+
+### Sorted by pin number
+
+| Pin #   | Pin name    | function    | settings      | comment             |
+|---------|-------------|-------------|---------------|---------------------|
+|   1     | (VBAT)      |             |               |                     |
+|   2     | PC13        | NC          |               |                     |
+|   3     | PC14        | NC          |               |                     |
+|   4     | PC15        | NC          |               |                     |
+|   5     | (OSC IN)    |             |               |                     |
+|   6     | (OSC OUT)   |             |               |                     |
+|   7     | (NRST)      |             |               |                     |
+|   8     | PC0         | NC          |               |                     |
+|   9     | PC1         | NC          |               |                     |
+|  10     | PC2         | NC          |               |                     |
+|  11     | PC3         | NC          |               |                     |
+|  12     | (VREF-)     |             |               |                     |
+|  13     | (VREF+)     |             |               |                     |
+|  14     | PA0         | NC          |               |                     |
+|  15     | PA1         | USART2 DE   | AF7           | RS-485 (3) DE       |
+|  16     | PA2         | USART2 TX   | AF7           | RS-485 (3) Tx       |
+|  17     | PA3         | USART2 RX   | AF7           | RS-485 (3) Rx       |
+|  18     | PF4         | NC          |               |                     |
+|  19     | (VDD)       |             |               |                     |
+|  20     | PA4         | NC          |               |                     |
+|  21     | PA5         | SPI1 SCK    | AF5           | SSI CLK             |
+|  22     | PA6         | SPI1 MISO   | AF5           | SSI DAT             |
+|  23     | PA7         | NC          |               |                     |
+|  24     | PC4         | USART1 TX   | AF7           | RS-485 (2) Tx       |
+|  25     | PC5         | USART1 RX   | AF7           | RS-485 (2) Rx       |
+|  26     | PB0         | (USART1 DE) | PP OUT        | RS-485 (2) DE       |
+|  27     | PB1         | NC          |               |                     |
+|  28     | PB2         | NC          |               |                     |
+|  29     | PB10        | USART3 TX   | AF7           | RS-485 (1) Tx       |
+|  30     | PB11        | USART3 RX   | AF7           | RS-485 (1) Rx       |
+|  31     | (VSS)       |             |               |                     |
+|  32     | (VDD)       |             |               |                     |
+|  33     | PB12        | NC          |               |                     |
+|  34     | PB13        | NC          |               |                     |
+|  35     | PB14        | USART3 DE   | AF7           | RS-485 (1) DE       |
+|  36     | PB15        |             |               |                     |
+|  37     | PC6         | NC          |               |                     |
+|  38     | PC7         | NC          |               |                     |
+|  39     | PC8         | NC          |               |                     |
+|  40     | PC9         | NC          |               |                     |
+|  41     | PA8         | NC          |               |                     |
+|  42     | PA9         | (CONF EN)   | PU IN         | Config jumper       |
+|  43     | PA10        | (USB PU)    | PP OUT        | USB pullup          |
+|  44     | PA11        | USB DM      | AF14          |                     |
+|  45     | PA12        | USB DP      | AF14          |                     |
+|  46     | PA13        | SWDIO       | AF0           |                     |
+|  47     | (VSS)       |             |               |                     |
+|  48     | (VDD)       |             |               |                     |
+|  49     | PA14        | SWCLK       | AF0           |                     |
+|  50     | PA15        | NC          |               |                     |
+|  51     | PC10        | UART4 TX    | AF5           | RS-232 (1) Tx       |
+|  52     | PC11        | UART4 RX    | AF5           | RS-232 (1) Rx       |
+|  53     | PC12        | UART5 TX    | AF5           | RS-232(2) / 485 Tx  |
+|  54     | PD2         | UART5 RX    | AF5           | RS-232(2) / 485 Rx  |
+|  55     | PB3         | NC          |               |                     |
+|  56     | PB4         | NC          |               |                     |
+|  57     | PB5         | NC          |               |                     |
+|  58     | PB6         | NC          |               |                     |
+|  59     | PB7         | NC          |               |                     |
+|  60     | (BOOT0)     |             |               |                     |
+|  61     | PB8         | CAN RX      | AF9           |                     |
+|  62     | PB9         | CAN TX      | AF9           |                     |
+|  63     | (VSS)       |             |               |                     |
+|  64     | (VDD)       |             |               |                     |
+
+### Some comments.
+
+### Sorted by ports (with AF numbers).
 
