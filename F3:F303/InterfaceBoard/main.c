@@ -42,20 +42,26 @@ int main(void){
     USB_setup();
     //uint32_t ctr = Tms;
     USBPU_ON();
+    int maxno = (Config_mode) ? ICFG : InterfacesAmount;
     while(1){
         // Put here code working WITOUT USB connected
         if(!usbON) continue;
-        for(int i = 0; i < 6; ++i){ // just echo for first time
+        for(int i = 0; i < maxno; ++i){ // just echo for first time
+            if(!CDCready[i]) continue;
             int l = USB_receive(i, (uint8_t*)inbuff, MAXSTRLEN);
             if(l) USB_send(i, (uint8_t*)inbuff, l);
         }
         // and here is code what should run when USB connected
-        if(Config_mode){
+        if(Config_mode && CDCready[ICFG]){
+            /*if(Tms - ctr > 999){
+                ctr = Tms;
+                CFGWR("I'm alive\n");
+            }*/
             int l = USB_receivestr(ICFG, inbuff, MAXSTRLEN);
             if(l < 0) CFGWR("ERROR: USB buffer overflow or string was too long\n");
             else if(l){
                 const char *ans = parse_cmd(inbuff);
-                if(ans) CFGWR(ans);
+                if(ans) CFGWRn(ans);
             }
         }
     }

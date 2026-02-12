@@ -95,21 +95,21 @@ static void send_next(uint8_t ifno){
 
 // data IN/OUT handler
 static void rxtx_handler(){
-    uint8_t ifno = (USB->ISTR & USB_ISTR_EPID) - 1;
+    uint8_t epno = (USB->ISTR & USB_ISTR_EPID), ifno = epno - 1;
     if(ifno > InterfacesAmount-1){
         return;
     }
-    uint16_t epstatus = KEEP_DTOG(USB->EPnR[1+ifno]);
+    uint16_t epstatus = KEEP_DTOG(USB->EPnR[epno]);
     if(RX_FLAG(epstatus)){ // receive data
         if(rcvbuflen[ifno]){
             bufovrfl[ifno] = 1; // lost last data
             rcvbuflen[ifno] = 0;
         }
-        rcvbuflen[ifno] = EP_Read(1+ifno, (uint8_t*)rcvbuf[ifno]);
-        USB->EPnR[1+ifno] = epstatus & ~(USB_EPnR_CTR_RX | USB_EPnR_STAT_RX | USB_EPnR_STAT_TX); // keep RX in STALL state until read data
+        rcvbuflen[ifno] = EP_Read(epno, (uint8_t*)rcvbuf[ifno]);
+        USB->EPnR[epno] = epstatus & ~(USB_EPnR_CTR_RX | USB_EPnR_STAT_RX | USB_EPnR_STAT_TX); // keep RX in STALL state until read data
         chkin(ifno); // try to write current data into RXbuf if it's not busy
     }else{ // tx successfull
-        USB->EPnR[1+ifno] = (epstatus & ~(USB_EPnR_CTR_TX | USB_EPnR_STAT_TX)) ^ USB_EPnR_STAT_RX;
+        USB->EPnR[epno] = (epstatus & ~(USB_EPnR_CTR_TX | USB_EPnR_STAT_TX)) ^ USB_EPnR_STAT_RX;
         send_next(ifno);
     }
 }
@@ -200,7 +200,7 @@ int USB_sendall(uint8_t ifno){
     uint32_t T0 = Tms;
     while(lastdsz[ifno] > 0){
         if(Tms - T0 > DISCONN_TMOUT){
-            break_handler(ifno);
+            //break_handler(ifno);
             return FALSE;
         }
         if(!CDCready[ifno]) return FALSE;
@@ -215,12 +215,20 @@ int USB_send(uint8_t ifno, const uint8_t *buf, int len){
     uint32_t T0 = Tms;
     while(len){
         if(Tms - T0 > DISCONN_TMOUT){
-            break_handler(ifno);
+            //break_handler(ifno);
             return FALSE;
         }
         if(!CDCready[ifno]) return FALSE;
         IWDG->KR = IWDG_REFRESH;
-        int a = RB_write((ringbuffer*)&rbout[ifno], buf, len);
+        int l = RB_datalen((ringbuffer*)&rbout[ifno]);
+        if(l < 0) continue;
+        int portion = rbout[ifno].length - 1 - l;
+        if(portion < 1){
+            if(lastdsz[ifno] < 0) send_next(ifno);
+            continue;
+        }
+        if(portion > len) portion = len;
+        int a = RB_write((ringbuffer*)&rbout[ifno], buf, portion);
         if(a > 0){
             len -= a;
             buf += a;
@@ -238,7 +246,7 @@ int USB_putbyte(uint8_t ifno, uint8_t byte){
     uint32_t T0 = Tms;
     while((l = RB_write((ringbuffer*)&rbout[ifno], &byte, 1)) != 1){
         if(Tms - T0 > DISCONN_TMOUT){
-            break_handler(ifno);
+            //break_handler(ifno);
             return FALSE;
         }
         if(!CDCready[ifno]) return FALSE;

@@ -57,15 +57,17 @@
 
 // buffer sizes
 // for USB FS EP0 buffers are from 8 to 64 bytes long
-#define USB_EP0BUFSZ    64
+#define USB_EP0BUFSZ    16
 // virtual
 #define USB_EP1BUFSZ    10
 // Rx/Tx EPs (USB_BTABLE_SIZE-64-2*USB_EP0BUFSZ)/(2*InterfacesAmount) rounded to 8
-// 534 / 112 -> 4
-#define _RTBUFSZ8       (((USB_BTABLE_SIZE) - 64 - (2 * (USB_EP0BUFSZ)))/(16 * (InterfacesAmount)))
+// ([btable size] - [registers] - [EP0 buffers])/([interfaces buffers (Rx/Tx)])/8      (for rounding by 8 later)
+#define _RTBUFSZ8       (((USB_BTABLE_SIZE)/(ACCESSZ) - (LASTADDR_DEFAULT) - (2 * (USB_EP0BUFSZ)))/(16 * (InterfacesAmount)))
 // 32 bytes; so we have free 86 bytes which can't be used
 #define USB_RXBUFSZ     (8 * (_RTBUFSZ8))
 #define USB_TXBUFSZ     (8 * (_RTBUFSZ8))
+//#define USB_RXBUFSZ 8
+//#define USB_TXBUFSZ 8
 
 // string descriptors
 enum{

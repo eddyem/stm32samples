@@ -63,7 +63,7 @@
 #if defined STM32F0
 #define USB_BTABLE_SIZE         1024
 #elif defined STM32F3
-#define USB_BTABLE_SIZE         726
+#define USB_BTABLE_SIZE         1024
 //#warning "Please, check real buffer size due to docs"
 #else
 #error "define STM32F0 or STM32F3"
@@ -72,7 +72,8 @@
 #if defined STM32F0
 #define USB_BTABLE_SIZE         768
 #elif defined STM32F3
-#define USB_BTABLE_SIZE         726
+// 1024 bytes for USB and 256 from them are for CAN (on lower F303 with half-addr ACCESSZ=2 !!!)
+#define USB_BTABLE_SIZE         768
 //#warning "Please, check real buffer size due to docs"
 #else // STM32F103: 1024 bytes but with 32-bit addressing
 #define USB_BTABLE_SIZE         1024

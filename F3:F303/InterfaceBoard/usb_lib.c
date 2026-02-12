@@ -80,7 +80,7 @@ void WEAK usb_standard_request(){
             }
         break;
         case REQ_RECIPIENT_ENDPOINT:
-            if(setup_packet->bRequest == CLEAR_FEATURE){
+            if(setup_packet->bRequest == CLEAR_FEATURE){ /* what to do here? */
             }else{ /* wrong */ }
         break;
         default:
@@ -138,7 +138,7 @@ static void EP0_Handler(){
             case REQ_TYPE_STANDARD:
                 if(SETUP_FLAG(epstatus)){
                     usb_standard_request();
-                }else{ }
+                }else{ /* ??? */ }
                 break;
             case REQ_TYPE_CLASS:
                 usb_class_request(setup_packet, ep0databuf, ep0dbuflen);
