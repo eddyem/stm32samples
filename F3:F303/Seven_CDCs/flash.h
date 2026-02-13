@@ -15,16 +15,33 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 #pragma once
 
 #include <stdint.h>
-#include <string.h>
+#include "usb_descr.h"
 
-void hexdump(int (*sendfun)(const char *s), uint8_t *arr, uint16_t len);
-const char *u2str(uint32_t val);
-const char *i2str(int32_t i);
-const char *uhex2str(uint32_t val);
-const char *getnum(const char *txt, uint32_t *N);
-const char *omit_spaces(const char *buf);
-const char *getint(const char *txt, int32_t *I);
+// register with flash size (in blocks)
+#ifndef FLASH_SIZE_REG
+#define FLASH_SIZE_REG      ((uint32_t)0x1FFFF7CC)
+#endif
+#define FLASH_SIZE          *((uint16_t*)FLASH_SIZE_REG)
+
+// maximal size (in letters) of iInterface for settings
+#define MAX_IINTERFACE_SZ   (16)
+
+/*
+ * struct to save user configurations
+ */
+typedef struct __attribute__((packed, aligned(4))){
+    uint16_t userconf_sz;       // "magick number"
+    // we store iInterface "as is"
+    uint16_t iInterface[InterfacesAmount][MAX_IINTERFACE_SZ]; // hryunikod!
+    uint8_t  iIlengths[InterfacesAmount];
+} user_conf;
+
+extern user_conf the_conf;
+extern int currentconfidx;
+
+void flashstorage_init();
+int store_userconf();
+int erase_storage(int npage);

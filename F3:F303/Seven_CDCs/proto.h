@@ -1,6 +1,6 @@
 /*
  * This file is part of the multiiface project.
- * Copyright 2025 Edward V. Emelianov <edward.emelianoff@gmail.com>.
+ * Copyright 2026 Edward V. Emelianov <edward.emelianoff@gmail.com>.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,13 +18,5 @@
 
 #pragma once
 
-#include <stdint.h>
-#include <string.h>
+char *parse_cmd(char *buf);
 
-void hexdump(int (*sendfun)(const char *s), uint8_t *arr, uint16_t len);
-const char *u2str(uint32_t val);
-const char *i2str(int32_t i);
-const char *uhex2str(uint32_t val);
-const char *getnum(const char *txt, uint32_t *N);
-const char *omit_spaces(const char *buf);
-const char *getint(const char *txt, int32_t *I);

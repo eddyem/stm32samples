@@ -1,6 +1,6 @@
-BINARY		:= 7DCD_template
+BINARY		:= sevenCDCs
 # MCU code
-MCU			:= F303xc
+MCU			:= F303xb
 # change this linking script depending on particular MCU model,
 LDSCRIPT	:= stm32f303xB.ld
 DEFINES := -DUSB1_16

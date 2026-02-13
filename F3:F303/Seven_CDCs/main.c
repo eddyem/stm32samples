@@ -1,6 +1,6 @@
 /*
- * This file is part of the SevenCDCs project.
- * Copyright 2023 Edward V. Emelianov <edward.emelianoff@gmail.com>.
+ * This file is part of the multiiface project.
+ * Copyright 2025 Edward V. Emelianov <edward.emelianoff@gmail.com>.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,15 +15,10 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-#include "can.h"
-#include "canproto.h"
-#include "cmdproto.h"
-#include "debug.h"
+#include "flash.h"
 #include "hardware.h"
-#include "strfunc.h"
-#include "usart.h"
-#include "usb.h"
+#include "proto.h"
+#include "usb_dev.h"
 
 #define MAXSTRLEN    RBINSZ
 
@@ -33,76 +28,40 @@ void sys_tick_handler(void){
     ++Tms;
 }
 
-static const char *ebufovr = "ERROR: USB buffer overflow or string was too long\n";
-static const char *idxnames[MAX_IDX] = {"CMD", "DBG", "USART1", "USART2", "USART3", "NOFUNCT", "CAN"};
-
 int main(void){
     char inbuff[MAXSTRLEN+1];
-    USBPU_OFF();
     if(StartHSE()){
         SysTick_Config((uint32_t)72000); // 1ms
     }else{
         StartHSI();
         SysTick_Config((uint32_t)48000); // 1ms
     }
+    flashstorage_init();
     hw_setup();
-    usarts_setup();
+    USBPU_OFF();
     USB_setup();
-    CAN_setup(100);
+    //uint32_t ctr = Tms;
     USBPU_ON();
-
-    CAN_message *can_mesg;
-    uint32_t ctr = Tms;
+    int maxno = (Config_mode) ? ICFG : InterfacesAmount;
     while(1){
-        IWDG->KR = IWDG_REFRESH;
-        if(Tms - ctr > 499){
-            ctr = Tms;
-            pin_toggle(GPIOB, 1 << 1 | 1 << 0); // toggle LED @ PB0
-            //USB_sendstr(CMD_IDX, "1");
-            //DBGmesg(u2str(Tms));
-            //DBGnl();
+        // Put here code working WITOUT USB connected
+        if(!usbON) continue;
+        for(int i = 0; i < maxno; ++i){ // just echo for first time
+            if(!CDCready[i]) continue;
+            int l = USB_receive(i, (uint8_t*)inbuff, MAXSTRLEN);
+            if(l) USB_send(i, (uint8_t*)inbuff, l);
         }
-        can_proc();
-        if(CAN_get_status() == CAN_FIFO_OVERRUN){
-            USB_sendstr(CAN_IDX, "CAN bus fifo overrun occured!\n");
-        }
-        while((can_mesg = CAN_messagebuf_pop())){
-            if(isgood(can_mesg->ID)){
-                if(ShowMsgs){ // display message content
-                    IWDG->KR = IWDG_REFRESH;
-                    uint8_t len = can_mesg->length;
-                    USB_sendstr(CAN_IDX, u2str(Tms));
-                    USB_sendstr(CAN_IDX, " #");
-                    USB_sendstr(CAN_IDX, uhex2str(can_mesg->ID));
-                    for(uint8_t i = 0; i < len; ++i){
-                        USB_putbyte(CAN_IDX, ' ');
-                        USB_sendstr(CAN_IDX, uhex2str(can_mesg->data[i]));
-                    }
-                    USB_putbyte(CAN_IDX, '\n');
-                }
-            }
-        }
-        for(int i = 0; i < MAX_IDX; ++i){
-            int l = USB_receivestr(i, inbuff, MAXSTRLEN);
-            if(l < 0){
-                USB_sendstr(DBG_IDX, ebufovr);
-                if(i == CMD_IDX) USB_sendstr(CMD_IDX, ebufovr);
-                continue;
-            }
-            if(l == 0) continue;
-            USB_sendstr(DBG_IDX, idxnames[i]);
-            USB_sendstr(DBG_IDX, "> ");
-            USB_sendstr(DBG_IDX, inbuff);
-            USB_putbyte(DBG_IDX, '\n');
-            switch(i){
-                case CMD_IDX:
-                    parse_cmd(inbuff);
-                break;
-                case CAN_IDX:
-                    cmd_parser(inbuff);
-                break;
-                default:
-                break;
+        // and here is code what should run when USB connected
+        if(Config_mode && CDCready[ICFG]){
+            /*if(Tms - ctr > 999){
+                ctr = Tms;
+                CFGWR("I'm alive\n");
+            }*/
+            int l = USB_receivestr(ICFG, inbuff, MAXSTRLEN);
+            if(l < 0) CFGWR("ERROR: USB buffer overflow or string was too long\n");
+            else if(l){
+                const char *ans = parse_cmd(inbuff);
+                if(ans) CFGWRn(ans);
             }
         }
     }

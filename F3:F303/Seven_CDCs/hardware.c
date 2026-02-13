@@ -1,6 +1,6 @@
 /*
- * This file is part of the SevenCDCs project.
- * Copyright 2023 Edward V. Emelianov <edward.emelianoff@gmail.com>.
+ * This file is part of the multiiface project.
+ * Copyright 2026 Edward V. Emelianov <edward.emelianoff@gmail.com>.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,46 +17,23 @@
  */
 
 #include "hardware.h"
-#include "usart.h"
 
-TRUE_INLINE void iwdg_setup(){
-    uint32_t tmout = 16000000;
-    /* Enable the peripheral clock RTC */
-    /* (1) Enable the LSI (40kHz) */
-    /* (2) Wait while it is not ready */
-    RCC->CSR |= RCC_CSR_LSION; /* (1) */
-    while((RCC->CSR & RCC_CSR_LSIRDY) != RCC_CSR_LSIRDY){if(--tmout == 0) break;} /* (2) */
-    /* Configure IWDG */
-    /* (1) Activate IWDG (not needed if done in option bytes) */
-    /* (2) Enable write access to IWDG registers */
-    /* (3) Set prescaler by 64 (1.6ms for each tick) */
-    /* (4) Set reload value to have a rollover each 2s */
-    /* (5) Check if flags are reset */
-    /* (6) Refresh counter */
-    IWDG->KR = IWDG_START; /* (1) */
-    IWDG->KR = IWDG_WRITE_ACCESS; /* (2) */
-    IWDG->PR = IWDG_PR_PR_1; /* (3) */
-    IWDG->RLR = 1250; /* (4) */
-    tmout = 16000000;
-    while(IWDG->SR){if(--tmout == 0) break;} /* (5) */
-    IWDG->KR = IWDG_REFRESH; /* (6) */
-}
-
+uint8_t Config_mode = 0;
 
 static inline void gpio_setup(){
-    RCC->AHBENR |= RCC_AHBENR_GPIOAEN | RCC_AHBENR_GPIOBEN;
-    // USB - alternate function 14 @ pins PA11/PA12; USART1 = AF7 @PA9/10; SWD - AF0 @PA13/14
-    GPIOA->AFR[1] = AFRf(7, 9) | AFRf(7, 10) | AFRf(14, 11) | AFRf(14, 12);
-    // USART1: PA10(Rx), PA9(Tx); USB - PA11, PA12; SWDIO - PA13, PA14; Pullup - PA15
-    GPIOA->MODER = MODER_AF(9) | MODER_AF(10) | MODER_AF(11) | MODER_AF(12) | MODER_AF(13) | MODER_AF(14) | MODER_O(15);
+    RCC->AHBENR |= RCC_AHBENR_GPIOAEN | RCC_AHBENR_GPIOBEN; // for USART and LEDs
+    for(int i = 0; i < 10000; ++i) nop();
+    // USB - alternate function 14 @ pins PA11/PA12; SWD - AF0 @PA13/14
+    GPIOA->AFR[1] = AFRf(14, 11) | AFRf(14, 12);
+    // PA9 - config jumper (PU in), PA10 - USB pullup (PP)
+    GPIOA->MODER = MODER_I(9) | MODER_O(10) | MODER_AF(11) | MODER_AF(12) | MODER_AF(13) | MODER_AF(14);
     GPIOA->OSPEEDR = OSPEED_HI(11) | OSPEED_HI(12) | OSPEED_HI(13) | OSPEED_HI(14);
-    // LEDs on PB0 and PB1
-    GPIOB->MODER = GPIO_MODER_MODER0_O | GPIO_MODER_MODER1_O;
-    GPIOB->ODR = 1;
+    GPIOA->PUPDR = PUPD_PU(9);
+    for(int i = 0; i < 10000; ++i) nop();
+    if(CFG_ON()) Config_mode = 1;
 }
 
 void hw_setup(){
     gpio_setup();
-    iwdg_setup();
 }
 

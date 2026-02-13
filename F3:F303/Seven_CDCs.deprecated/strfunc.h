@@ -1,6 +1,6 @@
 /*
- * This file is part of the multiiface project.
- * Copyright 2025 Edward V. Emelianov <edward.emelianoff@gmail.com>.
+ * This file is part of the 7CDCs project.
+ * Copyright 2023 Edward V. Emelianov <edward.emelianoff@gmail.com>.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,10 +21,13 @@
 #include <stdint.h>
 #include <string.h>
 
-void hexdump(int (*sendfun)(const char *s), uint8_t *arr, uint16_t len);
+void hexdump(int ifno, uint8_t *arr, uint16_t len);
 const char *u2str(uint32_t val);
 const char *i2str(int32_t i);
 const char *uhex2str(uint32_t val);
 const char *getnum(const char *txt, uint32_t *N);
 const char *omit_spaces(const char *buf);
 const char *getint(const char *txt, int32_t *I);
+int mystrlen(const char *txt);
+//void mymemcpy(char *dest, const char *src, int len);
+char * float2str(float x, uint8_t prec);

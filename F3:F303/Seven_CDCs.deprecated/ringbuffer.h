@@ -1,6 +1,6 @@
 /*
- * This file is part of the multiiface project.
- * Copyright 2026 Edward V. Emelianov <edward.emelianoff@gmail.com>.
+ * This file is part of the SevenCDCs project.
+ * Copyright 2022 Edward V. Emelianov <edward.emelianoff@gmail.com>.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,20 +17,23 @@
  */
 
 #pragma once
+#ifndef RINGBUFFER_H__
+#define RINGBUFFER_H__
 
 #include <stm32f3.h>
 
-#define USBPU_port  GPIOA
-#define USBPU_pin   (1<<10)
-#define USBPU_ON()  pin_clear(USBPU_port, USBPU_pin)
-#define USBPU_OFF() pin_set(USBPU_port, USBPU_pin)
+typedef struct{
+    uint8_t *data;      // data buffer
+    const int length;   // its length
+    int head;           // head index
+    int tail;           // tail index
+} ringbuffer;
 
-#define CFG_port    GPIOA
-#define CFG_pin     (1<<9)
-#define CFG_ON()    (CFG_port->IDR & CFG_pin)
+int RB_read(ringbuffer *b, uint8_t *s, int len);
+int RB_readto(ringbuffer *b, uint8_t byte, uint8_t *s, int len);
+int RB_hasbyte(ringbuffer *b, uint8_t byte);
+int RB_write(ringbuffer *b, const uint8_t *str, int l);
+int RB_datalen(ringbuffer *b);
+void RB_clearbuf(ringbuffer *b);
 
-extern volatile uint32_t Tms;
-extern uint8_t Config_mode;
-
-void hw_setup();
-
+#endif // RINGBUFFER_H__

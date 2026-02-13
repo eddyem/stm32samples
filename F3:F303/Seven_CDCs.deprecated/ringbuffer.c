@@ -1,5 +1,6 @@
 /*
- * Copyright 2023 Edward V. Emelianov <edward.emelianoff@gmail.com>.
+ * This file is part of the SevenCDCs project.
+ * Copyright 2022 Edward V. Emelianov <edward.emelianoff@gmail.com>.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,21 +18,19 @@
 
 #include "ringbuffer.h"
 
-static int datalen(ringbuffer *b){
+// stored data length
+int RB_datalen(ringbuffer *b){
     if(b->tail >= b->head) return (b->tail - b->head);
     else return (b->length - b->head + b->tail);
 }
 
-// stored data length
-int RB_datalen(ringbuffer *b){
-    if(b->busy) return -1;
-    b->busy = 1;
-    int l = datalen(b);
-    b->busy = 0;
-    return l;
-}
-
-static int hasbyte(ringbuffer *b, uint8_t byte){
+/**
+ * @brief RB_hasbyte - check if buffer has given byte stored
+ * @param b - buffer
+ * @param byte - byte to find
+ * @return index if found, -1 if none
+ */
+int RB_hasbyte(ringbuffer *b, uint8_t byte){
     if(b->head == b->tail) return -1; // no data in buffer
     int startidx = b->head;
     if(b->head > b->tail){ //
@@ -42,20 +41,6 @@ static int hasbyte(ringbuffer *b, uint8_t byte){
     for(int found = startidx; found < b->tail; ++found)
         if(b->data[found] == byte) return found;
     return -1;
-}
-
-/**
- * @brief RB_hasbyte - check if buffer has given byte stored
- * @param b - buffer
- * @param byte - byte to find
- * @return index if found, -1 if none or busy
- */
-int RB_hasbyte(ringbuffer *b, uint8_t byte){
-    if(b->busy) return -1;
-    b->busy = 1;
-    int ret = hasbyte(b, byte);
-    b->busy = 0;
-    return ret;
 }
 
 // poor memcpy
@@ -69,8 +54,15 @@ TRUE_INLINE void incr(ringbuffer *b, volatile int *what, int n){
     if(*what >= b->length) *what -= b->length;
 }
 
-static int read(ringbuffer *b, uint8_t *s, int len){
-    int l = datalen(b);
+/**
+ * @brief RB_read - read data from ringbuffer
+ * @param b - buffer
+ * @param s - array to write data
+ * @param len - max len of `s`
+ * @return bytes read
+ */
+int RB_read(ringbuffer *b, uint8_t *s, int len){
+    int l = RB_datalen(b);
     if(!l) return 0;
     if(l > len) l = len;
     int _1st = b->length - b->head;
@@ -87,49 +79,34 @@ static int read(ringbuffer *b, uint8_t *s, int len){
 }
 
 /**
- * @brief RB_read - read data from ringbuffer
- * @param b - buffer
- * @param s - array to write data
- * @param len - max len of `s`
- * @return bytes read or -1 if busy
- */
-int RB_read(ringbuffer *b, uint8_t *s, int len){
-    if(b->busy) return -1;
-    b->busy = 1;
-    int r = read(b, s, len);
-    b->busy = 0;
-    return r;
-}
-
-static int readto(ringbuffer *b, uint8_t byte, uint8_t *s, int len){
-    int idx = hasbyte(b, byte);
-    if(idx < 0) return 0;
-    int partlen = idx + 1 - b->head;
-    // now calculate length of new data portion
-    if(idx < b->head) partlen += b->length;
-    if(partlen > len) return -read(b, s, len);
-    return read(b, s, partlen);
-}
-
-/**
  * @brief RB_readto fill array `s` with data until byte `byte` (with it)
  * @param b - ringbuffer
  * @param byte - check byte
  * @param s - buffer to write data
  * @param len - length of `s`
- * @return amount of bytes written (negative, if len<data in buffer or buffer is busy)
+ * @return amount of bytes written (negative, if len<data in buffer)
  */
 int RB_readto(ringbuffer *b, uint8_t byte, uint8_t *s, int len){
-    if(b->busy) return -1;
-    b->busy = 1;
-    int n = readto(b, byte, s, len);
-    b->busy = 0;
-    return n;
+    int idx = RB_hasbyte(b, byte);
+    if(idx < 0) return 0;
+    int partlen = idx + 1 - b->head;
+    // now calculate length of new data portion
+    if(idx < b->head) partlen += b->length;
+    if(partlen > len) return -RB_read(b, s, len);
+    return RB_read(b, s, partlen);
 }
 
-static int write(ringbuffer *b, const uint8_t *str, int l){
-    int r = b->length - 1 - datalen(b); // rest length
-    if(l > r || !l) return 0;
+/**
+ * @brief RB_write - write some data to ringbuffer
+ * @param b - buffer
+ * @param str - data
+ * @param l - length
+ * @return amount of bytes written
+ */
+int RB_write(ringbuffer *b, const uint8_t *str, int l){
+    int r = b->length - 1 - RB_datalen(b); // rest length
+    if(l > r) l = r;
+    if(!l) return 0;
     int _1st = b->length - b->tail;
     if(_1st > l) _1st = l;
     mcpy(b->data + b->tail, str, _1st);
@@ -140,27 +117,8 @@ static int write(ringbuffer *b, const uint8_t *str, int l){
     return l;
 }
 
-/**
- * @brief RB_write - write some data to ringbuffer
- * @param b - buffer
- * @param str - data
- * @param l - length
- * @return amount of bytes written or -1 if busy
- */
-int RB_write(ringbuffer *b, const uint8_t *str, int l){
-    if(b->busy) return -1;
-    b->busy = 1;
-    int w = write(b, str, l);
-    b->busy = 0;
-    return w;
-}
-
 // just delete all information in buffer `b`
-int RB_clearbuf(ringbuffer *b){
-    if(b->busy) return -1;
-    b->busy = 1;
+void RB_clearbuf(ringbuffer *b){
     b->head = 0;
     b->tail = 0;
-    b->busy = 0;
-    return 1;
 }
