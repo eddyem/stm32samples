@@ -127,6 +127,7 @@ uint8_t *spi_read_enc(uint8_t encno){
 // @return FALSE if SPI is busy
 // here `encodernum` is 0 (SPI1) or 1 (SPI2), not 1/2 as SPI index!
 int spi_start_enc(int encodernum){
+    //  CMDWR("startenc: "); USB_putbyte(I_CMD, '0'+encodernum); newline(I_CMD);
     int spiidx = encodernum + 1;
     if(spiidx < 1 || spiidx > AMOUNT_OF_SPI) return FALSE;
     if(spi_status[spiidx] != SPI_READY) return FALSE;

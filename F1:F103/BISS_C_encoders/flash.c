@@ -23,7 +23,9 @@
 #include "usb_dev.h"    // printout
 #include <string.h> // memcpy
 
-extern const uint32_t __varsstart, _BLOCKSIZE;
+extern const uint32_t _BLOCKSIZE;
+extern const user_conf __varsstart;
+
 static const uint32_t FLASH_blocksize = (uint32_t)&_BLOCKSIZE;
 static uint32_t maxCnum = 1024 / sizeof(user_conf); // can't use blocksize here
 

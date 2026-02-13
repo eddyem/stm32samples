@@ -1,3 +1,5 @@
+The more fresh USB see in F3:InterfaceBoard
+
 Actual snipper for all MCUs (just fix usbhw.c and usbhw.h)
 
 If USB DP/DM pins need to be setting up, do it before calling USB_setup().

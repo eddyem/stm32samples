@@ -69,14 +69,21 @@ static volatile ringbuffer rbin[bTotNumEndpoints] = {IBUF(0), IBUF(1), IBUF(2)};
 static volatile int lastdsz[bTotNumEndpoints] = {-1, -1, -1};
 
 static void chkin(uint8_t ifno){
+    static int ovrflctr = 0; // "antistall" counter
     if(bufovrfl[ifno]) return; // allow user to know that previous buffer was overflowed and cleared
     if(!rcvbuflen[ifno]) return;
     int w = RB_write((ringbuffer*)&rbin[ifno], (uint8_t*)rcvbuf[ifno], rcvbuflen[ifno]);
-    if(w < 0){
-        DBG("Can't write into buffer");
+    if(w < 0){ // buffer busy
+        DBG("Can't write into buffer: busy");
         return;
+    }else if(w == 0){ // no enough space or (WTF) incoming string larger than buffer size
+        if(rcvbuflen[ifno] > rbin[ifno].length || ++ovrflctr > 9999){
+            bufovrfl[ifno] = 1; // real overflow in case if ringbuffer's size less than USB buffer
+            ovrflctr = 0;
+        }else{
+            return; // not enough space
+        }
     }
-    if(w != rcvbuflen[ifno]) bufovrfl[ifno] = 1;
     DBG("Put data into buffer");
     rcvbuflen[ifno] = 0;
     uint16_t status = KEEP_DTOG(USB->EPnR[1+ifno]); // don't change DTOG
@@ -111,14 +118,14 @@ static void send_next(uint8_t ifno){
 
 // data IN/OUT handler
 static void rxtx_handler(){
-    uint8_t ifno = (USB->ISTR & USB_ISTR_EPID) - 1;
+    uint8_t epno = (USB->ISTR & USB_ISTR_EPID), ifno = epno - 1;
     DBG("rxtx_handler");
     DBGs(uhex2str(ifno));
-    if(ifno > bTotNumEndpoints-1){
+    if(epno > bTotNumEndpoints){
         DBG("wrong ifno");
         return;
     }
-    uint16_t epstatus = KEEP_DTOG(USB->EPnR[1+ifno]);
+    uint16_t epstatus = KEEP_DTOG(USB->EPnR[epno]);
     if(RX_FLAG(epstatus)){ // receive data
         DBG("Got data");
         if(rcvbuflen[ifno]){
@@ -126,13 +133,13 @@ static void rxtx_handler(){
             rcvbuflen[ifno] = 0;
             DBG("OVERFULL");
         }
-        rcvbuflen[ifno] = EP_Read(1+ifno, (uint8_t*)rcvbuf[ifno]);
+        rcvbuflen[ifno] = EP_Read(epno, (uint8_t*)rcvbuf[ifno]);
         DBGs(uhex2str(rcvbuflen[ifno]));
-        USB->EPnR[1+ifno] = epstatus & ~(USB_EPnR_CTR_RX | USB_EPnR_STAT_RX | USB_EPnR_STAT_TX); // keep RX in STALL state until read data
+        USB->EPnR[epno] = epstatus & ~(USB_EPnR_CTR_RX | USB_EPnR_STAT_RX | USB_EPnR_STAT_TX); // keep RX in STALL state until read data
         chkin(ifno); // try to write current data into RXbuf if it's not busy
     }else{ // tx successfull
         DBG("Tx OK");
-        USB->EPnR[1+ifno] = (epstatus & ~(USB_EPnR_CTR_TX | USB_EPnR_STAT_TX)) ^ USB_EPnR_STAT_RX;
+        USB->EPnR[epno] = (epstatus & ~(USB_EPnR_CTR_TX | USB_EPnR_STAT_TX)) ^ USB_EPnR_STAT_RX;
         send_next(ifno);
     }
 }
@@ -154,6 +161,7 @@ static void clearbufs(uint8_t ifno){
     while(Tms - T0 < 10){
         if(1 == RB_clearbuf((ringbuffer*)&rbout[ifno])) break;
     }
+    rcvbuflen[ifno] = 0;
 }
 
 // SET_CONTROL_LINE_STATE
@@ -161,9 +169,9 @@ void WEAK clstate_handler(uint8_t ifno, uint16_t val){
     DBG("clstate_handler");
     DBGs(uhex2str(ifno));
     DBGs(uhex2str(val));
+    if(val) clearbufs(ifno); // clear buffers on connect
     CDCready[ifno] = val; // CONTROL_DTR | CONTROL_RTS -> interface connected; 0 -> disconnected
     lastdsz[ifno] = -1;
-    if(val) clearbufs(ifno);
 }
 
 // SEND_BREAK - disconnect interface and clear its buffers
@@ -172,7 +180,6 @@ void WEAK break_handler(uint8_t ifno){
     DBG("break_handler()");
     DBGs(uhex2str(ifno));
 }
-
 
 // USB is configured: setup endpoints
 void set_configuration(){
@@ -262,7 +269,15 @@ int USB_send(uint8_t ifno, const uint8_t *buf, int len){
         }
         if(!CDCready[ifno]) return FALSE;
         IWDG->KR = IWDG_REFRESH;
-        int a = RB_write((ringbuffer*)&rbout[ifno], buf, len);
+        int l = RB_datalen((ringbuffer*)&rbout[ifno]);
+        if(l < 0) continue;
+        int portion = rbout[ifno].length - 1 - l;
+        if(portion < 1){
+            if(lastdsz[ifno] < 0) send_next(ifno);
+            continue;
+        }
+        if(portion > len) portion = len;
+        int a = RB_write((ringbuffer*)&rbout[ifno], buf, portion);
         if(a > 0){
             len -= a;
             buf += a;
@@ -338,7 +353,9 @@ int USB_receivestr(uint8_t ifno, char *buf, int len){
     }
     int l = RB_readto((ringbuffer*)&rbin[ifno], '\n', (uint8_t*)buf, len);
     if(l < 1){
-        if(rbin[ifno].length == RB_datalen((ringbuffer*)&rbin[ifno])){ // buffer is full but no '\n' found
+        //if(rbin[ifno].length < 1 + RB_datalen((ringbuffer*)&rbin[ifno])){ // buffer is full but no '\n' found
+        if(RB_datalen((ringbuffer*)&rbin[ifno]) >= len){
+            CMDWRn("OVERFULL!");
             while(1 != RB_clearbuf((ringbuffer*)&rbin[ifno]));
             return -1;
         }

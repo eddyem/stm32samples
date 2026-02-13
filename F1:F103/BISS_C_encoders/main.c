@@ -111,7 +111,13 @@ static void proc_enc(uint8_t idx){
         USB_sendstr(iface, str);
         USB_putbyte(iface, '\n');
     }
-    if(result.error) spi_setup(1+idx); // reinit SPI in case of error
+    if(result.error){
+        spi_setup(1+idx); // reinit SPI in case of error
+        if(CDCready[I_CMD] && the_conf.flags.debug){
+            CMDWR("Err, restart SPI "); USB_putbyte(I_CMD, '1'+idx); CMDn();
+        }
+        spi_start_enc(idx); // restart measurement
+    }
     if(the_conf.flags.monit) monitT[idx] = Tms;
     else if(testflag) spi_start_enc(idx);
 }
@@ -142,7 +148,7 @@ int main(){
             else if(l) parse_cmd(inbuff);
             // check if interface connected/disconnected
             // (we CAN'T do much debug output in interrupt functions like linecoding_handler etc, so do it here)
-            for(int i = 0; i < bTotNumEndpoints; ++i){
+            for(int i = 1; i < bTotNumEndpoints; ++i){
                 if(oldCDCready[i] != CDCready[i]){
                     CMDWR("Interface ");
                     CMDWR(u2str(i));
