@@ -38,7 +38,7 @@ Inner USB interfaces (IFx):
 |  12     | (VREF-)     |             |               |                     |
 |  13     | (VREF+)     |             |               |                     |
 |  14     | PA0         | NC          |               |                     |
-|  15     | PA1         | USART2 DE   | AF7           | RS-485 (3) DE       |
+|  15     | PA1         | USART2 DE   | AF7 or PP     | RS-485 (3) DE       |
 |  16     | PA2         | USART2 TX   | AF7           | RS-485 (3) Tx       |
 |  17     | PA3         | USART2 RX   | AF7           | RS-485 (3) Rx       |
 |  18     | PF4         | NC          |               |                     |
@@ -58,7 +58,7 @@ Inner USB interfaces (IFx):
 |  32     | (VDD)       |             |               |                     |
 |  33     | PB12        | NC          |               |                     |
 |  34     | PB13        | NC          |               |                     |
-|  35     | PB14        | USART3 DE   | AF7           | RS-485 (1) DE       |
+|  35     | PB14        | USART3 DE   | AF7 or PP     | RS-485 (1) DE       |
 |  36     | PB15        |             |               |                     |
 |  37     | PC6         | NC          |               |                     |
 |  38     | PC7         | NC          |               |                     |
@@ -90,6 +90,34 @@ Inner USB interfaces (IFx):
 |  64     | (VDD)       |             |               |                     |
 
 ### Some comments.
+
+Interfaces:
+
+- IF1: RS-485 over USART3.
+- IF2: RS-485 over USART1.
+- IF3: RS-485 over USART2.
+- IF4: RS-232 over UART4.
+- IF5: RS-232 or RS-422 (by jumpers "IF5" and "SSI") over UART5.
+- IF6: CAN bus.
+- IF7: SSI (inaccessible when RS-422 selected) or interface for device configuration (if jumper "Config mode" is opened when device started").
+
+
+DMA1 channels:
+
+- Ch2: USART3_Tx
+- Ch3: USART3_Rx
+- Ch4: USART1_Tx
+- Ch5: USART1_Rx
+- Ch6: USART2_Rx
+- Ch7: USART2_Tx
+
+DMA2 channels:
+
+- Ch3: UART4_Rx
+- Ch5: UART4_Tx
+
+UART5 have no DMA channels, so used in interrupts.
+
 
 ### Sorted by ports (with AF numbers).
 

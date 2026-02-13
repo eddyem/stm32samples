@@ -1,3 +1,4 @@
+debug.h
 flash.c
 flash.h
 hardware.c
@@ -9,6 +10,8 @@ ringbuffer.c
 ringbuffer.h
 strfunc.c
 strfunc.h
+usart.c
+usart.h
 usb.c
 usb.h
 usb_descr.c

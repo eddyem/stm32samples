@@ -19,6 +19,7 @@
 
 #include "hardware.h"
 #include "ringbuffer.h"
+#include "usart.h"
 #include "usb_descr.h"
 #include "usb_dev.h"
 
@@ -59,20 +60,13 @@ static volatile ringbuffer rbin[InterfacesAmount] = {IBUF(0), IBUF(1), IBUF(2), 
 static volatile int lastdsz[InterfacesAmount] = {-1, -1, -1, -1, -1, -1, -1};
 
 static void chkin(uint8_t ifno){
-    static int ovrflctr = 0; // "antistall" counter
     if(bufovrfl[ifno]) return; // allow user to know that previous buffer was overflowed and cleared
     if(!rcvbuflen[ifno]) return;
     int w = RB_write((ringbuffer*)&rbin[ifno], (uint8_t*)rcvbuf[ifno], rcvbuflen[ifno]);
-    if(w < 0){ // buffer busy
+    if(w < 0){
         return;
-    }else if(w == 0){ // no enough space or (WTF) incoming string larger than buffer size
-        if(rcvbuflen[ifno] > rbin[ifno].length || ++ovrflctr > 9999){
-            bufovrfl[ifno] = 1; // real overflow in case if ringbuffer's size less than USB buffer
-            ovrflctr = 0;
-        }else{
-            return; // not enough space
-        }
     }
+    if(w != rcvbuflen[ifno]) bufovrfl[ifno] = 1;
     rcvbuflen[ifno] = 0;
     uint16_t status = KEEP_DTOG(USB->EPnR[1+ifno]); // don't change DTOG
     USB->EPnR[1+ifno] = (status & ~(USB_EPnR_STAT_TX|USB_EPnR_CTR_RX)) ^ USB_EPnR_STAT_RX; // prepare to get next data portion
@@ -103,7 +97,7 @@ static void send_next(uint8_t ifno){
 // data IN/OUT handler
 static void rxtx_handler(){
     uint8_t epno = (USB->ISTR & USB_ISTR_EPID), ifno = epno - 1;
-    if(epno > InterfacesAmount){
+    if(ifno > InterfacesAmount-1){
         return;
     }
     uint16_t epstatus = KEEP_DTOG(USB->EPnR[epno]);
@@ -123,8 +117,8 @@ static void rxtx_handler(){
 
 // SET_LINE_CODING
 void linecoding_handler(uint8_t ifno, usb_LineCoding *lc){
+    usart_config(ifno, lc); // lc would be real speed!
     lineCoding[ifno] = *lc;
-    // TODO: set up interfaces
 }
 
 // clear IN/OUT buffers on connection
@@ -137,7 +131,6 @@ static void clearbufs(uint8_t ifno){
     while(Tms - T0 < 10){
         if(1 == RB_clearbuf((ringbuffer*)&rbout[ifno])) break;
     }
-    rcvbuflen[ifno] = 0;
 }
 
 // SET_CONTROL_LINE_STATE
@@ -208,7 +201,7 @@ int USB_sendall(uint8_t ifno){
     uint32_t T0 = Tms;
     while(lastdsz[ifno] > 0){
         if(Tms - T0 > DISCONN_TMOUT){
-            break_handler(ifno);
+            //break_handler(ifno);
             return FALSE;
         }
         if(!CDCready[ifno]) return FALSE;
@@ -223,7 +216,7 @@ int USB_send(uint8_t ifno, const uint8_t *buf, int len){
     uint32_t T0 = Tms;
     while(len){
         if(Tms - T0 > DISCONN_TMOUT){
-            break_handler(ifno);
+            //break_handler(ifno);
             return FALSE;
         }
         if(!CDCready[ifno]) return FALSE;
@@ -254,7 +247,7 @@ int USB_putbyte(uint8_t ifno, uint8_t byte){
     uint32_t T0 = Tms;
     while((l = RB_write((ringbuffer*)&rbout[ifno], &byte, 1)) != 1){
         if(Tms - T0 > DISCONN_TMOUT){
-            break_handler(ifno);
+            //break_handler(ifno);
             return FALSE;
         }
         if(!CDCready[ifno]) return FALSE;

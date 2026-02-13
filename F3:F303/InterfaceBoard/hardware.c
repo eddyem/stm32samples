@@ -21,7 +21,10 @@
 uint8_t Config_mode = 0;
 
 static inline void gpio_setup(){
-    RCC->AHBENR |= RCC_AHBENR_GPIOAEN | RCC_AHBENR_GPIOBEN; // for USART and LEDs
+    RCC->AHBENR |= RCC_AHBENR_GPIOAEN | RCC_AHBENR_GPIOBEN | RCC_AHBENR_DMA1EN | RCC_AHBENR_DMA2EN;
+    RCC->APB1ENR |= RCC_APB1ENR_CANEN | RCC_APB1ENR_USART2EN | RCC_APB1ENR_USART3EN
+                    | RCC_APB1ENR_UART4EN | RCC_APB1ENR_UART5EN;
+    RCC->APB2ENR |= RCC_APB2ENR_USART1EN;
     for(int i = 0; i < 10000; ++i) nop();
     // USB - alternate function 14 @ pins PA11/PA12; SWD - AF0 @PA13/14
     GPIOA->AFR[1] = AFRf(14, 11) | AFRf(14, 12);

@@ -33,7 +33,7 @@
 
 // amount of interfaces
 #define InterfacesAmount    7
-// index of interface (ep number minus one)
+// index of interface (ep number minus one): IF1..IF7
 #define ISerial0            0
 #define ISerial1            1
 #define ISerial2            2
