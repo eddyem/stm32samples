@@ -138,12 +138,14 @@ void clstate_handler(uint8_t ifno, uint16_t val){
     CDCready[ifno] = val; // CONTROL_DTR | CONTROL_RTS -> interface connected; 0 -> disconnected
     lastdsz[ifno] = -1;
     if(val) clearbufs(ifno);
+    else usart_stop(ifno); // turn of USART (if it is @ this interface)
 }
 
 // SEND_BREAK - disconnect interface and clear its buffers
 // this is a fake handler as classic CDC ACM never receives this
 void break_handler(uint8_t ifno){
     CDCready[ifno] = 0;
+    usart_stop(ifno); // turn of USART (if it is @ this interface)
 }
 
 // USB is configured: setup endpoints

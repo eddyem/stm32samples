@@ -15,9 +15,11 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 #include "flash.h"
 #include "hardware.h"
 #include "proto.h"
+#include "usart.h"
 #include "usb_dev.h"
 
 #define MAXSTRLEN    RBINSZ
@@ -46,6 +48,7 @@ int main(void){
     while(1){
         // Put here code working WITOUT USB connected
         if(!usbON) continue;
+        usarts_process(); //
         for(int i = 0; i < maxno; ++i){ // just echo for first time
             if(!CDCready[i]) continue;
             int l = USB_receive(i, (uint8_t*)inbuff, MAXSTRLEN);

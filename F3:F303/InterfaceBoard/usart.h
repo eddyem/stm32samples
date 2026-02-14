@@ -21,6 +21,17 @@
 #include "hardware.h"
 #include "usb_dev.h"
 
-void usarts_setup();
+// DMA linear buffers for Rx/Tx
+#define DMARXBUFSZ      128
+#define DMATXBUFSZ      128
+// ringbuffers for collected data
+#define USARTRXRBSZ     256
+#define USARTTXRBSZ     256
+
 void usart_config(uint8_t ifNo, usb_LineCoding *lc);
-void usart_sendn(uint8_t ifNo, const uint8_t *str, int L);
+void usart_stop(uint8_t ifNo);
+
+void usarts_process();
+
+int usart_send(uint8_t ifNo, const uint8_t *data, int len);
+int usart_receive(uint8_t ifNo, uint8_t *data, int len);

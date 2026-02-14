@@ -29,6 +29,10 @@
 #define CFG_pin     (1<<9)
 #define CFG_ON()    (CFG_port->IDR & CFG_pin)
 
+// RS-485 Rx is low level, Tx - high
+#define RX485(port, pin)    do{port->BRR  = pin;}while(0)
+#define TX485(port, pin)    do{port->BSRR = pin;}while(0)
+
 extern volatile uint32_t Tms;
 extern uint8_t Config_mode;
 

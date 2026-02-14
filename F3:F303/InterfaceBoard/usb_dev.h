@@ -42,7 +42,7 @@ void clstate_handler(uint8_t ifno, uint16_t val);
 void linecoding_handler(uint8_t ifno, usb_LineCoding *lc);
 
 // as ugly CDC have no BREAK after disconnected client in non-canonical mode, we should use timeout - near 2s
-#define DISCONN_TMOUT   (2000)
+#define DISCONN_TMOUT   (2)
 
 // sizes of ringbuffers for outgoing and incoming data
 #define RBOUTSZ     (256)
