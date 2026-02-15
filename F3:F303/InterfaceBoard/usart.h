@@ -29,9 +29,10 @@
 #define USARTTXRBSZ     256
 
 void usart_config(uint8_t ifNo, usb_LineCoding *lc);
+void usart_start(uint8_t ifNo);
 void usart_stop(uint8_t ifNo);
 
 void usarts_process();
 
 int usart_send(uint8_t ifNo, const uint8_t *data, int len);
-int usart_receive(uint8_t ifNo, uint8_t *data, int len);
+//int usart_receive(uint8_t ifNo, uint8_t *data, int len);

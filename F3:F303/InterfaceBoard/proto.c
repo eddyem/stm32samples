@@ -21,6 +21,7 @@
 
 #include "flash.h"
 #include "strfunc.h"
+#include "usart.h"
 #include "usb_dev.h"
 #include "version.inc"
 
@@ -35,6 +36,7 @@ extern volatile uint32_t Tms;
 
 const char *helpstring =
         "https://github.com/eddyem/stm32samples/tree/master/F3:F303/InterfaceBoard build#" BUILD_NUMBER " @ " BUILD_DATE "\n"
+        "1..5x - send data over IF1..5\n"
         "d - dump flash\n"
         "ix - rename interface number x (0..6)\n"
         "Ex - erase full storage (witout x) or only page x\n"
@@ -90,11 +92,23 @@ static const char* erpg(const char *str){
     return sOKn;
 }
 
-const char *parse_cmd(const char *buf){
+static void sendoverU(uint8_t ifno, char *str){
+    int len = strlen(str);
+    CFGWR("try to send "); CFGWRn(str);
+    str[len] = '\n';
+    len = usart_send(ifno, (const uint8_t*)str, len+1);
+    CFGWR("sent "); CFGWR(i2str(len)); CFGWR("bytes\n");
+}
+
+const char *parse_cmd(char *buf){
     if(!buf || !*buf) return NULL;
     if(strlen(buf) > 1){
         // "long" commands
         char c = *buf++;
+        if(c > '0' && c < '6'){
+            sendoverU(c - '1', buf);
+            return NULL;
+        }
         switch(c){
             case 'E':
                 return erpg(buf);

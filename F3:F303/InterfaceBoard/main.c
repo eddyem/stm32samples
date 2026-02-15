@@ -32,6 +32,7 @@ void sys_tick_handler(void){
 
 int main(void){
     char inbuff[MAXSTRLEN+1];
+    uint8_t oldcdc[InterfacesAmount] = {0};
     if(StartHSE()){
         SysTick_Config((uint32_t)72000); // 1ms
     }else{
@@ -43,26 +44,37 @@ int main(void){
     USBPU_OFF();
     USB_setup();
     //uint32_t ctr = Tms;
+    //usb_LineCoding lc = {9600, 0, 0, 8};
+    //for(int i = 0; i < 5; ++i) usart_config(i, &lc);
     USBPU_ON();
-    int maxno = (Config_mode) ? ICFG : InterfacesAmount;
     while(1){
         // Put here code working WITOUT USB connected
         if(!usbON) continue;
-        usarts_process(); //
-        for(int i = 0; i < maxno; ++i){ // just echo for first time
+        usarts_process();
+        /*for(int i = 0; i < 6; ++i){ // just echo for first time
             if(!CDCready[i]) continue;
             int l = USB_receive(i, (uint8_t*)inbuff, MAXSTRLEN);
             if(l) USB_send(i, (uint8_t*)inbuff, l);
-        }
+        }*/
         // and here is code what should run when USB connected
         if(Config_mode && CDCready[ICFG]){
-            /*if(Tms - ctr > 999){
+            /*if(Tms - ctr > 4999){
                 ctr = Tms;
                 CFGWR("I'm alive\n");
             }*/
+            for(int i = 0; i < ICFG; ++i){
+                if(oldcdc[i] != CDCready[i]){
+                    CFGWR("Interface "); USB_putbyte(ICFG, '1' + i);
+                    USB_putbyte(ICFG, ' ');
+                    if(!CDCready[i]) CFGWR("dis");
+                    CFGWR("connected\n");
+                    oldcdc[i] = CDCready[i];
+                }
+            }
             int l = USB_receivestr(ICFG, inbuff, MAXSTRLEN);
             if(l < 0) CFGWR("ERROR: USB buffer overflow or string was too long\n");
             else if(l){
+                CFGWR("PARSING...\n");
                 const char *ans = parse_cmd(inbuff);
                 if(ans) CFGWRn(ans);
             }

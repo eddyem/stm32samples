@@ -117,8 +117,9 @@ static void rxtx_handler(){
 
 // SET_LINE_CODING
 void linecoding_handler(uint8_t ifno, usb_LineCoding *lc){
-    usart_config(ifno, lc); // lc would be real speed!
     lineCoding[ifno] = *lc;
+    usart_config(ifno, &lineCoding[ifno]); // lc would be real speed!
+    usart_start(ifno);
 }
 
 // clear IN/OUT buffers on connection
@@ -137,8 +138,10 @@ static void clearbufs(uint8_t ifno){
 void clstate_handler(uint8_t ifno, uint16_t val){
     CDCready[ifno] = val; // CONTROL_DTR | CONTROL_RTS -> interface connected; 0 -> disconnected
     lastdsz[ifno] = -1;
-    if(val) clearbufs(ifno);
-    else usart_stop(ifno); // turn of USART (if it is @ this interface)
+    if(val){
+        clearbufs(ifno);
+        usart_start(ifno);
+    }else usart_stop(ifno); // turn of USART (if it is @ this interface)
 }
 
 // SEND_BREAK - disconnect interface and clear its buffers
