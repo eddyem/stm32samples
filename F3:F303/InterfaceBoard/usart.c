@@ -19,7 +19,7 @@
 #include <stm32f3.h>
 #include <string.h>
 
-#include "debug.h"
+#include "Debug.h"
 #include "hardware.h"
 #include "strfunc.h"
 #include "usart.h"
@@ -87,6 +87,7 @@ void usart_config(uint8_t ifNo, usb_LineCoding *lc){
     // Assuming oversampling by 16 (default after reset). For higher baud rates you might use by 8.
     U->BRR = peripheral_clock / lc->dwDTERate;
     lc->dwDTERate = peripheral_clock / U->BRR;
+    DBGs("New speed: "); DBGs(u2str(lc->dwDTERate)); DBGn();
 
     // ----- Data bits & Parity -----
     uint32_t cr1 = 0;
@@ -102,6 +103,7 @@ void usart_config(uint8_t ifNo, usb_LineCoding *lc){
             lc->bParityType = USB_CDC_EVEN_PARITY;
         }
     }
+    DBGs("Parity: "); DBGch('0'+lc->bParityType); DBGn();
 
     // Word length (M bits) depends on data bits and parity
     // M[1:0] encoding: 00 = 8 bits, 01 = 9 bits, 10 = 7 bits
@@ -114,7 +116,7 @@ void usart_config(uint8_t ifNo, usb_LineCoding *lc){
             // 7 data + 1 parity = 8 bits total -> M=00 (8-bit mode)
             // do nothing
         }else{
-            // Unsupported (8 or 9 data bits with parity would be 9/10 bits total)
+            // 8 or 9 data bits with parity would be 9/10 bits total
             // Fallback to 8 data + parity
             cr1 |= USART_CR1_M0;
             lc->bDataBits = 8; // ??? need to be tested
@@ -130,6 +132,7 @@ void usart_config(uint8_t ifNo, usb_LineCoding *lc){
             lc->bDataBits = 8;
         }
     }
+    DBGs("Data bits: "); DBGch('0' + lc->bDataBits); DBGn();
 
     // ----- Stop bits -----
     uint32_t cr2 = 0;
@@ -144,18 +147,21 @@ void usart_config(uint8_t ifNo, usb_LineCoding *lc){
         // do nothing: default to 1 stop bit -> CR2=00
         break;
     }
+    DBGs("Stop bits: "); DBGch('0'+lc->bCharFormat); DBGn();
 
     // Write CR2 (stop bits)
     U->CR2 = cr2;
     // Enable transmitter, receiver, and interrupts (optional)
-    cr1 |= USART_CR1_RE;
+    cr1 |= USART_CR1_RE | USART_CR1_IDLEIE; // enable idle interrupt to force small portions of data into ringbuffer
     if(cfg->DEport){
+        DBG("485 -> RX");
         RX485(cfg->DEport, cfg->DEpin);
         cr1 |= USART_CR1_TCIE;
     }else cr1 |= USART_CR1_TE;
 
     // ----- DMA -----
     if(cfg->dma_controller){ // DMA-driven
+        DBG("DMA-driven");
         volatile DMA_Channel_TypeDef *T = cfg->dma_tx_channel, *R = cfg->dma_rx_channel;
         // Tx DMA
         T->CCR = 0;
@@ -169,8 +175,8 @@ void usart_config(uint8_t ifNo, usb_LineCoding *lc){
         R->CCR = DMA_CCR_MINC | DMA_CCR_EN; // | DMA_CCR_TCIE
         // enable U[S]ART DMA
         U->CR3 = USART_CR3_DMAT | USART_CR3_DMAR;
-        cr1 |= USART_CR1_IDLEIE; // enable idle interrupt to force small portions of data into ringbuffer
     }else{
+        DBG("IRQ-driven");
         cr1 |= USART_CR1_RXNEIE; // interrupt-driven
         inbufidx[ifNo] = 0;
         outbufidx[ifNo] = 0;
@@ -183,6 +189,9 @@ void usart_config(uint8_t ifNo, usb_LineCoding *lc){
         if (--tmout == 0) break;
     }
     U->ICR = 0xFFFFFFFF;   // Clear flags again
+    TXrdy[ifNo] = 1;
+    DBGch('0' + ifNo);
+    DBG("U[S]ART configured");
 }
 
 // start when received DTR
@@ -192,6 +201,8 @@ void usart_start(uint8_t ifNo){
     cfg->instance->CR1 |= USART_CR1_UE;
     NVIC_EnableIRQ(cfg->UIRQn);
     if(cfg->dma_controller) NVIC_EnableIRQ(cfg->DIRQn);
+    DBGch('0' + ifNo);
+    DBG("U[S]ART started");
 }
 
 /**
@@ -201,21 +212,16 @@ void usart_start(uint8_t ifNo){
 void usart_stop(uint8_t ifNo){
     if(ifNo >= USARTSNO || UC[ifNo].instance == NULL) return;
     const USART_Config *cfg = &UC[ifNo];
-    cfg->instance->CR1 = 0;
+    cfg->instance->CR1 &= ~USART_CR1_UE;
     if(cfg->DEport) RX485(cfg->DEport, cfg->DEpin);
+    /*
     if(cfg->dma_controller){
-        cfg->dma_tx_channel->CCR = 0;
-        cfg->dma_rx_channel->CCR = 0;
         NVIC_DisableIRQ(cfg->DIRQn);
-    }else{
-        NVIC_DisableIRQ(cfg->UIRQn);
     }
-}
-
-static void msg(const char *txt, uint8_t ifno, int l){
-    if(!Config_mode) return;
-    CFGWR("IF"); USB_putbyte(ICFG, '1' + ifno); CFGWR(": ");
-    CFGWR(txt); CFGWR(" ("); CFGWR(i2str(l)); CFGWR(" bytes)\n");
+    NVIC_DisableIRQ(cfg->UIRQn);
+    */
+    DBGch('0' + ifNo);
+    DBG("U[S]ART stopped");
 }
 
 /**
@@ -234,12 +240,11 @@ void usarts_process(){
                 register int l = DMARXBUFSZ - R->CNDTR;
                 if(l){ // have some input data -> send and restart DMA
                     if(USB_send(i, inbuffers[i], l)){
-                        msg("USART -> USB over DMA", i, l);
+                        DBG("USART -> USB over DMA");
                         // restart DMA only in case of succesfull sent or if failed, but have ability of buffer overfull
                         R->CMAR = (uint32_t) inbuffers[i];
                         R->CNDTR = DMARXBUFSZ;
                         need2send[i] = 0;
-                        if(cfg->DEport) TX485(cfg->DEport, cfg->DEpin);
                     }
                 }
                 R->CCR |= DMA_CCR_EN; // re-enable DMA
@@ -254,13 +259,14 @@ void usarts_process(){
                     T->CMAR = (uint32_t) outbuffers[i];
                     T->CNDTR = got;
                     if(cfg->DEport){ // switch to Tx
+                        DBG("485 -> TX");
                         TX485(cfg->DEport, cfg->DEpin);
                         cfg->instance->CR1 &= ~USART_CR1_RE;
                         cfg->instance->CR1 |= USART_CR1_TE;
                     }
-                    T->CCR |= DMA_CCR_EN; // start new transmission
                     TXrdy[i] = 0;
-                    msg("USB -> USART over DMA", i, got);
+                    T->CCR |= DMA_CCR_EN; // start new transmission
+                    DBG("USB -> USART over DMA");
                 }
             }
         }else{ // interrupt-driven
@@ -272,7 +278,7 @@ void usarts_process(){
                 if(l && USB_send(i, inbuffers[i], l)){
                     need2send[i] = 0;
                     inbufidx[i] = 0;
-                    msg("USART -> USB over irq", i, l);
+                    DBG("USART -> USB over irq");
                 }
             }
             U->CR1 |= USART_CR1_RXNEIE; // restore irq reaction
@@ -281,6 +287,7 @@ void usarts_process(){
                 int got = USB_receive(i, outbuffers[i], DMATXBUFSZ);
                 if(got > 0){
                     if(cfg->DEport){ // switch to Tx
+                        DBG("485 -> TX");
                         TX485(cfg->DEport, cfg->DEpin);
                         U->CR1 &= ~USART_CR1_RE;
                         U->CR1 |= USART_CR1_TE;
@@ -290,7 +297,7 @@ void usarts_process(){
                     TXrdy[i] = 0;
                     U->TDR = outbuffers[i][0]; // start transmission
                     U->CR1 |= USART_CR1_TXEIE; // enable TXE interrupt
-                    msg("USB -> USART over irq", i, got);
+                    DBG("USB -> USART over irq");
                 }
             }
         }
@@ -300,8 +307,8 @@ void usarts_process(){
 // Use this function only for debug purpose
 int usart_send(uint8_t ifNo, const uint8_t *data, int len){
     if(ifNo >= USARTSNO || !data || len < 1) return 0;
-    if(TXrdy[ifNo] == 0) return -1; // busy
     const USART_Config *cfg = &UC[ifNo];
+    if(TXrdy[ifNo] == 0 || (!cfg->instance->CR1 & USART_CR1_UE)) return -1; // busy or not active
     if(len > DMATXBUFSZ) len = DMATXBUFSZ;
     memcpy(outbuffers[ifNo], data, len);
     if(cfg->dma_controller){
@@ -311,15 +318,17 @@ int usart_send(uint8_t ifNo, const uint8_t *data, int len){
         T->CMAR = (uint32_t) outbuffers[ifNo];
         T->CNDTR = len;
         if(cfg->DEport){ // switch to Tx
+            DBG("485 -> TX");
             TX485(cfg->DEport, cfg->DEpin);
             cfg->instance->CR1 &= ~USART_CR1_RE;
             cfg->instance->CR1 |= USART_CR1_TE;
         }
-        T->CCR |= DMA_CCR_EN; // start new transmission
         TXrdy[ifNo] = 0;
+        T->CCR |= DMA_CCR_EN; // start new transmission
     }else{
         volatile USART_TypeDef *U = cfg->instance;
         if(cfg->DEport){ // switch to Tx
+            DBG("485 -> TX");
             TX485(cfg->DEport, cfg->DEpin);
             U->CR1 &= ~USART_CR1_RE;
             U->CR1 |= USART_CR1_TE;
@@ -339,24 +348,32 @@ int usart_send(uint8_t ifNo, const uint8_t *data, int len){
 static void usart_isr(uint8_t ifno){
     const USART_Config *cfg = &UC[ifno];
     volatile USART_TypeDef *U = cfg->instance;
-    if(U->ISR & USART_ISR_RXNE){ // got new byte
+    // for every flag we should also check if it's IRQ active
+    if((U->ISR & USART_ISR_RXNE) && (U->CR1 & USART_CR1_RXNEIE)){ // got new byte
+        DBG("RXNE");
         if(inbufidx[ifno] == DMARXBUFSZ) (void) U->RDR; // throw away data: buffer overfull
         else inbuffers[ifno][ inbufidx[ifno]++ ] = U->RDR; // put new byte into buffer
     }
-    if(U->ISR & USART_ISR_IDLE){ // try to send collected data
+    // IDLE active for both DMA- and interrupt-driven transitions
+    if(U->ISR & USART_ISR_IDLE){ // try to send collected data (DMA-driven)
         need2send[ifno] = 1; // seems like data portion is over - try to send it
         U->ICR = USART_ICR_IDLECF;
+        DBG("IDLE");
     }
-    if(U->ISR & USART_ISR_TXE){ // send next byte if need
+    if((U->ISR & USART_ISR_TXE) && (U->CR1 & USART_CR1_TXEIE)){ // send next byte if need (interrupt-driven)
+        DBG("TXE");
         if(outbuflen[ifno] > outbufidx[ifno]){
             U->TDR = outbuffers[ifno][ outbufidx[ifno]++ ];
-        }else{
+        }else if(U->CR1 & USART_CR1_TXEIE){
             U->CR1 &= ~USART_CR1_TXEIE; // disable interrupt: no data to send
             TXrdy[ifno] = 1;
+            DBG("TXRDY");
         }
     }
     if(U->ISR & USART_ISR_TC){ // switch RS-485 to Rx after transmission complete
+        DBG("TC");
         if(cfg->DEport){
+            DBG("485 -> RX");
             RX485(cfg->DEport, cfg->DEpin);
             U->CR1 &= ~USART_CR1_TE;
             U->CR1 |= USART_CR1_RE;
@@ -373,7 +390,7 @@ void uart4_exti34_isr(){  usart_isr(3); }
 void uart5_exti35_isr(){  usart_isr(4); }
 
 // DMA Tx interrupts (to arm ready flag)
-void dma1_channel2_isr(){ TXrdy[1] = 1; DMA1->IFCR = DMA_IFCR_CTCIF2; }
-void dma1_channel4_isr(){ TXrdy[2] = 1; DMA1->IFCR = DMA_IFCR_CTCIF4; }
-void dma1_channel7_isr(){ TXrdy[0] = 1; DMA1->IFCR = DMA_IFCR_CTCIF7; }
-void dma2_channel5_isr(){ TXrdy[3] = 1; DMA2->IFCR = DMA_IFCR_CTCIF5; }
+void dma1_channel2_isr(){ DBG("DMA1 done"); TXrdy[0] = 1; DMA1->IFCR = DMA_IFCR_CTCIF2; }
+void dma1_channel4_isr(){ DBG("DMA2 done"); TXrdy[1] = 1; DMA1->IFCR = DMA_IFCR_CTCIF4; }
+void dma1_channel6_isr(){ DBG("DMA3 done"); TXrdy[2] = 1; DMA1->IFCR = DMA_IFCR_CTCIF6; }
+void dma2_channel5_isr(){ DBG("DMA4 done"); TXrdy[3] = 1; DMA2->IFCR = DMA_IFCR_CTCIF5; }

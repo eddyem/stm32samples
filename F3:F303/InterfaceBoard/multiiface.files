@@ -1,4 +1,5 @@
-debug.h
+Debug.c
+Debug.h
 flash.c
 flash.h
 hardware.c

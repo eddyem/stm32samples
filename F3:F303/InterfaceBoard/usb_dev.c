@@ -17,6 +17,7 @@
 
 #include <string.h>
 
+#include "Debug.h"
 #include "hardware.h"
 #include "ringbuffer.h"
 #include "usart.h"
@@ -45,7 +46,7 @@ static volatile uint8_t bufovrfl[InterfacesAmount] = {0};
 static uint8_t volatile rcvbuf[InterfacesAmount][USB_RXBUFSZ];
 static uint8_t volatile rcvbuflen[InterfacesAmount] = {0};
 // line coding
-#define DEFL    {115200, 0, 0, 8}
+#define DEFL    {9600, 0, 0, 8}
 usb_LineCoding lineCoding[InterfacesAmount] = {DEFL,DEFL,DEFL,DEFL,DEFL,DEFL,DEFL};
 // CDC configured and ready to use
 volatile uint8_t CDCready[InterfacesAmount] = {0};
@@ -117,9 +118,11 @@ static void rxtx_handler(){
 
 // SET_LINE_CODING
 void linecoding_handler(uint8_t ifno, usb_LineCoding *lc){
+    //DBGch('0' + ifno);
+    //DBG("Linecoding");
     lineCoding[ifno] = *lc;
     usart_config(ifno, &lineCoding[ifno]); // lc would be real speed!
-    usart_start(ifno);
+    usart_start(ifno); // restart again with new configuration
 }
 
 // clear IN/OUT buffers on connection
@@ -136,10 +139,13 @@ static void clearbufs(uint8_t ifno){
 
 // SET_CONTROL_LINE_STATE
 void clstate_handler(uint8_t ifno, uint16_t val){
+    //DBGch('0' + ifno);
+    //DBG("CLSTATE");
     CDCready[ifno] = val; // CONTROL_DTR | CONTROL_RTS -> interface connected; 0 -> disconnected
     lastdsz[ifno] = -1;
     if(val){
         clearbufs(ifno);
+        //usart_config(ifno, &lineCoding[ifno]); // SET_CONTROL_LINE_STATE could be without SET_LINE_CODING
         usart_start(ifno);
     }else usart_stop(ifno); // turn of USART (if it is @ this interface)
 }
@@ -147,6 +153,8 @@ void clstate_handler(uint8_t ifno, uint16_t val){
 // SEND_BREAK - disconnect interface and clear its buffers
 // this is a fake handler as classic CDC ACM never receives this
 void break_handler(uint8_t ifno){
+    //DBGch('0' + ifno);
+    //DBG("BREAK");
     CDCready[ifno] = 0;
     usart_stop(ifno); // turn of USART (if it is @ this interface)
 }
@@ -176,11 +184,14 @@ void usb_class_request(config_pack_t *req, uint8_t *data, uint16_t datalen){
     case REQ_RECIPIENT_INTERFACE:
         switch(req->bRequest){
         case SET_LINE_CODING:
+            //DBG("SLC");
             if(!data || !datalen) break; // wait for data
+            //DBG("test");
             if(datalen == sizeof(usb_LineCoding))
                 linecoding_handler(ifno, (usb_LineCoding*)data);
             break;
         case GET_LINE_CODING:
+            DBG("GLC");
             EP_WriteIRQ(0, (uint8_t*)&lineCoding[ifno], sizeof(lineCoding));
             break;
         case SET_CONTROL_LINE_STATE:
@@ -218,6 +229,7 @@ int USB_sendall(uint8_t ifno){
 // put `buf` into queue to send
 int USB_send(uint8_t ifno, const uint8_t *buf, int len){
     if(!buf || !CDCready[ifno] || !len) return FALSE;
+    if(ifno != ICFG) DBG("USB_send");
     uint32_t T0 = Tms;
     while(len){
         if(Tms - T0 > DISCONN_TMOUT){
@@ -242,7 +254,10 @@ int USB_send(uint8_t ifno, const uint8_t *buf, int len){
             if(lastdsz[ifno] < 0) send_next(ifno);
         }
     }
-    if(buf[len-1] == '\n' && lastdsz[ifno] < 0) send_next(ifno);
+    if(buf[len-1] == '\n' && lastdsz[ifno] < 0){
+        if(ifno != ICFG) DBG("send_next");
+        send_next(ifno);
+    }
     return TRUE;
 }
 
@@ -263,7 +278,10 @@ int USB_putbyte(uint8_t ifno, uint8_t byte){
         }
     }
     // send line if got EOL
-    if(byte == '\n' && lastdsz[ifno] < 0) send_next(ifno);
+    if(byte == '\n' && lastdsz[ifno] < 0){
+        if(ifno != ICFG) DBG("send_next");
+        send_next(ifno);
+    }
     return TRUE;
 }
 

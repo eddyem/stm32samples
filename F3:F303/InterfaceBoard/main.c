@@ -16,6 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "Debug.h"
 #include "flash.h"
 #include "hardware.h"
 #include "proto.h"
@@ -44,13 +45,14 @@ int main(void){
     USBPU_OFF();
     USB_setup();
     //uint32_t ctr = Tms;
-    //usb_LineCoding lc = {9600, 0, 0, 8};
-    //for(int i = 0; i < 5; ++i) usart_config(i, &lc);
+    usb_LineCoding lc = {9600, 0, 0, 8};
+    for(int i = 0; i < 5; ++i) usart_config(i, &lc); // configure all U[S]ARTs for default data
     USBPU_ON();
     while(1){
         // Put here code working WITOUT USB connected
         if(!usbON) continue;
         usarts_process();
+        DBGpri();
         /*for(int i = 0; i < 6; ++i){ // just echo for first time
             if(!CDCready[i]) continue;
             int l = USB_receive(i, (uint8_t*)inbuff, MAXSTRLEN);
