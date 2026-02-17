@@ -38,4 +38,5 @@ int RB_readto(ringbuffer *b, uint8_t byte, uint8_t *s, int len);
 int RB_hasbyte(ringbuffer *b, uint8_t byte);
 int RB_write(ringbuffer *b, const uint8_t *str, int l);
 int RB_datalen(ringbuffer *b);
+int RB_datalento(ringbuffer *b, uint8_t byte);
 int RB_clearbuf(ringbuffer *b);

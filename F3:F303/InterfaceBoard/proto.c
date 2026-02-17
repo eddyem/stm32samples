@@ -95,8 +95,7 @@ static const char* erpg(const char *str){
 static void sendoverU(uint8_t ifno, char *str){
     int len = strlen(str);
     CFGWR("try to send "); CFGWRn(str);
-    str[len] = '\n';
-    len = usart_send(ifno, (const uint8_t*)str, len+1);
+    len = usart_send(ifno, (const uint8_t*)str, len);
     CFGWR("sent "); CFGWR(i2str(len)); CFGWR("bytes\n");
 }
 

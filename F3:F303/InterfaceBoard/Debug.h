@@ -32,6 +32,7 @@
 #else
 #define DBG(str)
 #define DBGs(str)
+#define DBGch(ch)
 #define DBGn()
 #define DBGpri()
 #endif

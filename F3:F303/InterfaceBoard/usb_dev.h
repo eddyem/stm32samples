@@ -55,6 +55,7 @@ void linecoding_handler(uint8_t ifno, usb_LineCoding *lc);
 #define CFGWRn(s)       do{USB_sendstr(ICFG, s); USB_putbyte(ICFG, '\n');}while(0)
 #define CFGn()          USB_putbyte(ICFG, '\n')
 
+int USB_sendbufspace(uint8_t ifno);
 int USB_sendall(uint8_t ifno);
 int USB_send(uint8_t ifno, const uint8_t *buf, int len);
 int USB_putbyte(uint8_t ifno, uint8_t byte);

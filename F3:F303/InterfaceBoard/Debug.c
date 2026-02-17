@@ -50,13 +50,18 @@ void debug_newline_only(){
     RB_write(&dbgrb, (const uint8_t*)&nl, 1);
 }
 
+// print by lines until there's place in USB ringbuffer
 void print_debug_messages(){
     if(!Config_mode) return;
     uint8_t rcvbuf[256];
     do{
-        int n = RB_readto(&dbgrb, '\n', rcvbuf, 256);
-        if(n == 0) break;
-        else if(n < 0) n = -n; // partial string: longer than 256 bytes
+        int l = RB_datalento(&dbgrb, '\n');
+        if(l < 1) break;
+        int freesize = USB_sendbufspace(ICFG);
+        if(freesize < l) break;
+        if(l > 256) l = 256;
+        int n = RB_read(&dbgrb, rcvbuf, l);
+        if(n < 1) break; // empty or busy
         USB_send(ICFG, rcvbuf, n);
     }while(1);
 }

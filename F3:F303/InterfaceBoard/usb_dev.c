@@ -184,14 +184,11 @@ void usb_class_request(config_pack_t *req, uint8_t *data, uint16_t datalen){
     case REQ_RECIPIENT_INTERFACE:
         switch(req->bRequest){
         case SET_LINE_CODING:
-            //DBG("SLC");
             if(!data || !datalen) break; // wait for data
-            //DBG("test");
             if(datalen == sizeof(usb_LineCoding))
                 linecoding_handler(ifno, (usb_LineCoding*)data);
             break;
         case GET_LINE_CODING:
-            DBG("GLC");
             EP_WriteIRQ(0, (uint8_t*)&lineCoding[ifno], sizeof(lineCoding));
             break;
         case SET_CONTROL_LINE_STATE:
@@ -226,17 +223,26 @@ int USB_sendall(uint8_t ifno){
     return TRUE;
 }
 
+// return amount of free space in buffer
+int USB_sendbufspace(uint8_t ifno){
+    if(!CDCready[ifno]) return 0;
+    return rbout[ifno].length - RB_datalen((ringbuffer*)&rbout[ifno]);
+}
+
 // put `buf` into queue to send
 int USB_send(uint8_t ifno, const uint8_t *buf, int len){
-    if(!buf || !CDCready[ifno] || !len) return FALSE;
-    if(ifno != ICFG) DBG("USB_send");
+    if(!buf || !CDCready[ifno] || !len){
+        return FALSE;
+    }
     uint32_t T0 = Tms;
     while(len){
         if(Tms - T0 > DISCONN_TMOUT){
             //break_handler(ifno);
             return FALSE;
         }
-        if(!CDCready[ifno]) return FALSE;
+        if(!CDCready[ifno]){
+            return FALSE;
+        }
         IWDG->KR = IWDG_REFRESH;
         int l = RB_datalen((ringbuffer*)&rbout[ifno]);
         if(l < 0) continue;
@@ -255,7 +261,6 @@ int USB_send(uint8_t ifno, const uint8_t *buf, int len){
         }
     }
     if(buf[len-1] == '\n' && lastdsz[ifno] < 0){
-        if(ifno != ICFG) DBG("send_next");
         send_next(ifno);
     }
     return TRUE;
@@ -279,7 +284,6 @@ int USB_putbyte(uint8_t ifno, uint8_t byte){
     }
     // send line if got EOL
     if(byte == '\n' && lastdsz[ifno] < 0){
-        if(ifno != ICFG) DBG("send_next");
         send_next(ifno);
     }
     return TRUE;
