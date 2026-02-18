@@ -189,12 +189,14 @@ void usb_class_request(config_pack_t *req, uint8_t *data, uint16_t datalen){
                 linecoding_handler(ifno, (usb_LineCoding*)data);
             break;
         case GET_LINE_CODING:
+            DBG("GET_LINE_CODING");
             EP_WriteIRQ(0, (uint8_t*)&lineCoding[ifno], sizeof(lineCoding));
             break;
         case SET_CONTROL_LINE_STATE:
             clstate_handler(ifno, req->wValue);
             break;
         case SEND_BREAK:
+            DBG("SEND_BREAK");
             break_handler(ifno);
             break;
         default:
@@ -266,6 +268,11 @@ int USB_send(uint8_t ifno, const uint8_t *buf, int len){
     return TRUE;
 }
 
+/* only try to add data to USB buffer, without sending
+int USB_adddata(uint8_t ifno, const uint8_t *buf, int len){
+    return RB_write((ringbuffer*)&rbout[ifno], buf, len);
+}
+*/
 int USB_putbyte(uint8_t ifno, uint8_t byte){
     if(!CDCready[ifno]) return FALSE;
     int l = 0;
@@ -338,4 +345,16 @@ int USB_receivestr(uint8_t ifno, char *buf, int len){
     if(l == 0) return 0;
     buf[l-1] = 0; // replace '\n' with strend
     return l;
+}
+
+/**
+ * @brief IFconfig - interface configuration
+ * @param ifno - index
+ * @param l (o, user allocated) - settings
+ * @return value of CDCready
+ */
+uint8_t IFconfig(uint8_t ifno, usb_LineCoding *l){
+    if(ifno >= InterfacesAmount) return 0;
+    if(l) *l = lineCoding[ifno];
+    return CDCready[ifno];
 }

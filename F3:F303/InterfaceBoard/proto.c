@@ -19,6 +19,7 @@
 #include <stm32f3.h>
 #include <string.h>
 
+#include "can.h" // min/max speeds
 #include "flash.h"
 #include "strfunc.h"
 #include "usart.h"
@@ -39,13 +40,16 @@ const char *helpstring =
         "1..5x - send data over IF1..5\n"
         "d - dump flash\n"
         "ix - rename interface number x (0..6)\n"
+        "Cx - starting CAN bus speed (9600...3000000)\n"
         "Ex - erase full storage (witout x) or only page x\n"
         "F - reinit configurations from flash\n"
+        "I - show current config of all interfaces\n"
         "R - soft reset\n"
         "S - store new parameters into flash\n"
         "T - print current Tms\n"
 ;
 
+// dump flash configuration
 static void dumpflash(){
     CFGWR("userconf_sz="); CFGWR(u2str(the_conf.userconf_sz));
     CFGWR("\ncurrentconfidx="); CFGWRn(i2str(currentconfidx));
@@ -60,8 +64,10 @@ static void dumpflash(){
         }
         CFGn();
     }
+    CFGWR("canspeed="); CFGWRn(u2str(the_conf.CANspeed));
 }
 
+// set new interface name
 static void setiface(const char *str){
     if(!str || !*str) goto err;
     uint32_t N;
@@ -85,6 +91,7 @@ err:
     CFGWR(sERRn);
 }
 
+// erase custom flash page
 static const char* erpg(const char *str){
     uint32_t N;
     if(str == getnum(str, &N)) return sERRn;
@@ -92,11 +99,51 @@ static const char* erpg(const char *str){
     return sOKn;
 }
 
+// send message over U[S]ART
 static void sendoverU(uint8_t ifno, char *str){
     int len = strlen(str);
     CFGWR("try to send "); CFGWRn(str);
     len = usart_send(ifno, (const uint8_t*)str, len);
     CFGWR("sent "); CFGWR(i2str(len)); CFGWR("bytes\n");
+}
+
+// show interfaces settings
+static void Uconfig(){
+    usb_LineCoding lc;
+    for(int i = 0; i < InterfacesAmount; ++i){
+        uint8_t on = IFconfig(i, &lc);
+        CFGWR("Interface "); USB_putbyte(ICFG, '0' + i);
+        CFGWR(" -> status: "); CFGWR(on ? "ON" : "OFF");
+        if(on){
+            CFGWR("; baudrate: "); CFGWR(u2str(lc.dwDTERate));
+            CFGWR("; ");
+            const char *s;
+            switch(lc.bCharFormat){
+                case USB_CDC_1_STOP_BITS: s = "1"; break;
+                case USB_CDC_1_5_STOP_BITS: s = "1.5"; break;
+                case USB_CDC_2_STOP_BITS: s = "2"; break;
+            }
+            CFGWR(s); CFGWR(" stop bits; parity: ");
+            switch(lc.bParityType){
+                case USB_CDC_NO_PARITY: s = "no"; break;
+                case USB_CDC_ODD_PARITY: s = "odd"; break;
+                case USB_CDC_EVEN_PARITY: s = "even"; break;
+                default: s = "prohibited";
+            }
+            CFGWR(s); CFGWR("; ");
+            USB_putbyte(ICFG, '0' + lc.bDataBits);
+            CFGWR(" data bits");
+        }
+        CFGn();
+    }
+}
+
+static const char* setCANspeed(char *buf){
+    uint32_t N;
+    if(buf == getnum(buf, &N)) return sERRn;
+    if(N < CAN_MIN_SPEED || N > CAN_MAX_SPEED) return sERRn;
+    the_conf.CANspeed = N;
+    return sOKn;
 }
 
 const char *parse_cmd(char *buf){
@@ -109,6 +156,8 @@ const char *parse_cmd(char *buf){
             return NULL;
         }
         switch(c){
+            case 'C':
+                return setCANspeed(buf);
             case 'E':
                 return erpg(buf);
             case 'i':
@@ -131,6 +180,9 @@ const char *parse_cmd(char *buf){
         case 'F':
             flashstorage_init();
             return sOKn;
+        case 'I':
+            Uconfig();
+            break;
         case 'R':
             NVIC_SystemReset();
             return NULL;

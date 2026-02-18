@@ -37,6 +37,7 @@ typedef struct __attribute__((packed, aligned(4))){
     // we store iInterface "as is"
     uint16_t iInterface[InterfacesAmount][MAX_IINTERFACE_SZ]; // hryunikod!
     uint8_t  iIlengths[InterfacesAmount];
+    uint32_t CANspeed;
 } user_conf;
 
 extern user_conf the_conf;

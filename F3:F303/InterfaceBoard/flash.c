@@ -42,6 +42,7 @@ user_conf the_conf = {
         [ICAN]     = u"usbCAN"
     },
     .iIlengths = {22,22,22,22,22,12,12},
+    .CANspeed = 100000
 };
 
 int currentconfidx = -1; // index of current configuration

@@ -41,7 +41,7 @@ void debug_message_text(const char *str){
 
 void debug_message_char(char ch){
     if(!Config_mode) return;
-     RB_write(&dbgrb, (const uint8_t*)&ch, 1);
+    RB_write(&dbgrb, (const uint8_t*)&ch, 1);
 }
 
 void debug_newline_only(){
@@ -67,5 +67,3 @@ void print_debug_messages(){
 }
 
 #endif
-
-

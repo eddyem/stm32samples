@@ -1,0 +1,39 @@
+/*
+ * This file is part of the canusb project.
+ * Copyright 2023 Edward V. Emelianov <edward.emelianoff@gmail.com>.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include <stdint.h>
+
+#ifdef CANPRIVATE__
+
+#include "strfunc.h"
+#include "usb_descr.h"
+#include "usb_dev.h"
+
+// USB messages to CAN interface
+#define PRIstr(s)   USB_sendstr(ICAN, s)
+#define PRIstrn(s)  do{USB_sendstr(ICAN, s); USB_putbyte(ICAN, '\n');}while(0)
+#define PRIch(c)    USB_putbyte(ICAN, c)
+#define PRIn()      USB_putbyte(ICAN, '\n')
+
+#endif // CANPRIVATE__
+
+extern uint8_t CANShowMsgs; // show CAN messages flag
+void CANcmd_parser(char *txt);
+uint8_t CANsoftFilter(uint16_t ID);
