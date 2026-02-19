@@ -77,8 +77,8 @@ static CAN_message *parseCANmsg(const char *txt){
     return &canmsg;
 }
 
-// USB_sendstr command, format: ID (hex/bin/dec) data bytes (up to 8 bytes, space-delimeted)
-TRUE_INLINE void USB_sendstrCANcommand(char *txt){
+// Send command, format: ID (hex/bin/dec) data bytes (up to 8 bytes, space-delimeted)
+TRUE_INLINE void CANcommand(char *txt){
     if(CAN->MSR & CAN_MSR_INAK){
         PRIstrn("CAN bus is off, try to restart it");
         return;
@@ -95,19 +95,20 @@ TRUE_INLINE void CANini(const char *txt){
     uint32_t N;
     const char *n = getnum(txt, &N);
     if(txt == n){
-        PRIstr("No speed given");
+        PRIstr("CANspeed=");
+        PRIstrn(u2str(CAN_speed()));
         return;
     }
-    if(N < 50){
-        PRIstr("Lowest speed is 50kbps");
+    if(N < CAN_MIN_SPEED){
+        PRIstrn("Speed is too low");
         return;
-    }else if(N > 3000){
-        PRIstr("Highest speed is 3000kbps");
+    }else if(N > CAN_MAX_SPEED){
+        PRIstrn("Speed is too large");
         return;
     }
-    CAN_reinit((uint16_t)N);
+    CAN_reinit(N);
     PRIstr("Reinit CAN bus with speed ");
-    printu(N); PRIstrn("kbps");
+    printu(N); PRIn();
 }
 
 TRUE_INLINE void addIGN(const char *txt){
@@ -128,7 +129,7 @@ TRUE_INLINE void addIGN(const char *txt){
     }
     Ignore_IDs[IgnSz++] = (uint16_t)(N & 0x7ff);
     PRIstr("Added ID "); printu(N);
-    PRIstrn("\nIgn buffer size: "); PRIstrn(u2str(IgnSz));
+    PRIstr("\nIgn buffer size: "); PRIstrn(u2str(IgnSz));
 }
 
 TRUE_INLINE void print_ign_buf(){
@@ -136,7 +137,7 @@ TRUE_INLINE void print_ign_buf(){
         PRIstrn("Ignore buffer is empty");
         return;
     }
-    PRIstrn("Ignored IDs:");
+    PRIstr("Ignored IDs:");
     for(int i = 0; i < IgnSz; ++i){
         printu(i);
         PRIstr(": ");
@@ -191,7 +192,7 @@ TRUE_INLINE void list_filters(){
                     PRIstr(", MASK="); printID(CAN->sFilterRegister[ctr].FR2 >> 16);
                 }
             }
-            PRIstr("\n");
+            PRIn();
         }
         fa >>= 1;
         ++ctr;
@@ -203,11 +204,8 @@ TRUE_INLINE void setfloodt(const char *s){
     uint32_t N;
     s = omit_spaces(s);
     const char *n = getnum(s, &N);
-    if(s == n){
-        PRIstrn("t="); PRIstrn(u2str(floodT));
-        return;
-    }
-    floodT = N;
+    if(s != n) floodT = N;
+    PRIstr("t="); PRIstrn(u2str(floodT));
 }
 
 /**
@@ -364,7 +362,7 @@ void CANcmd_parser(char *txt){
         break;
         case 's':
         case 'S':
-            USB_sendstrCANcommand(txt);
+            CANcommand(txt);
             return;
         break;
         case 't':
@@ -389,6 +387,8 @@ void CANcmd_parser(char *txt){
         break;
         case 'I':
             CAN_reinit(0);
+            PRIstr("CANspeed=");
+            PRIstrn(u2str(CAN_speed()));
         break;
         case 'l':
             list_filters();
@@ -421,4 +421,29 @@ uint8_t CANsoftFilter(uint16_t ID){
     for(int i = 0; i < IgnSz; ++i)
         if(Ignore_IDs[i] == ID) return 0;
     return 1;
+}
+
+// process incoming USB and CAN messages
+void canproto_process(){
+    CAN_proc();
+    if(CAN_get_status() == CAN_FIFO_OVERRUN){
+        USB_sendstr(ICAN, "CAN bus fifo overrun occured!\n");
+    }
+    CAN_message *can_mesg;
+    while((can_mesg = CAN_messagebuf_pop())){
+        if(can_mesg && CANsoftFilter(can_mesg->ID)){
+            if(CANShowMsgs){ // display message content
+                IWDG->KR = IWDG_REFRESH;
+                uint8_t len = can_mesg->length;
+                USB_sendstr(ICAN, u2str(Tms));
+                USB_sendstr(ICAN, " #");
+                USB_sendstr(ICAN, uhex2str(can_mesg->ID));
+                for(uint8_t i = 0; i < len; ++i){
+                    USB_putbyte(ICAN, ' ');
+                    USB_sendstr(ICAN, uhex2str(can_mesg->data[i]));
+                }
+                newline(ICAN);
+            }
+        }
+    }
 }

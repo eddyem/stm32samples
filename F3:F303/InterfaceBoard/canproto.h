@@ -34,6 +34,10 @@
 
 #endif // CANPRIVATE__
 
-extern uint8_t CANShowMsgs; // show CAN messages flag
+void canproto_process();
 void CANcmd_parser(char *txt);
+/*
+extern uint8_t CANShowMsgs; // show CAN messages flag
+
 uint8_t CANsoftFilter(uint16_t ID);
+*/

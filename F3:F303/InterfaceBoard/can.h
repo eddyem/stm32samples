@@ -50,7 +50,7 @@ typedef enum{
 
 CAN_status CAN_get_status();
 
-void CAN_reinit(uint16_t speed);
+void CAN_reinit(uint32_t speed);
 void CAN_setup(uint32_t speed);
 
 CAN_status CAN_send(uint8_t *msg, uint8_t len, uint16_t target_id);

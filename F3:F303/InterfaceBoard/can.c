@@ -45,7 +45,7 @@
 static CAN_message messages[CAN_INMESSAGE_SIZE];
 static uint8_t first_free_idx = 0;    // index of first empty cell
 static int8_t first_nonfree_idx = -1; // index of first data cell
-static uint16_t oldspeed = 100; // speed of last init
+static uint32_t oldspeed = 100000; // speed of last init
 uint32_t floodT = FLOOD_PERIOD_MS; // flood period in ms
 static uint8_t incrflood = 0; // ==1 for incremental flooding
 static uint32_t incrmessagectr = 0; // counter for incremental flooding
@@ -66,7 +66,7 @@ CAN_status CAN_get_status(){
 
 // push next message into buffer; return 1 if buffer overfull
 static int CAN_messagebuf_push(CAN_message *msg){
-    DBG("PUSH");
+    //DBG("PUSH");
     if(first_free_idx == first_nonfree_idx){
         DBG("INBUF OVERFULL");
         return 1; // no free space
@@ -87,11 +87,11 @@ CAN_message *CAN_messagebuf_pop(){
         first_nonfree_idx = -1;
         first_free_idx = 0;
     }
-    DBG("POP");
+    //DBG("POP");
     return msg;
 }
 
-void CAN_reinit(uint16_t speed){
+void CAN_reinit(uint32_t speed){
     DBG("CAN_reinit");
     CAN->TSR |= CAN_TSR_ABRQ0 | CAN_TSR_ABRQ1 | CAN_TSR_ABRQ2;
     RCC->APB1RSTR |= RCC_APB1RSTR_CANRST;
@@ -148,8 +148,10 @@ void CAN_setup(uint32_t speed){
     if(tmout==0){ DBG("timeout!\n");}
     CAN->MCR &=~ CAN_MCR_SLEEP; /* (3) */
     CAN->MCR |= CAN_MCR_ABOM; /* allow automatically bus-off */
+    DBG("new speed:"); DBGs(u2str(speed)); DBGn();
     CAN->BTR =  (CAN_TBS2-1) << 20 | (CAN_TBS1-1) << 16 | (CAN_BIT_OSC/speed - 1);  /* (4) */
     oldspeed = CAN_BIT_OSC/(uint32_t)((CAN->BTR & CAN_BTR_BRP) + 1);
+    DBG("saved sped:"); DBGs(u2str(oldspeed)); DBGn();
     CAN->MCR &= ~CAN_MCR_INRQ; /* (5) */
     tmout = 10000;
     while(CAN->MSR & CAN_MSR_INAK) /* (6) */
@@ -232,7 +234,7 @@ void CAN_proc(){
         CAN_send(flood_msg->data, flood_msg->length, flood_msg->ID);
     }else if(incrflood && (Tms - lastFloodTime) >= floodT){
         lastFloodTime = Tms;
-        if(CAN_OK == CAN_send((uint8_t*)&incrmessagectr, 4, flood_msg->ID)) ++incrmessagectr;
+        if(CAN_OK == CAN_send((uint8_t*)&incrmessagectr, 4, loc_flood_msg.ID)) ++incrmessagectr;
     }
 }
 
@@ -245,7 +247,7 @@ CAN_status CAN_send(uint8_t *msg, uint8_t len, uint16_t target_id){
         DBG("No free mailboxes");
         return CAN_BUSY;
     }
-#ifdef EBUG
+#if 0
     DBGs("Send data. Len="); DBGs(u2str(len));
     DBGs(", tagid="); DBGs(u2str(target_id));
     DBGs(", data=");

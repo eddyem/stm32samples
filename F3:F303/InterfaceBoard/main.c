@@ -64,31 +64,12 @@ int main(void){
             if(l) USB_send(i, (uint8_t*)inbuff, l);
         }*/
         if(CDCready[ICAN]){
-            CAN_proc();
-            if(CAN_get_status() == CAN_FIFO_OVERRUN){
-                USB_sendstr(ICAN, "CAN bus fifo overrun occured!\n");
-            }
-            CAN_message *can_mesg;
-            while((can_mesg = CAN_messagebuf_pop())){
-                if(can_mesg && CANsoftFilter(can_mesg->ID)){
-                    if(CANShowMsgs){ // display message content
-                        IWDG->KR = IWDG_REFRESH;
-                        uint8_t len = can_mesg->length;
-                        USB_sendstr(ICAN, u2str(Tms));
-                        USB_sendstr(ICAN, " #");
-                        USB_sendstr(ICAN, u2str(can_mesg->ID));
-                        for(uint8_t i = 0; i < len; ++i){
-                            USB_putbyte(ICAN, ' ');
-                            USB_sendstr(ICAN, u2str(can_mesg->data[i]));
-                        }
-                        newline(ICAN);
-                    }
-                }
-            }
             int l = USB_receivestr(ICAN, inbuff, MAXSTRLEN);
             if(l < 0) USB_sendstr(ICAN, "ERROR: USB buffer overflow or string was too long\n");
             else if(l) CANcmd_parser(inbuff);
+            canproto_process();
         }
+
         if(Config_mode && CDCready[ICFG]){
             /*if(Tms - ctr > 4999){
                 ctr = Tms;
