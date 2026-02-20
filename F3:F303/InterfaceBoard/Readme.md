@@ -104,7 +104,7 @@ Interfaces:
 
 DMA1 channels:
 
-- Ch2: USART3_Tx
+- Ch2: USART3_Tx or SPI1_Rx
 - Ch3: USART3_Rx
 - Ch4: USART1_Tx
 - Ch5: USART1_Rx

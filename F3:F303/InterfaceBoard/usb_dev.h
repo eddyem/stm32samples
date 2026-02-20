@@ -61,6 +61,7 @@ int USB_send(uint8_t ifno, const uint8_t *buf, int len);
 //int USB_adddata(uint8_t ifno, const uint8_t *buf, int len);
 int USB_putbyte(uint8_t ifno, uint8_t byte);
 int USB_sendstr(uint8_t ifno, const char *string);
+int USB_rcvlen(uint8_t ifno);
 int USB_receive(uint8_t ifno, uint8_t *buf, int len);
 int USB_receivestr(uint8_t ifno, char *buf, int len);
 uint8_t IFconfig(uint8_t ifno, usb_LineCoding *l);

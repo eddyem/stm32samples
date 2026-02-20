@@ -22,6 +22,7 @@
 #include "flash.h"
 #include "hardware.h"
 #include "proto.h"
+#include "spi.h"
 #include "strfunc.h"
 #include "usart.h"
 #include "usb_dev.h"
@@ -48,6 +49,7 @@ int main(void){
     USBPU_OFF();
     USB_setup();
     CAN_setup(the_conf.CANspeed);
+    spi_setup();
     //uint32_t ctr = Tms;
     //usb_LineCoding lc = {9600, 0, 0, 8};
     //for(int i = 0; i < 5; ++i) usart_config(i, &lc); // configure all U[S]ARTs for default data
@@ -63,13 +65,21 @@ int main(void){
             int l = USB_receive(i, (uint8_t*)inbuff, MAXSTRLEN);
             if(l) USB_send(i, (uint8_t*)inbuff, l);
         }*/
-        if(CDCready[ICAN]){
+        if(CDCready[ICAN]){ // process CAN bus
             int l = USB_receivestr(ICAN, inbuff, MAXSTRLEN);
             if(l < 0) USB_sendstr(ICAN, "ERROR: USB buffer overflow or string was too long\n");
             else if(l) CANcmd_parser(inbuff);
             canproto_process();
         }
-
+        if(CDCready[ISPI]){ // process encoder
+            if(USB_rcvlen(ISPI)){ // new data in USB - ask for new encoder data
+                if(spi_start_enc()) USB_receive(ISPI, (uint8_t*)inbuff, MAXSTRLEN); // clear incoming data
+            }
+            uint32_t val;
+            if(spi_read_enc(&val)){
+                USB_sendstr(ISPI, u2str(val));
+            }
+        }
         if(Config_mode && CDCready[ICFG]){
             /*if(Tms - ctr > 4999){
                 ctr = Tms;

@@ -303,6 +303,10 @@ int USB_sendstr(uint8_t ifno, const char *string){
     return USB_send(ifno, (const uint8_t*)string, len);
 }
 
+int USB_rcvlen(uint8_t ifno){
+    return RB_datalen((ringbuffer*)&rbin[ifno]);
+}
+
 /**
  * @brief USB_receive - get binary data from receiving ring-buffer
  * @param buf (i) - buffer for received data
@@ -336,7 +340,7 @@ int USB_receivestr(uint8_t ifno, char *buf, int len){
     }
     int l = RB_readto((ringbuffer*)&rbin[ifno], '\n', (uint8_t*)buf, len);
     if(l < 1){
-        if(rbin[ifno].length == RB_datalen((ringbuffer*)&rbin[ifno])){ // buffer is full but no '\n' found
+        if(rbin[ifno].length >= RB_datalen((ringbuffer*)&rbin[ifno]) - 1){ // buffer is full but no '\n' found
             while(1 != RB_clearbuf((ringbuffer*)&rbin[ifno]));
             return -1;
         }

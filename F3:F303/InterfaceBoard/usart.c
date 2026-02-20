@@ -52,7 +52,11 @@ typedef struct {
 // IF6[5]: (CAN)
 // IF7[6]: (SPI)
 static const USART_Config UC[USARTSNO] = {
+#ifdef SPIDMA
+    [0] = {.instance = USART3, .pclk_freq = 36000000, .UIRQn = USART3_IRQn, .dma_controller = NULL, .DEport = GPIOB, .DEpin = 1<<14 },
+#else
     [0] = {.instance = USART3, .pclk_freq = 36000000, .UIRQn = USART3_IRQn, .DIRQn = DMA1_Channel2_IRQn, .dma_controller = DMA1, .dma_rx_channel = DMA1_Channel3, .dma_tx_channel = DMA1_Channel2, .TTCflag = DMA_ISR_TCIF2, .DEport = GPIOB, .DEpin = 1<<14 },
+#endif
     [1] = {.instance = USART1, .pclk_freq = 72000000, .UIRQn = USART1_IRQn, .DIRQn = DMA1_Channel4_IRQn, .dma_controller = DMA1, .dma_rx_channel = DMA1_Channel5, .dma_tx_channel = DMA1_Channel4, .TTCflag = DMA_ISR_TCIF4, .DEport = GPIOB, .DEpin = 1<<0  },
     [2] = {.instance = USART2, .pclk_freq = 36000000, .UIRQn = USART2_IRQn, .DIRQn = DMA1_Channel7_IRQn, .dma_controller = DMA1, .dma_rx_channel = DMA1_Channel6, .dma_tx_channel = DMA1_Channel7, .TTCflag = DMA_ISR_TCIF7, .DEport = GPIOA, .DEpin = 1<<1  },
     [3] = {.instance = UART4,  .pclk_freq = 36000000, .UIRQn = UART4_IRQn,  .DIRQn = DMA2_Channel5_IRQn, .dma_controller = DMA2, .dma_rx_channel = DMA2_Channel3, .dma_tx_channel = DMA2_Channel5, .TTCflag = DMA_ISR_TCIF5 },
@@ -410,7 +414,9 @@ void uart4_exti34_isr(){  usart_isr(3); }
 void uart5_exti35_isr(){  usart_isr(4); }
 
 // DMA Tx interrupts (to arm ready flag)
+#ifndef SPIDMA
 void dma1_channel2_isr(){ TXrdy[0] = 1; DMA1->IFCR = DMA_IFCR_CTCIF2; }
+#endif
 void dma1_channel4_isr(){ TXrdy[1] = 1; DMA1->IFCR = DMA_IFCR_CTCIF4; }
 void dma1_channel7_isr(){ TXrdy[2] = 1; DMA1->IFCR = DMA_IFCR_CTCIF7; }
 void dma2_channel5_isr(){ TXrdy[3] = 1; DMA2->IFCR = DMA_IFCR_CTCIF5; }
