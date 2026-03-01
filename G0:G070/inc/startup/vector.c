@@ -38,8 +38,7 @@ void null_handler(void);
 
 #define NVIC_IRQ_COUNT 32
 
-#if defined STM32G070xx
-#define IRQ_HANDLERS \
+#if defined(STM32G070xx)
     [WWDG_IRQn] = wwdg_isr, \
     [RTC_TAMP_IRQn] = rtc_isr, \
     [FLASH_IRQn] = flash_isr, \
@@ -49,29 +48,60 @@ void null_handler(void);
     [EXTI4_15_IRQn] = exti4_15_isr, \
     [DMA1_Channel1_IRQn] = dma1_channel1_isr, \
     [DMA1_Channel2_3_IRQn] = dma1_channel2_3_isr, \
-    [DMA1_Ch4_7_DMAMUX1_OVR_IRQn] = dmamux_isr, \
+    [DMA1_Ch4_7_DMAMUX1_OVR_IRQn] = dma1_ch4_7_dma2_ch1_5_dmamux_ovr_isr, \
     [ADC1_IRQn] = adc_comp_isr, \
     [TIM1_BRK_UP_TRG_COM_IRQn] = tim1_brk_up_trg_com_isr, \
     [TIM1_CC_IRQn] = tim1_cc_isr, \
     [TIM3_IRQn] = tim3_4_isr, \
-    [TIM6_IRQn] = tim6_dac_isr, \
-    [TIM7_IRQn] = tim7_isr, \
+    [TIM6_IRQn] = tim6_dac_lptim1_isr, \
+    [TIM7_IRQn] = tim7_lptim2_isr, \
     [TIM14_IRQn] = tim14_isr, \
     [TIM15_IRQn] = tim15_isr, \
-    [TIM16_IRQn] = tim16_isr, \
-    [TIM17_IRQn] = tim17_isr, \
+    [TIM16_IRQn] = tim16_fdcan_it0_isr, \
+    [TIM17_IRQn] = tim17_fdcan_it1_isr, \
     [I2C1_IRQn] = i2c1_isr, \
     [I2C2_IRQn] = i2c2_3_isr, \
     [SPI1_IRQn] = spi1_isr, \
     [SPI2_IRQn] = spi2_3_isr, \
     [USART1_IRQn] = usart1_isr, \
-    [USART2_IRQn] = usart2_isr, \
-    [USART3_4_IRQn] = usart3_4_isr
+    [USART2_IRQn] = usart2_lpuart2_isr, \
+    [USART3_4_IRQn] = usart3_6_lpuart1_isr
+#elif defined(STM32G0B1xx)
+#define IRQ_HANDLERS \
+    [WWDG_IRQn] = wwdg_isr, \
+    [PVD_VDDIO2_IRQn] = pvd_vddio2_isr, \
+    [RTC_TAMP_IRQn] = rtc_isr, \
+    [FLASH_IRQn] = flash_isr, \
+    [RCC_CRS_IRQn] = rcc_isr, \
+    [EXTI0_1_IRQn] = exti0_1_isr, \
+    [EXTI2_3_IRQn] = exti2_3_isr, \
+    [EXTI4_15_IRQn] = exti4_15_isr, \
+    [USB_UCPD1_2_IRQn] = usb_ucpd1_2_isr, \
+    [DMA1_Channel1_IRQn] = dma1_channel1_isr, \
+    [DMA1_Channel2_3_IRQn] = dma1_channel2_3_isr, \
+    [DMA1_Ch4_7_DMA2_Ch1_5_DMAMUX1_OVR_IRQn] = dma1_ch4_7_dma2_ch1_5_dmamux_ovr_isr, \
+    [ADC1_COMP_IRQn] = adc_comp_isr, \
+    [TIM1_BRK_UP_TRG_COM_IRQn] = tim1_brk_up_trg_com_isr, \
+    [TIM1_CC_IRQn] = tim1_cc_isr, \
+    [TIM2_IRQn] = tim2_isr, \
+    [TIM3_TIM4_IRQn] = tim3_4_isr, \
+    [TIM6_DAC_LPTIM1_IRQn] = tim6_dac_lptim1_isr, \
+    [TIM7_LPTIM2_IRQn] = tim7_lptim2_isr, \
+    [TIM14_IRQn] = tim14_isr, \
+    [TIM15_IRQn] = tim15_isr, \
+    [TIM16_FDCAN_IT0_IRQn] = tim16_fdcan_it0_isr, \
+    [TIM17_FDCAN_IT1_IRQn] = tim17_fdcan_it1_isr, \
+    [I2C1_IRQn] = i2c1_isr, \
+    [I2C2_3_IRQn] = i2c2_3_isr, \
+    [SPI1_IRQn] = spi1_isr, \
+    [SPI2_3_IRQn] = spi2_3_isr, \
+    [USART1_IRQn] = usart1_isr, \
+    [USART2_LPUART2_IRQn] = usart2_lpuart2_isr, \
+    [USART3_4_5_6_LPUART1_IRQn] = usart3_6_lpuart1_isr, \
+    [CEC_IRQn] = cec_isr
 #else
     #error "Not supported STM32G0 MCU"
 #endif
-
-
 
 typedef struct {
     unsigned int *initial_sp_value; /**< Initial stack pointer value. */
@@ -140,7 +170,7 @@ void null_handler(void)
 #pragma weak pend_sv_handler = null_handler
 #pragma weak sys_tick_handler = null_handler
 
-#if defined STM32G0
+#if defined STM32G070xx
 #pragma weak wwdg_isr = blocking_handler
 #pragma weak rtc_isr = blocking_handler
 #pragma weak flash_isr = blocking_handler
@@ -150,25 +180,54 @@ void null_handler(void)
 #pragma weak exti4_15_isr = blocking_handler
 #pragma weak dma1_channel1_isr = blocking_handler
 #pragma weak dma1_channel2_3_isr = blocking_handler
-#pragma weak dmamux_isr = blocking_handler
+#pragma weak dma1_ch4_7_dma2_ch1_5_dmamux_ovr_isr = blocking_handler
 #pragma weak adc_comp_isr = blocking_handler
 #pragma weak tim1_brk_up_trg_com_isr = blocking_handler
 #pragma weak tim1_cc_isr = blocking_handler
 #pragma weak tim3_4_isr = blocking_handler
-#pragma weak tim6_dac_isr = blocking_handler
-#pragma weak tim7_isr = blocking_handler
+#pragma weak tim6_dac_lptim1_isr = blocking_handler
+#pragma weak tim7_lptim2_isr = blocking_handler
 #pragma weak tim14_isr = blocking_handler
 #pragma weak tim15_isr = blocking_handler
-#pragma weak tim16_isr = blocking_handler
-#pragma weak tim17_isr = blocking_handler
+#pragma weak tim16_fdcan_it0_isr = blocking_handler
+#pragma weak tim17_fdcan_it1_isr = blocking_handler
 #pragma weak i2c1_isr = blocking_handler
 #pragma weak i2c2_3_isr = blocking_handler
 #pragma weak spi1_isr = blocking_handler
 #pragma weak spi2_3_isr = blocking_handler
 #pragma weak usart1_isr = blocking_handler
-#pragma weak usart2_isr = blocking_handler
-#pragma weak usart3_4_isr = blocking_handler
-#pragma weak cec_can_isr = blocking_handler
-#pragma weak usb_isr = blocking_handler
+#pragma weak usart2_lpuart2_isr = blocking_handler
+#pragma weak usart3_6_lpuart1_isr = blocking_handler
+#pragma weak cec_isr = blocking_handler
+#elif defined STM32G0B1xx
+#pragma weak wwdg_isr = blocking_handler
+#pragma weak pvd_vddio2_isr = blocking_handler
+#pragma weak rtc_isr = blocking_handler
+#pragma weak flash_isr = blocking_handler
+#pragma weak rcc_isr = blocking_handler
+#pragma weak exti0_1_isr = blocking_handler
+#pragma weak exti2_3_isr = blocking_handler
+#pragma weak exti4_15_isr = blocking_handler
+#pragma weak usb_ucpd1_2_isr = blocking_handler
+#pragma weak dma1_channel1_isr = blocking_handler
+#pragma weak dma1_channel2_3_isr = blocking_handler
+#pragma weak dma1_ch4_7_dma2_ch1_5_dmamux_ovr_isr = blocking_handler
+#pragma weak adc_comp_isr = blocking_handler
+#pragma weak tim1_brk_up_trg_com_isr = blocking_handler
+#pragma weak tim1_cc_isr = blocking_handler
+#pragma weak tim3_4_isr = blocking_handler
+#pragma weak tim6_dac_lptim1_isr = blocking_handler
+#pragma weak tim7_lptim2_isr = blocking_handler
+#pragma weak tim14_isr = blocking_handler
+#pragma weak tim15_isr = blocking_handler
+#pragma weak tim16_fdcan_it0_isr = blocking_handler
+#pragma weak tim17_fdcan_it1_isr = blocking_handler
+#pragma weak i2c1_isr = blocking_handler
+#pragma weak i2c2_3_isr = blocking_handler
+#pragma weak spi1_isr = blocking_handler
+#pragma weak spi2_3_isr = blocking_handler
+#pragma weak usart1_isr = blocking_handler
+#pragma weak usart2_lpuart2_isr = blocking_handler
+#pragma weak usart3_6_lpuart1_isr = blocking_handler
+#pragma weak cec_isr = blocking_handler
 #endif
-

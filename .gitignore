@@ -13,3 +13,5 @@
 *.sublime-workspace 
 *.bk
 *-bak
+.qtcreator
+.clang-format

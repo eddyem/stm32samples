@@ -1,0 +1,3 @@
+Toggle LED on STM32G0B1-pill depending on user button:
+- pressed - 'SOS' in Morze
+- not pressed - blink with period of 1 second

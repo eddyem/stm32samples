@@ -19,8 +19,6 @@
  * MA 02110-1301, USA.
  */
 #pragma once
-#ifndef __STM32F0_H__
-#define __STM32F0_H__
 
 #include "vector.h"
 #include "stm32g0xx.h"
@@ -37,14 +35,14 @@
  * R=2..8, Q=2..8, P=2..32; N=8..86, M=1..8
  * fvco = 64..344MHz (after /M should be 2.66..16 -> for 8MHz HSE M=1..3!!!)
  * For 8MHZ:
- * fvco = (8/M)*N -> N(144)=18, M(144)=1
- * fpllp = fvco/P (<=122MHz) -> P(72)=2
- * fpllq = fvco/Q (<=128MHz) -> Q(48)=3
- * fpllr = fvco/R (<=64MHz)  -> R(48)=3
- * AHB prescaler (36MHz) = 72/36 = 2
- * APB prescaler (36MHz) = 36/36 = 1
+ * fvco = (8/M)*N -> N(128)=16, M(128)=1
+ * fpllp = fvco/P (<=122MHz) -> P(64)=2
+ * fpllq = fvco/Q (<=128MHz) -> Q(64)=2
+ * fpllr = fvco/R (<=64MHz)  -> R(64)=2
+ * AHB prescaler (64MHz) = 1
+ * APB prescaler (64MHz) = 1
  *
- * fp=fq=fr=fsys=64MHz => M=1, N=8, P=1, Q=1, R=1
+ * fp=fq=fr=fsys=64MHz => M=1, N=16, P=2, Q=2, R=2
 */
 #ifndef PLLN
 #define PLLN    16
@@ -61,6 +59,12 @@
 #ifndef PLLR
 #define PLLR    2
 #endif
+#ifndef PPRE
+#define PPRE    1
+#endif
+#ifndef HPRE
+#define HPRE    1
+#endif
 
 #define WAITWHILE(x)  do{register uint32_t StartUpCounter = 0; while((x) && (++StartUpCounter < 0xffffff)){nop();}}while(0)
 TRUE_INLINE void StartHSEHSI(int isHSE){
@@ -76,18 +80,19 @@ TRUE_INLINE void StartHSEHSI(int isHSE){
     WAITWHILE(PWR->SR2 & PWR_SR2_VOSF);
     if(isHSE){
         RCC->PLLCFGR = ((PLLR-1)<<29) | ((PLLQ-1)<<25) | ((PLLP-1)<<17) | (PLLN<<8) | ((PLLM-1)<<4)
-                | RCC_PLLCFGR_PLLREN | RCC_PLLCFGR_PLLPEN /* | RCC_PLLCFGR_PLLQEN */
+                | RCC_PLLCFGR_PLLREN | RCC_PLLCFGR_PLLQEN /* | RCC_PLLCFGR_PLLPEN */
                 | RCC_PLLCFGR_PLLSRC_HSE;
     }else{ // 64MHz from HSI16
         RCC->PLLCFGR = (8<<8) | (1<<4)
-                // enable P and/or Q if need
-                | RCC_PLLCFGR_PLLREN  /* | RCC_PLLCFGR_PLLPEN  | RCC_PLLCFGR_PLLQEN */
+                // enable P if need
+                | RCC_PLLCFGR_PLLREN  | RCC_PLLCFGR_PLLQEN /* | RCC_PLLCFGR_PLLPEN */
                 | RCC_PLLCFGR_PLLSRC_HSI;
     }
     RCC->CR |= RCC_CR_PLLON;
     WAITWHILE(!(RCC->CR & RCC_CR_PLLRDY));
-    FLASH->ACR |= FLASH_ACR_PRFTEN | FLASH_ACR_ICEN | FLASH_ACR_LATENCY_1;
-    RCC->CFGR = RCC_CFGR_SW_1; // set sysclk switch to pll
+    FLASH->ACR |= FLASH_ACR_PRFTEN | FLASH_ACR_ICEN | FLASH_ACR_LATENCY_2; // FLASH_ACR_LATENCY_2 for 64MHz
+    // set sysclk switch to pll, setup AHB/APB
+    RCC->CFGR = RCC_CFGR_SW_1 | PPRE << 12 | HPRE << 8;
 }
 
 #define StartHSE()  do{StartHSEHSI(1);}while(0)
@@ -253,7 +258,3 @@ TRUE_INLINE void StartHSEHSI(int isHSE){
 
 //#define  do{}while(0)
 
-
-
-
-#endif // __STM32F0_H__
