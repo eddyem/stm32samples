@@ -80,12 +80,17 @@ TRUE_INLINE void StartHSEHSI(int isHSE){
     WAITWHILE(PWR->SR2 & PWR_SR2_VOSF);
     if(isHSE){
         RCC->PLLCFGR = ((PLLR-1)<<29) | ((PLLQ-1)<<25) | ((PLLP-1)<<17) | (PLLN<<8) | ((PLLM-1)<<4)
-                | RCC_PLLCFGR_PLLREN | RCC_PLLCFGR_PLLQEN /* | RCC_PLLCFGR_PLLPEN */
+                | RCC_PLLCFGR_PLLREN | RCC_PLLCFGR_PLLPEN 
+#ifdef STM32G0B1xx
+                | RCC_PLLCFGR_PLLQEN
+#endif
                 | RCC_PLLCFGR_PLLSRC_HSE;
     }else{ // 64MHz from HSI16
-        RCC->PLLCFGR = (8<<8) | (1<<4)
-                // enable P if need
-                | RCC_PLLCFGR_PLLREN  | RCC_PLLCFGR_PLLQEN /* | RCC_PLLCFGR_PLLPEN */
+        RCC->PLLCFGR = ((PLLR-1)<<29) | ((PLLQ-1)<<25) | ((PLLP-1)<<17) | (8<<8) | (1<<4)
+                | RCC_PLLCFGR_PLLREN  | RCC_PLLCFGR_PLLPEN
+#ifdef STM32G0B1xx
+                | RCC_PLLCFGR_PLLQEN
+#endif
                 | RCC_PLLCFGR_PLLSRC_HSI;
     }
     RCC->CR |= RCC_CR_PLLON;
@@ -93,6 +98,7 @@ TRUE_INLINE void StartHSEHSI(int isHSE){
     FLASH->ACR |= FLASH_ACR_PRFTEN | FLASH_ACR_ICEN | FLASH_ACR_LATENCY_2; // FLASH_ACR_LATENCY_2 for 64MHz
     // set sysclk switch to pll, setup AHB/APB
     RCC->CFGR = RCC_CFGR_SW_1 | PPRE << 12 | HPRE << 8;
+    SysFreq = 64000000;
 }
 
 #define StartHSE()  do{StartHSEHSI(1);}while(0)
@@ -224,6 +230,33 @@ TRUE_INLINE void StartHSEHSI(int isHSE){
 #define GPIO_OSPEEDR15_MED          ((uint32_t)(1<<30))
 #define GPIO_OSPEEDR15_HIGH         ((uint32_t)(3<<30))
 
+// clear MODER: ~GPIO_MODER_MODERXX_Msk, you should AND these
+#define MODER_CLR(n)    (~(3<<(n*2)))
+// _AI - analog inpt, _O - general output, _AF - alternate function
+// these should be OR'ed
+#define MODER_I(n)      (0)
+#define MODER_O(n)      (1<<(n*2))
+#define MODER_AF(n)     (2<<(n*2))
+#define MODER_AI(n)     (3<<(n*2))
+// OSPEED: low, medium, high
+#define OSPEED_CLR(n)   (~(3<<(n*2)))
+#define OSPEED_VLO(n)   (0)
+#define OSPEED_LO(n)    (1<<(n*2))
+#define OSPEED_MED(n)   (2<<(n*2))
+#define OSPEED_HI(n)    (3<<(n*2))
+// PUPD: pull up/down
+#define PUPD_CLR(n)     (~(3<<(n*2)))
+#define PUPD_PU(n)      (1<<(n*2))
+#define PUPD_PD(n)      (2<<(n*2))
+// OTYPER: bit==1 for OD
+#define OTYPER_PP(n)    0
+#define OTYPER_OD(n)    (1<<n)
+
+// AFR field: afr - AFR number, pin - pin (0..15)
+TRUE_INLINE uint32_t AFRf(uint8_t afr, uint8_t pin){
+    if(pin > 7) pin -= 8;
+    return (afr << (pin * 4));
+}
 
 
 /******************  FLASH Keys  **********************************************/

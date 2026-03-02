@@ -26,6 +26,9 @@
 #define WEAK __attribute__((weak))
 #endif
 
+#include <stdint.h>
+extern uint32_t SysFreq;
+
 void WEAK reset_handler(void);
 void WEAK nmi_handler(void);
 void WEAK hard_fault_handler(void);

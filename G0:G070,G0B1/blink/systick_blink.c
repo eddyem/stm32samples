@@ -32,6 +32,7 @@ void sys_tick_handler(void){
  * Set up timer to fire every x milliseconds
  */
 static void systick_setup(uint32_t xms){ // xms < 2098!!!
+    blink_ctr = 0;
     static uint32_t curms = 0;
     if(curms == xms) return;
     // 8MHz - HCLK/8
@@ -65,6 +66,7 @@ int main(void){
             if(M & 1) pin_set(GPIOC, 1<<8);
             else pin_clear(GPIOC, 1<<8);
             if(++M == 18) M = 0;
+            while(blink_ctr == 0);
         }else{ // key pressed - blink with period of 1s
             if(pressed){
                 M = 0;

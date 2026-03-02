@@ -19,6 +19,8 @@
  */
 #include "vector.h"
 
+uint32_t SysFreq = 8000000;
+
 typedef void (*vector_table_entry_t)(void);
 typedef void (*funcp_t) (void);
 
@@ -39,6 +41,7 @@ void null_handler(void);
 #define NVIC_IRQ_COUNT 32
 
 #if defined(STM32G070xx)
+#define IRQ_HANDLERS \
     [WWDG_IRQn] = wwdg_isr, \
     [RTC_TAMP_IRQn] = rtc_isr, \
     [FLASH_IRQn] = flash_isr, \
