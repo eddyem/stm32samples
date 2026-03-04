@@ -1,6 +1,5 @@
 /*
- * This file is part of the test project.
- * Copyright 2026 Edward V. Emelianov <edward.emelianoff@gmail.com>.
+ * Copyright 2023 Edward V. Emelianov <edward.emelianoff@gmail.com>.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,25 +17,20 @@
 
 #pragma once
 
-#define USARTTXBUFSZ    (4096)
-#define USARTRXBUFSZ    (128)
-#define USARTTXDMABUFSZ (1024)
+#include <stdint.h>
 
-// blocking timeout - not more than 5ms
-#define USARTBLKTMOUT   (5)
-// send buffer each 10ms
-#define USARTSENDTMOUT  (10)
+typedef struct{
+    uint8_t *data;      // data buffer
+    const int length;   // its length
+    int head;           // head index
+    int tail;           // tail index
+    volatile int busy; // == TRUE if buffer is busy now
+} ringbuffer;
 
-typedef union{
-    struct{
-        uint8_t txerr   : 1; // transmit error
-        uint8_t rxovrfl : 1; // receive buffer overflow
-    };
-    uint8_t all;
-} USART_flags_t;
-
-void usart_setup(uint32_t speed);
-int usart_send(const char *str, int len);
-char *usart_getline();
-int usart_sendstr(const char *str);
-USART_flags_t usart_process();
+int RB_read(ringbuffer *b, uint8_t *s, int len);
+int RB_readto(ringbuffer *b, uint8_t byte, uint8_t *s, int len);
+int RB_hasbyte(ringbuffer *b, uint8_t byte);
+int RB_write(ringbuffer *b, const uint8_t *str, int l);
+int RB_datalen(ringbuffer *b);
+int RB_datalento(ringbuffer *b, uint8_t byte);
+int RB_clearbuf(ringbuffer *b);

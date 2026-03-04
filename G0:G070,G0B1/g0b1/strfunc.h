@@ -16,17 +16,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "hardware.h"
+#pragma once
 
-void gpio_setup(){
-    RCC->IOPENR = RCC_IOPENR_GPIOCEN | RCC_IOPENR_GPIOBEN | RCC_IOPENR_GPIOAEN;
-    // set PC8 as opendrain output, PC0 is pullup input, other as default (AIN)
-    GPIOC->MODER = (0xffffffff & ~(GPIO_MODER_MODE6 | GPIO_MODER_MODE13)) | GPIO_MODER_MODER6_O; // GPIO_MODER_MODER13_I == 0
-    GPIOC->PUPDR = GPIO_PUPDR13_PD; // pull down
-    // USART1: PB6 - Tx (AF0), PB7 - Rx (AF0)
-    GPIOB->MODER = (0xffffffff & ~(GPIO_MODER_MODE6 | GPIO_MODER_MODE7)) | MODER_AF(6) | MODER_AF(7);
-    GPIOB->AFR[0] = 0;
-    // RCC->CCIPR = 0; // default -> sysclk/pclk source
-    // USB: PA11/PA12 - AIN
-    //GPIOA->MODER = (0xffffffff & ~(GPIO_MODER_MODE11 | GPIO_MODER_MODE12)) | MODER_AI(11) | MODER_AI(12);
-}
+#include <stdint.h>
+#include <string.h>
+
+void hexdump(int (*sendfun)(const char *s), uint8_t *arr, uint16_t len);
+const char *u2str(uint32_t val);
+const char *i2str(int32_t i);
+const char *uhex2str(uint32_t val);
+const char *getnum(const char *txt, uint32_t *N);
+const char *omit_spaces(const char *buf);
+const char *getint(const char *txt, int32_t *I);

@@ -16,17 +16,20 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "hardware.h"
+#pragma once
 
-void gpio_setup(){
-    RCC->IOPENR = RCC_IOPENR_GPIOCEN | RCC_IOPENR_GPIOBEN | RCC_IOPENR_GPIOAEN;
-    // set PC8 as opendrain output, PC0 is pullup input, other as default (AIN)
-    GPIOC->MODER = (0xffffffff & ~(GPIO_MODER_MODE6 | GPIO_MODER_MODE13)) | GPIO_MODER_MODER6_O; // GPIO_MODER_MODER13_I == 0
-    GPIOC->PUPDR = GPIO_PUPDR13_PD; // pull down
-    // USART1: PB6 - Tx (AF0), PB7 - Rx (AF0)
-    GPIOB->MODER = (0xffffffff & ~(GPIO_MODER_MODE6 | GPIO_MODER_MODE7)) | MODER_AF(6) | MODER_AF(7);
-    GPIOB->AFR[0] = 0;
-    // RCC->CCIPR = 0; // default -> sysclk/pclk source
-    // USB: PA11/PA12 - AIN
-    //GPIOA->MODER = (0xffffffff & ~(GPIO_MODER_MODE11 | GPIO_MODER_MODE12)) | MODER_AI(11) | MODER_AI(12);
-}
+#include "stm32g0.h"
+
+// KEY (intpullup->0) - PC13
+// LED - PC6
+#define KEY_PORT        GPIOC
+#define KEY_PIN         (1<<13)
+#define LED_PORT        GPIOC
+#define LED_PIN         (1<<6)
+#define KEY_PRESSED()   (pin_read(KEY_PORT, KEY_PIN) == 1)
+#define LED_ON()        do{pin_set(LED_PORT, LED_PIN);}while(0)
+#define LED_OFF()       do{pin_clear(LED_PORT, LED_PIN);}while(0)
+#define LED_TOGGLE()    do{pin_toggle(LED_PORT, LED_PIN);}while(0)
+
+extern volatile uint32_t Tms;
+void gpio_setup();
