@@ -19,7 +19,7 @@
 #include "can.h"
 #include "hardware.h"
 #include "proto.h"
-#include "usb.h"
+#include "usb_dev.h"
 #include "version.inc"
 
 extern volatile uint8_t canerror;

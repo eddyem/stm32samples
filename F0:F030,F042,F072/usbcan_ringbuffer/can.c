@@ -19,7 +19,7 @@
 #include "can.h"
 #include "hardware.h"
 #include "proto.h"
-#include "usb.h"
+#include "usb_dev.h"
 
 // circular buffer for  received messages
 static CAN_message messages[CAN_INMESSAGE_SIZE];

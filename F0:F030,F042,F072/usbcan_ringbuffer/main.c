@@ -19,8 +19,7 @@
 #include "can.h"
 #include "hardware.h"
 #include "proto.h"
-#include "usb.h"
-#include "usb_lib.h"
+#include "usb_dev.h"
 
 #define MAXSTRLEN    128
 
