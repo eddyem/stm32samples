@@ -301,10 +301,14 @@ int EP_Init(uint8_t number, uint8_t type, uint16_t txsz, uint16_t rxsz, void (*f
 }
 
 // refresh EP after interface reconnected
-void EP_reset(uint8_t number){
-    if(number >= STM32ENDPOINTS) return;
-    USB->EPnR[number] ^= USB_EPnR_STAT_RX | USB_EPnR_STAT_TX;
-    USB_BTABLE->EP[number].USB_COUNT_TX = 0;
+void EP_reset(uint8_t epno){
+    if(epno >= STM32ENDPOINTS) return;
+    // keep DTOGs (don't write 1 to them), clear CTR (write 0 to them)
+    //      and set STAT to VALID (write 1 where was 0)
+    uint16_t epstatus = KEEP_DTOG(USB->EPnR[epno]);
+    USB->EPnR[epno] = (epstatus & ~(USB_EPnR_CTR_TX|USB_EPnR_CTR_RX)) ^
+                        (USB_EPnR_STAT_RX | USB_EPnR_STAT_TX);
+    USB_BTABLE->EP[epno].USB_COUNT_TX = 0;
 }
 
 // standard IRQ handler

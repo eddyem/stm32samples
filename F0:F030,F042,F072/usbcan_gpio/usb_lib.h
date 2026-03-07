@@ -345,7 +345,7 @@ int EP_Init(uint8_t number, uint8_t type, uint16_t txsz, uint16_t rxsz, void (*f
 void EP_WriteIRQ(uint8_t number, const uint8_t *buf, uint16_t size);
 void EP_Write(uint8_t number, const uint8_t *buf, uint16_t size);
 int EP_Read(uint8_t number, uint8_t *buf);
-void EP_reset(uint8_t number);
+void EP_reset(uint8_t epno);
 
 // could be [re]defined in usb_dev.c
 extern void usb_class_request(config_pack_t *packet, uint8_t *data, uint16_t datalen);

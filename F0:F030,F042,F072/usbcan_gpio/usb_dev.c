@@ -119,13 +119,15 @@ static void rxtx_handler(){
     }
 }
 
-// clear IN/OUT buffers on connection
-static void clearbufs(uint8_t ifno){
+static void clearRbuf(uint8_t ifno){
     uint32_t T0 = Tms;
     while(Tms - T0 < 10){ // wait no more than 10ms
         if(1 == RB_clearbuf((ringbuffer*)&rbin[ifno])) break;
     }
-    T0 = Tms;
+}
+
+static void clearTbuf(uint8_t ifno){
+    uint32_t T0 = Tms;
     while(Tms - T0 < 10){
         if(1 == RB_clearbuf((ringbuffer*)&rbout[ifno])) break;
     }
@@ -144,7 +146,8 @@ void clstate_handler(uint8_t ifno, uint16_t val){
     CDCready[ifno] = val; // CONTROL_DTR | CONTROL_RTS -> interface connected; 0 -> disconnected
     lastdsz[ifno] = -1;
     if(val){
-        clearbufs(ifno);
+        clearRbuf(ifno);
+        clearTbuf(ifno);
         EP_reset(EPNO(ifno));
         // usart_start(ifno);
     }//else usart_stop(ifno); // turn of USART (if it is @ this interface)
@@ -306,7 +309,7 @@ int USB_receive(uint8_t ifno, uint8_t *buf, int len){
     if(!CDCready[ifno]) return 0;
     chkin(ifno); // rxtx_handler could leave last message unwritten if buffer was busy
     if(bufovrfl[ifno]){
-        while(1 != RB_clearbuf((ringbuffer*)&rbin[ifno])); // run watchdog in case of problems
+        clearRbuf(ifno);
         bufovrfl[ifno] = 0;
         return -1;
     }
@@ -325,7 +328,7 @@ int USB_receivestr(uint8_t ifno, char *buf, int len){
     if(!CDCready[ifno]) return 0;
     chkin(ifno); // rxtx_handler could leave last message unwritten if buffer was busy
     if(bufovrfl[ifno]){
-        while(1 != RB_clearbuf((ringbuffer*)&rbin[ifno]));
+        clearRbuf(ifno);
         bufovrfl[ifno] = 0;
         return -1;
     }
@@ -333,7 +336,7 @@ int USB_receivestr(uint8_t ifno, char *buf, int len){
     if(l < 1){
         if((rbin[ifno].length <= RB_datalen((ringbuffer*)&rbin[ifno]) + 1) ||
             (RB_datalento((ringbuffer*)&rbin[ifno], '\n') > len - 1)){ // buffer is full but no '\n' found or string too long
-            while(1 != RB_clearbuf((ringbuffer*)&rbin[ifno]));
+            clearRbuf(ifno);
             return -1;
         }
         return 0;

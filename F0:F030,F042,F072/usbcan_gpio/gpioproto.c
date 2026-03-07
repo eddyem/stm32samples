@@ -104,7 +104,9 @@ static const char *cmd_parser(char *buf){
         case 'i':
             return setiface(buf);
         default:
-            return buf-1; // echo wrong data
+            // echo wrong data with terminating '\n'
+            SENDn(buf-1);
+            return NULL;
         }
     }
     // "short" commands
@@ -138,8 +140,9 @@ static const char *cmd_parser(char *buf){
 void GPIO_process(){
     char inbuff[MAXSTRLEN];
     int l = RECV(inbuff, MAXSTRLEN);
+    if(l == 0) return;
     if(l < 0) SEND("ERROR: USB buffer overflow or string was too long\n");
-    else if(l){
+    else{
         const char *ans = cmd_parser(inbuff);
         if(ans) SEND(ans);
     }

@@ -1,0 +1,1 @@
+add fixes to ringbuffer and make EP_reset @ each reconnection (like in F0/usbcan_gpio).
