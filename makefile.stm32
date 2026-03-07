@@ -13,6 +13,7 @@ PREFIX		?= /opt/bin/arm-none-eabi
 RM			:= rm -f
 RMDIR		:= rmdir
 CC			:= $(PREFIX)-gcc
+CPP			:= $(PREFIX)-g++
 # don't replace ld with gcc: the binary size would be much greater!!
 LD			:= $(PREFIX)-gcc
 AR			:= $(PREFIX)-ar
@@ -33,7 +34,8 @@ TARGFILE := $(OBJDIR)/TARGET
 # autoincremental version & build date
 VERSION_FILE = version.inc
 SRC			:= $(wildcard *.c)
-OBJS		:= $(addprefix $(OBJDIR)/, $(SRC:%.c=%.o))
+SRCPP		:= $(wildcard *.cpp)
+OBJS		:= $(addprefix $(OBJDIR)/, $(SRC:%.c=%.o) $(SRCPP:%.cpp=%.o))
 STARTUP		:= $(OBJDIR)/startup.o
 MAP			:= $(OBJDIR)/$(BINARY).map
 OBJS 		+= $(STARTUP)
@@ -132,6 +134,10 @@ $(OBJDIR)/%.o: %.c
 	@echo "  CC      $<"
 	$(CC) $(CFLAGS) $(DEFS) $(INCLUDE) -o $@ -c $<
 
+$(OBJDIR)/%.o: %.cpp
+	@echo "  C++     $<"
+	$(CPP) -c $(CFLAGS) -fno-exceptions $(DEFS) $(INCLUDE) -o $@ -c $<
+
 $(BIN): $(ELF)
 	@echo "  OBJCOPY $(BIN)"
 	$(OBJCOPY) -Obinary $(ELF) $(BIN)
@@ -158,7 +164,7 @@ clean:
 
 flash: $(BIN)
 	@echo "  FLASH  $(BIN)"
-	$(STFLASH) --reset write $(BIN) 0x8000000
+	$(STFLASH) write $(BIN) 0x8000000
 	$(STFLASH) reset
 
 boot: $(BIN)

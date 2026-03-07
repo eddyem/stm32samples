@@ -90,9 +90,11 @@ static const char* setCANspeed(char *buf){
     return sOKn;
 }
 
+#include "hashparser.h"
 static const char *cmd_parser(char *buf){
     if(!buf || !*buf) return NULL;
     if(strlen(buf) > 1){
+        chk(buf);
         // "long" commands
         char c = *buf++;
         switch(c){

@@ -8,6 +8,11 @@ gpioproto.c
 gpioproto.h
 hardware.c
 hardware.h
+hashgen/Readme
+hashgen/hashgen.c
+hashgen/mktestdic
+hashparser.cpp
+hashparser.h
 main.c
 ringbuffer.c
 ringbuffer.h
