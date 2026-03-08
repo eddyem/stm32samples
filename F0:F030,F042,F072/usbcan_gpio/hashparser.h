@@ -21,6 +21,7 @@
 // error codes for answer message
 typedef enum{
     ERR_OK,         // all OK
+    ERR_BADCMD,     // wrong command
     ERR_BADPAR,     // wrong parameter
     ERR_BADVAL,     // wrong value (for setter)
     ERR_WRONGLEN,   // wrong message length
@@ -29,6 +30,8 @@ typedef enum{
 } errcodes_t;
 
 // maximal length of command (without trailing zero)
-#define CMD_MAXLEN  (15)
+#define CMD_MAXLEN  15
+// maximal available parameter number
+#define MAXPARNO    255
 
 void chk(char *str);

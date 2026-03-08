@@ -39,6 +39,18 @@ static int write2flash(const void*, const void*, uint32_t);
 //      'memcpy' forming offset 8 is out of the bounds [0, 4] of object '__varsstart' with type 'uint32_t'
 const user_conf *Flash_Data = (const user_conf *)(&__varsstart);
 
+// default pin config: all are low speed floating inputs
+#define PINEN   {.enable = 1}
+// GPIOA, enabled: PA0-PA3, PA5-PA7, PA9, PA10
+#define PACONF \
+[0] = PINEN, [1] = PINEN, [2] = PINEN, [3] = PINEN, [5] = PINEN, \
+[6] = PINEN, [7] = PINEN, [9] = PINEN, [10] = PINEN
+
+// GPIOB, enabled: PB0-PB7, PB10, PB11
+#define PBCONF \
+[0] = PINEN, [1] = PINEN, [2] = PINEN, [3] = PINEN, [4] = PINEN, \
+[5] = PINEN, [6] = PINEN, [7] = PINEN, [10] = PINEN, [11] = PINEN
+
 user_conf the_conf = {
     .userconf_sz = sizeof(user_conf),
     .CANspeed = 100,
@@ -47,6 +59,7 @@ user_conf the_conf = {
         [IGPIO] = u"USB-GPIO",
     },
     .iIlengths = {14, 16},
+    .pinconfig = {[0] = {PACONF}, [1] = {PBCONF}},
 };
 
 int currentconfidx = -1; // index of current configuration

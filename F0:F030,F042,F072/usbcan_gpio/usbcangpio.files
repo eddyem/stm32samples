@@ -4,6 +4,8 @@ canproto.c
 canproto.h
 flash.c
 flash.h
+gpio.c
+gpio.h
 gpioproto.c
 gpioproto.h
 hardware.c
