@@ -20,6 +20,17 @@
 
 #include <stdint.h>
 
+#ifdef EBUG
+#define USBIF   IGPIO
+#include "strfunc.h"
+#define DBG(x)  SEND(x)
+#define DBGNL() NL()
+#else
+#define DBG(x)
+#define DBGNL()
+#endif
+
+
 // MODER
 typedef enum{
     MODE_INPUT = 0,
@@ -48,11 +59,15 @@ typedef enum{
     SPEED_HIGH = 3
 } pinspeed_t;
 
-enum FuncShifts{ // shift 1 by this to get "canUSART" etc; not more than 7!
+// !!! FuncNames means position of bit in funcvalues_t.flags!
+enum FuncNames{ // shift 1 by this to get "canUSART" etc; not more than 7!
+    FUNC_AIN = 0,
     FUNC_USART = 1,
     FUNC_SPI = 2,
+    FUNC_I2C = 3,
+    FUNC_AMOUNT // just for arrays' sizes
 };
-
+/*
 typedef union{
     struct{
         uint8_t canADC : 1;
@@ -61,14 +76,15 @@ typedef union{
     };
     uint8_t flags;
 } funcvalues_t;
-
+*/
 typedef struct{
     uint8_t enable : 1; // [immutable!] pin config avialable (==1 for PA0-PA3, PA5-PA7, PA9, PA10, PB0-PB7, PB10, PB11, ==0 for rest)
     pinmode_t mode : 2;
     pinpull_t pull : 2;
     pinout_t otype : 1;
     pinspeed_t speed : 2;
-    uint8_t af : 3;       // alternate function number (only if mode == MODE_AF)
+    uint8_t afno : 3;     // alternate function number (only if mode == MODE_AF)
+    uint8_t af : 3;       // alternate function name (`FuncNames`)
     uint8_t monitor : 1;  // monitor changes
 } pinconfig_t;
 
@@ -88,5 +104,31 @@ typedef struct{
     uint8_t enabled : 1;
 } spiconfig_t;
 
-int is_func_allowed(uint8_t port, uint8_t pin, pinconfig_t *pcfg);
+// strings for keywords
+extern const char *str_keywords[];
+#define KEYWORDS \
+KW(AIN) \
+KW(IN) \
+KW(OUT) \
+KW(AF) \
+KW(PU)\
+KW(PD) \
+KW(FL) \
+KW(PP) \
+KW(OD) \
+KW(USART) \
+KW(SPI) \
+KW(I2C) \
+KW(MONITOR)
+
+enum{ // indexes of string keywords
+#define KW(k) STR_ ## k,
+    KEYWORDS
+#undef KW
+};
+
+int set_pinfunc(uint8_t port, uint8_t pin, pinconfig_t *pcfg);
 int gpio_reinit();
+int pin_out(uint8_t port, uint8_t pin, uint8_t newval);
+int16_t pin_in(uint8_t port, uint8_t pin);
+uint16_t gpio_alert(uint8_t port);

@@ -44,8 +44,8 @@ void linecoding_handler(uint8_t ifno, usb_LineCoding *lc);
 #define DISCONN_TMOUT   (2)
 
 // sizes of ringbuffers for outgoing and incoming data
-#define RBOUTSZ     (1024)
-#define RBINSZ      (1024)
+#define RBOUTSZ     (512)
+#define RBINSZ      (256)
 
 #define newline(ifno)   USB_putbyte(ifno, '\n')
 #define USND(ifno, s)   do{USB_sendstr(ifno, s); USB_putbyte(ifno, '\n');}while(0)

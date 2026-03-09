@@ -21,6 +21,7 @@
 uint8_t ledsON = 0;
 
 void gpio_setup(void){
+    // enable all active GPIO clocking
     RCC->AHBENR |= RCC_AHBENR_GPIOAEN | RCC_AHBENR_GPIOBEN;
     // Set LEDS (PB15/PA8) as output
     pin_set(LED0_port, LED0_pin); // clear LEDs

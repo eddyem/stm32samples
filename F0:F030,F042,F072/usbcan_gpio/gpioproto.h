@@ -18,4 +18,20 @@
 
 #pragma once
 
+// error codes for answer message
+typedef enum{
+    ERR_OK,         // all OK
+    ERR_BADCMD,     // wrong command
+    ERR_BADPAR,     // wrong parameter
+    ERR_BADVAL,     // wrong value (for setter)
+    ERR_WRONGLEN,   // wrong message length
+    ERR_CANTRUN,    // can't run given command due to bad parameters or other
+    ERR_AMOUNT      // amount of error codes or "send nothing"
+} errcodes_t;
+
+// maximal length of command (without trailing zero)
+#define CMD_MAXLEN  15
+// maximal available parameter number
+#define MAXPARNO    255
+
 void GPIO_process();

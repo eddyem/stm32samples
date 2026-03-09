@@ -11,5 +11,5 @@ DEFINES := -DUSB2_16
 include ../makefile.f0
 include ../../makefile.stm32
 
-$(OBJDIR)/gpioproto.o: gpioproto.c $(VERSION_FILE)
+$(OBJDIR)/gpioproto.o: gpioproto.cpp $(VERSION_FILE)
 $(OBJDIR)/canproto.o: canproto.c $(VERSION_FILE)
