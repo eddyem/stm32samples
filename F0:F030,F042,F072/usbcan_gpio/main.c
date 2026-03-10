@@ -33,7 +33,7 @@ int main(void){
     sysreset();
     SysTick_Config(6000, 1);
     flashstorage_init();
-    gpio_setup();
+    hardware_setup();
     USB_setup();
     CAN_setup(the_conf.CANspeed);
     RCC->CSR |= RCC_CSR_RMVF; // remove reset flags

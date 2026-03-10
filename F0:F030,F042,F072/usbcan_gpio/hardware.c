@@ -16,20 +16,28 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "adc.h"
+#include "gpio.h"
 #include "hardware.h"
 
 uint8_t ledsON = 0;
 
-void gpio_setup(void){
-    // enable all active GPIO clocking
-    RCC->AHBENR |= RCC_AHBENR_GPIOAEN | RCC_AHBENR_GPIOBEN;
+TRUE_INLINE void gpio_setup(){ // setup some common GPIO
     // Set LEDS (PB15/PA8) as output
     pin_set(LED0_port, LED0_pin); // clear LEDs
     pin_set(LED1_port, LED1_pin);
     GPIOB->MODER = (GPIOB->MODER & ~(GPIO_MODER_MODER15)) |
-                    GPIO_MODER_MODER15_O;
+                   GPIO_MODER_MODER15_O;
     GPIOA->MODER = (GPIOA->MODER & ~(GPIO_MODER_MODER8)) |
                    GPIO_MODER_MODER8_O;
+}
+
+void hardware_setup(){
+    // enable all active GPIO clocking
+    RCC->AHBENR |= RCC_AHBENR_GPIOAEN | RCC_AHBENR_GPIOBEN;
+    gpio_setup();
+    //gpio_reinit();
+    adc_setup();
 }
 
 void iwdg_setup(){

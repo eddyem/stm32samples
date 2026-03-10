@@ -78,14 +78,15 @@ typedef union{
 } funcvalues_t;
 */
 typedef struct{
-    uint8_t enable : 1; // [immutable!] pin config avialable (==1 for PA0-PA3, PA5-PA7, PA9, PA10, PB0-PB7, PB10, PB11, ==0 for rest)
+    uint8_t enable : 1;  // [immutable!] pin config avialable (==1 for PA0-PA3, PA5-PA7, PA9, PA10, PB0-PB7, PB10, PB11, ==0 for rest)
     pinmode_t mode : 2;
     pinpull_t pull : 2;
     pinout_t otype : 1;
     pinspeed_t speed : 2;
-    uint8_t afno : 3;     // alternate function number (only if mode == MODE_AF)
-    uint8_t af : 3;       // alternate function name (`FuncNames`)
-    uint8_t monitor : 1;  // monitor changes
+    uint8_t afno : 3;    // alternate function number (only if mode == MODE_AF)
+    uint8_t af : 3;      // alternate function name (`FuncNames`)
+    uint8_t monitor : 1; // monitor changes
+    uint16_t threshold;  // threshold for ADC measurement
 } pinconfig_t;
 
 typedef struct{
@@ -119,7 +120,8 @@ KW(OD) \
 KW(USART) \
 KW(SPI) \
 KW(I2C) \
-KW(MONITOR)
+KW(MONITOR) \
+KW(THRESHOLD)
 
 enum{ // indexes of string keywords
 #define KW(k) STR_ ## k,

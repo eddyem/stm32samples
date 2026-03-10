@@ -10,3 +10,6 @@ The old USB-CAN is available as earlier by /dev/USB-CANx, also you can see new d
 New interface allows you to configure GPIO and use it's base functions: in/out/ADC.
 
 
+## DMA channels
+
+DMA1 channel1: ADC.

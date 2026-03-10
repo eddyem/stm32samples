@@ -19,10 +19,11 @@
 #include <stm32f0.h>
 #include <string.h>
 
+#include "adc.h"
 #include "flash.h"
 #include "gpio.h"
 
-static uint16_t monitor_mask[2] = {0}; // pins to monitor == 1 (ONLY GPIO!!!)
+static uint16_t monitor_mask[2] = {0}; // pins to monitor == 1 (ONLY GPIO and ADC)
 static uint16_t oldstates[2][16] = {0}; // previous state (16 bits - as some pins could be analog)
 
 // strings for keywords
@@ -134,6 +135,22 @@ int set_pinfunc(uint8_t port, uint8_t pin, pinconfig_t *pcfg){
     return TRUE;
 }
 
+/**
+ * @brief get_adc_channel - get ADC channel number for given pin
+ * @param port - 0/1 (GPIOA/GPIOB)
+ * @param pin - 0..16
+ * @return ADC channel number or -1
+ */
+TRUE_INLINE int8_t get_adc_channel(uint8_t port, uint8_t pin){
+    if(port == 0){ // GPIOA
+        if (pin <= 7) return pin; // PA0..PA7 -> IN0..IN7
+    }else{ // GPIOB
+        if(pin == 0) return 8; // PB0 -> IN8
+        if(pin == 1) return 9; // PB1 -> IN9
+    }
+    return -1; // No ADC channel on this pin
+}
+
 // reinit all GPIO registers due to config; also configure (if need) USART1/2, SPI1 and I2C1
 int gpio_reinit(){
     bzero(monitor_mask, sizeof(monitor_mask));
@@ -167,7 +184,19 @@ int gpio_reinit(){
                 int shift4 = (pin - 8) << 4;
                 gpio->AFR[1] = (gpio->AFR[1] & ~(0xf << shift4)) | (cfg->afno << shift4);
             }
-            if(cfg->monitor && cfg->mode != MODE_AF) monitor_mask[port] |= (1 << pin);
+            if(cfg->monitor && cfg->mode != MODE_AF){
+                monitor_mask[port] |= (1 << pin);
+                if(cfg->mode == MODE_ANALOG){
+                    if(cfg->threshold > 4095) cfg->threshold = 4095; // no threshold
+                    int8_t chan = get_adc_channel(port, pin);
+                    if(chan >= 0){
+                        oldstates[port][pin] = getADCval(chan);
+                    }
+                }else{
+                    // цифровой режим  сохраняем текущее состояние IDR
+                    oldstates[port][pin] = (gpio->IDR >> pin) & 1;
+                }
+            }
         }
     }
     // TODO: configure USART, SPI etc
@@ -216,8 +245,14 @@ int16_t pin_in(uint8_t port, uint8_t pin){
         if(GPIOx->IDR & (1<<pin)) val = 1;
         else val = 0;
     break;
-        // case MODE_ANALOG:
-    default: // TODO: add ADC!
+    case MODE_ANALOG:{
+        int8_t chan = get_adc_channel(port, pin);
+        if(chan >= 0){
+            return (int16_t)getADCval(chan); // getADCval возвращает uint16_t
+        }
+    }
+        break;
+    default:
         break;
     }
     return val;
@@ -241,11 +276,22 @@ uint16_t gpio_alert(uint8_t port){
         uint8_t curm = moder & 3;
         if((curm == MODE_AF) || 0 == (monitor_mask[port] & curpinbit)) continue; // monitor also OUT (if OD)
         // TODO: add AIN
-        if(curm == MODE_ANALOG) continue;
-        uint16_t curval = (GPIOx->IDR & curpinbit) ? 1 : 0;
-        if(oldstate[pin] != curval){
-            oldstate[pin] = curval;
-            alert |= curpinbit;
+        if(curm == MODE_ANALOG){
+            int8_t chan = get_adc_channel(port, pin);
+            if(chan < 0) continue; // can't be in normal case
+            uint16_t cur = getADCval(chan);
+            uint16_t thresh = the_conf.pinconfig[port][pin].threshold;
+            uint16_t diff = (cur > oldstate[pin]) ? (cur - oldstate[pin]) : (oldstate[pin] - cur);
+            if(diff > thresh){
+                oldstate[pin] = cur;
+                alert |= curpinbit;
+            }
+        }else{
+            uint16_t curval = (GPIOx->IDR & curpinbit) ? 1 : 0;
+            if(oldstate[pin] != curval){
+                oldstate[pin] = curval;
+                alert |= curpinbit;
+            }
         }
     }
     return alert;

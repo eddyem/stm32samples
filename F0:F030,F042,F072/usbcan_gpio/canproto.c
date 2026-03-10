@@ -337,11 +337,11 @@ TRUE_INLINE void getcanstat(){
 }
 
 /**
- * @brief cmd_parser - command parsing
+ * @brief CommandParser - command parsing
  * @param txt   - buffer with commands & data
  * @param isUSB - == 1 if data got from USB
  */
-static void cmd_parser(char *txt){
+static void CommandParser(char *txt){
     char _1st = txt[0];
     ++txt;
     /*
@@ -479,5 +479,5 @@ void CANUSB_process(){
     }
     int l = RECV(inbuff, MAXSTRLEN);
     if(l < 0) SEND("ERROR: USB buffer overflow or string was too long\n");
-    else if(l) cmd_parser(inbuff);
+    else if(l) CommandParser(inbuff);
 }

@@ -22,6 +22,7 @@
 
 extern "C"{
 #include <stm32f0.h>
+#include "adc.h"
 #include "can.h"
 #include "flash.h"
 #include "gpioproto.h"
@@ -43,6 +44,7 @@ extern volatile uint32_t Tms;
     COMMAND(dumpconf,   "dump current configuration") \
     COMMAND(eraseflash, "erase full flash storage") \
     COMMAND(help,       "show this help") \
+    COMMAND(mcutemp,    "get MCU temperature (degC*10)") \
     COMMAND(mcureset,   "reset MCU") \
     COMMAND(PA,         "GPIOA setter/getter (type PA0=help for further info)") \
     COMMAND(PB,         "GPIOB setter/getter") \
@@ -52,7 +54,8 @@ extern volatile uint32_t Tms;
     COMMAND(sendcan,    "send all after '=' to CAN USB interface") \
     COMMAND(setiface,   "set/get name of interface x (0 - CAN, 1 - GPIO)") \
     COMMAND(storeconf,  "save config to flash") \
-    COMMAND(time,       "show current time (ms)")
+    COMMAND(time,       "show current time (ms)") \
+    COMMAND(vdd,        "get approx Vdd value (V*100)")
 
 //    COMMAND(USART,      "Read USART data or send (USART=hex)")
 //    COMMAND(usartconf,  "set USART params (e.g. usartconf=115200 8N1)")
@@ -93,6 +96,7 @@ enum KeywordGroup {
 
 enum MiscValues{
     MISC_MONITOR = 1,
+    MISC_THRESHOLD
 };
 
 static const Keyword keywords[] = {
@@ -110,6 +114,7 @@ static const Keyword keywords[] = {
     KEY(SPI, GROUP_FUNC,  FUNC_SPI)
     KEY(I2C, GROUP_FUNC, FUNC_I2C)
     KEY(MONITOR, GROUP_MISC,  MISC_MONITOR)
+    KEY(THRESHOLD, GROUP_MISC,  MISC_THRESHOLD)
 #undef K
 };
 #define NUM_KEYWORDS (sizeof(keywords)/sizeof(keywords[0]))
@@ -129,10 +134,17 @@ static const char *pinhelp =
     "  PULL: PU, PD or FL (pullup, pulldown, no pull - floating)\n"
     "  OTYPE: PP or OD (push-pull or open-drain)\n"
     "  FUNC: USART or SPI (enable alternate function and configure peripheal)\n"
-    "  MISC: MONITOR (send data by USB as only state changed)\n\n"
+    "  MISC: MONITOR - send data by USB as only state changed\n"
+    "        THRESHOLD (ADC only) - monitoring threshold, ADU\n"
+    "\n"
     ;
 
 static const char *EQ = " = "; // equal sign for getters
+
+// send `command = `
+#define CMDEQ()   do{SEND(cmd); SEND(EQ);}while(0)
+// send `commandXXX = `
+#define CMDEQP(x)   do{SEND(cmd); SEND(u2str((uint32_t)x)); SEND(EQ);}while(0)
 
 /**
  * @brief splitargs - get command parameter and setter from `args`
@@ -201,8 +213,19 @@ static errcodes_t pin_setter(uint8_t port, uint8_t pin, char *setter){
     // complex setter: parse properties
     uint8_t mode_set = 0xFF, pull_set = 0xFF, otype_set = 0xFF, func_set = 0xFF;
     bool monitor = false;
+    uint16_t *pending_num = NULL; // pointer to UINT16 value, if !NULL, next token should be a number
+    pinconfig_t curconf = the_conf.pinconfig[port][pin]; // copy old config
     char *saveptr, *token = strtok_r(setter, " ,", &saveptr);
     while(token){
+        if(pending_num){
+            int32_t val;
+            char *end = getint(token, &val);
+            if(end == token || val < 0 || val > 0xFFFF) return ERR_BADVAL;
+            *pending_num = (uint16_t)val;
+            pending_num = NULL;  // reset
+            token = strtok_r(NULL, " ,", &saveptr);
+            continue;
+        }
         size_t i = 0;
         for(; i < NUM_KEYWORDS; i++){
             if(strcmp(token, str_keywords[keywords[i].index]) == 0){
@@ -229,8 +252,14 @@ static errcodes_t pin_setter(uint8_t port, uint8_t pin, char *setter){
                     break;
                 case GROUP_MISC:
                     DBG("GROUP_MISC\n");
-                    if(keywords[i].value == MISC_MONITOR) monitor = true;
-                    break;
+                    switch(keywords[i].value){
+                    case MISC_MONITOR:
+                        monitor = true;
+                        break;
+                    case MISC_THRESHOLD:
+                        pending_num = &curconf.threshold;
+                        break;
+                    }
                 }
                 break;
             }
@@ -238,6 +267,7 @@ static errcodes_t pin_setter(uint8_t port, uint8_t pin, char *setter){
         if(i == NUM_KEYWORDS) return ERR_BADVAL; // not found
         token = strtok_r(NULL, " ,", &saveptr);
     }
+    if(pending_num) return ERR_BADVAL; // no number that we waiting for
     if(func_set != 0xFF) mode_set = MODE_AF;
     if(mode_set == 0xFF) return ERR_BADVAL; // user forgot to set mode
     // set defaults
@@ -245,7 +275,6 @@ static errcodes_t pin_setter(uint8_t port, uint8_t pin, char *setter){
     if(otype_set == 0xFF) otype_set = OUTPUT_PP;
     // can also do something with `speed_set`, then remove SPEED_MEDIUM from `curconfig`
     // check that current parameters combination is acceptable for current pin
-    pinconfig_t curconf;
     curconf.mode = static_cast <pinmode_t> (mode_set);
     curconf.pull = static_cast <pinpull_t> (pull_set);
     curconf.otype = static_cast <pinout_t> (otype_set);
@@ -301,12 +330,14 @@ static errcodes_t cmd_canspeed(const char *cmd, char *args){
         if(S < CAN_MIN_SPEED || S > CAN_MAX_SPEED) return ERR_BADVAL;
         the_conf.CANspeed = S;
     }
-    SEND(cmd); PUTCHAR('='); SENDn(u2str(the_conf.CANspeed));
+    CMDEQ();
+    SENDn(u2str(the_conf.CANspeed));
     return ERR_AMOUNT;
 }
 
 static errcodes_t cmd_curcanspeed(const char *cmd, char _U_ *args){
-    SEND(cmd); PUTCHAR('='); SENDn(u2str(CAN_getspeed()));
+    CMDEQ();
+    SENDn(u2str(CAN_getspeed()));
     return ERR_AMOUNT;
 }
 
@@ -350,6 +381,11 @@ static errcodes_t cmd_dumpconf(const char _U_ *cmd, char _U_ *args){
                 break;
             case MODE_ANALOG:
                 S(AIN);
+                if(p->threshold){
+                    SP(THRESHOLD);
+                    PUTCHAR(' ');
+                    SEND(u2str(p->threshold));
+                }
                 break;
             case MODE_AF:
                 switch(p->af){
@@ -430,7 +466,7 @@ static errcodes_t cmd_setiface(const char* cmd, char *args){
         }
     }
     // getter
-    SEND(cmd); PUTCHAR('=');
+    CMDEQP(N);
     char *ptr = (char*) the_conf.iInterface[N];
     int l = the_conf.iIlengths[N] / 2;
     for(int j = 0; j < l; ++j){
@@ -446,11 +482,13 @@ static errcodes_t cmd_sendcan(const char _U_ *cmd, char *args){
     char *setter = splitargs(args, NULL);
     if(!setter) return ERR_BADVAL;
     if(USB_sendstr(ICAN, setter)) return ERR_OK;
+    USB_putbyte(ICAN, '\n');
     return ERR_CANTRUN;
 }
 
 static errcodes_t cmd_time(const char *cmd, char _U_ *args){
-    SEND(cmd); PUTCHAR('='); SENDn(u2str(Tms));
+    CMDEQ();
+    SENDn(u2str(Tms));
     return ERR_AMOUNT;
 }
 
@@ -474,6 +512,18 @@ static errcodes_t cmd_eraseflash(const char _U_ *cmd, char _U_ *args){
     return ERR_OK;
 }
 
+static errcodes_t cmd_mcutemp(const char *cmd, char _U_ *args){
+    CMDEQ();
+    SENDn(i2str(getMCUtemp()));
+    return ERR_AMOUNT;
+}
+
+static errcodes_t cmd_vdd(const char *cmd, char _U_ *args){
+    CMDEQ();
+    SENDn(u2str(getVdd()));
+    return ERR_AMOUNT;
+}
+
 static errcodes_t cmd_help(const char _U_ *cmd, char _U_ *args){
     SEND(REPOURL);
     for(size_t i = 0; i < sizeof(cmdInfo)/sizeof(cmdInfo[0]); i++){
@@ -490,7 +540,7 @@ constexpr uint32_t hash(const char* str, uint32_t h = 0){
 
 // TODO: add checking real command length!
 
-static const char *cmd_parser(char *str){
+static const char *CommandParser(char *str){
     char command[CMD_MAXLEN+1];
     int i = 0;
     while(*str > '@' && i < CMD_MAXLEN){ command[i++] = *str++; }
@@ -524,7 +574,7 @@ void GPIO_process(){
     if(l == 0) return;
     if(l < 0) SEND("ERROR: USB buffer overflow or string was too long\n");
     else{
-        const char *ans = cmd_parser(inbuff);
+        const char *ans = CommandParser(inbuff);
         if(ans) SENDn(ans);
     }
 }

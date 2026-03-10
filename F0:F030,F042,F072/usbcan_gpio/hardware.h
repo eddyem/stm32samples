@@ -44,7 +44,7 @@ extern volatile uint32_t Tms;
 
 extern uint8_t ledsON;
 
-void gpio_setup(void);
+void hardware_setup();
 void iwdg_setup();
 #ifdef STM32F072xB
 void Jump2Boot();

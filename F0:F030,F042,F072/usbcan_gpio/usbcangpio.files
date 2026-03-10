@@ -1,3 +1,5 @@
+adc.c
+adc.h
 can.c
 can.h
 canproto.c

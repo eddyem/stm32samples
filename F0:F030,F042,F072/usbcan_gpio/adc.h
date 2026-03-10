@@ -17,24 +17,14 @@
  */
 
 #pragma once
+#include <stdint.h>
 
-// error codes for answer message
-typedef enum{
-    ERR_OK,         // all OK
-    ERR_BADCMD,     // wrong command
-    ERR_BADPAR,     // wrong parameter
-    ERR_BADVAL,     // wrong value (for setter)
-    ERR_WRONGLEN,   // wrong message length
-    ERR_CANTRUN,    // can't run given command due to bad parameters or other
-    ERR_AMOUNT      // amount of error codes or "send nothing"
-} errcodes_t;
+// 10 ADC ins + VDD + MCUt
+#define NUM_EXT_ADC_CH   10
+#define MAX_ADC_CHANNELS    (NUM_EXT_ADC_CH+2)
 
-// maximal length of command (without trailing zero)
-#define CMD_MAXLEN  15
-// maximal available parameter number
-#define MAXPARNO    255
-
-// default threshold for monitoring
-#define ADC_THRES_DEFAULT   100
-
-void GPIO_process();
+int32_t getMCUtemp();
+uint32_t getVdd();
+uint16_t getADCval(int nch);
+void adc_setup();
+uint16_t *getUval();
