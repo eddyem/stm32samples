@@ -20,6 +20,8 @@ ringbuffer.c
 ringbuffer.h
 strfunc.c
 strfunc.h
+usart.c
+usart.h
 usb.c
 usb.h
 usb_defs.h

@@ -28,6 +28,7 @@ extern "C"{
 #include "gpioproto.h"
 #include "gpio.h"
 #include "gpioproto.h"
+#include "usart.h"
 #undef USBIF
 #define USBIF   IGPIO
 #include "strfunc.h"
@@ -571,6 +572,7 @@ void GPIO_process(){
             if(alert & pinmask) pin_getter(port, i);
         }
     }
+  usart_process(NULL, 0);
     if(l == 0) return;
     if(l < 0) SEND("ERROR: USB buffer overflow or string was too long\n");
     else{

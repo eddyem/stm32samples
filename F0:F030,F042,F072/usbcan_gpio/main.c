@@ -17,10 +17,10 @@
  */
 
 #include "can.h"
+#include "canproto.h"
 #include "flash.h"
 #include "gpioproto.h"
 #include "hardware.h"
-#include "canproto.h"
 
 volatile uint32_t Tms = 0;
 

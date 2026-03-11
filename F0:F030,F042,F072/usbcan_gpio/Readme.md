@@ -12,4 +12,9 @@ New interface allows you to configure GPIO and use it's base functions: in/out/A
 
 ## DMA channels
 
-DMA1 channel1: ADC.
+DMA1 channel 1: ADC
+
+DMA1 channel 4: USART[1,2]_TX
+
+DMA1 channel 5: USART[1,2]_RX
+

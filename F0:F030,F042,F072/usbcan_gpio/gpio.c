@@ -22,6 +22,7 @@
 #include "adc.h"
 #include "flash.h"
 #include "gpio.h"
+#include "usart.h"
 
 static uint16_t monitor_mask[2] = {0}; // pins to monitor == 1 (ONLY GPIO and ADC)
 static uint16_t oldstates[2][16] = {0}; // previous state (16 bits - as some pins could be analog)
@@ -155,6 +156,7 @@ TRUE_INLINE int8_t get_adc_channel(uint8_t port, uint8_t pin){
 int gpio_reinit(){
     bzero(monitor_mask, sizeof(monitor_mask));
     bzero(oldstates, sizeof(oldstates));
+    usartconf_t UC = {0}; // fill next
     for(int port = 0; port < 2; port++){
         GPIO_TypeDef *gpio = (port == 0) ? GPIOA : GPIOB;
         for(int pin = 0; pin < 16; pin++){
@@ -200,6 +202,9 @@ int gpio_reinit(){
         }
     }
     // TODO: configure USART, SPI etc
+    if(UC.No && usart_config(&UC)){
+        if(!usart_start()) return FALSE;
+    }
     // also chech cfg->monitor!
     return TRUE;
 }
