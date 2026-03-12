@@ -89,14 +89,7 @@ typedef struct{
     uint16_t threshold;  // threshold for ADC measurement
 } pinconfig_t;
 
-typedef struct{
-    uint32_t baudrate;
-    uint8_t databits;   // 8 or 9
-    char parity;        // 'N','E','O'
-    uint8_t stopbits;   // 1 or 2
-    uint8_t enabled;    // is USART active (flag `monitor` taken from pinconfig_t also as Rx/Tx enable)
-} usartconfig_t;
-
+/*
 typedef struct{
     uint32_t speed;
     uint8_t cpol : 1;
@@ -104,6 +97,7 @@ typedef struct{
     uint8_t lsbfirst : 1;
     uint8_t enabled : 1;
 } spiconfig_t;
+*/
 
 // strings for keywords
 extern const char *str_keywords[];
@@ -121,7 +115,9 @@ KW(USART) \
 KW(SPI) \
 KW(I2C) \
 KW(MONITOR) \
-KW(THRESHOLD)
+KW(THRESHOLD) \
+KW(SPEED) \
+KW(TEXT)
 
 enum{ // indexes of string keywords
 #define KW(k) STR_ ## k,
@@ -129,8 +125,14 @@ enum{ // indexes of string keywords
 #undef KW
 };
 
+int is_disabled(uint8_t port, uint8_t pin);
+int chkpinconf();
+
 int set_pinfunc(uint8_t port, uint8_t pin, pinconfig_t *pcfg);
+int get_curpinconf(uint8_t port, uint8_t pin, pinconfig_t *c);
+
 int gpio_reinit();
+
 int pin_out(uint8_t port, uint8_t pin, uint8_t newval);
 int16_t pin_in(uint8_t port, uint8_t pin);
 uint16_t gpio_alert(uint8_t port);

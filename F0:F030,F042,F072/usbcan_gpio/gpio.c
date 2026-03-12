@@ -34,6 +34,11 @@ const char *str_keywords[] = {
 #undef KW
 };
 
+// intermediate buffer to change pin's settings by user request; after checking in will be copied to the_conf
+static pinconfig_t pinconfig[2][16] = {0};
+static uint8_t pinconfig_notinited = 1; // ==0 after first memcpy from the_conf to pinconfig
+#define CHKPINCONFIG()  do{if(pinconfig_notinited) chkpinconf();}while(0)
+
 // TODO: remove AFmask, make function to get right AF number by pin's FuncValues
 typedef struct{
     uint8_t funcs;  // bitmask according to enum FuncNames
@@ -56,32 +61,171 @@ static const pinprops_t pin_props[2][16] = {
         [1]  = { .funcs = 0b00000001, .AF = {0}}, // PA1: ADC1, AF2 (TIM2_CH2)
         [2]  = { .funcs = 0b00000011, .AF = {_U(1)}}, // PA2: ADC2, AF2 (TIM2_CH3), AF1 (USART2_TX)
         [3]  = { .funcs = 0b00000011, .AF = {_U(1)}}, // PA3: ADC3, AF2 (TIM2_CH4), AF1 (USART2_RX)
-        [5]  = { .funcs = 0b00000101, .AF = {_S(0)}}, // PA5: ADC5, SPI1_SCK (AF0)
-        [6]  = { .funcs = 0b00000101, .AF = {_S(0)}}, // PA6: ADC6, SPI1_MISO (AF0)
-        [7]  = { .funcs = 0b00000101, .AF = {_S(0)}}, // PA7: ADC7, SPI1_MOSI (AF0)
-        [9]  = { .funcs = 0b00000010, .AF = {_U(1)}}, // PA9: USART1_TX (AF1)
-        [10] = { .funcs = 0b00000010, .AF = {_U(1)}}, // PA10: USART1_RX (AF1)
+        [5]  = { .funcs = 0b00000101, .AF = {_S(0)}}, // PA5: ADC5, AF9 (SPI1_SCK)
+        [6]  = { .funcs = 0b00000101, .AF = {_S(0)}}, // PA6: ADC6, AF0 (SPI1_MISO)
+        [7]  = { .funcs = 0b00000101, .AF = {_S(0)}}, // PA7: ADC7, AF0 (SPI1_MOSI)
+        [9]  = { .funcs = 0b00000010, .AF = {_U(1)}}, // PA9: AF1 (USART1_TX)
+        [10] = { .funcs = 0b00000010, .AF = {_U(1)}}, // PA10: AF1 (USART1_RX)
     },
     [1] = { // PORT B
-        [0]  = { .funcs = 0b00000001, .AF = {0}}, // PB0: ADC8, TIM3_CH3 (AF1), TIM1_CH2N (AF2)
-        [1]  = { .funcs = 0b00000001, .AF = {0}}, // PB1: ADC9, TIM14_CH1 (AF0), TIM3_CH4 (AF1), TIM1_CH3N (AF2)
+        [0]  = { .funcs = 0b00000001, .AF = {0}}, // PB0: ADC8, AF1 (TIM3_CH3), AF2 (TIM1_CH2N)
+        [1]  = { .funcs = 0b00000001, .AF = {0}}, // PB1: ADC9, AF0 (TIM14_CH1), AF1 (TIM3_CH4), AF2 (TIM1_CH3N)
         [2]  = { .funcs = 0b00000000, .AF = {0}}, // PB2: nothing except GPIO
-        [3]  = { .funcs = 0b00000100, .AF = {_S(0)}}, // PB3: SPI1_SCK (AF0), TIM2_CH2 (AF2)
-        [4]  = { .funcs = 0b00000100, .AF = {_S(0)}}, // PB4: SPI1_MISO (AF0), TIM3_CH1 (AF1)
-        [5]  = { .funcs = 0b00000100, .AF = {_S(0)}}, // PB5: SPI1_MOSI (AF0), TIM3_CH2 (AF1)
-        [6]  = { .funcs = 0b00001010, .AF = {_U(0), _I(1)}}, // PB6: USART1_TX (AF0), I2C1_SCL (AF1), TIM16_CH1N (AF2)
-        [7]  = { .funcs = 0b00001010, .AF = {_U(0), _I(1)}}, // PB7: USART1_RX (AF0), I2C1_SDA (AF1), TIM17_CH1N (AF2)
-        [10] = { .funcs = 0b00001000, .AF = {_I(1)}}, // PB10: I2C1_SCL (AF1), TIM2_CH3 (AF2)
-        [11] = { .funcs = 0b00001000, .AF = {_I(1)}}, // PB11: I2C1_SDA (AF1), TIM2_CH4 (AF2)
+        [3]  = { .funcs = 0b00000100, .AF = {_S(0)}}, // PB3: AF0, (SPI1_SCK), AF2 (TIM2_CH2)
+        [4]  = { .funcs = 0b00000100, .AF = {_S(0)}}, // PB4: AF0 (SPI1_MISO), AF1 (TIM3_CH1)
+        [5]  = { .funcs = 0b00000100, .AF = {_S(0)}}, // PB5: AF0 (SPI1_MOSI), AF1 (TIM3_CH2)
+        [6]  = { .funcs = 0b00001010, .AF = {_U(0), _I(1)}}, // PB6: AF0 (USART1_TX), AF1 (I2C1_SCL), AF2 (TIM16_CH1N)
+        [7]  = { .funcs = 0b00001010, .AF = {_U(0), _I(1)}}, // PB7: AF0 (USART1_RX), AF1 (I2C1_SDA), AF2 (TIM17_CH1N)
+        [10] = { .funcs = 0b00001000, .AF = {_I(1)}}, // PB10: AF1 (I2C1_SCL), AF2 (TIM2_CH3)
+        [11] = { .funcs = 0b00001000, .AF = {_I(1)}}, // PB11: AF1 (I2C1_SDA), AF2 (TIM2_CH4)
     }
 };
 #undef _U
 #undef _S
 #undef _I
 
-static int is_disabled(uint8_t port, uint8_t pin){
+
+typedef struct{
+    uint8_t isrx : 1;
+    uint8_t istx : 1;
+} usart_props_t;
+/**
+ * @brief get_usart_index - get USART index (0 or 1 for USART1 or USART2) by given pin
+ * @param port
+ * @param pin
+ * @return -1 if error
+ */
+static int get_usart_index(uint8_t port, uint8_t pin, usart_props_t *p){
+    int idx = -1;
+    usart_props_t curprops = {0};
+    if(port == 0){ // GPIOA
+        switch(pin){
+        case 2: // USART2_TX
+            idx = 1;
+            curprops.istx = 1;
+            break;
+        case 3: // USART2_RX
+            idx = 1;
+            curprops.isrx = 1;
+            break;
+        case 9: // USART1_TX
+            idx = 0;
+            curprops.istx = 1;
+            break;
+        case 10: // USART1_RX
+            idx = 0;
+            curprops.isrx = 1;
+            break;
+        default:
+            break;
+        }
+    }else if(port == 1){ // GPIOB
+        switch(pin){
+        case 6: // USART1_TX
+            idx = 0;
+            curprops.istx = 1;
+            break;
+        case 7: // USART1_RX
+            idx = 0;
+            curprops.isrx = 1;
+            break;
+        default:
+            break;
+        }
+    }
+    if(p) *p = curprops;
+    return idx;
+}
+
+// default config
+static void defconfig(pinconfig_t *cfg){
+    if(!cfg) return;
+    cfg->af = FUNC_AIN;
+    cfg->afno = 0;
+    cfg->mode = MODE_INPUT;
+    cfg->monitor = 0;
+    cfg->speed = SPEED_LOW;
+    cfg->pull = PULL_NONE;
+}
+
+// check current pin configuration; in case of errors set default values (floating input)
+int chkpinconf(){
+    int ret = TRUE;
+    if(pinconfig_notinited){
+        memcpy(pinconfig, the_conf.pinconfig, sizeof(pinconfig));
+        pinconfig_notinited = 0;
+    }
+    usartconf_t UC;
+    if(!get_curusartconf(&UC)){
+        get_defusartconf(&UC);
+    }else{ // got current config -> clear `RXen`, `TXen` and `monitor`: if none appeared, turn OFF USART!
+        UC.RXen = 0; UC.TXen = 0; UC.monitor = 0;
+    }
+    int active_usart = -1; // number of USART if user selects it (we can't check it by UC->idx)
+    for(int port = 0; port < 2; ++port){
+        for(int pin = 0; pin < 16; ++pin){
+            pinconfig_t *cfg = &pinconfig[port][pin];
+            if(!cfg->enable) continue;
+            const pinprops_t *props = &pin_props[port][pin];
+            // wrong configuration -> don't mind AF, make FLIN
+            if(cfg->mode == MODE_AF){
+                if(cfg->af >= FUNC_AMOUNT || !((1<<cfg->af) & props->funcs)){
+                    DBG("Wrong AF config -> FL IN\n");
+                    defconfig(cfg);
+                    ret = FALSE;
+                }else{ // set afno to proper number
+                    cfg->afno = props->AF[cfg->af];
+                    switch(cfg->af){
+                    case FUNC_USART:{
+                        usart_props_t up;
+                        int usart_idx = get_usart_index(port, pin, &up);
+                        if(usart_idx < 0){ // error -> defaults
+                            DBG("no USART on this pin\n");
+                            defconfig(cfg);
+                            ret = FALSE;
+                            break;
+                        }
+                        if(active_usart == -1){
+                            active_usart = usart_idx;
+                        }else if(active_usart != usart_idx){
+                            // User tries to configure Rx/Tx on different USARTs
+                            DBG("USART conflicted!\n");
+                            defconfig(cfg);
+                            ret = FALSE;
+                            break;
+                        }
+                        if(up.isrx) UC.RXen = 1;
+                        else if(up.istx) UC.TXen = 1;
+                        if(cfg->monitor) UC.monitor = 1;
+                    }
+                        break;
+                    default: break; // later fill other functions
+                    }
+                }
+            }
+        }
+    }
+    // now check USART configuration
+    if(active_usart != -1){
+        if(chkusartconf(&UC)) ret = FALSE;
+    }else{
+        get_defusartconf(&UC); // clear global configuration
+        the_conf.usartconfig = UC;
+    }
+    return ret;
+}
+
+int is_disabled(uint8_t port, uint8_t pin){
     if(port > 1 || pin > 15) return FALSE;
     if(the_conf.pinconfig[port][pin].enable) return FALSE;
+    return TRUE;
+}
+
+// return current conf from local `pinconfig`
+int get_curpinconf(uint8_t port, uint8_t pin, pinconfig_t *c){
+    CHKPINCONFIG();
+    if(!c || port > 1 || pin > 15) return FALSE;
+    *c = pinconfig[port][pin];
     return TRUE;
 }
 
@@ -94,6 +238,7 @@ static int is_disabled(uint8_t port, uint8_t pin){
  */
 int set_pinfunc(uint8_t port, uint8_t pin, pinconfig_t *pcfg){
     DBG("set_pinfunc()\n");
+    CHKPINCONFIG();
     if(is_disabled(port, pin) || !pcfg){
         DBG("Disabled?\n");
         return FALSE;
@@ -131,7 +276,7 @@ int set_pinfunc(uint8_t port, uint8_t pin, pinconfig_t *pcfg){
         return FALSE;
     }
     pcfg->enable = 1; // don't forget to set enable flag!
-    the_conf.pinconfig[port][pin] = *pcfg;
+    pinconfig[port][pin] = *pcfg;
     DBG("All OK\n");
     return TRUE;
 }
@@ -153,27 +298,17 @@ TRUE_INLINE int8_t get_adc_channel(uint8_t port, uint8_t pin){
 }
 
 // reinit all GPIO registers due to config; also configure (if need) USART1/2, SPI1 and I2C1
+// return FALSE if found some errors in current configuration (and it was fixed to default)
 int gpio_reinit(){
     bzero(monitor_mask, sizeof(monitor_mask));
     bzero(oldstates, sizeof(oldstates));
-    usartconf_t UC = {0}; // fill next
+    int ret = TRUE;
+    int tocopy = chkpinconf(); // if config is wrong, don't copy it to flash
     for(int port = 0; port < 2; port++){
         GPIO_TypeDef *gpio = (port == 0) ? GPIOA : GPIOB;
         for(int pin = 0; pin < 16; pin++){
-            pinconfig_t *cfg = &the_conf.pinconfig[port][pin];
+            pinconfig_t *cfg = &pinconfig[port][pin];
             if(!cfg->enable) continue;
-            const pinprops_t *props = &pin_props[port][pin];
-            if(cfg->mode == MODE_AF && (cfg->af >= FUNC_AMOUNT ||
-                !((1<<cfg->af) & props->funcs) ||
-                (cfg->afno != props->AF[cfg->af]))){ // wrong configuration -> don't mind AF, make FLIN
-                DBG("Wrong AF config -> FL IN\n");
-                cfg->af = FUNC_AIN;
-                cfg->afno = 0;
-                cfg->mode = MODE_INPUT;
-                cfg->monitor = 0;
-                cfg->speed = SPEED_LOW;
-                cfg->pull = PULL_NONE;
-            }
             int shift2 = pin << 1;
             gpio->MODER = (gpio->MODER & ~(3 << shift2))| (cfg->mode << shift2);
             gpio->OTYPER = (gpio->OTYPER & ~(1 << pin)) | (cfg->otype << pin);
@@ -195,18 +330,22 @@ int gpio_reinit(){
                         oldstates[port][pin] = getADCval(chan);
                     }
                 }else{
-                    // цифровой режим  сохраняем текущее состояние IDR
+                    // save old state for regular GPIO
                     oldstates[port][pin] = (gpio->IDR >> pin) & 1;
                 }
             }
         }
     }
-    // TODO: configure USART, SPI etc
-    if(UC.No && usart_config(&UC)){
-        if(!usart_start()) return FALSE;
+    // if all OK, copy to the_conf
+    if(tocopy) memcpy(the_conf.pinconfig, pinconfig, sizeof(pinconfig));
+    else ret = FALSE;
+    // TODO: configure SPI etc
+    usartconf_t usc;
+    if(get_curusartconf(&usc) && (usc.RXen | usc.TXen)){
+        if(!usart_config(NULL)) ret = FALSE;
+        else if(!usart_start()) ret = FALSE;
     }
-    // also chech cfg->monitor!
-    return TRUE;
+    return ret;
 }
 
 // get MODER for current pin

@@ -97,7 +97,9 @@ enum KeywordGroup {
 
 enum MiscValues{
     MISC_MONITOR = 1,
-    MISC_THRESHOLD
+    MISC_THRESHOLD,
+    MISC_SPEED,
+    MISC_TEXT
 };
 
 static const Keyword keywords[] = {
@@ -116,6 +118,8 @@ static const Keyword keywords[] = {
     KEY(I2C, GROUP_FUNC, FUNC_I2C)
     KEY(MONITOR, GROUP_MISC,  MISC_MONITOR)
     KEY(THRESHOLD, GROUP_MISC,  MISC_THRESHOLD)
+    KEY(SPEED, GROUP_MISC, MISC_SPEED)
+    KEY(TEXT, GROUP_MISC, MISC_TEXT)
 #undef K
 };
 #define NUM_KEYWORDS (sizeof(keywords)/sizeof(keywords[0]))
@@ -214,17 +218,31 @@ static errcodes_t pin_setter(uint8_t port, uint8_t pin, char *setter){
     // complex setter: parse properties
     uint8_t mode_set = 0xFF, pull_set = 0xFF, otype_set = 0xFF, func_set = 0xFF;
     bool monitor = false;
-    uint16_t *pending_num = NULL; // pointer to UINT16 value, if !NULL, next token should be a number
-    pinconfig_t curconf = the_conf.pinconfig[port][pin]; // copy old config
-    char *saveptr, *token = strtok_r(setter, " ,", &saveptr);
+    uint16_t *pending_u16 = NULL; // pointer to uint16_t value, if !NULL, next token should be a number
+    uint32_t *pending_u32 = NULL; // -//- for uint32_t
+    usartconf_t UsartConf;
+    if(!get_curusartconf(&UsartConf)) return ERR_CANTRUN;
+    pinconfig_t curconf;
+    if(!get_curpinconf(port, pin, &curconf)) return ERR_BADVAL; // copy current config
+#define DELIM_  " ,"
+    char *saveptr, *token = strtok_r(setter, DELIM_, &saveptr);
     while(token){
-        if(pending_num){
-            int32_t val;
-            char *end = getint(token, &val);
-            if(end == token || val < 0 || val > 0xFFFF) return ERR_BADVAL;
-            *pending_num = (uint16_t)val;
-            pending_num = NULL;  // reset
-            token = strtok_r(NULL, " ,", &saveptr);
+        if(pending_u16){
+            uint32_t val;
+            char *end = getnum(token, &val);
+            if(end == token || val > 0xFFFF) return ERR_BADVAL;
+            *pending_u16 = (uint16_t)val;
+            pending_u16 = NULL;  // reset
+            token = strtok_r(NULL, DELIM_, &saveptr);
+            continue;
+        }
+        if(pending_u32){
+            uint32_t val;
+            char *end = getnum(token, &val);
+            if(end == token) return ERR_BADVAL;
+            *pending_u32 = val;
+            pending_u32 = NULL;
+            token = strtok_r(NULL, DELIM_, &saveptr);
             continue;
         }
         size_t i = 0;
@@ -258,17 +276,28 @@ static errcodes_t pin_setter(uint8_t port, uint8_t pin, char *setter){
                         monitor = true;
                         break;
                     case MISC_THRESHOLD:
-                        pending_num = &curconf.threshold;
+                        pending_u16 = &curconf.threshold;
+                        break;
+                    case MISC_SPEED:
+                        pending_u32 = &UsartConf.speed;
+                        break;
+                    case MISC_TEXT: // what to do, if textproto is set, but user wants binary?
+                        UsartConf.textproto = 1;
                         break;
                     }
+                    break;
                 }
                 break;
             }
         }
         if(i == NUM_KEYWORDS) return ERR_BADVAL; // not found
-        token = strtok_r(NULL, " ,", &saveptr);
+        token = strtok_r(NULL, DELIM_, &saveptr);
     }
-    if(pending_num) return ERR_BADVAL; // no number that we waiting for
+    if(pending_u16 || pending_u32) return ERR_BADVAL; // no number that we waiting for
+
+// check periferial settings before refresh pin data
+    // check current USART settings
+    if(func_set == FUNC_USART && !chkusartconf(&UsartConf)) return ERR_BADVAL;
     if(func_set != 0xFF) mode_set = MODE_AF;
     if(mode_set == 0xFF) return ERR_BADVAL; // user forgot to set mode
     // set defaults
@@ -296,8 +325,7 @@ static errcodes_t parse_pin_command(const char *cmd, char *args){
     char *setter = splitargs(args, &pin);
     DBG("args="); DBG(args); DBG(", pin="); DBG(i2str(pin)); DBG(", setter="); DBG(setter); DBGNL();
     if(pin < 0 || pin > 15) return ERR_BADPAR;
-    pinconfig_t *pcfg = &the_conf.pinconfig[port][pin]; // just to check if pin can be configured
-    if(!pcfg->enable) return ERR_CANTRUN; // prohibited pin
+    if(is_disabled(port, pin)) return ERR_CANTRUN; // prohibited pin
     if(!setter){ // simple getter -> get value and return ERR_AMOUNT as silence
         DBG("Getter\n");
         pin_getter(port, pin);
@@ -363,7 +391,7 @@ static errcodes_t cmd_dumpconf(const char _U_ *cmd, char _U_ *args){
         for(int pin = 0; pin < 16; pin++){
             pinconfig_t *p = &the_conf.pinconfig[port][pin];
             if(!p->enable) continue;
-            PUTCHAR('P'); PUTCHAR(port_letter); SEND(i2str(pin)); PUTCHAR('=');
+            PUTCHAR('P'); PUTCHAR(port_letter); SEND(i2str(pin)); SEND(EQ);
             switch(p->mode){
 #define S(k)  SEND(str_keywords[STR_ ## k])
 #define SP(k) do{PUTCHAR(' '); S(k);}while(0)
@@ -409,9 +437,17 @@ static errcodes_t cmd_dumpconf(const char _U_ *cmd, char _U_ *args){
             // Monitor
             if(p->monitor) SP(MONITOR);
             NL();
-#undef S
-#undef SP
         }
+    }
+    usartconf_t U = the_conf.usartconfig;
+    if(U.RXen || U.TXen){ // USART enabled -> tell config
+        S(USART); SEND(EQ);
+        S(SPEED); PUTCHAR(' '); SEND(u2str(U.speed));
+        if(U.textproto) SP(TEXT);
+        if(U.monitor) SP(MONITOR);
+        if(U.TXen && !U.RXen) SEND(" TXONLY");
+        else if(!U.TXen && U.RXen) SEND(" RXONLY");
+        NL();
     }
     // here are usart/spi/i2c configurations
 #if 0
@@ -449,6 +485,8 @@ static errcodes_t cmd_dumpconf(const char _U_ *cmd, char _U_ *args){
     }
 #endif
     return ERR_AMOUNT;
+#undef S
+#undef SP
 }
 
 static errcodes_t cmd_setiface(const char* cmd, char *args){

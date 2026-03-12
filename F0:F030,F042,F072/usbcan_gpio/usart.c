@@ -19,6 +19,7 @@
 #include <stm32f0.h>
 #include <string.h>
 
+#include "flash.h"
 #include "ringbuffer.h"
 #include "usart.h"
 
@@ -43,40 +44,83 @@ static ringbuffer RBin  = {.data = rbbuffer, .length = RXRBSZ};
 static volatile USART_TypeDef* const Usarts[USARTSNO] = {USART1, USART2};
 static uint8_t const UIRQs[USARTSNO] = {USART1_IRQn, USART2_IRQn};
 
+static usartconf_t usartconfig;
+static uint8_t usartconfig_notinited = 1;
+#define CHKUSARTCONFIG()  do{if(usartconfig_notinited) chkusartconf(NULL);}while(0)
+
+// check config and if all OK, copy to local; if c == NULL, check local config and set defaults to wrong values
+// return FALSE if some parameters was changed to default (in this case not copy to local)
+int chkusartconf(usartconf_t *c){
+    int ret = TRUE;
+    if(usartconfig_notinited){
+        usartconfig = the_conf.usartconfig;
+        usartconfig_notinited = 0;
+    }
+    uint8_t copyto = TRUE;
+    if(!c){
+        copyto = FALSE;
+        c = &usartconfig;
+    }
+    if(c->speed < USART_MIN_SPEED || c->speed > USART_MAX_SPEED){
+        c->speed = USART_DEFAULT_SPEED;
+        ret = FALSE;
+    }
+    // another tests could be here (like stopbits etc, if you wish)
+    if(ret && copyto)  usartconfig = *c;
+    return ret;
+}
+
+// just give default speed
+void get_defusartconf(usartconf_t *c){
+    if(!c) return;
+    bzero(c, sizeof(usartconf_t));
+    c->speed = USART_DEFAULT_SPEED;
+}
+
+int get_curusartconf(usartconf_t *c){
+    CHKUSARTCONFIG();
+    if(!c) return FALSE;
+    *c = usartconfig;
+    return TRUE;
+}
+
 /**
  * @brief usart_config - configure US[A]RT based on usb_LineCoding
- * @param usartconf (io) - (modified to real speeds)
+ * @param usartconf (io) - (modified to real speeds); if NULL - get current
  * @return TRUE if all OK
  */
-int usart_config(usartconf_t *usartconf){
+int usart_config(usartconf_t *uc){
+    CHKUSARTCONFIG();
+    if(uc && !chkusartconf(uc)) return FALSE;
+    if(0 == usartconfig.RXen && 0 == usartconfig.TXen){ // no Rx/Tx
+        usart_stop();
+        return FALSE;
+    }
     SYSCFG->CFGR1 |= SYSCFG_CFGR1_USART1RX_DMA_RMP | SYSCFG_CFGR1_USART1TX_DMA_RMP; // both USARTs on DMA1ch4(tx)/5(rx)
     // all clocking and GPIO config should be done in hardware_setup() & gpio_reinit()!
-    if(!usartconf) return FALSE;
     if(curUSARTidx != -1) usart_stop(); // disable previous USART if enabled
-    uint8_t No = usartconf->No;
-    if(No >= USARTSNO || No < 1 || usartconf->speed < USART_MIN_SPEED) return FALSE;
-    --No; // now this is an INDEX!
+    uint8_t No = usartconfig.idx;
     volatile USART_TypeDef *U = Usarts[No];
     uint32_t peripheral_clock = 48000000;
     // Disable USART while configuring
     U->CR1 = 0;
     U->ICR = 0xFFFFFFFF;   // Clear all interrupt flags
     // Assuming oversampling by 16 (default after reset). For higher baud rates you might use by 8.
-    U->BRR = peripheral_clock / (usartconf->speed);
-    usartconf->speed= peripheral_clock / U->BRR; // fix for real speed
+    U->BRR = peripheral_clock / (usartconfig.speed);
+    usartconfig.speed= peripheral_clock / U->BRR; // fix for real speed
     uint32_t cr1 = 0;
     // format: 8N1, so CR2 used only for character match (if need)
-    if(usartconf->monitor){
-        if(usartconf->textproto){
+    if(usartconfig.monitor){
+        if(usartconfig.textproto){
             U->CR2 = USART_CR2_ADD_VAL('\n');
             cr1 |= USART_CR1_CMIE;
         }else cr1 |= USART_CR1_IDLEIE; // monitor binary data by IDLE flag
     }
-    textformat = usartconf->textproto;
-    monitor = usartconf->monitor;
+    textformat = usartconfig.textproto;
+    monitor = usartconfig.monitor;
     // Enable transmitter, receiver, and interrupts (optional)
-    if(usartconf->Rxen) cr1 |= USART_CR1_RE;
-    if(usartconf->Txen){
+    if(usartconfig.RXen) cr1 |= USART_CR1_RE;
+    if(usartconfig.TXen){
         cr1 |= USART_CR1_TE;
         // DMA Tx
         volatile DMA_Channel_TypeDef *T = DMA1_Channel4;
@@ -87,6 +131,8 @@ int usart_config(usartconf_t *usartconf){
     // Main config
     U->CR1 = cr1;
     curUSARTidx = No;
+    // all OK -> copy to global config
+    the_conf.usartconfig = usartconfig;
     return TRUE;
 }
 

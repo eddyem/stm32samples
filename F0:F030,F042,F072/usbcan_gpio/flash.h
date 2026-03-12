@@ -25,6 +25,7 @@
 #include <stdint.h>
 
 #include "gpio.h"
+#include "usart.h"
 #include "usb_descr.h"
 
 // register with flash size (in blocks)
@@ -47,8 +48,8 @@ typedef struct __attribute__((packed, aligned(4))){
     uint8_t  iIlengths[InterfacesAmount]; // length in BYTES (symbols amount x2)!
     // gpio settings
     pinconfig_t pinconfig[2][16]; // GPIOA, GPIOB
-    usartconfig_t usartconfig;
-    spiconfig_t spiconfig;
+    usartconf_t usartconfig;
+    //spiconfig_t spiconfig;
 } user_conf;
 
 extern user_conf the_conf; // global user config (read from FLASH to RAM)

@@ -21,26 +21,32 @@
 #include <stdint.h>
 
 // DMA linear buffers for Rx/Tx
-#define DMARXBUFSZ      128
-#define DMATXBUFSZ      128
+#define DMARXBUFSZ          128
+#define DMATXBUFSZ          128
 // incoming ring buffer - only if there's a lot of data in DMA RX buffer
-#define RXRBSZ          256
+#define RXRBSZ              256
 
-#define USART_MIN_SPEED 1024
-#define USART_MAX_SPEED 1000000
+#define USART_MIN_SPEED     1024
+#define USART_MAX_SPEED     1000000
+#define USART_DEFAULT_SPEED  9600
 
 typedef struct{
     uint32_t speed;         // baudrate
-    uint8_t No : 2;         // Usart number (1/2)
-    uint8_t Rxen : 1;       // enable rx
-    uint8_t Txen : 1;       // enable tx
+    uint8_t idx : 1;        // Usart idx (0/1 for USART1/USART2)
+    uint8_t RXen : 1;       // enable rx
+    uint8_t TXen : 1;       // enable tx
     uint8_t textproto : 1;  // match '\n' and force output by lines (if there's enough place in buffers and monitor == 1)
     uint8_t monitor : 1;    // async output by incoming (over '\n', IDLE or buffer full)
 } usartconf_t;
 
 int usart_config(usartconf_t *config);
+int chkusartconf(usartconf_t *c);
+
 int usart_start();
 void usart_stop();
+
+int get_curusartconf(usartconf_t *c);
+void get_defusartconf(usartconf_t *c);
 
 int usart_process(uint8_t *buf, int len);
 
