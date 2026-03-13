@@ -26,6 +26,7 @@ typedef enum{
     ERR_BADVAL,     // wrong value (for setter)
     ERR_WRONGLEN,   // wrong message length
     ERR_CANTRUN,    // can't run given command due to bad parameters or other
+    ERR_BUSY,       // target interface busy, try later
     ERR_AMOUNT      // amount of error codes or "send nothing"
 } errcodes_t;
 

@@ -34,9 +34,9 @@ TRUE_INLINE void gpio_setup(){ // setup some common GPIO
 
 void hardware_setup(){
     // enable all active GPIO clocking
-    RCC->AHBENR |= RCC_AHBENR_GPIOAEN | RCC_AHBENR_GPIOBEN;
-    RCC->APB1ENR |= RCC_APB2ENR_USART1EN;
-    RCC->APB2ENR |= RCC_APB1ENR_USART2EN;
+    RCC->AHBENR |= RCC_AHBENR_GPIOAEN | RCC_AHBENR_GPIOBEN | RCC_AHBENR_DMA1EN;
+    RCC->APB2ENR |= RCC_APB2ENR_USART1EN | RCC_APB2ENR_SYSCFGEN;
+    RCC->APB1ENR |= RCC_APB1ENR_USART2EN;
     gpio_setup();
     //gpio_reinit();
     adc_setup();

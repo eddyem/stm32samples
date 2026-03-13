@@ -32,6 +32,7 @@ void sys_tick_handler(void){
 int main(void){
     sysreset();
     SysTick_Config(6000, 1);
+    StartHSE();
     flashstorage_init();
     hardware_setup();
     USB_setup();

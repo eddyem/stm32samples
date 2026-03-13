@@ -25,7 +25,6 @@ extern "C"{
 #include "adc.h"
 #include "can.h"
 #include "flash.h"
-#include "gpioproto.h"
 #include "gpio.h"
 #include "gpioproto.h"
 #include "usart.h"
@@ -35,6 +34,10 @@ extern "C"{
 }
 
 extern volatile uint32_t Tms;
+
+static uint8_t curbuf[MAXSTRLEN]; // buffer for receiving data from USART etc
+
+static uint8_t usart_text = 0; // ==1 for text USART proto
 
 // TODO: add analog threshold!
 
@@ -56,9 +59,8 @@ extern volatile uint32_t Tms;
     COMMAND(setiface,   "set/get name of interface x (0 - CAN, 1 - GPIO)") \
     COMMAND(storeconf,  "save config to flash") \
     COMMAND(time,       "show current time (ms)") \
-    COMMAND(vdd,        "get approx Vdd value (V*100)")
-
-//    COMMAND(USART,      "Read USART data or send (USART=hex)")
+    COMMAND(vdd,        "get approx Vdd value (V*100)") \
+    COMMAND(USART,      "Read USART data or send (USART=hex)")
 //    COMMAND(usartconf,  "set USART params (e.g. usartconf=115200 8N1)")
 //    COMMAND(SPI,        "Read SPI data or send (SPI=hex)")
 //    COMMAND(spiconf,    "set SPI params")
@@ -99,7 +101,42 @@ enum MiscValues{
     MISC_MONITOR = 1,
     MISC_THRESHOLD,
     MISC_SPEED,
-    MISC_TEXT
+    MISC_TEXT,
+    MISC_BIN
+};
+
+// TODO: add HEX input?
+
+#define KEYWORDS \
+KW(AIN) \
+    KW(IN) \
+    KW(OUT) \
+    KW(AF) \
+    KW(PU)\
+    KW(PD) \
+    KW(FL) \
+    KW(PP) \
+    KW(OD) \
+    KW(USART) \
+    KW(SPI) \
+    KW(I2C) \
+    KW(MONITOR) \
+    KW(THRESHOLD) \
+    KW(SPEED) \
+    KW(TEXT) \
+    KW(BIN) \
+
+    enum{ // indexes of string keywords
+#define KW(k) STR_ ## k,
+        KEYWORDS
+#undef KW
+    };
+
+// strings for keywords
+static const char *str_keywords[] = {
+#define KW(x)    [STR_ ## x] = #x,
+    KEYWORDS
+#undef KW
 };
 
 static const Keyword keywords[] = {
@@ -120,17 +157,19 @@ static const Keyword keywords[] = {
     KEY(THRESHOLD, GROUP_MISC,  MISC_THRESHOLD)
     KEY(SPEED, GROUP_MISC, MISC_SPEED)
     KEY(TEXT, GROUP_MISC, MISC_TEXT)
+    KEY(BIN, GROUP_MISC, MISC_BIN)
 #undef K
 };
 #define NUM_KEYWORDS (sizeof(keywords)/sizeof(keywords[0]))
 
 static const char* errtxt[ERR_AMOUNT] = {
-    [ERR_OK]       = "OK",
-    [ERR_BADCMD]   = "BADCMD",
-    [ERR_BADPAR]   = "BADPAR",
-    [ERR_BADVAL]   = "BADVAL",
-    [ERR_WRONGLEN] = "WRONGLEN",
-    [ERR_CANTRUN]  = "CANTRUN",
+    [ERR_OK]        = "OK",
+    [ERR_BADCMD]    = "BADCMD",
+    [ERR_BADPAR]    = "BADPAR",
+    [ERR_BADVAL]    = "BADVAL",
+    [ERR_WRONGLEN]  = "WRONGLEN",
+    [ERR_CANTRUN]   = "CANTRUN",
+    [ERR_BUSY]      = "BUSY",
 };
 
 static const char *pinhelp =
@@ -141,6 +180,9 @@ static const char *pinhelp =
     "  FUNC: USART or SPI (enable alternate function and configure peripheal)\n"
     "  MISC: MONITOR - send data by USB as only state changed\n"
     "        THRESHOLD (ADC only) - monitoring threshold, ADU\n"
+    "        SPEED - interface speed/frequency\n"
+    "        TEXT - USART means data as text ('\n'-separated strings)\n"
+    "        BIN - USART means data as binary (output: HEX)\n"
     "\n"
     ;
 
@@ -197,7 +239,10 @@ static bool argsvals(char *args, int32_t *parno, int32_t *parval){
 // `PAx = ` also printed there
 static void pin_getter(uint8_t port, uint8_t pin){
     int16_t val = pin_in(port, pin);
-    if(val < 0) SENDn(errtxt[ERR_CANTRUN]);
+    if(val < 0){
+        SENDn(errtxt[ERR_CANTRUN]);
+        return;
+    }
     SEND(port == 0 ? "PA" : "PB"); SEND(u2str((uint32_t)pin)); SEND(EQ);
     SENDn(u2str((uint32_t)val));
 }
@@ -284,6 +329,9 @@ static errcodes_t pin_setter(uint8_t port, uint8_t pin, char *setter){
                     case MISC_TEXT: // what to do, if textproto is set, but user wants binary?
                         UsartConf.textproto = 1;
                         break;
+                    case MISC_BIN: // clear text flag
+                        UsartConf.textproto = 0;
+                        break;
                     }
                     break;
                 }
@@ -342,7 +390,13 @@ static errcodes_t cmd_PB(const char *cmd, char *args){
 }
 
 static errcodes_t cmd_reinit(const char _U_ *cmd, char _U_ *args){
-    if(gpio_reinit()) return ERR_OK;
+    if(gpio_reinit()){
+        usartconf_t UC;
+        if(get_curusartconf(&UC)){
+            usart_text = UC.textproto;
+        }
+        return ERR_OK;
+    }
     SEND("Can't reinit: check your configuration!\n");
     return ERR_AMOUNT;
 }
@@ -573,6 +627,44 @@ static errcodes_t cmd_help(const char _U_ *cmd, char _U_ *args){
     return ERR_AMOUNT;
 }
 
+static int sendfun(const char *s){
+    if(!s) return 0;
+    return USB_sendstr(IGPIO, s);
+}
+
+static void sendusartdata(const uint8_t *buf, int len){
+    if(!buf || len < 1) return;
+    SEND(str_keywords[STR_USART]); SEND(EQ);
+    if(usart_text){
+        USB_send(IGPIO, curbuf, len);
+        if(curbuf[len-1] != '\n') NL();
+    }else{
+        NL();
+        hexdump(sendfun, (uint8_t*)curbuf, len);
+    }
+}
+
+static errcodes_t cmd_USART(const char _U_ *cmd, char *args){
+    if(!args) return ERR_BADVAL;
+    char *setter = splitargs(args, NULL);
+    if(setter){
+        DBG("Try to send over USART\n");
+        int l = strlen(setter);
+        if(usart_text){ // add '\n' as we removed it @ parser
+            if(setter[l-1] != '\n') setter[l++] = '\n';
+        }
+        l = usart_send((uint8_t*)setter, l);
+        if(l < 0) return ERR_BUSY;
+        else if(l == 0) return ERR_CANTRUN;
+        return ERR_OK;
+    } // getter: try to read
+    int l = usart_receive(curbuf, MAXSTRLEN);
+    if(l < 0) return ERR_CANTRUN;
+    if(l > 0) sendusartdata(curbuf, l);
+    // or silence: nothing to read
+    return ERR_AMOUNT;
+}
+
 constexpr uint32_t hash(const char* str, uint32_t h = 0){
     return *str ? hash(str + 1, h + ((h << 7) ^ *str)) : h;
 }
@@ -599,9 +691,8 @@ static const char *CommandParser(char *str){
 }
 
 void GPIO_process(){
-    char inbuff[MAXSTRLEN];
-    int l = RECV(inbuff, MAXSTRLEN);
-    // TODO: check SPI/USART/I2C
+    int l;
+    // TODO: check SPI/I2C etc
     for(uint8_t port = 0; port < 2; ++port){
         uint16_t alert = gpio_alert(port);
         if(alert == 0) continue;
@@ -610,11 +701,13 @@ void GPIO_process(){
             if(alert & pinmask) pin_getter(port, i);
         }
     }
-  usart_process(NULL, 0);
+    l = usart_process(curbuf, MAXSTRLEN);
+    if(l > 0) sendusartdata(curbuf, l);
+    l = RECV((char*)curbuf, MAXSTRLEN);
     if(l == 0) return;
     if(l < 0) SEND("ERROR: USB buffer overflow or string was too long\n");
     else{
-        const char *ans = CommandParser(inbuff);
+        const char *ans = CommandParser((char*)curbuf);
         if(ans) SENDn(ans);
     }
 }

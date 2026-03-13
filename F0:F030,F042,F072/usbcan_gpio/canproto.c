@@ -387,8 +387,10 @@ static void CommandParser(char *txt){
         break;
 #ifdef STM32F072xB
         case 'D':
-            USB_sendstr("Go into DFU mode\n");
-            USB_sendall();
+            SEND("Go into DFU mode\n");
+            USB_sendall(ICAN);
+            uint32_t t = Tms;
+            while(Tms - t < 2000){IWDG->KR = IWDG_REFRESH;}
             Jump2Boot();
         break;
 #endif

@@ -99,32 +99,6 @@ typedef struct{
 } spiconfig_t;
 */
 
-// strings for keywords
-extern const char *str_keywords[];
-#define KEYWORDS \
-KW(AIN) \
-KW(IN) \
-KW(OUT) \
-KW(AF) \
-KW(PU)\
-KW(PD) \
-KW(FL) \
-KW(PP) \
-KW(OD) \
-KW(USART) \
-KW(SPI) \
-KW(I2C) \
-KW(MONITOR) \
-KW(THRESHOLD) \
-KW(SPEED) \
-KW(TEXT)
-
-enum{ // indexes of string keywords
-#define KW(k) STR_ ## k,
-    KEYWORDS
-#undef KW
-};
-
 int is_disabled(uint8_t port, uint8_t pin);
 int chkpinconf();
 

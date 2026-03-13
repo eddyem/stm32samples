@@ -27,13 +27,6 @@
 static uint16_t monitor_mask[2] = {0}; // pins to monitor == 1 (ONLY GPIO and ADC)
 static uint16_t oldstates[2][16] = {0}; // previous state (16 bits - as some pins could be analog)
 
-// strings for keywords
-const char *str_keywords[] = {
-#define KW(x)    [STR_ ## x] = #x,
-    KEYWORDS
-#undef KW
-};
-
 // intermediate buffer to change pin's settings by user request; after checking in will be copied to the_conf
 static pinconfig_t pinconfig[2][16] = {0};
 static uint8_t pinconfig_notinited = 1; // ==0 after first memcpy from the_conf to pinconfig
@@ -207,7 +200,8 @@ int chkpinconf(){
     }
     // now check USART configuration
     if(active_usart != -1){
-        if(chkusartconf(&UC)) ret = FALSE;
+        UC.idx = active_usart;
+        if(!chkusartconf(&UC)) ret = FALSE;
     }else{
         get_defusartconf(&UC); // clear global configuration
         the_conf.usartconfig = UC;
@@ -318,7 +312,7 @@ int gpio_reinit(){
                 int shift4 = pin << 4;
                 gpio->AFR[0] = (gpio->AFR[0] & ~(0xf << shift4)) | (cfg->afno << shift4);
             }else{
-                int shift4 = (pin - 8) << 4;
+                int shift4 = (pin - 8) << 2;
                 gpio->AFR[1] = (gpio->AFR[1] & ~(0xf << shift4)) | (cfg->afno << shift4);
             }
             if(cfg->monitor && cfg->mode != MODE_AF){

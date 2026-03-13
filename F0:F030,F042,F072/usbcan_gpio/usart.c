@@ -32,8 +32,8 @@
 static uint8_t  inbuffer[DMARXBUFSZ];   // DMA in buffer
 static uint8_t  rbbuffer[RXRBSZ];       // for in ringbuffer
 static uint8_t  outbuffer[DMATXBUFSZ];  // DMA out buffer
-static uint8_t  TXrdy = 1;              // TX DMA ready
-static uint8_t  RXrdy = 0;              // == 1 when got IDLE or '\n' (only when `monitoring` is on
+static volatile uint8_t  TXrdy = 1;     // TX DMA ready
+static volatile uint8_t  RXrdy = 0;     // == 1 when got IDLE or '\n' (only when `monitoring` is on
 static uint8_t  textformat = 0;         // out by '\n'-terminated lines
 static uint8_t  monitor = 0;            // monitor USART rx
 static int      dma_read_idx = 0;       // start of data in DMA inbuffers
@@ -108,18 +108,19 @@ int usart_config(usartconf_t *uc){
     // Assuming oversampling by 16 (default after reset). For higher baud rates you might use by 8.
     U->BRR = peripheral_clock / (usartconfig.speed);
     usartconfig.speed= peripheral_clock / U->BRR; // fix for real speed
-    uint32_t cr1 = 0;
-    // format: 8N1, so CR2 used only for character match (if need)
-    if(usartconfig.monitor){
-        if(usartconfig.textproto){
-            U->CR2 = USART_CR2_ADD_VAL('\n');
-            cr1 |= USART_CR1_CMIE;
-        }else cr1 |= USART_CR1_IDLEIE; // monitor binary data by IDLE flag
-    }
+    uint32_t cr1 = 0, cr3 = 0;
     textformat = usartconfig.textproto;
     monitor = usartconfig.monitor;
     // Enable transmitter, receiver, and interrupts (optional)
-    if(usartconfig.RXen) cr1 |= USART_CR1_RE;
+    if(usartconfig.RXen){
+        cr1 |= USART_CR1_RE;
+        cr3 |= USART_CR3_DMAR;
+        // format: 8N1, so CR2 used only for character match (if need)
+        if(usartconfig.textproto){
+            U->CR2 = USART_CR2_ADD_VAL('\n'); // buffer text data by EOL
+            cr1 |= USART_CR1_CMIE;
+        }else cr1 |= USART_CR1_IDLEIE; // buffer binary data by IDLE flag
+    }
     if(usartconfig.TXen){
         cr1 |= USART_CR1_TE;
         // DMA Tx
@@ -127,9 +128,11 @@ int usart_config(usartconf_t *uc){
         T->CCR = 0;
         T->CPAR = (uint32_t) &U->TDR;
         T->CCR = DMA_CCR_MINC | DMA_CCR_DIR | DMA_CCR_TCIE;
+        cr3 |= USART_CR3_DMAT;
     }
     // Main config
     U->CR1 = cr1;
+    U->CR3 = cr3;
     curUSARTidx = No;
     // all OK -> copy to global config
     the_conf.usartconfig = usartconfig;
@@ -140,26 +143,21 @@ int usart_config(usartconf_t *uc){
 int usart_start(){
     if(curUSARTidx == -1) return FALSE;
     volatile USART_TypeDef *U = Usarts[curUSARTidx];
-    if(monitor) NVIC_EnableIRQ(UIRQs[curUSARTidx]);
+    NVIC_EnableIRQ(UIRQs[curUSARTidx]); // copy to ring buffer after each '\n' in text mode or IDLE in binary
     NVIC_EnableIRQ(DMA1_Channel4_5_IRQn);
     // reset Rx DMA
     if(U->CR1 & USART_CR1_RE){
         volatile DMA_Channel_TypeDef *R = DMA1_Channel5;
         dma_read_idx = 0;
         R->CCR = 0;
-        R->CPAR = (uint32_t) U->RDR;
+        RB_clearbuf(&RBin);
+        R->CPAR = (uint32_t) &U->RDR;
         R->CMAR = (uint32_t) inbuffer;
         R->CNDTR = DMARXBUFSZ;
         R->CCR = DMA_CCR_MINC | DMA_CCR_CIRC | DMA_CCR_EN;
-        RB_clearbuf(&RBin);
     }
     U->CR1 |= USART_CR1_UE; // enable USARTx
     U->ICR = 0xFFFFFFFF;   // Clear flags
-    // Wait for the idle frame to complete (optional)
-    uint32_t tmout = 16000000;
-    while(!(U->ISR & USART_ISR_TC)){
-        if (--tmout == 0) break;
-    }
     TXrdy = 1;
     return TRUE;
 }
@@ -208,33 +206,36 @@ int usart_process(uint8_t *buf, int len){
     if(curUSARTidx == -1 || !(Usarts[curUSARTidx]->CR1 & USART_CR1_UE)) return -1; // none activated or started
     int ret = 0; // returned value
     // Input data
-    int write_idx = DMARXBUFSZ - DMA1_Channel5->CNDTR; // next symbol to be written
+    int remained = DMA1_Channel5->CNDTR;
+    int write_idx = DMARXBUFSZ - remained; // next symbol to be written
     int available = (write_idx - dma_read_idx); // length of data available
+    int monitored_len = available;
+    uint8_t locmonitor = monitor; // if `buf` not pointed, set this flag to zero
     if(available < 0) available += DMARXBUFSZ; // write to the left of read
     if(available){
-        if(RXrdy){
+        if(locmonitor){
             if(buf && len > 0){
-                if(len < available) available = len;
-            }else RXrdy = 0;
+                if(len < monitored_len) monitored_len = len;
+            }else locmonitor = 0;
         }
         // TODO: force copying data to "async" buffer in case of overflow danger
         if(available >= (DMARXBUFSZ/2) || RXrdy){ // enough data or lonely couple of bytes but need to show
             // copy data in one or two chunks (wrap handling)
             int wrOK = FALSE;
             if(dma_read_idx + available <= DMARXBUFSZ){ // head before tail
-                if(RXrdy){
-                    memcpy(buf, &inbuffer[dma_read_idx], available);
-                    ret = available;
+                if(locmonitor){
+                    memcpy(buf, &inbuffer[dma_read_idx], monitored_len);
+                    ret = monitored_len;
                     wrOK = TRUE;
                 }else{
                     if(available == RB_write(&RBin, &inbuffer[dma_read_idx], available)) wrOK = TRUE;
                 }
             }else{ // head after tail - two chunks
                 int first = DMARXBUFSZ - dma_read_idx;
-                if(RXrdy){
+                if(locmonitor){
                     memcpy(buf, &inbuffer[dma_read_idx], first);
-                    memcpy(buf, inbuffer, available - first);
-                    ret = available;
+                    memcpy(buf, inbuffer, monitored_len - first);
+                    ret = monitored_len;
                     wrOK = TRUE;
                 }else{
                     if((first == RB_write(&RBin, &inbuffer[dma_read_idx], first)) &&
@@ -297,9 +298,9 @@ static void usart_isr(){
 }
 
 void dma1_channel4_5_isr(){ // TX ready, channel5
-    if(DMA1->ISR & DMA_ISR_TCIF5){
+    if(DMA1->ISR & DMA_ISR_TCIF4){
         TXrdy = 1;
-        DMA1->IFCR = DMA_IFCR_CTCIF5;
+        DMA1->IFCR = DMA_IFCR_CTCIF4;
         DMA1_Channel4->CCR &= ~DMA_CCR_EN; // disable DMA channel until next send
     }
 }
