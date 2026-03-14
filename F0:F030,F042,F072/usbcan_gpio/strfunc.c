@@ -147,7 +147,8 @@ static const char *getdec(const char *buf, uint32_t *N){
     return buf;
 }
 // read hexadecimal number (without 0x prefix!)
-static const char *gethex(const char *buf, uint32_t *N){
+const char *gethex(const char *buf, uint32_t *N){
+    if(!buf || !N) return NULL;
     const char *start = buf;
     uint32_t num = 0;
     while(*buf){

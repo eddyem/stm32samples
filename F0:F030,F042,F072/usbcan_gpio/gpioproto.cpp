@@ -38,6 +38,7 @@ extern volatile uint32_t Tms;
 static uint8_t curbuf[MAXSTRLEN]; // buffer for receiving data from USART etc
 
 static uint8_t usart_text = 0; // ==1 for text USART proto
+static uint8_t hex_input_mode = 0; // ==0 for text input, 1 for HEX + text in quotes
 
 // TODO: add analog threshold!
 
@@ -48,6 +49,7 @@ static uint8_t usart_text = 0; // ==1 for text USART proto
     COMMAND(dumpconf,   "dump current configuration") \
     COMMAND(eraseflash, "erase full flash storage") \
     COMMAND(help,       "show this help") \
+    COMMAND(hexinput,   "input is text (0) or hex + text in quotes (1)") \
     COMMAND(mcutemp,    "get MCU temperature (degC*10)") \
     COMMAND(mcureset,   "reset MCU") \
     COMMAND(PA,         "GPIOA setter/getter (type PA0=help for further info)") \
@@ -59,9 +61,8 @@ static uint8_t usart_text = 0; // ==1 for text USART proto
     COMMAND(setiface,   "set/get name of interface x (0 - CAN, 1 - GPIO)") \
     COMMAND(storeconf,  "save config to flash") \
     COMMAND(time,       "show current time (ms)") \
-    COMMAND(vdd,        "get approx Vdd value (V*100)") \
-    COMMAND(USART,      "Read USART data or send (USART=hex)")
-//    COMMAND(usartconf,  "set USART params (e.g. usartconf=115200 8N1)")
+    COMMAND(USART,      "Read USART data or send (USART=hex)") \
+    COMMAND(vdd,        "get approx Vdd value (V*100)")
 //    COMMAND(SPI,        "Read SPI data or send (SPI=hex)")
 //    COMMAND(spiconf,    "set SPI params")
 
@@ -102,7 +103,7 @@ enum MiscValues{
     MISC_THRESHOLD,
     MISC_SPEED,
     MISC_TEXT,
-    MISC_BIN
+    MISC_HEX
 };
 
 // TODO: add HEX input?
@@ -124,7 +125,7 @@ KW(AIN) \
     KW(THRESHOLD) \
     KW(SPEED) \
     KW(TEXT) \
-    KW(BIN) \
+    KW(HEX) \
 
     enum{ // indexes of string keywords
 #define KW(k) STR_ ## k,
@@ -157,7 +158,7 @@ static const Keyword keywords[] = {
     KEY(THRESHOLD, GROUP_MISC,  MISC_THRESHOLD)
     KEY(SPEED, GROUP_MISC, MISC_SPEED)
     KEY(TEXT, GROUP_MISC, MISC_TEXT)
-    KEY(BIN, GROUP_MISC, MISC_BIN)
+    KEY(HEX, GROUP_MISC, MISC_HEX)
 #undef K
 };
 #define NUM_KEYWORDS (sizeof(keywords)/sizeof(keywords[0]))
@@ -182,8 +183,8 @@ static const char *pinhelp =
     "  MISC: MONITOR - send data by USB as only state changed\n"
     "        THRESHOLD (ADC only) - monitoring threshold, ADU\n"
     "        SPEED - interface speed/frequency\n"
-    "        TEXT - USART means data as text ('\n'-separated strings)\n"
-    "        BIN - USART means data as binary (output: HEX)\n"
+    "        TEXT - USART means data as text ('\\n'-separated strings)\n"
+    "        HEX - USART means data as binary (output: HEX)\n"
     "\n"
     ;
 
@@ -234,6 +235,47 @@ static bool argsvals(char *args, int32_t *parno, int32_t *parval){
         return true;
     }
     return false;
+}
+
+/**
+ * @brief parse_hex_data - data parsing in case of `hex + text` input format
+ * @param input - input string
+ * @param output - output data
+ * @param max_len - length of `output`
+ * @return amount of parsed bytes or -1 in case of overflow or error
+ */
+static int parse_hex_data(char *input, uint8_t *output, int max_len){
+    if(!input || !*input || !output || max_len < 1) return 0;
+    char *p = input;
+    int out_idx = 0;
+    while(*p && out_idx < max_len){
+        while(*p == ' ' || *p == ',') ++p; // omit spaces and commas as delimeters
+        if(*p == '\0') break; // EOL
+        if(*p == '"'){ // TEXT (start/end)
+            ++p;
+            while(*p && *p != '"'){
+                if(out_idx >= max_len) return -1;
+                output[out_idx++] = *p++;
+            }
+            if(*p == '"'){
+                ++p; // go to next symbol after closing quotation mark
+            }else return -1; // no closing
+        }else{ // HEX number
+            char *start = p;
+            while(*p && *p != ' ' && *p != ',' && *p != '"') ++p;
+            char saved = *p;
+            *p = '\0'; // temporarily for `gethex`
+            uint32_t val;
+            const char *end = gethex(start, &val);
+            if(end != p || val > 0xFF){ // not a hex number or have more than 2 symbols
+                *p = saved;
+                return -1;
+            }
+            *p = saved;
+            output[out_idx++] = (uint8_t)val;
+        }
+    }
+    return out_idx;
 }
 
 // `port` and `pin` are checked in `parse_pin_command`
@@ -330,7 +372,7 @@ static errcodes_t pin_setter(uint8_t port, uint8_t pin, char *setter){
                     case MISC_TEXT: // what to do, if textproto is set, but user wants binary?
                         UsartConf.textproto = 1;
                         break;
-                    case MISC_BIN: // clear text flag
+                    case MISC_HEX: // clear text flag
                         UsartConf.textproto = 0;
                         break;
                     }
@@ -575,8 +617,17 @@ static errcodes_t cmd_sendcan(const char _U_ *cmd, char *args){
     if(!args) return ERR_BADVAL;
     char *setter = splitargs(args, NULL);
     if(!setter) return ERR_BADVAL;
-    if(USB_sendstr(ICAN, setter)) return ERR_OK;
-    USB_putbyte(ICAN, '\n');
+    if(hex_input_mode){
+        int len = parse_hex_data(setter, curbuf, MAXSTRLEN);
+        if(len < 0) return ERR_BADVAL;
+        if(len == 0) return ERR_AMOUNT;
+        if(USB_send(ICAN, curbuf, len)) return ERR_OK;
+    }else{
+        if(USB_sendstr(ICAN, setter)){
+            USB_putbyte(ICAN, '\n');
+            return ERR_OK;
+        }
+    }
     return ERR_CANTRUN;
 }
 
@@ -628,6 +679,17 @@ static errcodes_t cmd_help(const char _U_ *cmd, char _U_ *args){
     return ERR_AMOUNT;
 }
 
+static errcodes_t cmd_hexinput(const char *cmd, char *args) {
+    int32_t val;
+    if(argsvals(args, NULL, &val)){
+        if(val == 0 || val == 1) hex_input_mode = (uint8_t)val;
+        else return ERR_BADVAL;
+    }
+    CMDEQ();
+    SENDn(hex_input_mode ? "1" : "0");
+    return ERR_AMOUNT;
+}
+
 static int sendfun(const char *s){
     if(!s) return 0;
     return USB_sendstr(IGPIO, s);
@@ -650,11 +712,17 @@ static errcodes_t cmd_USART(const char _U_ *cmd, char *args){
     char *setter = splitargs(args, NULL);
     if(setter){
         DBG("Try to send over USART\n");
-        int l = strlen(setter);
-        if(usart_text){ // add '\n' as we removed it @ parser
-            if(setter[l-1] != '\n') setter[l++] = '\n';
+        if(hex_input_mode){
+            int len = parse_hex_data(setter, curbuf, MAXSTRLEN);
+            if(len < 0) return ERR_BADVAL;
+            if(len > 0) return usart_send(curbuf, len);
+        }else{ // text mode: "AS IS"
+            int l = strlen(setter);
+            if(usart_text){ // add '\n' as we removed it @ parser
+                setter[l++] = '\n';
+            }
+            return usart_send((uint8_t*)setter, l);
         }
-        return usart_send((uint8_t*)setter, l);
     } // getter: try to read
     int l = usart_receive(curbuf, MAXSTRLEN);
     if(l < 0) return ERR_CANTRUN;
