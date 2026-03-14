@@ -42,41 +42,93 @@ typedef struct{
 #define CANUSART(x) ((x) & (1<<FUNC_USART))
 #define CANSPI(x)   ((x) & (1<<FUNC_SPI))
 #define CANI2C(x)   ((x) & (1<<FUNC_I2C))
+#define CANPWM(x)   ((x) & (1<<FUNC_PWM))
 
 // AF for USART, SPI, I2C:
 #define _U(x)  [FUNC_USART] = x
 // _S(0) or _U(0) have no sence, but lets understand that this pin have SPI or USART
 #define _S(x)  [FUNC_SPI] = x
 #define _I(x)  [FUNC_I2C] = x
+#define _P(x)  [FUNC_PWM] = x
+// Here included only common AF for STM32F042 and STM32F072 and without negative timer outputs (stars - collisions)
 static const pinprops_t pin_props[2][16] = {
     [0] = { // PORT A
-        [0]  = { .funcs = 0b00000001, .AF = {0}}, // PA0: ADC0, AF2 (TIM2_CH1)
-        [1]  = { .funcs = 0b00000001, .AF = {0}}, // PA1: ADC1, AF2 (TIM2_CH2)
-        [2]  = { .funcs = 0b00000011, .AF = {_U(1)}}, // PA2: ADC2, AF2 (TIM2_CH3), AF1 (USART2_TX)
-        [3]  = { .funcs = 0b00000011, .AF = {_U(1)}}, // PA3: ADC3, AF2 (TIM2_CH4), AF1 (USART2_RX)
+        [0]  = { .funcs = 0b00000001, .AF = {0}}, // PA0: ADC0
+        [1]  = { .funcs = 0b00010001, .AF = {_P(2)}}, // PA1: ADC1, AF2 (TIM2_CH2*)
+        [2]  = { .funcs = 0b00010011, .AF = {_U(1), _P(2)}}, // PA2: ADC2, AF2 (TIM2_CH3**), AF1 (USART2_TX)
+        [3]  = { .funcs = 0b00010011, .AF = {_U(1), _P(2)}}, // PA3: ADC3, AF2 (TIM2_CH4***), AF1 (USART2_RX)
         [5]  = { .funcs = 0b00000101, .AF = {_S(0)}}, // PA5: ADC5, AF9 (SPI1_SCK)
-        [6]  = { .funcs = 0b00000101, .AF = {_S(0)}}, // PA6: ADC6, AF0 (SPI1_MISO)
-        [7]  = { .funcs = 0b00000101, .AF = {_S(0)}}, // PA7: ADC7, AF0 (SPI1_MOSI)
-        [9]  = { .funcs = 0b00000010, .AF = {_U(1)}}, // PA9: AF1 (USART1_TX)
-        [10] = { .funcs = 0b00000010, .AF = {_U(1)}}, // PA10: AF1 (USART1_RX)
+        [6]  = { .funcs = 0b00010101, .AF = {_S(0), _P(5)}}, // PA6: ADC6, AF0 (SPI1_MISO), AF5 (TIM16_CH1)
+        [7]  = { .funcs = 0b00010101, .AF = {_S(0), _P(4)}}, // PA7: ADC7, AF0 (SPI1_MOSI), AF4 (TIM14_CH1)
+        [9]  = { .funcs = 0b00010010, .AF = {_U(1), _P(2)}}, // PA9: AF1 (USART1_TX), AF2 (TIM1_CH2)
+        [10] = { .funcs = 0b00010010, .AF = {_U(1), _P(2)}}, // PA10: AF1 (USART1_RX), AF2 (TIM1_CH3)
     },
     [1] = { // PORT B
-        [0]  = { .funcs = 0b00000001, .AF = {0}}, // PB0: ADC8, AF1 (TIM3_CH3), AF2 (TIM1_CH2N)
-        [1]  = { .funcs = 0b00000001, .AF = {0}}, // PB1: ADC9, AF0 (TIM14_CH1), AF1 (TIM3_CH4), AF2 (TIM1_CH3N)
+        [0]  = { .funcs = 0b00010001, .AF = {_P(1)}}, // PB0: ADC8, AF1 (TIM3_CH3)
+        [1]  = { .funcs = 0b00010001, .AF = {_P(1)}}, // PB1: ADC9, AF1 (TIM3_CH4)
         [2]  = { .funcs = 0b00000000, .AF = {0}}, // PB2: nothing except GPIO
-        [3]  = { .funcs = 0b00000100, .AF = {_S(0)}}, // PB3: AF0, (SPI1_SCK), AF2 (TIM2_CH2)
-        [4]  = { .funcs = 0b00000100, .AF = {_S(0)}}, // PB4: AF0 (SPI1_MISO), AF1 (TIM3_CH1)
-        [5]  = { .funcs = 0b00000100, .AF = {_S(0)}}, // PB5: AF0 (SPI1_MOSI), AF1 (TIM3_CH2)
-        [6]  = { .funcs = 0b00001010, .AF = {_U(0), _I(1)}}, // PB6: AF0 (USART1_TX), AF1 (I2C1_SCL), AF2 (TIM16_CH1N)
-        [7]  = { .funcs = 0b00001010, .AF = {_U(0), _I(1)}}, // PB7: AF0 (USART1_RX), AF1 (I2C1_SDA), AF2 (TIM17_CH1N)
-        [10] = { .funcs = 0b00001000, .AF = {_I(1)}}, // PB10: AF1 (I2C1_SCL), AF2 (TIM2_CH3)
-        [11] = { .funcs = 0b00001000, .AF = {_I(1)}}, // PB11: AF1 (I2C1_SDA), AF2 (TIM2_CH4)
+        [3]  = { .funcs = 0b00010100, .AF = {_S(0), _P(2)}}, // PB3: AF0, (SPI1_SCK), AF2 (TIM2_CH2*)
+        [4]  = { .funcs = 0b00010100, .AF = {_S(0), _P(1)}}, // PB4: AF0 (SPI1_MISO), AF1 (TIM3_CH1)
+        [5]  = { .funcs = 0b00010100, .AF = {_S(0), _P(1)}}, // PB5: AF0 (SPI1_MOSI), AF1 (TIM3_CH2)
+        [6]  = { .funcs = 0b00001010, .AF = {_U(0), _I(1)}}, // PB6: AF0 (USART1_TX), AF1 (I2C1_SCL)
+        [7]  = { .funcs = 0b00001010, .AF = {_U(0), _I(1)}}, // PB7: AF0 (USART1_RX), AF1 (I2C1_SDA)
+        [10] = { .funcs = 0b00011000, .AF = {_I(1), _P(2)}}, // PB10: AF1 (I2C1_SCL), AF2 (TIM2_CH3**)
+        [11] = { .funcs = 0b00011000, .AF = {_I(1), _P(2)}}, // PB11: AF1 (I2C1_SDA), AF2 (TIM2_CH4***)
     }
 };
 #undef _U
 #undef _S
 #undef _I
 
+#if 0
+PWM (start - collisions):
+PxN XY (XY: TIMX_CHY)
+PA1  22 *
+PA2  23 **
+PA3  24 ***
+PA6  161
+PA7  141
+PA9  12
+PA10 13
+PB0  33
+PB1  34
+PB3  22 *
+PB4  31
+PB5  32
+PB10 23 **
+PB11 24 ***
+-> need to set up timers / channels
+TIM1 / 2 3
+TIM2 / 2 3 4
+TIM3 / 1 2 3 4
+TIM14 / 1
+TIM16 / 1
+#endif
+
+#define PT(t, ch)               {.tim = t, .chidx = ch}
+#define PTC(t, ch, P, p)     {.tim = t, .chidx = ch, .collision = 1, .collport = P, .collpin = p}
+static const pwmtimer_t timer_map[2][16] = {
+    [0] = {
+        [1]  = PTC(TIM2, 1, 1, 3),
+        [2]  = PTC(TIM2, 2, 1, 10),
+        [3]  = PTC(TIM2, 3, 1, 11),
+        [6]  = PT(TIM16, 0),
+        [7]  = PT(TIM14, 0),
+        [9]  = PT(TIM1, 1),
+        [10] = PT(TIM1, 2)
+    },
+    [1] = {
+        [0]  = PT(TIM3, 2),
+        [1]  = PT(TIM3, 3),
+        [3]  = PTC(TIM2, 1, 0, 1),
+        [4]  = PT(TIM3, 0),
+        [5]  = PT(TIM3, 1),
+        [10] = PTC(TIM2, 2, 0, 2),
+        [11] = PTC(TIM2, 3, 0, 3)
+    }
+};
+#undef PT
+#undef PTC
 
 typedef struct{
     uint8_t isrx : 1;
@@ -433,4 +485,18 @@ uint16_t gpio_alert(uint8_t port){
         }
     }
     return alert;
+}
+
+/**
+ * @brief canPWM - check if pin have PWM ability
+ * @param port - port (0/1 for GPIOA/GPIOB)
+ * @param pin - pin (0..15)
+ * @param t (o) - struct for pin's PWM timer
+ * @return TRUE if can, FALSE if no
+ */
+int canPWM(uint8_t port, uint8_t pin, pwmtimer_t *t){
+    if(port > 1 || pin > 15) return 0;
+    if(t) *t = timer_map[port][pin];
+    if(timer_map[port][pin].tim) return TRUE;
+    return FALSE;
 }

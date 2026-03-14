@@ -54,7 +54,8 @@ static uint8_t hex_input_mode = 0; // ==0 for text input, 1 for HEX + text in qu
     COMMAND(mcureset,   "reset MCU") \
     COMMAND(PA,         "GPIOA setter/getter (type PA0=help for further info)") \
     COMMAND(PB,         "GPIOB setter/getter") \
-    COMMAND(readconf,  "re-read config from flash") \
+    COMMAND(pwmmap,     "show pins with PWM ability") \
+    COMMAND(readconf,   "re-read config from flash") \
     COMMAND(reinit,     "apply pin config") \
     COMMAND(saveconf,   "save current user configuration into flash") \
     COMMAND(sendcan,    "send all after '=' to CAN USB interface") \
@@ -679,7 +680,7 @@ static errcodes_t cmd_help(const char _U_ *cmd, char _U_ *args){
     return ERR_AMOUNT;
 }
 
-static errcodes_t cmd_hexinput(const char *cmd, char *args) {
+static errcodes_t cmd_hexinput(const char *cmd, char *args){
     int32_t val;
     if(argsvals(args, NULL, &val)){
         if(val == 0 || val == 1) hex_input_mode = (uint8_t)val;
@@ -687,6 +688,25 @@ static errcodes_t cmd_hexinput(const char *cmd, char *args) {
     }
     CMDEQ();
     SENDn(hex_input_mode ? "1" : "0");
+    return ERR_AMOUNT;
+}
+
+static errcodes_t cmd_pwmmap(const char _U_ *cmd, char _U_ *args){
+    pwmtimer_t t;
+    SEND("PWM pins:\n");
+    for(int port = 0; port < 2; ++port){
+        for(int pin = 0; pin < 16; ++pin){
+            if(!canPWM(port, pin, &t)) continue;
+            SEND((port == 0) ? "PA" : "PB");
+            SEND(u2str(pin));
+            if(t.collision){
+                SEND(" conflicts with ");
+                SEND((t.collport == 0) ? "PA" : "PB");
+                SEND(u2str(t.collpin));
+            }
+            NL();
+        }
+    }
     return ERR_AMOUNT;
 }
 

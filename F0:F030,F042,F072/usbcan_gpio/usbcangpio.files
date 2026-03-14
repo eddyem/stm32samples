@@ -16,6 +16,8 @@ hashgen/Readme
 hashgen/hashgen.c
 hashgen/mktestdic
 main.c
+pwm.c
+pwm.h
 ringbuffer.c
 ringbuffer.h
 strfunc.c

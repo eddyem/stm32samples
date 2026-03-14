@@ -19,6 +19,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <stm32f0.h>
 
 #ifdef EBUG
 #define USBIF   IGPIO
@@ -90,6 +91,15 @@ typedef struct{
     uint16_t threshold;  // threshold for ADC measurement
 } pinconfig_t;
 
+// Timers for PWM
+typedef struct{
+    volatile TIM_TypeDef *tim;  // timer
+    uint8_t chidx : 2;          // channel index (0..3)
+    uint8_t collision : 1;      // have collision with other channel (1)
+    uint8_t collport : 1;       // collision port index (0 - GPIOA, 1 - GPIOB)
+    uint8_t collpin : 4;        // collision pin index (0..15)
+} pwmtimer_t;
+
 /*
 typedef struct{
     uint32_t speed;
@@ -111,3 +121,5 @@ int gpio_reinit();
 int pin_out(uint8_t port, uint8_t pin, uint8_t newval);
 int16_t pin_in(uint8_t port, uint8_t pin);
 uint16_t gpio_alert(uint8_t port);
+
+int canPWM(uint8_t port, uint8_t pin, pwmtimer_t *t);
