@@ -209,10 +209,14 @@ int usart_process(uint8_t *buf, int len){
     int remained = DMA1_Channel5->CNDTR;
     int write_idx = DMARXBUFSZ - remained; // next symbol to be written
     int available = (write_idx - dma_read_idx); // length of data available
+    if(available < 0) available += DMARXBUFSZ; // write to the left of read
+    if(available == 0){
+        RXrdy = 0; // clear old ready flag if got no data
+        return 0;
+    }
     int monitored_len = available;
     uint8_t locmonitor = monitor; // if `buf` not pointed, set this flag to zero
-    if(available < 0) available += DMARXBUFSZ; // write to the left of read
-    if(available){
+    if(available > 0){
         if(locmonitor){
             if(buf && len > 0){
                 if(len < monitored_len) monitored_len = len;
@@ -222,24 +226,32 @@ int usart_process(uint8_t *buf, int len){
         if(available >= (DMARXBUFSZ/2) || RXrdy){ // enough data or lonely couple of bytes but need to show
             // copy data in one or two chunks (wrap handling)
             int wrOK = FALSE;
+            // check if we can write to RB `available` bytes
+            int canRB = TRUE;
+            if(!locmonitor){
+                int rballow = RBin.length - 1 - RB_datalen(&RBin);
+                if(rballow < available) canRB = FALSE;
+            }
             if(dma_read_idx + available <= DMARXBUFSZ){ // head before tail
                 if(locmonitor){
                     memcpy(buf, &inbuffer[dma_read_idx], monitored_len);
                     ret = monitored_len;
                     wrOK = TRUE;
                 }else{
-                    if(available == RB_write(&RBin, &inbuffer[dma_read_idx], available)) wrOK = TRUE;
+                    if(canRB && available == RB_write(&RBin, &inbuffer[dma_read_idx], available)) wrOK = TRUE;
+                    else if(buf && len > 0) ret = RB_read(&RBin, buf, len); // ringbuffer overfull -> emerge clearing
                 }
             }else{ // head after tail - two chunks
                 int first = DMARXBUFSZ - dma_read_idx;
                 if(locmonitor){
                     memcpy(buf, &inbuffer[dma_read_idx], first);
-                    memcpy(buf, inbuffer, monitored_len - first);
+                    memcpy(buf + first, inbuffer, monitored_len - first);
                     ret = monitored_len;
                     wrOK = TRUE;
                 }else{
-                    if((first == RB_write(&RBin, &inbuffer[dma_read_idx], first)) &&
+                    if(canRB && (first == RB_write(&RBin, &inbuffer[dma_read_idx], first)) &&
                         (available - first) == RB_write(&RBin, inbuffer, available - first)) wrOK = TRUE;
+                    else if(buf && len > 0) ret = RB_read(&RBin, buf, len);
                 }
             }
             if(wrOK){
@@ -247,29 +259,20 @@ int usart_process(uint8_t *buf, int len){
                 dma_read_idx = write_idx; // update read pointer
             }
         }
+    }else if(available < 0){ // das ist fantastisch!
+        if(buf && len > 0) ret = RB_read(&RBin, buf, len);
+        DBG("WTF? USART's `available` < 0!!!\n");
     }
-#if 0
-    // Output data
-    if(TXrdy){ // ready to send new data - here we can process RBout, if have
-        int got = RB_read...
-        if(got > 0){ // send next data portion
-            volatile DMA_Channel_TypeDef *T = cfg->dma_tx_channel;
-            T->CCR &= ~DMA_CCR_EN;
-            T->CMAR = (uint32_t) outbuffers[i];
-            T->CNDTR = got;
-            TXrdy = 0;
-            T->CCR |= DMA_CCR_EN; // start new transmission
-        }
-    }
-#endif
+    // we can work with RBout to send more than `usart_send` can
+    // here we can send next data portion
     return ret;
 }
 
 // send data buffer
-int usart_send(const uint8_t *data, int len){
-    if(curUSARTidx == -1 || !data || len < 1) return 0;
-    if(TXrdy == 0) return -1;
-    if(len > DMATXBUFSZ) len = DMATXBUFSZ;
+errcodes_t usart_send(const uint8_t *data, int len){
+    if(curUSARTidx == -1 || !data || len < 1) return ERR_CANTRUN;
+    if(TXrdy == 0) return ERR_BUSY;
+    if(len > DMATXBUFSZ) return ERR_OVERFLOW;
     memcpy(outbuffer, data, len);
     volatile DMA_Channel_TypeDef *T = DMA1_Channel4;
     T->CCR &= ~DMA_CCR_EN;
@@ -277,7 +280,7 @@ int usart_send(const uint8_t *data, int len){
     T->CNDTR = len;
     TXrdy = 0;
     T->CCR |= DMA_CCR_EN; // start new transmission
-    return len;
+    return ERR_OK;
 }
 
 /**

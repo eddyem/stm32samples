@@ -19,12 +19,13 @@
 #pragma once
 
 #include <stdint.h>
+#include "gpioproto.h"
 
 // DMA linear buffers for Rx/Tx
-#define DMARXBUFSZ          128
-#define DMATXBUFSZ          128
+#define DMARXBUFSZ          192
+#define DMATXBUFSZ          192
 // incoming ring buffer - only if there's a lot of data in DMA RX buffer
-#define RXRBSZ              256
+#define RXRBSZ              384
 
 #define USART_MIN_SPEED     1024
 #define USART_MAX_SPEED     1000000
@@ -51,4 +52,4 @@ void get_defusartconf(usartconf_t *c);
 int usart_process(uint8_t *buf, int len);
 
 int usart_receive(uint8_t *buf, int len);
-int usart_send(const uint8_t *data, int len);
+errcodes_t usart_send(const uint8_t *data, int len);

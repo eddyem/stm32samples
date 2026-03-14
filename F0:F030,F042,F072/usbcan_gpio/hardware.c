@@ -17,12 +17,12 @@
  */
 
 #include "adc.h"
-#include "gpio.h"
+#include "gpioproto.h"
 #include "hardware.h"
 
 uint8_t ledsON = 0;
 
-TRUE_INLINE void gpio_setup(){ // setup some common GPIO
+TRUE_INLINE void pins_setup(){ // setup some common GPIO
     // Set LEDS (PB15/PA8) as output
     pin_set(LED0_port, LED0_pin); // clear LEDs
     pin_set(LED1_port, LED1_pin);
@@ -37,9 +37,9 @@ void hardware_setup(){
     RCC->AHBENR |= RCC_AHBENR_GPIOAEN | RCC_AHBENR_GPIOBEN | RCC_AHBENR_DMA1EN;
     RCC->APB2ENR |= RCC_APB2ENR_USART1EN | RCC_APB2ENR_SYSCFGEN;
     RCC->APB1ENR |= RCC_APB1ENR_USART2EN;
-    gpio_setup();
-    //gpio_reinit();
+    pins_setup();
     adc_setup();
+    GPIO_init();
 }
 
 void iwdg_setup(){

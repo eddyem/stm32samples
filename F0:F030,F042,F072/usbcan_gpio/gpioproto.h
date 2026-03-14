@@ -27,6 +27,7 @@ typedef enum{
     ERR_WRONGLEN,   // wrong message length
     ERR_CANTRUN,    // can't run given command due to bad parameters or other
     ERR_BUSY,       // target interface busy, try later
+    ERR_OVERFLOW,   // string was too long -> overflow
     ERR_AMOUNT      // amount of error codes or "send nothing"
 } errcodes_t;
 
@@ -39,3 +40,4 @@ typedef enum{
 #define ADC_THRES_DEFAULT   100
 
 void GPIO_process();
+void GPIO_init();

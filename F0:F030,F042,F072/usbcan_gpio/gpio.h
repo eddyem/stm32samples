@@ -60,13 +60,14 @@ typedef enum{
 } pinspeed_t;
 
 // !!! FuncNames means position of bit in funcvalues_t.flags!
-enum FuncNames{ // shift 1 by this to get "canUSART" etc; not more than 7!
+typedef enum FuncNames{ // shift 1 by this to get "canUSART" etc; not more than 7!
     FUNC_AIN = 0,
     FUNC_USART = 1,
     FUNC_SPI = 2,
     FUNC_I2C = 3,
+    FUNC_PWM = 4,
     FUNC_AMOUNT // just for arrays' sizes
-};
+} funcnames_t;
 /*
 typedef union{
     struct{
@@ -84,7 +85,7 @@ typedef struct{
     pinout_t otype : 1;
     pinspeed_t speed : 2;
     uint8_t afno : 3;    // alternate function number (only if mode == MODE_AF)
-    uint8_t af : 3;      // alternate function name (`FuncNames`)
+    funcnames_t af : 3;  // alternate function name (`FuncNames`)
     uint8_t monitor : 1; // monitor changes
     uint16_t threshold;  // threshold for ADC measurement
 } pinconfig_t;

@@ -39,12 +39,15 @@ static int write2flash(const void*, const void*, uint32_t);
 //      'memcpy' forming offset 8 is out of the bounds [0, 4] of object '__varsstart' with type 'uint32_t'
 const user_conf *Flash_Data = (const user_conf *)(&__varsstart);
 
-// default pin config: all are low speed floating inputs
+// default pin config
+// simple FL IN
 #define PINEN   {.enable = 1}
+// USART1 @9600 with monitoring
+#define U1  {.enable = 1, .mode = MODE_AF, .speed = SPEED_HIGH, .afno = 1, .af = FUNC_USART, .monitor = 1}
 // GPIOA, enabled: PA0-PA3, PA5-PA7, PA9, PA10
 #define PACONF \
 [0] = PINEN, [1] = PINEN, [2] = PINEN, [3] = PINEN, [5] = PINEN, \
-[6] = PINEN, [7] = PINEN, [9] = PINEN, [10] = PINEN
+[6] = PINEN, [7] = PINEN, [9] = U1, [10] = U1
 
 // GPIOB, enabled: PB0-PB7, PB10, PB11
 #define PBCONF \
@@ -60,6 +63,7 @@ user_conf the_conf = {
     },
     .iIlengths = {14, 16},
     .pinconfig = {[0] = {PACONF}, [1] = {PBCONF}},
+    .usartconfig = {.speed = 9600, .idx = 0, .RXen = 1, .TXen = 1, .textproto = 1, .monitor = 1},
 };
 
 int currentconfidx = -1; // index of current configuration

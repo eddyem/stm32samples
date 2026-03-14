@@ -170,6 +170,7 @@ static const char* errtxt[ERR_AMOUNT] = {
     [ERR_WRONGLEN]  = "WRONGLEN",
     [ERR_CANTRUN]   = "CANTRUN",
     [ERR_BUSY]      = "BUSY",
+    [ERR_OVERFLOW]  = "OVERFLOW",
 };
 
 static const char *pinhelp =
@@ -357,7 +358,7 @@ static errcodes_t pin_setter(uint8_t port, uint8_t pin, char *setter){
     curconf.pull = static_cast <pinpull_t> (pull_set);
     curconf.otype = static_cast <pinout_t> (otype_set);
     curconf.speed = SPEED_MEDIUM;
-    curconf.af = func_set;
+    curconf.af = static_cast <funcnames_t> (func_set);
     curconf.monitor = monitor;
     if(!set_pinfunc(port, pin, &curconf)) return ERR_BADVAL;
     return ERR_OK;
@@ -637,7 +638,7 @@ static void sendusartdata(const uint8_t *buf, int len){
     SEND(str_keywords[STR_USART]); SEND(EQ);
     if(usart_text){
         USB_send(IGPIO, curbuf, len);
-        if(curbuf[len-1] != '\n') NL();
+        NL(); // always add newline at the end to mark real newline ("\n\n") and piece of line ("\n")
     }else{
         NL();
         hexdump(sendfun, (uint8_t*)curbuf, len);
@@ -653,10 +654,7 @@ static errcodes_t cmd_USART(const char _U_ *cmd, char *args){
         if(usart_text){ // add '\n' as we removed it @ parser
             if(setter[l-1] != '\n') setter[l++] = '\n';
         }
-        l = usart_send((uint8_t*)setter, l);
-        if(l < 0) return ERR_BUSY;
-        else if(l == 0) return ERR_CANTRUN;
-        return ERR_OK;
+        return usart_send((uint8_t*)setter, l);
     } // getter: try to read
     int l = usart_receive(curbuf, MAXSTRLEN);
     if(l < 0) return ERR_CANTRUN;
@@ -710,4 +708,11 @@ void GPIO_process(){
         const char *ans = CommandParser((char*)curbuf);
         if(ans) SENDn(ans);
     }
+}
+
+// starting init by flash settings
+void GPIO_init(){
+    gpio_reinit();
+    usartconf_t usc;
+    if(get_curusartconf(&usc)) usart_text = usc.textproto;
 }

@@ -37,7 +37,7 @@
 #define REPOURL "https://github.com/eddyem/stm32samples/tree/master/F0:F030,F042,F072/usbcan_gpio " RLSDBG " build #" BUILD_NUMBER "@" BUILD_DATE "\n"
 
 // max string len to '\n' (including '\0')
-#define MAXSTRLEN    128
+#define MAXSTRLEN    256
 
 void hexdump(int (*sendfun)(const char *s), uint8_t *arr, uint16_t len);
 const char *u2str(uint32_t val);
