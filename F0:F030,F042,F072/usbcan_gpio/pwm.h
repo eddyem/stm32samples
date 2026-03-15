@@ -18,4 +18,32 @@
 
 #pragma once
 
+#include <stdint.h>
+
+// used timers
+typedef enum{
+    TIM_UNSUPPORTED = 0,
+    TIM1_IDX,
+    TIM2_IDX,
+    TIM3_IDX,
+    TIM14_IDX,
+    TIM16_IDX,
+    TIMERS_AMOUNT
+}timidx_t;
+
+// Timers for PWM
+typedef struct{
+    timidx_t timidx : 3;        // timer index from array of timers used
+    uint8_t chidx : 2;          // channel index (0..3)
+    uint8_t collision : 1;      // have collision with other channel (1)
+    uint8_t collport : 1;       // collision port index (0 - GPIOA, 1 - GPIOB)
+    uint8_t collpin : 4;        // collision pin index (0..15)
+} pwmtimer_t;
+
+
 void pwm_setup();
+int canPWM(uint8_t port, uint8_t pin, pwmtimer_t *t);
+int startPWM(uint8_t port, uint8_t pin);
+void stopPWM(uint8_t port, uint8_t pin);
+int setPWM(uint8_t port, uint8_t pin, uint8_t val);
+int16_t getPWM(uint8_t port, uint8_t pin);

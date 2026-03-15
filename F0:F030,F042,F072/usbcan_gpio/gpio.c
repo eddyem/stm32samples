@@ -22,6 +22,7 @@
 #include "adc.h"
 #include "flash.h"
 #include "gpio.h"
+#include "pwm.h"
 #include "usart.h"
 
 static uint16_t monitor_mask[2] = {0}; // pins to monitor == 1 (ONLY GPIO and ADC)
@@ -79,56 +80,6 @@ static const pinprops_t pin_props[2][16] = {
 #undef _U
 #undef _S
 #undef _I
-
-#if 0
-PWM (start - collisions):
-PxN XY (XY: TIMX_CHY)
-PA1  22 *
-PA2  23 **
-PA3  24 ***
-PA6  161
-PA7  141
-PA9  12
-PA10 13
-PB0  33
-PB1  34
-PB3  22 *
-PB4  31
-PB5  32
-PB10 23 **
-PB11 24 ***
--> need to set up timers / channels
-TIM1 / 2 3
-TIM2 / 2 3 4
-TIM3 / 1 2 3 4
-TIM14 / 1
-TIM16 / 1
-#endif
-
-#define PT(t, ch)               {.tim = t, .chidx = ch}
-#define PTC(t, ch, P, p)     {.tim = t, .chidx = ch, .collision = 1, .collport = P, .collpin = p}
-static const pwmtimer_t timer_map[2][16] = {
-    [0] = {
-        [1]  = PTC(TIM2, 1, 1, 3),
-        [2]  = PTC(TIM2, 2, 1, 10),
-        [3]  = PTC(TIM2, 3, 1, 11),
-        [6]  = PT(TIM16, 0),
-        [7]  = PT(TIM14, 0),
-        [9]  = PT(TIM1, 1),
-        [10] = PT(TIM1, 2)
-    },
-    [1] = {
-        [0]  = PT(TIM3, 2),
-        [1]  = PT(TIM3, 3),
-        [3]  = PTC(TIM2, 1, 0, 1),
-        [4]  = PT(TIM3, 0),
-        [5]  = PT(TIM3, 1),
-        [10] = PTC(TIM2, 2, 0, 2),
-        [11] = PTC(TIM2, 3, 0, 3)
-    }
-};
-#undef PT
-#undef PTC
 
 typedef struct{
     uint8_t isrx : 1;
@@ -244,6 +195,21 @@ int chkpinconf(){
                         if(cfg->monitor) UC.monitor = 1;
                     }
                         break;
+                    case FUNC_PWM:{
+                        pwmtimer_t pwm;
+                        if(!canPWM(port, pin, &pwm)){
+                            DBG("Can't PWM\n");
+                            defconfig(cfg);
+                            ret = FALSE;
+                            break;
+                        }
+                        if(pwm.collision && pinconfig[pwm.collport][pwm.collpin].af == FUNC_PWM){
+                            DBG("Found collision -> remove\n");
+                            defconfig(&pinconfig[pwm.collport][pwm.collpin]); // set later collision to defaults
+                            ret = FALSE;
+                            break;
+                        }
+                    }
                     default: break; // later fill other functions
                     }
                 }
@@ -252,9 +218,11 @@ int chkpinconf(){
     }
     // now check USART configuration
     if(active_usart != -1){
+        DBG("Got active USART\n");
         UC.idx = active_usart;
         if(!chkusartconf(&UC)) ret = FALSE;
     }else{
+        DBG("No active USARTs\n");
         get_defusartconf(&UC); // clear global configuration
         the_conf.usartconfig = UC;
     }
@@ -361,7 +329,7 @@ int gpio_reinit(){
             gpio->OSPEEDR = (gpio->OSPEEDR & ~(3 << shift2)) | (cfg->speed << shift2);
             gpio->PUPDR = (gpio->PUPDR & ~(3 << shift2)) | (cfg->pull << shift2);
             if(pin < 8){
-                int shift4 = pin << 4;
+                int shift4 = pin << 2;
                 gpio->AFR[0] = (gpio->AFR[0] & ~(0xf << shift4)) | (cfg->afno << shift4);
             }else{
                 int shift4 = (pin - 8) << 2;
@@ -380,6 +348,18 @@ int gpio_reinit(){
                     oldstates[port][pin] = (gpio->IDR >> pin) & 1;
                 }
             }
+            // start/stop PWM on this pin
+            if(cfg->mode == MODE_AF && cfg->af == FUNC_PWM){
+                if(!startPWM(port, pin)) ret = FALSE;
+            }else{ // check for collisions
+                pwmtimer_t t;
+                if(canPWM(port, pin, &t)){
+                    if(t.collision){ // stop PWM only if "earlier" channel don't set on this
+                        if((t.collport < port || t.collpin < pin) && (pinconfig[t.collport][t.collpin].af != FUNC_PWM))
+                            stopPWM(port, pin);
+                    }else stopPWM(port, pin);
+                }
+            }
         }
     }
     // if all OK, copy to the_conf
@@ -390,7 +370,7 @@ int gpio_reinit(){
     if(get_curusartconf(&usc) && (usc.RXen | usc.TXen)){
         if(!usart_config(NULL)) ret = FALSE;
         else if(!usart_start()) ret = FALSE;
-    }
+    }else usart_stop();
     return ret;
 }
 
@@ -434,12 +414,18 @@ int16_t pin_in(uint8_t port, uint8_t pin){
     case MODE_OUTPUT:
         if(GPIOx->IDR & (1<<pin)) val = 1;
         else val = 0;
-    break;
+        break;
     case MODE_ANALOG:{
         int8_t chan = get_adc_channel(port, pin);
-        if(chan >= 0){
-            return (int16_t)getADCval(chan); // getADCval возвращает uint16_t
-        }
+        if(chan >= 0)
+            val = (int16_t) getADCval(chan);
+    }
+        break;
+    case MODE_AF:{
+        pinconfig_t curconf;
+        if(!get_curpinconf(port, pin, &curconf)) return -1;
+        if(curconf.af == FUNC_PWM)
+            val = getPWM(port, pin);
     }
         break;
     default:
@@ -487,16 +473,3 @@ uint16_t gpio_alert(uint8_t port){
     return alert;
 }
 
-/**
- * @brief canPWM - check if pin have PWM ability
- * @param port - port (0/1 for GPIOA/GPIOB)
- * @param pin - pin (0..15)
- * @param t (o) - struct for pin's PWM timer
- * @return TRUE if can, FALSE if no
- */
-int canPWM(uint8_t port, uint8_t pin, pwmtimer_t *t){
-    if(port > 1 || pin > 15) return 0;
-    if(t) *t = timer_map[port][pin];
-    if(timer_map[port][pin].tim) return TRUE;
-    return FALSE;
-}

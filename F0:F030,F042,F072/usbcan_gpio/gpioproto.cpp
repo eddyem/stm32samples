@@ -27,6 +27,7 @@ extern "C"{
 #include "flash.h"
 #include "gpio.h"
 #include "gpioproto.h"
+#include "pwm.h"
 #include "usart.h"
 #undef USBIF
 #define USBIF   IGPIO
@@ -46,7 +47,8 @@ static uint8_t hex_input_mode = 0; // ==0 for text input, 1 for HEX + text in qu
 #define COMMAND_TABLE \
     COMMAND(canspeed,   "CAN bus speed setter/getter (kBaud, 10..1000)") \
     COMMAND(curcanspeed,"current CAN bus speed (interface speed, not settings)") \
-    COMMAND(dumpconf,   "dump current configuration") \
+    COMMAND(curpinconf, "dump current (maybe wrong) pin configuration") \
+    COMMAND(dumpconf,   "dump global configuration") \
     COMMAND(eraseflash, "erase full flash storage") \
     COMMAND(help,       "show this help") \
     COMMAND(hexinput,   "input is text (0) or hex + text in quotes (1)") \
@@ -127,6 +129,7 @@ KW(AIN) \
     KW(SPEED) \
     KW(TEXT) \
     KW(HEX) \
+    KW(PWM) \
 
     enum{ // indexes of string keywords
 #define KW(k) STR_ ## k,
@@ -155,6 +158,7 @@ static const Keyword keywords[] = {
     KEY(USART, GROUP_FUNC,  FUNC_USART)
     KEY(SPI, GROUP_FUNC,  FUNC_SPI)
     KEY(I2C, GROUP_FUNC, FUNC_I2C)
+    KEY(PWM, GROUP_FUNC, FUNC_PWM)
     KEY(MONITOR, GROUP_MISC,  MISC_MONITOR)
     KEY(THRESHOLD, GROUP_MISC,  MISC_THRESHOLD)
     KEY(SPEED, GROUP_MISC, MISC_SPEED)
@@ -177,10 +181,10 @@ static const char* errtxt[ERR_AMOUNT] = {
 
 static const char *pinhelp =
     "Pin settings: PXx = MODE PULL OTYPE FUNC MISC (in any sequence), where\n"
-    "  MODE: AIN, IN or OUT (analog in, digital in, output)\n"
+    "  MODE: AIN, IN or OUT (analog in, digital in, output), also AF (automatically set when AF selected)\n"
     "  PULL: PU, PD or FL (pullup, pulldown, no pull - floating)\n"
     "  OTYPE: PP or OD (push-pull or open-drain)\n"
-    "  FUNC: USART or SPI (enable alternate function and configure peripheal)\n"
+    "  FUNC: USART, SPI, I2C or PWM (enable alternate function and configure peripheal)\n"
     "  MISC: MONITOR - send data by USB as only state changed\n"
     "        THRESHOLD (ADC only) - monitoring threshold, ADU\n"
     "        SPEED - interface speed/frequency\n"
@@ -294,15 +298,26 @@ static void pin_getter(uint8_t port, uint8_t pin){
 // `port` and `pin` are checked in `parse_pin_command`
 // set GPIO values (if *setter is 0/1) or configure it
 static errcodes_t pin_setter(uint8_t port, uint8_t pin, char *setter){
-    char _1st = *setter;
-    if(_1st == '0' || _1st == '1'){ // just set/clear pin state; throw out all text after "1"/"0"
-        DBG("set pin\n");
-        if(pin_out(port, pin, _1st - '0')) return ERR_OK;
-        return ERR_CANTRUN;
-    }
     if(strncmp(setter, "help", 4) == 0){ // send PIN help
         SENDn(pinhelp);
         return ERR_AMOUNT;
+    }
+    pinconfig_t curconf;
+    if(!get_curpinconf(port, pin, &curconf)) return ERR_BADVAL; // copy current config
+    uint32_t U32;
+    char *end = getnum(setter, &U32);
+    if(end != setter && *end == 0){ // number -> set pin/PWM value
+        if(U32 > 0xff) return ERR_BADVAL;
+        uint8_t val = (uint8_t) U32;
+        if(curconf.mode == MODE_OUTPUT){ // set/clear pin
+            if(U32 > 1) U32 = 1;
+            DBG("set pin\n");
+            if(pin_out(port, pin, val)) return ERR_OK;
+            return ERR_CANTRUN;
+        }else if(curconf.mode == MODE_AF && curconf.af == FUNC_PWM){
+            if(setPWM(port, pin, val)) return ERR_OK;
+            return ERR_CANTRUN;
+        }
     }
     // complex setter: parse properties
     uint8_t mode_set = 0xFF, pull_set = 0xFF, otype_set = 0xFF, func_set = 0xFF;
@@ -311,14 +326,12 @@ static errcodes_t pin_setter(uint8_t port, uint8_t pin, char *setter){
     uint32_t *pending_u32 = NULL; // -//- for uint32_t
     usartconf_t UsartConf;
     if(!get_curusartconf(&UsartConf)) return ERR_CANTRUN;
-    pinconfig_t curconf;
-    if(!get_curpinconf(port, pin, &curconf)) return ERR_BADVAL; // copy current config
 #define DELIM_  " ,"
     char *saveptr, *token = strtok_r(setter, DELIM_, &saveptr);
     while(token){
         if(pending_u16){
             uint32_t val;
-            char *end = getnum(token, &val);
+            end = getnum(token, &val);
             if(end == token || val > 0xFFFF) return ERR_BADVAL;
             *pending_u16 = (uint16_t)val;
             pending_u16 = NULL;  // reset
@@ -327,7 +340,7 @@ static errcodes_t pin_setter(uint8_t port, uint8_t pin, char *setter){
         }
         if(pending_u32){
             uint32_t val;
-            char *end = getnum(token, &val);
+            end = getnum(token, &val);
             if(end == token) return ERR_BADVAL;
             *pending_u32 = val;
             pending_u32 = NULL;
@@ -468,31 +481,22 @@ static errcodes_t cmd_curcanspeed(const char *cmd, char _U_ *args){
     return ERR_AMOUNT;
 }
 
-static errcodes_t cmd_dumpconf(const char _U_ *cmd, char _U_ *args){
-    SEND("userconf_sz="); SEND(u2str(the_conf.userconf_sz));
-    SEND("\ncurrentconfidx="); SENDn(i2str(currentconfidx));
-    for(int i = 0; i < InterfacesAmount; ++i){
-        SEND("interface"); PUTCHAR('0' + i);
-        PUTCHAR('=');
-        int l = the_conf.iIlengths[i] / 2;
-        char *ptr = (char*) the_conf.iInterface[i];
-        for(int j = 0; j < l; ++j){
-            PUTCHAR(*ptr);
-            ptr += 2;
-        }
-        NL();
-    }
-    SEND("canspeed="); SENDn(u2str(the_conf.CANspeed));
-    SEND("Pin configuration:\n");
+// dump global pin config (current == 0) or current (==1)
+static void dumppinconf(int current){
+    if(current) SEND("Current p");
+    else PUTCHAR('P');
+    SEND("in configuration:\n");
+#define S(k)  SEND(str_keywords[STR_ ## k])
+#define SP(k) do{PUTCHAR(' '); S(k);}while(0)
     for(int port = 0; port < 2; port++){
         char port_letter = (port == 0) ? 'A' : 'B';
         for(int pin = 0; pin < 16; pin++){
-            pinconfig_t *p = &the_conf.pinconfig[port][pin];
+            pinconfig_t cur, *p = &cur;
+            if(current && !get_curpinconf(port, pin, &cur)) continue; // local
+            if(!current) p = &the_conf.pinconfig[port][pin]; // global
             if(!p->enable) continue;
             PUTCHAR('P'); PUTCHAR(port_letter); SEND(i2str(pin)); SEND(EQ);
             switch(p->mode){
-#define S(k)  SEND(str_keywords[STR_ ## k])
-#define SP(k) do{PUTCHAR(' '); S(k);}while(0)
             case MODE_INPUT:
                 S(IN);
                 if(p->pull == PULL_UP) SP(PU);
@@ -519,6 +523,7 @@ static errcodes_t cmd_dumpconf(const char _U_ *cmd, char _U_ *args){
                 case FUNC_USART: S(USART); break;
                 case FUNC_SPI: S(SPI); break;
                 case FUNC_I2C: S(I2C); break;
+                case FUNC_PWM: S(PWM); break;
                 default: SEND("UNKNOWN_AF");
                 }
                 break;
@@ -537,6 +542,33 @@ static errcodes_t cmd_dumpconf(const char _U_ *cmd, char _U_ *args){
             NL();
         }
     }
+#undef S
+#undef SP
+}
+
+static errcodes_t cmd_curpinconf(const char _U_ *cmd, char _U_ *args){
+    dumppinconf(TRUE);
+    return ERR_AMOUNT;
+}
+
+static errcodes_t cmd_dumpconf(const char _U_ *cmd, char _U_ *args){
+    SEND("userconf_sz="); SEND(u2str(the_conf.userconf_sz));
+    SEND("\ncurrentconfidx="); SENDn(i2str(currentconfidx));
+    for(int i = 0; i < InterfacesAmount; ++i){
+        SEND("interface"); PUTCHAR('0' + i);
+        PUTCHAR('=');
+        int l = the_conf.iIlengths[i] / 2;
+        char *ptr = (char*) the_conf.iInterface[i];
+        for(int j = 0; j < l; ++j){
+            PUTCHAR(*ptr);
+            ptr += 2;
+        }
+        NL();
+    }
+    SEND("canspeed="); SENDn(u2str(the_conf.CANspeed));
+    dumppinconf(FALSE); // global pin config
+#define S(k)  SEND(str_keywords[STR_ ## k])
+#define SP(k) do{PUTCHAR(' '); S(k);}while(0)
     usartconf_t U = the_conf.usartconfig;
     if(U.RXen || U.TXen){ // USART enabled -> tell config
         S(USART); SEND(EQ);
@@ -547,44 +579,9 @@ static errcodes_t cmd_dumpconf(const char _U_ *cmd, char _U_ *args){
         else if(!U.TXen && U.RXen) SEND(" RXONLY");
         NL();
     }
-    // here are usart/spi/i2c configurations
-#if 0
-    bool usart_enabled = false;
-    for (int port = 0; port < 2 && !usart_enabled; port++) {
-        for (int pin = 0; pin < 16; pin++) {
-            pinconfig_t *p = &the_conf.pinconfig[port][pin];
-            if (p->enable && p->mode == MODE_AF && p->af == FUNC_USART) {
-                usart_enabled = true;
-                break;
-            }
-        }
-    }
-    if (usart_enabled) {
-        SEND("usart=");
-        // usart_config (baud, bits, parity, stopbits)
-        // e.g: SEND(u2str(usart_config.baudrate)); SEND(" ");
-        // SEND(i2str(usart_config.databits)); PUTCHAR(usart_config.parity); SEND(i2str(usart_config.stopbits));
-        NL();
-    }
-    bool spi_enabled = false;
-    for(int port = 0; port < 2 && !spi_enabled; port++){
-        for (int pin = 0; pin < 16; pin++) {
-            pinconfig_t *p = &the_conf.pinconfig[port][pin];
-            if (p->enable && p->mode == MODE_AF && p->af == FUNC_SPI) {
-                spi_enabled = true;
-                break;
-            }
-        }
-    }
-    if (spi_enabled) {
-        SEND("spi=");
-        // spi_config (speed, mode)
-        NL();
-    }
-#endif
-    return ERR_AMOUNT;
 #undef S
 #undef SP
+    return ERR_AMOUNT;
 }
 
 static errcodes_t cmd_setiface(const char* cmd, char *args){
@@ -801,6 +798,7 @@ void GPIO_process(){
 // starting init by flash settings
 void GPIO_init(){
     gpio_reinit();
+    pwm_setup();
     usartconf_t usc;
     if(get_curusartconf(&usc)) usart_text = usc.textproto;
 }
