@@ -27,6 +27,7 @@ extern "C"{
 #include "flash.h"
 #include "gpio.h"
 #include "gpioproto.h"
+#include "i2c.h"
 #include "pwm.h"
 #include "usart.h"
 #undef USBIF
@@ -52,10 +53,15 @@ static uint8_t hex_input_mode = 0; // ==0 for text input, 1 for HEX + text in qu
     COMMAND(eraseflash, "erase full flash storage") \
     COMMAND(help,       "show this help") \
     COMMAND(hexinput,   "input is text (0) or hex + text in quotes (1)") \
+    COMMAND(iic,        "write data over I2C: I2C=addr data (hex)") \
+    COMMAND(iicread,    "I2C read: I2Cread=addr nbytes (hex)") \
+    COMMAND(iicreadreg, "I2C read register: I2Creadreg=addr reg nbytes (hex)") \
+    COMMAND(iicscan,    "Scan I2C bus for devices") \
     COMMAND(mcutemp,    "get MCU temperature (degC*10)") \
     COMMAND(mcureset,   "reset MCU") \
     COMMAND(PA,         "GPIOA setter/getter (type PA0=help for further info)") \
     COMMAND(PB,         "GPIOB setter/getter") \
+    COMMAND(pinout,     "list pinout with all available functions (or selected in setter, like pinout=USART,AIN") \
     COMMAND(pwmmap,     "show pins with PWM ability") \
     COMMAND(readconf,   "re-read config from flash") \
     COMMAND(reinit,     "apply pin config") \
@@ -112,7 +118,7 @@ enum MiscValues{
 // TODO: add HEX input?
 
 #define KEYWORDS \
-KW(AIN) \
+    KW(AIN) \
     KW(IN) \
     KW(OUT) \
     KW(AF) \
@@ -131,11 +137,12 @@ KW(AIN) \
     KW(HEX) \
     KW(PWM) \
 
-    enum{ // indexes of string keywords
+
+typedef enum{ // indexes of string keywords
 #define KW(k) STR_ ## k,
         KEYWORDS
 #undef KW
-    };
+} kwindex_t;
 
 // strings for keywords
 static const char *str_keywords[] = {
@@ -194,6 +201,9 @@ static const char *pinhelp =
     ;
 
 static const char *EQ = " = "; // equal sign for getters
+// token delimeters in setters
+static const char *DELIM_ = " ,";
+static const char *COMMA = ", "; // comma before next val in list
 
 // send `command = `
 #define CMDEQ()   do{SEND(cmd); SEND(EQ);}while(0)
@@ -326,7 +336,6 @@ static errcodes_t pin_setter(uint8_t port, uint8_t pin, char *setter){
     uint32_t *pending_u32 = NULL; // -//- for uint32_t
     usartconf_t UsartConf;
     if(!get_curusartconf(&UsartConf)) return ERR_CANTRUN;
-#define DELIM_  " ,"
     char *saveptr, *token = strtok_r(setter, DELIM_, &saveptr);
     while(token){
         if(pending_u16){
@@ -381,7 +390,7 @@ static errcodes_t pin_setter(uint8_t port, uint8_t pin, char *setter){
                         pending_u16 = &curconf.threshold;
                         break;
                     case MISC_SPEED:
-                        pending_u32 = &UsartConf.speed;
+                        pending_u32 = &UsartConf.speed; // also used for I2C speed!
                         break;
                     case MISC_TEXT: // what to do, if textproto is set, but user wants binary?
                         UsartConf.textproto = 1;
@@ -403,6 +412,10 @@ static errcodes_t pin_setter(uint8_t port, uint8_t pin, char *setter){
 // check periferial settings before refresh pin data
     // check current USART settings
     if(func_set == FUNC_USART && !chkusartconf(&UsartConf)) return ERR_BADVAL;
+    if(func_set == FUNC_I2C){ // check speed
+        i2c_speed_t s = (UsartConf.speed > I2C_SPEED_1M) ? I2C_SPEED_10K : static_cast <i2c_speed_t> (UsartConf.speed);
+        the_conf.I2Cspeed = static_cast <uint8_t> (s);
+    }
     if(func_set != 0xFF) mode_set = MODE_AF;
     if(mode_set == 0xFF) return ERR_BADVAL; // user forgot to set mode
     // set defaults
@@ -579,6 +592,17 @@ static errcodes_t cmd_dumpconf(const char _U_ *cmd, char _U_ *args){
         else if(!U.TXen && U.RXen) SEND(" RXONLY");
         NL();
     }
+    if(I2C1->CR1 & I2C_CR1_PE){ // I2C active, show its speed
+        SEND("iicspeed=");
+        switch(the_conf.I2Cspeed){
+        case 0: SEND("10kHz"); break;
+        case 1: SEND("100kHz"); break;
+        case 2: SEND("400kHz"); break;
+        case 3: SEND("1MHz"); break;
+        default: SEND("unknown");
+        }
+        NL();
+    }
 #undef S
 #undef SP
     return ERR_AMOUNT;
@@ -748,11 +772,145 @@ static errcodes_t cmd_USART(const char _U_ *cmd, char *args){
     return ERR_AMOUNT;
 }
 
+static errcodes_t cmd_iic(const char _U_ *cmd, char *args){
+    if(!(I2C1->CR1 & I2C_CR1_PE)) return ERR_CANTRUN;
+    if(!args) return ERR_BADVAL;
+    char *setter = splitargs(args, NULL);
+    if(!setter) return ERR_BADVAL;
+    int len = parse_hex_data(setter, curbuf, MAXSTRLEN);
+    if(len < 1) return ERR_BADVAL; // need at least address
+    uint8_t addr = curbuf[0];
+    if(addr > 0x7F) return ERR_BADVAL; // 7-битный адрес
+    if(len == 1){ // only address without data
+        return ERR_BADPAR;
+    }
+    addr <<= 1; // roll address to run i2c_write
+    if(!i2c_write(addr, curbuf + 1, len - 1)){ // len = address + data length
+        return ERR_CANTRUN;
+    }
+    return ERR_OK;
+}
+
+static errcodes_t cmd_iicread(const char *cmd, char *args){
+    if(!(I2C1->CR1 & I2C_CR1_PE)) return ERR_CANTRUN;
+    if(!args) return ERR_BADVAL;
+    char *setter = splitargs(args, NULL);
+    if(!setter) return ERR_BADVAL;
+    int len = parse_hex_data(setter, curbuf, MAXSTRLEN);
+    if(len != 2) return ERR_BADVAL; // address, amount of bytes
+    uint8_t addr = curbuf[0];
+    uint8_t nbytes = curbuf[1];
+    if(addr > 0x7F) return ERR_BADVAL; // allow to "read" 0 bytes (just get ACK)
+    addr <<= 1;
+    if(!i2c_read(addr, curbuf, nbytes)) return ERR_CANTRUN;
+    CMDEQ();
+    if(nbytes < 9) NL();
+    hexdump(sendfun, curbuf, nbytes);
+    return ERR_AMOUNT;
+}
+
+static errcodes_t cmd_iicreadreg(const char *cmd, char *args){
+    if(!(I2C1->CR1 & I2C_CR1_PE)) return ERR_CANTRUN;
+    if(!args) return ERR_BADVAL;
+    char *setter = splitargs(args, NULL);
+    if(!setter) return ERR_BADVAL;
+    int len = parse_hex_data(setter, curbuf, MAXSTRLEN);
+    if(len != 3) return ERR_BADVAL; // address, register, amount of bytes
+    uint8_t addr = curbuf[0];
+    uint8_t nreg = curbuf[1];
+    uint8_t nbytes = curbuf[2];
+    if(addr > 0x7F || nbytes == 0) return ERR_BADVAL;
+    addr <<= 1;
+    if(!i2c_read_reg(addr, nreg, curbuf, nbytes)) return ERR_CANTRUN;
+    CMDEQ();
+    if(nbytes < 9) NL();
+    hexdump(sendfun, curbuf, nbytes);
+    return ERR_AMOUNT;
+}
+
+static errcodes_t cmd_iicscan(const char _U_ *cmd, char _U_ *args){
+    if(!(I2C1->CR1 & I2C_CR1_PE)) return ERR_CANTRUN;
+    i2c_init_scan_mode();
+    return ERR_OK;
+}
+
+// array for `cmd_pinout`
+static kwindex_t func_array[FUNC_AMOUNT] = {
+    [FUNC_AIN]      = STR_AIN,
+    [FUNC_USART]    = STR_USART,
+    [FUNC_SPI]      = STR_SPI,
+    [FUNC_I2C]      = STR_I2C,
+    [FUNC_PWM]      = STR_PWM,
+};
+
+static errcodes_t cmd_pinout(const char _U_ *cmd, char *args){
+    uint8_t listmask = 0xff; // bitmask for funcnames_t
+    if(args && *args){ // change listmask by user choise
+        char *setter = splitargs(args, NULL);
+        if(!setter) return ERR_BADVAL;
+        char *saveptr, *token = strtok_r(setter, DELIM_, &saveptr);
+        listmask = 0;
+        while(token){
+            int i = 0;
+            for(; i < FUNC_AMOUNT; ++i){
+                if(0 == strcmp(token, str_keywords[func_array[i]])){
+                    listmask |= (1 << i);
+                    break;
+                }
+            }
+            if(i == FUNC_AMOUNT) return ERR_BADVAL; // wrong argument
+            token = strtok_r(NULL, DELIM_, &saveptr);
+        }
+        if(listmask == 0) return ERR_BADVAL;
+    }
+    pwmtimer_t tp;      // timers' pins
+    usart_props_t up;   // USARTs' pins
+    i2c_props_t ip;     // I2C's pins
+
+    SEND("\nConfigurable pins (check collisions if functions have same name!):\n");
+    for(int port = 0; port < 2; ++port){
+        for(int pin = 0; pin < 16; ++pin){
+            int funcs = pinfuncs(port, pin);
+            if(funcs == -1) continue;
+            uint8_t mask = (static_cast <uint8_t> (funcs)) & listmask;
+            if(listmask != 0xff && !mask) continue; // no asked functions
+            SEND((port == 0) ? "PA" : "PB");
+            SEND(u2str(pin));
+            SEND(": ");
+            if(listmask == 0xff) SEND("GPIO"); // don't send "GPIO" for specific choice
+            if(mask & (1 << FUNC_AIN)){ SEND(COMMA); SEND(str_keywords[STR_AIN]); }
+            if(mask & (1 << FUNC_USART)){ // USARTn_aX (n - 1/2, a - R/T)
+                SEND(", ");
+                int idx = get_usart_index(port, pin, &up);
+                SEND(str_keywords[STR_USART]); PUTCHAR('1' + idx);
+                PUTCHAR('_'); PUTCHAR(up.isrx ? 'R' : 'T'); PUTCHAR('X');
+            }
+            if(mask & (1 << FUNC_SPI)){
+                SEND(COMMA); SEND(str_keywords[STR_SPI]);
+                // TODO: MISO/MOSI/SCL
+            }
+            if(mask & (1 << FUNC_I2C)){
+                int idx = get_i2c_index(port, pin, &ip);
+                SEND(COMMA); SEND(str_keywords[STR_I2C]); PUTCHAR('1' + idx);
+                PUTCHAR('_');
+                SEND(ip.isscl ? "SCL" : "SDA");
+            }
+            if(mask & (1 << FUNC_PWM)){
+                canPWM(port, pin, &tp);
+                SEND(COMMA); SEND(str_keywords[STR_PWM]);
+                SEND(u2str(tp.timidx)); // timidx == TIMNO!
+                PUTCHAR('_');
+                PUTCHAR('1' + tp.chidx);
+            }
+            NL();
+        }
+    }
+    return ERR_AMOUNT;
+}
+
 constexpr uint32_t hash(const char* str, uint32_t h = 0){
     return *str ? hash(str + 1, h + ((h << 7) ^ *str)) : h;
 }
-
-// TODO: add checking real command length!
 
 static const char *CommandParser(char *str){
     char command[CMD_MAXLEN+1];
@@ -787,11 +945,20 @@ void GPIO_process(){
     l = usart_process(curbuf, MAXSTRLEN);
     if(l > 0) sendusartdata(curbuf, l);
     l = RECV((char*)curbuf, MAXSTRLEN);
-    if(l == 0) return;
-    if(l < 0) SEND("ERROR: USB buffer overflow or string was too long\n");
-    else{
-        const char *ans = CommandParser((char*)curbuf);
-        if(ans) SENDn(ans);
+    if(l){
+        if(l < 0) SEND("ERROR: USB buffer overflow or string was too long\n");
+        else{
+            const char *ans = CommandParser((char*)curbuf);
+            if(ans) SENDn(ans);
+        }
+    }
+    if(I2C_scan_mode){
+        uint8_t addr;
+        if(i2c_scan_next_addr(&addr)){
+            SEND("foundaddr = ");
+            printuhex(addr);
+            NL();
+        }
     }
 }
 

@@ -22,6 +22,7 @@
 #include "adc.h"
 #include "flash.h"
 #include "gpio.h"
+#include "i2c.h"
 #include "pwm.h"
 #include "usart.h"
 
@@ -38,12 +39,6 @@ typedef struct{
     uint8_t funcs;  // bitmask according to enum FuncNames
     uint8_t AF[FUNC_AMOUNT]; // alternate function number for corresponding `FuncNames` number
 } pinprops_t;
-
-#define CANADC(x)   ((x) & (1<<FUNC_AIN))
-#define CANUSART(x) ((x) & (1<<FUNC_USART))
-#define CANSPI(x)   ((x) & (1<<FUNC_SPI))
-#define CANI2C(x)   ((x) & (1<<FUNC_I2C))
-#define CANPWM(x)   ((x) & (1<<FUNC_PWM))
 
 // AF for USART, SPI, I2C:
 #define _U(x)  [FUNC_USART] = x
@@ -81,17 +76,28 @@ static const pinprops_t pin_props[2][16] = {
 #undef _S
 #undef _I
 
-typedef struct{
-    uint8_t isrx : 1;
-    uint8_t istx : 1;
-} usart_props_t;
+#define CANADC(x)   ((x) & (1<<FUNC_AIN))
+#define CANUSART(x) ((x) & (1<<FUNC_USART))
+#define CANSPI(x)   ((x) & (1<<FUNC_SPI))
+#define CANI2C(x)   ((x) & (1<<FUNC_I2C))
+#define CANPWM(x)   ((x) & (1<<FUNC_PWM))
+
+static uint8_t haveI2C = 0; // ==1 if chkpinconf found I2C
+
+// return pin_props[port][pin].funcs for listing or -1 if disabled
+int pinfuncs(uint8_t port, uint8_t pin){
+    if(is_disabled(port, pin)) return -1;
+    return (int) pin_props[port][pin].funcs;
+}
+
 /**
  * @brief get_usart_index - get USART index (0 or 1 for USART1 or USART2) by given pin
  * @param port
  * @param pin
  * @return -1 if error
  */
-static int get_usart_index(uint8_t port, uint8_t pin, usart_props_t *p){
+int get_usart_index(uint8_t port, uint8_t pin, usart_props_t *p){
+    if(port > 1 || pin > 15 || !CANUSART(pin_props[port][pin].funcs)) return -1;
     int idx = -1;
     usart_props_t curprops = {0};
     if(port == 0){ // GPIOA
@@ -133,6 +139,37 @@ static int get_usart_index(uint8_t port, uint8_t pin, usart_props_t *p){
     return idx;
 }
 
+// return -1 if pin can't I2C, or return 0 and fill `p`
+int get_i2c_index(uint8_t port, uint8_t pin, i2c_props_t *p){
+    if(port > 1 || pin > 15 || !CANI2C(pin_props[port][pin].funcs)) return -1;
+    int idx = -1; // I2C1 is alone
+    i2c_props_t curprops = {0};
+    if(port == 1){ // only GPIOB
+        switch(pin){
+        case 6: // PB6 - I2C1_SCL
+            idx = 0;
+            curprops.isscl = 1;
+            break;
+        case 7: // PB7 - I2C1_SDA
+            idx = 0;
+            curprops.issda = 1;
+            break;
+        case 10: // PB10 - I2C1_SCL
+            idx = 0;
+            curprops.isscl = 1;
+            break;
+        case 11: // PB11 - I2C1_SDA
+            idx = 0;
+            curprops.issda = 1;
+            break;
+        default:
+            break;
+        }
+    }
+    if(p) *p = curprops;
+    return idx;
+}
+
 // default config
 static void defconfig(pinconfig_t *cfg){
     if(!cfg) return;
@@ -158,6 +195,8 @@ int chkpinconf(){
         UC.RXen = 0; UC.TXen = 0; UC.monitor = 0;
     }
     int active_usart = -1; // number of USART if user selects it (we can't check it by UC->idx)
+    int active_i2c = -1;
+    uint8_t i2c_scl_pin = 0xFF, i2c_sda_pin = 0xFF; // to check SCL/SDA collisions and (SCL&SDA)
     for(int port = 0; port < 2; ++port){
         for(int pin = 0; pin < 16; ++pin){
             pinconfig_t *cfg = &pinconfig[port][pin];
@@ -210,6 +249,41 @@ int chkpinconf(){
                             break;
                         }
                     }
+                        break;
+                    case FUNC_I2C:{
+                        i2c_props_t ip;
+                        int i2c_idx = get_i2c_index(port, pin, &ip);
+                        if(i2c_idx < 0){
+                            defconfig(cfg);
+                            ret = FALSE;
+                            break;
+                        }
+                        // maybe for 2 I2Cs
+                        if(active_i2c == -1) active_i2c = i2c_idx;
+                        else if(active_i2c != i2c_idx){
+                            // collision
+                            defconfig(cfg);
+                            ret = FALSE;
+                            break;
+                        }
+                        if(ip.isscl){
+                            if(i2c_scl_pin != 0xFF){ // two SCLs
+                                defconfig(cfg);
+                                ret = FALSE;
+                                break;
+                            }
+                            i2c_scl_pin = (port << 4) | pin;
+                        }
+                        if(ip.issda){
+                            if(i2c_sda_pin != 0xFF){ // two SDAs
+                                defconfig(cfg);
+                                ret = FALSE;
+                                break;
+                            }
+                            i2c_sda_pin = (port << 4) | pin;
+                        }
+                    }
+                        break;
                     default: break; // later fill other functions
                     }
                 }
@@ -226,11 +300,19 @@ int chkpinconf(){
         get_defusartconf(&UC); // clear global configuration
         the_conf.usartconfig = UC;
     }
+    // check active I2C
+    if(active_i2c != -1){
+        if(i2c_scl_pin == 0xFF || i2c_sda_pin == 0xFF){
+            DBG("Need two pins for I2C\n");
+            ret = FALSE;
+            haveI2C = 0;
+        }else haveI2C = 1;
+    }else i2c_stop();
     return ret;
 }
 
 int is_disabled(uint8_t port, uint8_t pin){
-    if(port > 1 || pin > 15) return FALSE;
+    if(port > 1 || pin > 15) return TRUE;
     if(the_conf.pinconfig[port][pin].enable) return FALSE;
     return TRUE;
 }
@@ -371,6 +453,8 @@ int gpio_reinit(){
         if(!usart_config(NULL)) ret = FALSE;
         else if(!usart_start()) ret = FALSE;
     }else usart_stop();
+    if(haveI2C) i2c_setup((i2c_speed_t) the_conf.I2Cspeed);
+    else i2c_stop();
     return ret;
 }
 

@@ -49,6 +49,7 @@ typedef struct __attribute__((packed, aligned(4))){
     // gpio settings
     pinconfig_t pinconfig[2][16]; // GPIOA, GPIOB
     usartconf_t usartconfig;
+    uint8_t I2Cspeed;
     //spiconfig_t spiconfig;
 } user_conf;
 

@@ -69,6 +69,7 @@ typedef enum FuncNames{ // shift 1 by this to get "canUSART" etc; not more than 
     FUNC_PWM = 4,
     FUNC_AMOUNT // just for arrays' sizes
 } funcnames_t;
+
 /*
 typedef union{
     struct{
@@ -91,6 +92,16 @@ typedef struct{
     uint16_t threshold;  // threshold for ADC measurement
 } pinconfig_t;
 
+typedef struct{
+    uint8_t isrx : 1;
+    uint8_t istx : 1;
+} usart_props_t;
+
+typedef struct {
+    uint8_t isscl : 1;
+    uint8_t issda : 1;
+} i2c_props_t;
+
 /*
 typedef struct{
     uint32_t speed;
@@ -102,10 +113,14 @@ typedef struct{
 */
 
 int is_disabled(uint8_t port, uint8_t pin);
+int pinfuncs(uint8_t port, uint8_t pin);
 int chkpinconf();
 
 int set_pinfunc(uint8_t port, uint8_t pin, pinconfig_t *pcfg);
 int get_curpinconf(uint8_t port, uint8_t pin, pinconfig_t *c);
+
+int get_usart_index(uint8_t port, uint8_t pin, usart_props_t *p);
+int get_i2c_index(uint8_t port, uint8_t pin, i2c_props_t *p);
 
 int gpio_reinit();
 
