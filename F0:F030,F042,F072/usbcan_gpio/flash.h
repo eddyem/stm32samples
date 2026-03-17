@@ -44,13 +44,13 @@
 typedef struct __attribute__((packed, aligned(4))){
     uint16_t userconf_sz;           // "magick number"
     uint16_t CANspeed;              // default CAN speed (in kBaud!!!)
+    uint32_t SPIspeed;              // SPI speed, baud
     uint16_t iInterface[InterfacesAmount][MAX_IINTERFACE_SZ]; // we store Interface name here in UTF!
     uint8_t  iIlengths[InterfacesAmount]; // length in BYTES (symbols amount x2)!
     // gpio settings
-    pinconfig_t pinconfig[2][16]; // GPIOA, GPIOB
+    pinconfig_t pinconfig[2][16];   // GPIOA, GPIOB
     usartconf_t usartconfig;
-    uint8_t I2Cspeed;
-    //spiconfig_t spiconfig;
+    uint8_t I2Cspeed;               // I2C speed index
 } user_conf;
 
 extern user_conf the_conf; // global user config (read from FLASH to RAM)

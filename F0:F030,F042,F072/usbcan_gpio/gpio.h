@@ -97,10 +97,16 @@ typedef struct{
     uint8_t istx : 1;
 } usart_props_t;
 
-typedef struct {
+typedef struct{
     uint8_t isscl : 1;
     uint8_t issda : 1;
 } i2c_props_t;
+
+typedef struct{
+    uint8_t issck  : 1;
+    uint8_t ismiso : 1;
+    uint8_t ismosi : 1;
+} spi_props_t;
 
 /*
 typedef struct{
@@ -121,6 +127,7 @@ int get_curpinconf(uint8_t port, uint8_t pin, pinconfig_t *c);
 
 int get_usart_index(uint8_t port, uint8_t pin, usart_props_t *p);
 int get_i2c_index(uint8_t port, uint8_t pin, i2c_props_t *p);
+int get_spi_index(uint8_t port, uint8_t pin, spi_props_t *p);
 
 int gpio_reinit();
 

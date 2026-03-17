@@ -29,6 +29,7 @@ extern "C"{
 #include "gpioproto.h"
 #include "i2c.h"
 #include "pwm.h"
+#include "spi.h"
 #include "usart.h"
 #undef USBIF
 #define USBIF   IGPIO
@@ -68,6 +69,7 @@ static uint8_t hex_input_mode = 0; // ==0 for text input, 1 for HEX + text in qu
     COMMAND(saveconf,   "save current user configuration into flash") \
     COMMAND(sendcan,    "send all after '=' to CAN USB interface") \
     COMMAND(setiface,   "set/get name of interface x (0 - CAN, 1 - GPIO)") \
+    COMMAND(SPI,        "transfer SPI data: SPI=data (hex)") \
     COMMAND(storeconf,  "save config to flash") \
     COMMAND(time,       "show current time (ms)") \
     COMMAND(USART,      "Read USART data or send (USART=hex)") \
@@ -334,6 +336,7 @@ static errcodes_t pin_setter(uint8_t port, uint8_t pin, char *setter){
     bool monitor = false;
     uint16_t *pending_u16 = NULL; // pointer to uint16_t value, if !NULL, next token should be a number
     uint32_t *pending_u32 = NULL; // -//- for uint32_t
+    uint32_t wU32 = UINT32_MAX; // for pending
     usartconf_t UsartConf;
     if(!get_curusartconf(&UsartConf)) return ERR_CANTRUN;
     char *saveptr, *token = strtok_r(setter, DELIM_, &saveptr);
@@ -390,7 +393,7 @@ static errcodes_t pin_setter(uint8_t port, uint8_t pin, char *setter){
                         pending_u16 = &curconf.threshold;
                         break;
                     case MISC_SPEED:
-                        pending_u32 = &UsartConf.speed; // also used for I2C speed!
+                        pending_u32 = &wU32;
                         break;
                     case MISC_TEXT: // what to do, if textproto is set, but user wants binary?
                         UsartConf.textproto = 1;
@@ -411,10 +414,16 @@ static errcodes_t pin_setter(uint8_t port, uint8_t pin, char *setter){
 
 // check periferial settings before refresh pin data
     // check current USART settings
-    if(func_set == FUNC_USART && !chkusartconf(&UsartConf)) return ERR_BADVAL;
-    if(func_set == FUNC_I2C){ // check speed
-        i2c_speed_t s = (UsartConf.speed > I2C_SPEED_1M) ? I2C_SPEED_10K : static_cast <i2c_speed_t> (UsartConf.speed);
-        the_conf.I2Cspeed = static_cast <uint8_t> (s);
+    if(func_set == FUNC_USART){
+        if(wU32 != UINT32_MAX) UsartConf.speed = wU32;
+        if(!chkusartconf(&UsartConf)) return ERR_BADVAL;
+    }else if(func_set == FUNC_I2C){ // check speed
+        if(wU32 != UINT32_MAX){
+            i2c_speed_t s = (wU32 > I2C_SPEED_1M) ? I2C_SPEED_10K : static_cast <i2c_speed_t> (wU32);
+            the_conf.I2Cspeed = static_cast <uint8_t> (s);
+        }
+    }else if(func_set == FUNC_SPI){
+        if(wU32 != UINT32_MAX) the_conf.SPIspeed = wU32;
     }
     if(func_set != 0xFF) mode_set = MODE_AF;
     if(mode_set == 0xFF) return ERR_BADVAL; // user forgot to set mode
@@ -602,6 +611,10 @@ static errcodes_t cmd_dumpconf(const char _U_ *cmd, char _U_ *args){
         default: SEND("unknown");
         }
         NL();
+    }
+    if(SPI1->CR1 & SPI_CR1_SPE){
+        SEND("spispeed=");
+        SENDn(u2str(the_conf.SPIspeed));
     }
 #undef S
 #undef SP
@@ -866,6 +879,7 @@ static errcodes_t cmd_pinout(const char _U_ *cmd, char *args){
     pwmtimer_t tp;      // timers' pins
     usart_props_t up;   // USARTs' pins
     i2c_props_t ip;     // I2C's pins
+    spi_props_t sp;
 
     SEND("\nConfigurable pins (check collisions if functions have same name!):\n");
     for(int port = 0; port < 2; ++port){
@@ -880,14 +894,17 @@ static errcodes_t cmd_pinout(const char _U_ *cmd, char *args){
             if(listmask == 0xff) SEND("GPIO"); // don't send "GPIO" for specific choice
             if(mask & (1 << FUNC_AIN)){ SEND(COMMA); SEND(str_keywords[STR_AIN]); }
             if(mask & (1 << FUNC_USART)){ // USARTn_aX (n - 1/2, a - R/T)
-                SEND(", ");
                 int idx = get_usart_index(port, pin, &up);
-                SEND(str_keywords[STR_USART]); PUTCHAR('1' + idx);
+                SEND(COMMA); SEND(str_keywords[STR_USART]); PUTCHAR('1' + idx);
                 PUTCHAR('_'); PUTCHAR(up.isrx ? 'R' : 'T'); PUTCHAR('X');
             }
             if(mask & (1 << FUNC_SPI)){
-                SEND(COMMA); SEND(str_keywords[STR_SPI]);
-                // TODO: MISO/MOSI/SCL
+                int idx = get_spi_index(port, pin, &sp);
+                SEND(COMMA); SEND(str_keywords[STR_SPI]); PUTCHAR('1' + idx);
+                PUTCHAR('_');
+                if(sp.ismiso) SEND("MISO");
+                else if(sp.ismosi) SEND("MOSI");
+                else SEND("SCK");
             }
             if(mask & (1 << FUNC_I2C)){
                 int idx = get_i2c_index(port, pin, &ip);
@@ -905,6 +922,21 @@ static errcodes_t cmd_pinout(const char _U_ *cmd, char *args){
             NL();
         }
     }
+    return ERR_AMOUNT;
+}
+
+static errcodes_t cmd_SPI(const char *cmd, char *args){
+    if(!args) return ERR_BADVAL;
+    if(!(SPI1->CR1 & SPI_CR1_SPE)) return ERR_CANTRUN;
+    char *setter = splitargs(args, NULL);
+    if(!setter) return ERR_BADVAL;
+    int len = parse_hex_data(setter, curbuf, MAXSTRLEN);
+    if(len <= 0) return ERR_BADVAL;
+    int got = spi_transfer(curbuf, curbuf, len);
+    if(-1 == got) return ERR_CANTRUN;
+    if(0 == got) return ERR_BUSY;
+    CMDEQ();
+    hexdump(sendfun, curbuf, got);
     return ERR_AMOUNT;
 }
 

@@ -20,6 +20,7 @@
 #include <string.h>
 
 #include "flash.h"
+#include "hardware.h"
 #include "ringbuffer.h"
 #include "usart.h"
 
@@ -101,13 +102,12 @@ int usart_config(usartconf_t *uc){
     if(curUSARTidx != -1) usart_stop(); // disable previous USART if enabled
     uint8_t No = usartconfig.idx;
     volatile USART_TypeDef *U = Usarts[No];
-    uint32_t peripheral_clock = 48000000;
     // Disable USART while configuring
     U->CR1 = 0;
     U->ICR = 0xFFFFFFFF;   // Clear all interrupt flags
     // Assuming oversampling by 16 (default after reset). For higher baud rates you might use by 8.
-    U->BRR = peripheral_clock / (usartconfig.speed);
-    usartconfig.speed= peripheral_clock / U->BRR; // fix for real speed
+    U->BRR = peripherial_clock / (usartconfig.speed);
+    usartconfig.speed = peripherial_clock / U->BRR; // fix for real speed
     uint32_t cr1 = 0, cr3 = 0;
     textformat = usartconfig.textproto;
     monitor = usartconfig.monitor;

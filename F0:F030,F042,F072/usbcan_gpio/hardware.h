@@ -41,7 +41,7 @@
 
 
 extern volatile uint32_t Tms;
-
+extern const uint32_t peripherial_clock;
 extern uint8_t ledsON;
 
 void hardware_setup();

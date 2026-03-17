@@ -20,6 +20,7 @@
 #include "gpioproto.h"
 #include "hardware.h"
 
+const uint32_t peripherial_clock = 48000000;
 uint8_t ledsON = 0;
 
 TRUE_INLINE void pins_setup(){ // setup some common GPIO
@@ -35,8 +36,10 @@ TRUE_INLINE void pins_setup(){ // setup some common GPIO
 void hardware_setup(){
     // enable all active GPIO clocking
     RCC->AHBENR |= RCC_AHBENR_GPIOAEN | RCC_AHBENR_GPIOBEN | RCC_AHBENR_DMA1EN;
-    RCC->APB2ENR |= RCC_APB2ENR_USART1EN | RCC_APB2ENR_SYSCFGEN | RCC_APB2ENR_TIM1EN | RCC_APB2ENR_TIM16EN;
-    RCC->APB1ENR |= RCC_APB1ENR_USART2EN | RCC_APB1ENR_TIM2EN | RCC_APB1ENR_TIM3EN | RCC_APB1ENR_TIM14EN | RCC_APB1ENR_I2C1EN;
+    RCC->APB2ENR |= RCC_APB2ENR_USART1EN | RCC_APB2ENR_SYSCFGEN | RCC_APB2ENR_TIM1EN | RCC_APB2ENR_TIM16EN |
+                    RCC_APB2ENR_SPI1EN;
+    RCC->APB1ENR |= RCC_APB1ENR_USART2EN | RCC_APB1ENR_TIM2EN | RCC_APB1ENR_TIM3EN | RCC_APB1ENR_TIM14EN |
+                    RCC_APB1ENR_I2C1EN;
     pins_setup();
     adc_setup();
     GPIO_init();

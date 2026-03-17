@@ -24,6 +24,7 @@
 #include "gpio.h"
 #include "i2c.h"
 #include "pwm.h"
+#include "spi.h"
 #include "usart.h"
 
 static uint16_t monitor_mask[2] = {0}; // pins to monitor == 1 (ONLY GPIO and ADC)
@@ -83,6 +84,7 @@ static const pinprops_t pin_props[2][16] = {
 #define CANPWM(x)   ((x) & (1<<FUNC_PWM))
 
 static uint8_t haveI2C = 0; // ==1 if chkpinconf found I2C
+static uint8_t haveSPI = 0;
 
 // return pin_props[port][pin].funcs for listing or -1 if disabled
 int pinfuncs(uint8_t port, uint8_t pin){
@@ -142,7 +144,7 @@ int get_usart_index(uint8_t port, uint8_t pin, usart_props_t *p){
 // return -1 if pin can't I2C, or return 0 and fill `p`
 int get_i2c_index(uint8_t port, uint8_t pin, i2c_props_t *p){
     if(port > 1 || pin > 15 || !CANI2C(pin_props[port][pin].funcs)) return -1;
-    int idx = -1; // I2C1 is alone
+    int idx = -1; // later we can add SPI2 support
     i2c_props_t curprops = {0};
     if(port == 1){ // only GPIOB
         switch(pin){
@@ -164,6 +166,47 @@ int get_i2c_index(uint8_t port, uint8_t pin, i2c_props_t *p){
             break;
         default:
             break;
+        }
+    }
+    if(p) *p = curprops;
+    return idx;
+}
+
+int get_spi_index(uint8_t port, uint8_t pin, spi_props_t *p){
+    if(port > 1 || pin > 15 || !CANSPI(pin_props[port][pin].funcs)) return -1;
+    int idx = -1;
+    spi_props_t curprops = {0};
+    if(port == 0){ // PA5-7 (SCK-MISO-MOSI)
+        switch(pin){
+        case 5:
+            idx = 0;
+            curprops.issck =1;
+            break;
+        case 6:
+            idx = 0;
+            curprops.ismiso = 1;
+            break;
+        case 7:
+            idx = 0;
+            curprops.ismosi = 1;
+            break;
+        default: break;
+        }
+    }else if(port == 1){ // PB3-5 (SCK-MISO-MOSI)
+        switch(pin){
+        case 3:
+            idx = 0;
+            curprops.issck =1;
+            break;
+        case 4:
+            idx = 0;
+            curprops.ismiso = 1;
+            break;
+        case 5:
+            idx = 0;
+            curprops.ismosi = 1;
+            break;
+        default: break;
         }
     }
     if(p) *p = curprops;
@@ -196,7 +239,9 @@ int chkpinconf(){
     }
     int active_usart = -1; // number of USART if user selects it (we can't check it by UC->idx)
     int active_i2c = -1;
-    uint8_t i2c_scl_pin = 0xFF, i2c_sda_pin = 0xFF; // to check SCL/SDA collisions and (SCL&SDA)
+    int active_spi = -1;
+    i2c_props_t i2cprops = {0};
+    spi_props_t spiprops = {0};
     for(int port = 0; port < 2; ++port){
         for(int pin = 0; pin < 16; ++pin){
             pinconfig_t *cfg = &pinconfig[port][pin];
@@ -267,20 +312,60 @@ int chkpinconf(){
                             break;
                         }
                         if(ip.isscl){
-                            if(i2c_scl_pin != 0xFF){ // two SCLs
+                            if(i2cprops.isscl){ // two SCLs
                                 defconfig(cfg);
                                 ret = FALSE;
                                 break;
                             }
-                            i2c_scl_pin = (port << 4) | pin;
+                            i2cprops.isscl = 1;
                         }
                         if(ip.issda){
-                            if(i2c_sda_pin != 0xFF){ // two SDAs
+                            if(i2cprops.issda){ // two SDAs
                                 defconfig(cfg);
                                 ret = FALSE;
                                 break;
                             }
-                            i2c_sda_pin = (port << 4) | pin;
+                            i2cprops.issda = 1;
+                        }
+                    }
+                        break;
+                    case FUNC_SPI:{
+                        spi_props_t sp;
+                        int spi_idx = get_spi_index(port, pin, &sp);
+                        if(spi_idx < 0){
+                            defconfig(cfg);
+                            ret = FALSE;
+                            break;
+                        }
+                        if(active_spi == -1) active_spi = spi_idx;
+                        else if(active_spi != spi_idx){
+                            defconfig(cfg);
+                            ret = FALSE;
+                            break;
+                        }
+                        if(sp.issck){
+                            if(spiprops.issck){
+                                defconfig(cfg);
+                                ret = FALSE;
+                                break;
+                            }
+                            spiprops.issck = 1;
+                        }
+                        if(sp.ismiso){
+                            if(spiprops.ismiso){
+                                defconfig(cfg);
+                                ret = FALSE;
+                                break;
+                            }
+                            spiprops.ismiso = 1;
+                        }
+                        if(sp.ismosi){
+                            if(spiprops.ismosi){
+                                defconfig(cfg);
+                                ret = FALSE;
+                                break;
+                            }
+                            spiprops.ismosi = 1;
                         }
                     }
                         break;
@@ -302,12 +387,23 @@ int chkpinconf(){
     }
     // check active I2C
     if(active_i2c != -1){
-        if(i2c_scl_pin == 0xFF || i2c_sda_pin == 0xFF){
+        if(i2cprops.isscl && i2cprops.issda){
+            haveI2C = 1;
+        }else{
             DBG("Need two pins for I2C\n");
             ret = FALSE;
             haveI2C = 0;
-        }else haveI2C = 1;
-    }else i2c_stop();
+        }
+    }
+    if(active_spi != -1){
+        if(spiprops.issck && (spiprops.ismiso || spiprops.ismosi)){
+            haveSPI = 1;
+        }else{
+            DBG("SPI needs SCK and MOSI or MISO\n");
+            ret = FALSE;
+            haveSPI = 0;
+        }
+    }
     return ret;
 }
 
@@ -455,6 +551,8 @@ int gpio_reinit(){
     }else usart_stop();
     if(haveI2C) i2c_setup((i2c_speed_t) the_conf.I2Cspeed);
     else i2c_stop();
+    if(haveSPI) spi_setup(the_conf.SPIspeed);
+    else spi_stop();
     return ret;
 }
 
