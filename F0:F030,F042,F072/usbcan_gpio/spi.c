@@ -18,6 +18,7 @@
 
 #include  <stm32f0.h>
 
+#include "flash.h"
 #include "hardware.h"
 #include "spi.h"
 
@@ -38,14 +39,20 @@ static uint16_t get_baudrate_prescaler(uint32_t speed_hz){
 }
 
 
-// Master, 8bit, CPOL=0, CPHA=0, MSB first
-void spi_setup(uint32_t speed){ // speed in Hz
+void spi_setup(){
     RCC->APB2RSTR |= RCC_APB2RSTR_SPI1RST;
     RCC->APB2RSTR = 0;
     SPI1->CR1 = 0;
-    uint16_t br = get_baudrate_prescaler(speed);
-    SPI1->CR1 = SPI_CR1_MSTR | (br << 3) | SPI_CR1_SSM | SPI_CR1_SSI;
-    SPI1->CR2 = SPI_CR2_SSOE;
+    uint16_t br = get_baudrate_prescaler(the_conf.spiconfig.speed);
+    uint32_t cr1 = SPI_CR1_MSTR | (br << 3) | SPI_CR1_SSM | SPI_CR1_SSI;
+    if(the_conf.spiconfig.cpol) cr1 |= SPI_CR1_CPOL;
+    if(the_conf.spiconfig.cpha) cr1 |= SPI_CR1_CPHA;
+    if(the_conf.spiconfig.lsbfirst) cr1 |= SPI_CR1_LSBFIRST;
+    // there would be a lot of problem to set rxonly!
+    //if(the_conf.spiconfig.rxonly) cr1 |= SPI_CR1_RXONLY;
+    SPI1->CR1 = cr1;
+    // rxne after 8bits, ds 8bit
+    SPI1->CR2 = /*SPI_CR2_SSOE | */ SPI_CR2_FRXTH| SPI_CR2_DS_2|SPI_CR2_DS_1|SPI_CR2_DS_0;
     SPI1->CR1 |= SPI_CR1_SPE;
 }
 
@@ -63,12 +70,12 @@ int spi_transfer(const uint8_t *tx, uint8_t *rx, int len){
             if (--timeout == 0) return -1; // error by timeout: TX isn't ready
         }
         uint8_t out = (tx) ? tx[i] : 0;
-        *(uint8_t*)&SPI1->DR = out; // запись в DR
+        *((volatile uint8_t*)&SPI1->DR) = out;
         timeout = 1000000;
         while(!(SPI1->SR & SPI_SR_RXNE)){
             if(--timeout == 0) return 0;
         }
-        uint8_t in = *(uint8_t*)&SPI1->DR; // чтение из DR
+        uint8_t in = *((volatile uint8_t*)&SPI1->DR);
         if(rx) rx[i] = in;
     }
     //while(SPI1->SR & SPI_SR_BSY){ }

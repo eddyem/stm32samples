@@ -20,6 +20,6 @@
 
 #include <stdint.h>
 
-void spi_setup(uint32_t speed); // speed in Hz
+void spi_setup();
 void spi_stop();
 int spi_transfer(const uint8_t *tx, uint8_t *rx, int len);

@@ -69,8 +69,7 @@ static uint8_t hex_input_mode = 0; // ==0 for text input, 1 for HEX + text in qu
     COMMAND(saveconf,   "save current user configuration into flash") \
     COMMAND(sendcan,    "send all after '=' to CAN USB interface") \
     COMMAND(setiface,   "set/get name of interface x (0 - CAN, 1 - GPIO)") \
-    COMMAND(SPI,        "transfer SPI data: SPI=data (hex)") \
-    COMMAND(storeconf,  "save config to flash") \
+    COMMAND(SPI,        "transfer SPI data: SPI=data (hex); if RXONLY: SPI = size (size to read, bytes)") \
     COMMAND(time,       "show current time (ms)") \
     COMMAND(USART,      "Read USART data or send (USART=hex)") \
     COMMAND(vdd,        "get approx Vdd value (V*100)")
@@ -114,7 +113,10 @@ enum MiscValues{
     MISC_THRESHOLD,
     MISC_SPEED,
     MISC_TEXT,
-    MISC_HEX
+    MISC_HEX,
+    MISC_LSBFIRST,
+    MISC_CPOL,
+    MISC_CPHA,
 };
 
 // TODO: add HEX input?
@@ -138,6 +140,9 @@ enum MiscValues{
     KW(TEXT) \
     KW(HEX) \
     KW(PWM) \
+    KW(LSBFIRST) \
+    KW(CPOL) \
+    KW(CPHA)
 
 
 typedef enum{ // indexes of string keywords
@@ -173,6 +178,9 @@ static const Keyword keywords[] = {
     KEY(SPEED, GROUP_MISC, MISC_SPEED)
     KEY(TEXT, GROUP_MISC, MISC_TEXT)
     KEY(HEX, GROUP_MISC, MISC_HEX)
+    KEY(LSBFIRST, GROUP_MISC, MISC_LSBFIRST)
+    KEY(CPOL, GROUP_MISC, MISC_CPOL)
+    KEY(CPHA, GROUP_MISC, MISC_CPHA)
 #undef K
 };
 #define NUM_KEYWORDS (sizeof(keywords)/sizeof(keywords[0]))
@@ -195,10 +203,13 @@ static const char *pinhelp =
     "  OTYPE: PP or OD (push-pull or open-drain)\n"
     "  FUNC: USART, SPI, I2C or PWM (enable alternate function and configure peripheal)\n"
     "  MISC: MONITOR - send data by USB as only state changed\n"
-    "        THRESHOLD (ADC only) - monitoring threshold, ADU\n"
-    "        SPEED - interface speed/frequency\n"
+    "        THRESHOLD val (ADC only) - monitoring threshold, ADU\n"
+    "        SPEED val - interface speed/frequency\n"
     "        TEXT - USART means data as text ('\\n'-separated strings)\n"
     "        HEX - USART means data as binary (output: HEX)\n"
+    "        CPHA - set SPI CPHA to 1\n"
+    "        CPOL - set SPI CPOL to 1\n"
+    "        LCBFIRST - SPI use lsb-first proto\n"
     "\n"
     ;
 
@@ -338,6 +349,7 @@ static errcodes_t pin_setter(uint8_t port, uint8_t pin, char *setter){
     uint32_t *pending_u32 = NULL; // -//- for uint32_t
     uint32_t wU32 = UINT32_MAX; // for pending
     usartconf_t UsartConf;
+    spiconfig_t spiconf = {}; // for flags CPHA/CPOL/LSBFIRST
     if(!get_curusartconf(&UsartConf)) return ERR_CANTRUN;
     char *saveptr, *token = strtok_r(setter, DELIM_, &saveptr);
     while(token){
@@ -401,6 +413,15 @@ static errcodes_t pin_setter(uint8_t port, uint8_t pin, char *setter){
                     case MISC_HEX: // clear text flag
                         UsartConf.textproto = 0;
                         break;
+                    case MISC_CPHA:
+                        spiconf.cpha = 1;
+                        break;
+                    case MISC_CPOL:
+                        spiconf.cpol = 1;
+                        break;
+                    case MISC_LSBFIRST:
+                        spiconf.lsbfirst = 1;
+                        break;
                     }
                     break;
                 }
@@ -419,11 +440,15 @@ static errcodes_t pin_setter(uint8_t port, uint8_t pin, char *setter){
         if(!chkusartconf(&UsartConf)) return ERR_BADVAL;
     }else if(func_set == FUNC_I2C){ // check speed
         if(wU32 != UINT32_MAX){
-            i2c_speed_t s = (wU32 > I2C_SPEED_1M) ? I2C_SPEED_10K : static_cast <i2c_speed_t> (wU32);
+            if(wU32 >= I2C_SPEED_AMOUNT)  return ERR_BADVAL;
+            i2c_speed_t s = static_cast <i2c_speed_t> (wU32);
             the_conf.I2Cspeed = static_cast <uint8_t> (s);
         }
     }else if(func_set == FUNC_SPI){
-        if(wU32 != UINT32_MAX) the_conf.SPIspeed = wU32;
+        if(wU32 != UINT32_MAX) the_conf.spiconfig.speed = wU32;
+        the_conf.spiconfig.cpha = spiconf.cpha;
+        the_conf.spiconfig.cpol = spiconf.cpol;
+        the_conf.spiconfig.lsbfirst = spiconf.lsbfirst;
     }
     if(func_set != 0xFF) mode_set = MODE_AF;
     if(mode_set == 0xFF) return ERR_BADVAL; // user forgot to set mode
@@ -478,11 +503,6 @@ static errcodes_t cmd_reinit(const char _U_ *cmd, char _U_ *args){
     }
     SEND("Can't reinit: check your configuration!\n");
     return ERR_AMOUNT;
-}
-
-static errcodes_t cmd_storeconf(const char _U_ *cmd, char _U_ *args){
-    if(!store_userconf()) return ERR_CANTRUN;
-    return ERR_OK;
 }
 
 // canspeed = baudrate (kBaud)
@@ -575,6 +595,7 @@ static errcodes_t cmd_curpinconf(const char _U_ *cmd, char _U_ *args){
 
 static errcodes_t cmd_dumpconf(const char _U_ *cmd, char _U_ *args){
     SEND("userconf_sz="); SEND(u2str(the_conf.userconf_sz));
+    SEND("\nstorage_capacity="); SEND(u2str(storage_capacity()));
     SEND("\ncurrentconfidx="); SENDn(i2str(currentconfidx));
     for(int i = 0; i < InterfacesAmount; ++i){
         SEND("interface"); PUTCHAR('0' + i);
@@ -602,7 +623,7 @@ static errcodes_t cmd_dumpconf(const char _U_ *cmd, char _U_ *args){
         NL();
     }
     if(I2C1->CR1 & I2C_CR1_PE){ // I2C active, show its speed
-        SEND("iicspeed=");
+        S(I2C); SEND(EQ); S(SPEED); PUTCHAR(' ');
         switch(the_conf.I2Cspeed){
         case 0: SEND("10kHz"); break;
         case 1: SEND("100kHz"); break;
@@ -613,8 +634,14 @@ static errcodes_t cmd_dumpconf(const char _U_ *cmd, char _U_ *args){
         NL();
     }
     if(SPI1->CR1 & SPI_CR1_SPE){
-        SEND("spispeed=");
-        SENDn(u2str(the_conf.SPIspeed));
+        S(SPI); SEND(EQ);
+        S(SPEED); PUTCHAR(' '); SEND(u2str(the_conf.spiconfig.speed));
+        if(the_conf.spiconfig.cpol) SP(CPOL);
+        if(the_conf.spiconfig.cpha) SP(CPHA);
+        if(the_conf.spiconfig.lsbfirst) SP(LSBFIRST);
+        if(the_conf.spiconfig.rxonly) SEND(" RXONLY");
+        else if(the_conf.spiconfig.txonly) SEND(" TXONLY");
+        NL();
     }
 #undef S
 #undef SP
@@ -817,7 +844,7 @@ static errcodes_t cmd_iicread(const char *cmd, char *args){
     addr <<= 1;
     if(!i2c_read(addr, curbuf, nbytes)) return ERR_CANTRUN;
     CMDEQ();
-    if(nbytes < 9) NL();
+    if(nbytes > 8) NL();
     hexdump(sendfun, curbuf, nbytes);
     return ERR_AMOUNT;
 }
@@ -836,7 +863,7 @@ static errcodes_t cmd_iicreadreg(const char *cmd, char *args){
     addr <<= 1;
     if(!i2c_read_reg(addr, nreg, curbuf, nbytes)) return ERR_CANTRUN;
     CMDEQ();
-    if(nbytes < 9) NL();
+    if(nbytes > 8) NL();
     hexdump(sendfun, curbuf, nbytes);
     return ERR_AMOUNT;
 }
@@ -891,16 +918,21 @@ static errcodes_t cmd_pinout(const char _U_ *cmd, char *args){
             SEND((port == 0) ? "PA" : "PB");
             SEND(u2str(pin));
             SEND(": ");
-            if(listmask == 0xff) SEND("GPIO"); // don't send "GPIO" for specific choice
-            if(mask & (1 << FUNC_AIN)){ SEND(COMMA); SEND(str_keywords[STR_AIN]); }
+            int needcomma = FALSE;
+#define COMMA()  do{if(needcomma) SEND(COMMA); needcomma = TRUE;}while(0)
+            if(listmask == 0xff){ // don't send "GPIO" for specific choice
+                SEND("GPIO");
+                needcomma = TRUE;
+            }
+            if(mask & (1 << FUNC_AIN)){ COMMA(); SEND(str_keywords[STR_AIN]); }
             if(mask & (1 << FUNC_USART)){ // USARTn_aX (n - 1/2, a - R/T)
                 int idx = get_usart_index(port, pin, &up);
-                SEND(COMMA); SEND(str_keywords[STR_USART]); PUTCHAR('1' + idx);
+                COMMA(); SEND(str_keywords[STR_USART]); PUTCHAR('1' + idx);
                 PUTCHAR('_'); PUTCHAR(up.isrx ? 'R' : 'T'); PUTCHAR('X');
             }
             if(mask & (1 << FUNC_SPI)){
                 int idx = get_spi_index(port, pin, &sp);
-                SEND(COMMA); SEND(str_keywords[STR_SPI]); PUTCHAR('1' + idx);
+                COMMA(); SEND(str_keywords[STR_SPI]); PUTCHAR('1' + idx);
                 PUTCHAR('_');
                 if(sp.ismiso) SEND("MISO");
                 else if(sp.ismosi) SEND("MOSI");
@@ -908,13 +940,13 @@ static errcodes_t cmd_pinout(const char _U_ *cmd, char *args){
             }
             if(mask & (1 << FUNC_I2C)){
                 int idx = get_i2c_index(port, pin, &ip);
-                SEND(COMMA); SEND(str_keywords[STR_I2C]); PUTCHAR('1' + idx);
+                COMMA(); SEND(str_keywords[STR_I2C]); PUTCHAR('1' + idx);
                 PUTCHAR('_');
                 SEND(ip.isscl ? "SCL" : "SDA");
             }
             if(mask & (1 << FUNC_PWM)){
                 canPWM(port, pin, &tp);
-                SEND(COMMA); SEND(str_keywords[STR_PWM]);
+                COMMA(); SEND(str_keywords[STR_PWM]);
                 SEND(u2str(tp.timidx)); // timidx == TIMNO!
                 PUTCHAR('_');
                 PUTCHAR('1' + tp.chidx);
@@ -923,6 +955,7 @@ static errcodes_t cmd_pinout(const char _U_ *cmd, char *args){
         }
     }
     return ERR_AMOUNT;
+#undef COMMA
 }
 
 static errcodes_t cmd_SPI(const char *cmd, char *args){
@@ -930,14 +963,27 @@ static errcodes_t cmd_SPI(const char *cmd, char *args){
     if(!(SPI1->CR1 & SPI_CR1_SPE)) return ERR_CANTRUN;
     char *setter = splitargs(args, NULL);
     if(!setter) return ERR_BADVAL;
-    int len = parse_hex_data(setter, curbuf, MAXSTRLEN);
+    int len;
+    uint8_t *txbuf = curbuf, *rxbuf = curbuf;
+    if(the_conf.spiconfig.rxonly){
+        uint32_t L;
+        char *nxt = getnum(setter, &L);
+        if(nxt == setter || L > MAXSTRLEN)  return ERR_BADVAL;
+        len = static_cast <int> (L);
+        txbuf = NULL;
+    }else len = parse_hex_data(setter, curbuf, MAXSTRLEN);
     if(len <= 0) return ERR_BADVAL;
-    int got = spi_transfer(curbuf, curbuf, len);
+    if(the_conf.spiconfig.txonly) rxbuf = NULL;
+    int got = spi_transfer(txbuf, rxbuf, len);
     if(-1 == got) return ERR_CANTRUN;
     if(0 == got) return ERR_BUSY;
-    CMDEQ();
-    hexdump(sendfun, curbuf, got);
-    return ERR_AMOUNT;
+    if(!the_conf.spiconfig.txonly){
+        CMDEQ();
+        if(got > 8) NL();
+        hexdump(sendfun, curbuf, got);
+        return ERR_AMOUNT;
+    }
+    return ERR_OK;
 }
 
 constexpr uint32_t hash(const char* str, uint32_t h = 0){

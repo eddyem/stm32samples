@@ -398,6 +398,10 @@ int chkpinconf(){
     if(active_spi != -1){
         if(spiprops.issck && (spiprops.ismiso || spiprops.ismosi)){
             haveSPI = 1;
+            if(!spiprops.ismosi) the_conf.spiconfig.rxonly = 1;
+            else the_conf.spiconfig.rxonly = 0;
+            if(!spiprops.ismiso) the_conf.spiconfig.txonly = 1;
+            else the_conf.spiconfig.txonly = 0;
         }else{
             DBG("SPI needs SCK and MOSI or MISO\n");
             ret = FALSE;
@@ -551,7 +555,7 @@ int gpio_reinit(){
     }else usart_stop();
     if(haveI2C) i2c_setup((i2c_speed_t) the_conf.I2Cspeed);
     else i2c_stop();
-    if(haveSPI) spi_setup(the_conf.SPIspeed);
+    if(haveSPI) spi_setup();
     else spi_stop();
     return ret;
 }

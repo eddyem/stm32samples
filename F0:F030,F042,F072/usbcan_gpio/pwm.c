@@ -126,6 +126,8 @@ int startPWM(uint8_t port, uint8_t pin){
     volatile TIM_TypeDef *timer = timers[idx];
     uint8_t chidx = timer_map[port][pin].chidx;
     uint32_t chen = TIM_CCER_CC1E << (chidx<<2);
+    volatile uint32_t *CCR = &timers[idx]->CCR1 + timer_map[port][pin].chidx;
+    *CCR = 0; // set initial value to zero
     if(0 == (timer->CCER & chen)){
         if(0 == channel_counter[idx]++) timer->CR1 |= TIM_CR1_CEN; // start timer if need
         timer->CCER |= chen; // enable channel

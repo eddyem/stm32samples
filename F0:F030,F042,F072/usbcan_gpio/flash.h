@@ -38,15 +38,25 @@
 // maximal size (in letters, ASCII, no ending \0) of iInterface for settings
 #define MAX_IINTERFACE_SZ   (16)
 
+typedef struct {
+    uint32_t speed;
+    uint8_t cpol : 1;
+    uint8_t cpha : 1;
+    uint8_t lsbfirst : 1;
+    // these flags - only for data in/out formatting
+    uint8_t rxonly : 1; // use format SPI=len instead of SPI=data
+    uint8_t txonly : 1; // don't receive data
+} spiconfig_t;
+
 /*
  * struct to save user configurations
  */
 typedef struct __attribute__((packed, aligned(4))){
     uint16_t userconf_sz;           // "magick number"
     uint16_t CANspeed;              // default CAN speed (in kBaud!!!)
-    uint32_t SPIspeed;              // SPI speed, baud
-    uint16_t iInterface[InterfacesAmount][MAX_IINTERFACE_SZ]; // we store Interface name here in UTF!
+    spiconfig_t spiconfig;
     uint8_t  iIlengths[InterfacesAmount]; // length in BYTES (symbols amount x2)!
+    uint16_t iInterface[InterfacesAmount][MAX_IINTERFACE_SZ]; // we store Interface name here in UTF!
     // gpio settings
     pinconfig_t pinconfig[2][16];   // GPIOA, GPIOB
     usartconf_t usartconfig;
@@ -62,3 +72,4 @@ void flashstorage_init();
 int store_userconf();
 void dump_userconf();
 int erase_storage();
+uint32_t storage_capacity();

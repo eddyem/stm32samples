@@ -44,6 +44,7 @@ const user_conf *Flash_Data = (const user_conf *)(&__varsstart);
 #define PINEN   {.enable = 1}
 // USART1 @9600 with monitoring
 #define U1  {.enable = 1, .mode = MODE_AF, .speed = SPEED_HIGH, .afno = 1, .af = FUNC_USART, .monitor = 1}
+#define S1  {.enable = 1, .mode = MODE_AF, .speed = SPEED_HIGH, .afno = 0, .af = FUNC_SPI}
 // GPIOA, enabled: PA0-PA3, PA5-PA7, PA9, PA10
 #define PACONF \
 [0] = PINEN, [1] = PINEN, [2] = PINEN, [3] = PINEN, [5] = PINEN, \
@@ -51,8 +52,8 @@ const user_conf *Flash_Data = (const user_conf *)(&__varsstart);
 
 // GPIOB, enabled: PB0-PB7, PB10, PB11
 #define PBCONF \
-[0] = PINEN, [1] = PINEN, [2] = PINEN, [3] = PINEN, [4] = PINEN, \
-[5] = PINEN, [6] = PINEN, [7] = PINEN, [10] = PINEN, [11] = PINEN
+[0] = PINEN, [1] = PINEN, [2] = PINEN, [3] = S1, [4] = S1, \
+[5] = S1, [6] = PINEN, [7] = PINEN, [10] = PINEN, [11] = PINEN
 
 user_conf the_conf = {
     .userconf_sz = sizeof(user_conf),
@@ -64,6 +65,7 @@ user_conf the_conf = {
     .iIlengths = {14, 16},
     .pinconfig = {[0] = {PACONF}, [1] = {PBCONF}},
     .usartconfig = {.speed = 9600, .idx = 0, .RXen = 1, .TXen = 1, .textproto = 1, .monitor = 1},
+    .spiconfig = {.speed = 1000000, .cpol = 1, .cpha = 1},
 };
 
 int currentconfidx = -1; // index of current configuration
@@ -195,4 +197,8 @@ static int erase_flash(const void *start, const void *end){
 
 int erase_storage(){
     return erase_flash(Flash_Data, NULL);
+}
+
+uint32_t storage_capacity(){
+    return maxCnum;
 }
