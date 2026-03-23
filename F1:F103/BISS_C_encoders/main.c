@@ -116,7 +116,7 @@ static void proc_enc(uint8_t idx){
         if(CDCready[I_CMD] && the_conf.flags.debug){
             CMDWR("Err, restart SPI "); USB_putbyte(I_CMD, '1'+idx); CMDn();
         }
-        spi_start_enc(idx); // restart measurement
+        //spi_start_enc(idx); // restart measurement
     }
     if(the_conf.flags.monit) monitT[idx] = Tms;
     else if(testflag) spi_start_enc(idx);
