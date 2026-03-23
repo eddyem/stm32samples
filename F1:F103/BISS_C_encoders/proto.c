@@ -133,7 +133,7 @@ static errcode_e sendenc(cmd_e idx, char *par){
 }
 
 static errcode_e setiface(cmd_e idx, char *par){
-    if(idx < C_setiface1 || idx >= C_setiface1 + bTotNumEndpoints) return ERR_BADCMD;
+    if(idx < C_setiface1 || idx >= C_setiface1 + InterfacesAmount) return ERR_BADCMD;
     idx -= C_setiface1; // now it is an index of iIlengths
     if(par && *par){
         int l = strlen(par);
@@ -364,7 +364,7 @@ static errcode_e dumpconf(cmd_e _U_ idx, char _U_ *par){
     CMDWR("userconf_sz="); CMDWR(u2str(the_conf.userconf_sz));
     CMDWR("\ncurrentconfidx="); CMDWR(i2str(currentconfidx));
     CMDn();
-    for(int i = 0; i < bTotNumEndpoints; ++i)
+    for(int i = 0; i < InterfacesAmount; ++i)
         setiface(C_setiface1 + i, NULL);
     setboolpar(C_autom, NULL);
     setuintpar(C_amperiod, NULL);

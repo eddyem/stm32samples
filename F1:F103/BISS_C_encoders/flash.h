@@ -47,8 +47,8 @@ typedef struct{
 typedef struct __attribute__((packed, aligned(4))){
     uint16_t userconf_sz;       // "magick number"
     uint16_t send232_interval;  // interval (ms) of sending data to SSII over RS-232 (or 0 - not to send)
-    uint16_t iInterface[bTotNumEndpoints][MAX_IINTERFACE_SZ]; // hryunikod!
-    uint8_t iIlengths[bTotNumEndpoints];
+    uint16_t iInterface[InterfacesAmount][MAX_IINTERFACE_SZ]; // hryunikod!
+    uint8_t iIlengths[InterfacesAmount];
     uint8_t encbits;    // encoder bits: 26 or 32
     uint8_t encbufsz;   // encoder buffer size (up to ENCODER_BUFSZ_MAX)
     uint8_t minzeros;   // min/max zeros in preamble when searching start of record

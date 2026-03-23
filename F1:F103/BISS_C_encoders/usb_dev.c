@@ -38,56 +38,41 @@
 #define CONTROL_DTR                     0x01
 #define CONTROL_RTS                     0x02
 
-// It's good to use debug here ONLY to debug into USART!
-// never try to debug USB into USB!!!
-#undef DBG
-#define DBG(x)
-#undef DBGs
-#define DBGs(x)
-
 extern volatile uint32_t Tms;
 
 // inbuf overflow when receiving
-static volatile uint8_t bufovrfl[bTotNumEndpoints] = {0};
+static volatile uint8_t bufovrfl[InterfacesAmount] = {0};
 
 // receive buffer: hold data until chkin() call
-static uint8_t volatile rcvbuf[bTotNumEndpoints][USB_RXBUFSZ];
-static uint8_t volatile rcvbuflen[bTotNumEndpoints] = {0};
+static uint8_t volatile rcvbuf[InterfacesAmount][USB_RXBUFSZ] __attribute__((aligned(4)));
+static uint8_t volatile rcvbuflen[InterfacesAmount] = {0};
 // line coding
 #define DEFLC   {115200, 0, 0, 8}
-static usb_LineCoding lineCoding[bTotNumEndpoints] = {DEFLC, DEFLC, DEFLC};
+static usb_LineCoding lineCoding[InterfacesAmount] = {DEFLC, DEFLC, DEFLC};
 // CDC configured and ready to use
-volatile uint8_t CDCready[bTotNumEndpoints] = {0};
+volatile uint8_t CDCready[InterfacesAmount] = {0};
 
 // ring buffers for incoming and outgoing data
-static uint8_t obuf[bTotNumEndpoints][RBOUTSZ], ibuf[bTotNumEndpoints][RBINSZ];
+static uint8_t obuf[InterfacesAmount][RBOUTSZ], ibuf[InterfacesAmount][RBINSZ];
 #define OBUF(N)  {.data = obuf[N], .length = RBOUTSZ, .head = 0, .tail = 0}
-static volatile ringbuffer rbout[bTotNumEndpoints] = {OBUF(0), OBUF(1), OBUF(2)};
+static volatile ringbuffer rbout[InterfacesAmount] = {OBUF(0), OBUF(1), OBUF(2)};
 #define IBUF(N)  {.data = ibuf[N], .length = RBINSZ, .head = 0, .tail = 0}
-static volatile ringbuffer rbin[bTotNumEndpoints] = {IBUF(0), IBUF(1), IBUF(2)};
+static volatile ringbuffer rbin[InterfacesAmount] = {IBUF(0), IBUF(1), IBUF(2)};
 // last send data size (<0 if USB transfer ready)
-static volatile int lastdsz[bTotNumEndpoints] = {-1, -1, -1};
+static volatile int lastdsz[InterfacesAmount] = {-1, -1, -1};
 
+// check incoming data and set ACK if need
 static void chkin(uint8_t ifno){
-    static int ovrflctr = 0; // "antistall" counter
     if(bufovrfl[ifno]) return; // allow user to know that previous buffer was overflowed and cleared
     if(!rcvbuflen[ifno]) return;
     int w = RB_write((ringbuffer*)&rbin[ifno], (uint8_t*)rcvbuf[ifno], rcvbuflen[ifno]);
-    if(w < 0){ // buffer busy
-        DBG("Can't write into buffer: busy");
+    if(w < 0){
         return;
-    }else if(w == 0){ // no enough space or (WTF) incoming string larger than buffer size
-        if(rcvbuflen[ifno] > rbin[ifno].length || ++ovrflctr > 9999){
-            bufovrfl[ifno] = 1; // real overflow in case if ringbuffer's size less than USB buffer
-            ovrflctr = 0;
-        }else{
-            return; // not enough space
-        }
     }
-    DBG("Put data into buffer");
+    if(w != rcvbuflen[ifno]) bufovrfl[ifno] = 1;
     rcvbuflen[ifno] = 0;
-    uint16_t status = KEEP_DTOG(USB->EPnR[1+ifno]); // don't change DTOG
-    USB->EPnR[1+ifno] = (status & ~(USB_EPnR_STAT_TX|USB_EPnR_CTR_RX)) ^ USB_EPnR_STAT_RX; // prepare to get next data portion
+    uint16_t status = KEEP_DTOG(USB->EPnR[EPNO(ifno)]); // don't change DTOG
+    USB->EPnR[EPNO(ifno)] = (status & ~(USB_EPnR_STAT_TX|USB_EPnR_CTR_RX)) ^ USB_EPnR_STAT_RX; // prepare to get next data portion
 }
 
 // called from transmit EP to send next data portion or by user - when new transmission starts
@@ -100,97 +85,83 @@ static void send_next(uint8_t ifno){
     }
     if(buflen == 0){
         if(lastdsz[ifno] == USB_TXBUFSZ){
-            EP_Write(1+ifno, NULL, 0); // send ZLP after 64 bits packet when nothing more to send
+            EP_Write(EPNO(ifno), NULL, 0); // send ZLP after 64 bits packet when nothing more to send
             lastdsz[ifno] = 0;
         }else lastdsz[ifno] = -1; // OK. User can start sending data
         return;
     }else if(buflen < 0){
-        DBG("Buff busy");
         lastdsz[ifno] = -1;
         return;
     }
-    DBG("Got data in buf");
-    DBGs(uhex2str(buflen));
-    DBGs(uhex2str(ifno));
-    EP_Write(1+ifno, (uint8_t*)usbbuff, buflen);
+    EP_Write(EPNO(ifno), (uint8_t*)usbbuff, buflen);
     lastdsz[ifno] = buflen;
 }
 
 // data IN/OUT handler
 static void rxtx_handler(){
-    uint8_t epno = (USB->ISTR & USB_ISTR_EPID), ifno = epno - 1;
-    DBG("rxtx_handler");
-    DBGs(uhex2str(ifno));
-    if(epno > bTotNumEndpoints){
-        DBG("wrong ifno");
+    uint8_t epno = (USB->ISTR & USB_ISTR_EPID), ifno = IFNO(epno);
+    if(ifno > InterfacesAmount-1){
         return;
     }
     uint16_t epstatus = KEEP_DTOG(USB->EPnR[epno]);
     if(RX_FLAG(epstatus)){ // receive data
-        DBG("Got data");
         if(rcvbuflen[ifno]){
             bufovrfl[ifno] = 1; // lost last data
             rcvbuflen[ifno] = 0;
-            DBG("OVERFULL");
         }
         rcvbuflen[ifno] = EP_Read(epno, (uint8_t*)rcvbuf[ifno]);
-        DBGs(uhex2str(rcvbuflen[ifno]));
         USB->EPnR[epno] = epstatus & ~(USB_EPnR_CTR_RX | USB_EPnR_STAT_RX | USB_EPnR_STAT_TX); // keep RX in STALL state until read data
         chkin(ifno); // try to write current data into RXbuf if it's not busy
     }else{ // tx successfull
-        DBG("Tx OK");
         USB->EPnR[epno] = (epstatus & ~(USB_EPnR_CTR_TX | USB_EPnR_STAT_TX)) ^ USB_EPnR_STAT_RX;
         send_next(ifno);
     }
 }
 
-// weak handlers: change them somewhere else if you want to setup USART
-// SET_LINE_CODING
-void WEAK linecoding_handler(uint8_t ifno, usb_LineCoding *lc){
-    lineCoding[ifno] = *lc;
-    DBG("linecoding_handler");
-    DBGs(uhex2str(ifno));
-}
-
-static void clearbufs(uint8_t ifno){
+static void clearRbuf(uint8_t ifno){
     uint32_t T0 = Tms;
     while(Tms - T0 < 10){ // wait no more than 10ms
         if(1 == RB_clearbuf((ringbuffer*)&rbin[ifno])) break;
     }
-    T0 = Tms;
+}
+
+static void clearTbuf(uint8_t ifno){
+    uint32_t T0 = Tms;
     while(Tms - T0 < 10){
         if(1 == RB_clearbuf((ringbuffer*)&rbout[ifno])) break;
     }
-    rcvbuflen[ifno] = 0;
+}
+
+// SET_LINE_CODING
+void linecoding_handler(uint8_t ifno, usb_LineCoding *lc){
+    lineCoding[ifno] = *lc;
 }
 
 // SET_CONTROL_LINE_STATE
-void WEAK clstate_handler(uint8_t ifno, uint16_t val){
-    DBG("clstate_handler");
-    DBGs(uhex2str(ifno));
-    DBGs(uhex2str(val));
-    if(val) clearbufs(ifno); // clear buffers on connect
+void clstate_handler(uint8_t ifno, uint16_t val){
     CDCready[ifno] = val; // CONTROL_DTR | CONTROL_RTS -> interface connected; 0 -> disconnected
     lastdsz[ifno] = -1;
+    if(val){
+        clearRbuf(ifno);
+        clearTbuf(ifno);
+        EP_reset(EPNO(ifno));
+    }
 }
 
 // SEND_BREAK - disconnect interface and clear its buffers
-void WEAK break_handler(uint8_t ifno){
+// this is a fake handler as classic CDC ACM never receives this
+void break_handler(uint8_t ifno){
     CDCready[ifno] = 0;
-    DBG("break_handler()");
-    DBGs(uhex2str(ifno));
 }
 
-// USB is configured: setup endpoints
+// Interface is configured: setup endpoints
 void set_configuration(){
-    DBG("set_configuration()");
-    for(int i = 0; i < bTotNumEndpoints; ++i){
+    for(int i = 0; i < InterfacesAmount; ++i){
         IWDG->KR = IWDG_REFRESH;
-        int r = EP_Init(1+i, EP_TYPE_BULK, USB_TXBUFSZ, USB_RXBUFSZ, rxtx_handler);
+        int r = EP_Init(EPNO(i), EP_TYPE_BULK, USB_TXBUFSZ, USB_RXBUFSZ, rxtx_handler);
         if(r){
-            DBG("Can't init EP");
-            DBGs(uhex2str(i));
-            DBGs(uhex2str(r));
+            // OOPS, can't init EP. What to do? Cry?
+            break;
         }
     }
 }
@@ -200,45 +171,33 @@ void usb_class_request(config_pack_t *req, uint8_t *data, uint16_t datalen){
     uint8_t recipient = REQUEST_RECIPIENT(req->bmRequestType);
     uint8_t dev2host = (req->bmRequestType & 0x80) ? 1 : 0;
     uint8_t ifno = req->wIndex >> 1;
-    if(ifno > bTotNumEndpoints-1 && ifno != 0xff){
-        DBG("wrong ifno");
+    if(ifno > InterfacesAmount-1){ // wrong interface number
+        EP_WriteIRQ(0, NULL, 0);
         return;
     }
-    DBG("usb_class_request");
-    DBGs(uhex2str(req->bRequest));
     switch(recipient){
-        case REQ_RECIPIENT_INTERFACE:
-            switch(req->bRequest){
-                case SET_LINE_CODING:
-                    DBG("SET_LINE_CODING");
-                    if(!data || !datalen) break; // wait for data
-                    if(datalen == sizeof(usb_LineCoding))
-                        linecoding_handler(ifno, (usb_LineCoding*)data);
-                break;
-                case GET_LINE_CODING:
-                    DBG("GET_LINE_CODING");
-                    EP_WriteIRQ(0, (uint8_t*)&lineCoding[ifno], sizeof(lineCoding));
-                break;
-                case SET_CONTROL_LINE_STATE:
-                    DBG("SET_CONTROL_LINE_STATE");
-                    clstate_handler(ifno, req->wValue);
-                break;
-                case SEND_BREAK:
-                    DBG("SEND_BREAK");
-                    break_handler(ifno);
-                break;
-                default:
-                    DBG("Wrong");
-                    DBGs(uhex2str(req->bRequest));
-                    DBGs(uhex2str(datalen));
-            }
+    case REQ_RECIPIENT_INTERFACE:
+        switch(req->bRequest){
+        case SET_LINE_CODING:
+            if(!data || !datalen) break; // wait for data
+            if(datalen == sizeof(usb_LineCoding))
+                linecoding_handler(ifno, (usb_LineCoding*)data);
+            break;
+        case GET_LINE_CODING:
+            EP_WriteIRQ(0, (uint8_t*)&lineCoding[ifno], sizeof(lineCoding));
+            break;
+        case SET_CONTROL_LINE_STATE:
+            clstate_handler(ifno, req->wValue);
+            break;
+        case SEND_BREAK:
+            break_handler(ifno);
+            break;
+        default: // WTF?
+            break;
+        }
         break;
-        default:
-            DBG("Wrong");
-            DBGs(uhex2str(recipient));
-            DBGs(uhex2str(datalen));
-            DBGs(uhex2str(req->bRequest));
-            if(dev2host) EP_WriteIRQ(0, NULL, 0);
+    default: // WTF?
+        if(dev2host) EP_WriteIRQ(0, NULL, 0);
     }
     if(!dev2host) EP_WriteIRQ(0, NULL, 0);
 }
@@ -248,7 +207,6 @@ int USB_sendall(uint8_t ifno){
     uint32_t T0 = Tms;
     while(lastdsz[ifno] > 0){
         if(Tms - T0 > DISCONN_TMOUT){
-            break_handler(ifno);
             return FALSE;
         }
         if(!CDCready[ifno]) return FALSE;
@@ -257,17 +215,25 @@ int USB_sendall(uint8_t ifno){
     return TRUE;
 }
 
+// return amount of free space in buffer
+int USB_sendbufspace(uint8_t ifno){
+    if(!CDCready[ifno]) return 0;
+    return rbout[ifno].length - RB_datalen((ringbuffer*)&rbout[ifno]);
+}
+
 // put `buf` into queue to send
 int USB_send(uint8_t ifno, const uint8_t *buf, int len){
-    if(!buf || !CDCready[ifno] || !len) return FALSE;
-    DBG("USB_send");
+    if(!buf || !CDCready[ifno] || !len){
+        return FALSE;
+    }
     uint32_t T0 = Tms;
     while(len){
         if(Tms - T0 > DISCONN_TMOUT){
-            break_handler(ifno);
             return FALSE;
         }
-        if(!CDCready[ifno]) return FALSE;
+        if(!CDCready[ifno]){
+            return FALSE;
+        }
         IWDG->KR = IWDG_REFRESH;
         int l = RB_datalen((ringbuffer*)&rbout[ifno]);
         if(l < 0) continue;
@@ -285,7 +251,9 @@ int USB_send(uint8_t ifno, const uint8_t *buf, int len){
             if(lastdsz[ifno] < 0) send_next(ifno);
         }
     }
-    if(buf[len-1] == '\n' && lastdsz[ifno] < 0) send_next(ifno);
+    if(buf[len-1] == '\n' && lastdsz[ifno] < 0){
+        send_next(ifno);
+    }
     return TRUE;
 }
 
@@ -295,7 +263,6 @@ int USB_putbyte(uint8_t ifno, uint8_t byte){
     uint32_t T0 = Tms;
     while((l = RB_write((ringbuffer*)&rbout[ifno], &byte, 1)) != 1){
         if(Tms - T0 > DISCONN_TMOUT){
-            break_handler(ifno);
             return FALSE;
         }
         if(!CDCready[ifno]) return FALSE;
@@ -306,7 +273,9 @@ int USB_putbyte(uint8_t ifno, uint8_t byte){
         }
     }
     // send line if got EOL
-    if(byte == '\n' && lastdsz[ifno] < 0) send_next(ifno);
+    if(byte == '\n' && lastdsz[ifno] < 0){
+        send_next(ifno);
+    }
     return TRUE;
 }
 
@@ -317,6 +286,10 @@ int USB_sendstr(uint8_t ifno, const char *string){
     return USB_send(ifno, (const uint8_t*)string, len);
 }
 
+int USB_rcvlen(uint8_t ifno){
+    return RB_datalen((ringbuffer*)&rbin[ifno]);
+}
+
 /**
  * @brief USB_receive - get binary data from receiving ring-buffer
  * @param buf (i) - buffer for received data
@@ -324,17 +297,15 @@ int USB_sendstr(uint8_t ifno, const char *string){
  * @return amount of received bytes (negative, if overfull happened)
  */
 int USB_receive(uint8_t ifno, uint8_t *buf, int len){
+    if(!CDCready[ifno]) return 0;
     chkin(ifno); // rxtx_handler could leave last message unwritten if buffer was busy
     if(bufovrfl[ifno]){
-        DBG("Buffer overflow");
-        DBGs(uhex2str(ifno));
-        while(1 != RB_clearbuf((ringbuffer*)&rbin[ifno])); // run watchdog in case of problems
+        clearRbuf(ifno);
         bufovrfl[ifno] = 0;
         return -1;
     }
     int sz = RB_read((ringbuffer*)&rbin[ifno], buf, len);
     if(sz < 0) return 0; // buffer in writting state
-    DBG("usb read");
     return sz;
 }
 
@@ -345,24 +316,22 @@ int USB_receive(uint8_t ifno, uint8_t *buf, int len){
  * @return strlen or negative value indicating overflow (if so, string won't be ends with 0 and buffer should be cleared)
  */
 int USB_receivestr(uint8_t ifno, char *buf, int len){
+    if(!CDCready[ifno]) return 0;
     chkin(ifno); // rxtx_handler could leave last message unwritten if buffer was busy
     if(bufovrfl[ifno]){
-        while(1 != RB_clearbuf((ringbuffer*)&rbin[ifno]));
+        clearRbuf(ifno);
         bufovrfl[ifno] = 0;
         return -1;
     }
     int l = RB_readto((ringbuffer*)&rbin[ifno], '\n', (uint8_t*)buf, len);
     if(l < 1){
-        //if(rbin[ifno].length < 1 + RB_datalen((ringbuffer*)&rbin[ifno])){ // buffer is full but no '\n' found
-        if(RB_datalen((ringbuffer*)&rbin[ifno]) >= len){
-            CMDWRn("OVERFULL!");
-            while(1 != RB_clearbuf((ringbuffer*)&rbin[ifno]));
+        if((rbin[ifno].length <= RB_datalen((ringbuffer*)&rbin[ifno]) + 1) ||
+            (RB_datalento((ringbuffer*)&rbin[ifno], '\n') > len - 1)){ // buffer is full but no '\n' found or string too long
+            clearRbuf(ifno);
             return -1;
         }
         return 0;
     }
-    if(l == 0) return 0;
     buf[l-1] = 0; // replace '\n' with strend
     return l;
 }
-

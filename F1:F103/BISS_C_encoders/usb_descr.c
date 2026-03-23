@@ -20,11 +20,6 @@
 #include "flash.h"
 #include "usb_descr.h"
 
-#undef DBG
-#define DBG(x)
-#undef DBGs
-#define DBGs(x)
-
 // low/high for uint16_t
 #define L16(x)              (x & 0xff)
 #define H16(x)              (x >> 8)
@@ -63,7 +58,7 @@ static const uint8_t USB_DeviceQualifierDescriptor[] = {
     0 // Reserved
 };
 
-#define wTotalLength  (USB_DT_CONFIG_SIZE + bTotNumEndpoints * 66)
+#define wTotalLength  (USB_DT_CONFIG_SIZE + (bTotNumEndpoints * 66))
 
 /*
  *  _1stI - number of first interface
@@ -166,7 +161,7 @@ static const uint8_t USB_ConfigDescriptor[] = {
 //const uint8_t HID_ReportDescriptor[];
 
 _USB_LANG_ID_(LD, LANG_US);
-_USB_STRING_(SD, u"0.0.1");
+_USB_STRING_(SD, u"0.0.2");
 _USB_STRING_(MD, u"eddy@sao.ru");
 _USB_STRING_(PD, u"USB BISS-C encoders controller");
 
@@ -177,7 +172,7 @@ typedef struct{
     uint8_t  bDescriptorType;
     uint16_t bString[MAX_IINTERFACE_SZ];
 }iidescr_t;
-static iidescr_t iids[bTotNumEndpoints] = {
+static iidescr_t iids[InterfacesAmount] = {
     _USB_IIDESCR_(u"encoder_cmd"),
     _USB_IIDESCR_(u"encoder_X"),
     _USB_IIDESCR_(u"encoder_Y"),
@@ -197,12 +192,8 @@ static void wr0(const uint8_t *buf, uint16_t size, uint16_t askedsize){
     if(askedsize < size) size = askedsize; // shortened request
     if(size < USB_EP0BUFSZ){
         EP_WriteIRQ(0, buf, size);
-        DBG("short wr0");
-        DBGs(uhex2str(size));
         return;
     }
-    DBG("long wr0");
-    DBGs(uhex2str(size));
     while(size){
         uint16_t l = size;
         if(l > USB_EP0BUFSZ) l = USB_EP0BUFSZ;
@@ -215,7 +206,7 @@ static void wr0(const uint8_t *buf, uint16_t size, uint16_t askedsize){
             // keep DTOGs, clear CTR_RX,TX, set TX VALID, leave stat_Rx
             USB->EPnR[0] = (epstatus & ~(USB_EPnR_CTR_RX|USB_EPnR_CTR_TX|USB_EPnR_STAT_RX))
                            ^ USB_EPnR_STAT_TX;
-            uint32_t ctr = 10000;
+            uint32_t ctr = 1000000;
             while(--ctr && (USB->ISTR & USB_ISTR_CTR) == 0){IWDG->KR = IWDG_REFRESH;};
             if((USB->ISTR & USB_ISTR_CTR) == 0){
                 return;
@@ -229,42 +220,32 @@ void get_descriptor(config_pack_t *pack){
     uint8_t descrtype = pack->wValue >> 8,
         descridx = pack->wValue & 0xff;
     switch(descrtype){
-        case DEVICE_DESCRIPTOR:
-            DBG("DEVICE_DESCRIPTOR");
-            wr0(USB_DeviceDescriptor, sizeof(USB_DeviceDescriptor), pack->wLength);
-            break;
-        case CONFIGURATION_DESCRIPTOR:
-            DBG("CONFIGURATION_DESCRIPTOR");
-            wr0(USB_ConfigDescriptor, sizeof(USB_ConfigDescriptor), pack->wLength);
-            break;
-        case STRING_DESCRIPTOR:
-            DBG("STRING_DESCRIPTOR");
-            if(descridx < iDESCR_AMOUNT){
-                wr0((const uint8_t *)StringDescriptor[descridx], *((uint8_t*)StringDescriptor[descridx]), pack->wLength);
-                DBGs(uhex2str(descridx));
-            }else{
-                EP_WriteIRQ(0, NULL, 0);
-                DBG("Wrong index");
-                DBGs(uhex2str(descridx));
-            }
-            break;
-        case DEVICE_QUALIFIER_DESCRIPTOR:
-            DBG("DEVICE_QUALIFIER_DESCRIPTOR");
-            wr0(USB_DeviceQualifierDescriptor, sizeof(USB_DeviceQualifierDescriptor), pack->wLength);
-            break;
-       /* case HID_REPORT_DESCRIPTOR:
-            wr0(HID_ReportDescriptor, sizeof(HID_ReportDescriptor), pack->wLength);
-            break;*/
-        default:
-            break;
+    case DEVICE_DESCRIPTOR:
+        wr0(USB_DeviceDescriptor, sizeof(USB_DeviceDescriptor), pack->wLength);
+        break;
+    case CONFIGURATION_DESCRIPTOR:
+        wr0(USB_ConfigDescriptor, sizeof(USB_ConfigDescriptor), pack->wLength);
+        break;
+    case STRING_DESCRIPTOR:
+        if(descridx < iDESCR_AMOUNT){
+            wr0((const uint8_t *)StringDescriptor[descridx], *((uint8_t*)StringDescriptor[descridx]), pack->wLength);
+        }else{
+            EP_WriteIRQ(0, NULL, 0);
+        }
+        break;
+    case DEVICE_QUALIFIER_DESCRIPTOR:
+        wr0(USB_DeviceQualifierDescriptor, sizeof(USB_DeviceQualifierDescriptor), pack->wLength);
+        break;
+    default:
+        break;
     }
 }
 
 // change values of iInterface by content of global config
 void setup_interfaces(){
-    for(int i = 0; i < bTotNumEndpoints; ++i){
+    for(int i = 0; i < InterfacesAmount; ++i){
         if(the_conf.iIlengths[i]){
-            iids[i].bLength = the_conf.iIlengths[i];
+            iids[i].bLength = the_conf.iIlengths[i] + 2; // +2 - for bLength and bDescriptorType
             memcpy(iids[i].bString, the_conf.iInterface[i], the_conf.iIlengths[i]);
         }
         iids[i].bDescriptorType = 0x03;

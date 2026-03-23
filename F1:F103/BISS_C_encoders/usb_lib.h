@@ -19,6 +19,10 @@
 #include <stdint.h>
 #include <wchar.h>
 
+#ifndef _U_
+#define _U_         __attribute__((unused))
+#endif
+
 /******************************************************************
  *             Hardware registers etc                             *
  *****************************************************************/
@@ -30,6 +34,8 @@
 #define USB_BASE                ((uint32_t)0x40005C00)
 #elif defined STM32F3
 #include <stm32f3.h>
+#elif defined STM32G0
+#include <stm32g0.h>
 #endif
 
 // max endpoints number
@@ -38,14 +44,16 @@
  *                 Buffers size definition
  **/
 
-//  F0 - USB2_16; F1 - USB1_16; F3 - 1/2 depending on series
-#if !defined USB1_16 && !defined USB2_16
+//  F0 - USB2_16; F1 - USB1_16; F3 - 1/2 depending on series; G0 - USB32
+#if !defined USB1_16 && !defined USB2_16 && !defined USB32
 #if defined STM32F0
 #define USB2_16
 #elif defined STM32F1
 #define USB1_16
+#elif defined STM32G0
+#define USB32
 #else
-#error "Can't determine USB1_16 or USB2_16, define by hands"
+#error "Can't determine USB1_16/USB2_16/USB32, define by hands"
 #endif
 #endif
 
@@ -59,8 +67,8 @@
 #if defined STM32F0
 #define USB_BTABLE_SIZE         1024
 #elif defined STM32F3
-#define USB_BTABLE_SIZE         512
-#warning "Please, check real buffer size due to docs"
+#define USB_BTABLE_SIZE         1024
+//#warning "Please, check real buffer size due to docs"
 #else
 #error "define STM32F0 or STM32F3"
 #endif
@@ -68,16 +76,21 @@
 #if defined STM32F0
 #define USB_BTABLE_SIZE         768
 #elif defined STM32F3
-#define USB_BTABLE_SIZE         512
-#warning "Please, check real buffer size due to docs"
+#define USB_BTABLE_SIZE         768
+#elif defined STM32G0
+#define USB_BTABLE_SIZE         2048
+//#warning "Please, check real buffer size due to docs"
 #else // STM32F103: 1024 bytes but with 32-bit addressing
 #define USB_BTABLE_SIZE         1024
 #endif
 #endif // NOCAN
 
 // first 64 bytes of USB_BTABLE are registers!
-
+#ifndef STM32G0
 #define USB_BTABLE_BASE         0x40006000
+#else
+#define USB_BTABLE_BASE         0x40009800
+#endif
 #define USB                     ((USB_TypeDef *) USB_BASE)
 
 #ifdef USB_BTABLE
@@ -120,8 +133,12 @@ typedef struct {
     __IO uint32_t ISTR;
     __IO uint32_t FNR;
     __IO uint32_t DADDR;
+#ifndef USB32
     __IO uint32_t BTABLE;
-#ifdef STM32F0
+#else
+    __IO uint32_t RESERVED1; // there's no BTABLE register in STM32G0
+#endif
+#if defined STM32F0 || defined USB32
     __IO uint32_t LPMCSR;
     __IO uint32_t BCDR;
 #endif
@@ -135,16 +152,19 @@ typedef struct{
     __IO uint16_t USB_ADDR_RX;
     __IO uint16_t USB_COUNT_RX;
 #define ACCESSZ (1)
-#define BUFTYPE uint8_t
 #elif defined USB1_16
     __IO uint32_t USB_ADDR_TX;
     __IO uint32_t USB_COUNT_TX;
     __IO uint32_t USB_ADDR_RX;
     __IO uint32_t USB_COUNT_RX;
 #define ACCESSZ (2)
-#define BUFTYPE uint16_t
+#elif defined USB32
+    // 32-bit registers: addr & count in one!
+    __IO uint32_t USB_ADDR_COUNT_TX;
+    __IO uint32_t USB_ADDR_COUNT_RX;
+#define ACCESSZ (1)
 #else
-#error "Define USB1_16 or USB2_16"
+#error "Define USB1_16 (16 bits over 32bit register), USB2_16 (16 bits over 16 bit register) or USB32 (32 bist over 32 bit register)"
 #endif
 } USB_EPDATA_TypeDef;
 
@@ -303,9 +323,17 @@ typedef struct {
 
 // endpoints state
 typedef struct{
+#ifdef USB32
+    uint32_t *tx_buf;           // transmission buffer address
+#else
     uint16_t *tx_buf;           // transmission buffer address
+#endif
     uint16_t txbufsz;           // transmission buffer size
+#ifdef USB32
+    uint32_t *rx_buf;            // reception buffer address
+#else
     uint8_t *rx_buf;            // reception buffer address
+#endif
     void (*func)();             // endpoint action function
     unsigned rx_cnt  : 10;      // received data counter
 } ep_t;
@@ -317,6 +345,7 @@ int EP_Init(uint8_t number, uint8_t type, uint16_t txsz, uint16_t rxsz, void (*f
 void EP_WriteIRQ(uint8_t number, const uint8_t *buf, uint16_t size);
 void EP_Write(uint8_t number, const uint8_t *buf, uint16_t size);
 int EP_Read(uint8_t number, uint8_t *buf);
+void EP_reset(uint8_t epno);
 
 // could be [re]defined in usb_dev.c
 extern void usb_class_request(config_pack_t *packet, uint8_t *data, uint16_t datalen);

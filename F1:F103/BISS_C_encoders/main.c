@@ -124,7 +124,7 @@ static void proc_enc(uint8_t idx){
 
 int main(){
     uint32_t lastT = 0, usartT = 0;
-    uint8_t oldCDCready[bTotNumEndpoints] = {0};
+    uint8_t oldCDCready[InterfacesAmount] = {0};
     StartHSE();
     flashstorage_init();
     hw_setup();
@@ -148,7 +148,7 @@ int main(){
             else if(l) parse_cmd(inbuff);
             // check if interface connected/disconnected
             // (we CAN'T do much debug output in interrupt functions like linecoding_handler etc, so do it here)
-            for(int i = 1; i < bTotNumEndpoints; ++i){
+            for(int i = 1; i < InterfacesAmount; ++i){
                 if(oldCDCready[i] != CDCready[i]){
                     CMDWR("Interface ");
                     CMDWR(u2str(i));

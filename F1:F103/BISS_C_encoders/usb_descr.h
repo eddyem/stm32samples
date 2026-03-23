@@ -32,8 +32,16 @@
 #define bNumConfigurations  1
 
 // amount of interfaces and endpoints (except 0) used
-#define bNumInterfaces      6
-#define bTotNumEndpoints    3
+#define InterfacesAmount    3
+// EP number of interface
+#define EPNO(i) (i + 1)
+// interface number of EPno
+#define IFNO(e) (e - 1)
+
+// amount of interfaces (including virtual) except 0
+#define bNumInterfaces      (2*InterfacesAmount)
+// amount of endpoints used
+#define bTotNumEndpoints    (1+InterfacesAmount)
 
 // powered
 #define BusPowered          (1<<7)

@@ -40,14 +40,14 @@ typedef struct {
     uint8_t bDataBits;
 } __attribute__ ((packed)) usb_LineCoding;
 
-extern volatile uint8_t CDCready[bTotNumEndpoints];
+extern volatile uint8_t CDCready[InterfacesAmount];
 
 void break_handler(uint8_t ifno);
 void clstate_handler(uint8_t ifno, uint16_t val);
 void linecoding_handler(uint8_t ifno, usb_LineCoding *lc);
 
 // as ugly CDC have no BREAK after disconnected client in non-canonical mode, we should use timeout - more than 2ms
-#define DISCONN_TMOUT   (1000)
+#define DISCONN_TMOUT   (2)
 
 // sizes of ringbuffers for outgoing and incoming data
 #define RBOUTSZ     (512)
@@ -69,9 +69,11 @@ void linecoding_handler(uint8_t ifno, usb_LineCoding *lc);
 #define DBGs(s)
 #endif
 
+int USB_sendbufspace(uint8_t ifno);
 int USB_sendall(uint8_t ifno);
 int USB_send(uint8_t ifno, const uint8_t *buf, int len);
 int USB_putbyte(uint8_t ifno, uint8_t byte);
 int USB_sendstr(uint8_t ifno, const char *string);
+int USB_rcvlen(uint8_t ifno);
 int USB_receive(uint8_t ifno, uint8_t *buf, int len);
 int USB_receivestr(uint8_t ifno, char *buf, int len);
