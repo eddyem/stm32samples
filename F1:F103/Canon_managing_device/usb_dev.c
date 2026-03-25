@@ -15,7 +15,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stm32f1.h>
 #include <string.h>
 
 #include "ringbuffer.h"
@@ -41,10 +40,10 @@
 static volatile uint8_t bufovrfl = 0;
 
 // receive buffer: hold data until chkin() call
-static uint8_t volatile rcvbuf[USB_RXBUFSZ];
+static uint8_t volatile rcvbuf[USB_RXBUFSZ] __attribute__((aligned(4)));
 static uint8_t volatile rcvbuflen = 0;
 // line coding
-usb_LineCoding WEAK lineCoding = {115200, 0, 0, 8};
+usb_LineCoding lineCoding = {115200, 0, 0, 8};
 // CDC configured and ready to use
 volatile uint8_t CDCready = 0;
 
@@ -70,10 +69,10 @@ static void chkin(){
 
 // called from transmit EP to send next data portion or by user - when new transmission starts
 static void send_next(){
-    uint8_t usbbuff[USB_TXBUFSZ];
+    uint8_t usbbuff[USB_TXBUFSZ] __attribute__((aligned(4)));
     int buflen = RB_read((ringbuffer*)&rbout, (uint8_t*)usbbuff, USB_TXBUFSZ);
     if(buflen == 0){
-        if(lastdsz == 64) EP_Write(1, NULL, 0); // send ZLP after 64 bits packet when nothing more to send
+        if(lastdsz == USB_TXBUFSZ) EP_Write(1, NULL, 0); // send ZLP after USB_TXBUFSZ bits packet when nothing more to send
         lastdsz = 0;
         return;
     }else if(buflen < 0){
@@ -103,20 +102,19 @@ static void rxtx_handler(){
 
 // weak handlers: change them somewhere else if you want to setup USART
 // SET_LINE_CODING
-void WEAK linecoding_handler(usb_LineCoding *lc){
+void linecoding_handler(usb_LineCoding *lc){
     lineCoding = *lc;
 }
 
 // SET_CONTROL_LINE_STATE
-void WEAK clstate_handler(uint16_t val){
+void clstate_handler(uint16_t val){
     CDCready = val; // CONTROL_DTR | CONTROL_RTS -> interface connected; 0 -> disconnected
 }
 
 // SEND_BREAK
-void WEAK break_handler(){
+void break_handler(){
     CDCready = 0;
 }
-
 
 // USB is configured: setup endpoints
 void set_configuration(){
@@ -166,7 +164,16 @@ int USB_sendall(){
 int USB_send(const uint8_t *buf, int len){
     if(!buf || !CDCready || !len) return FALSE;
     while(len){
-        int a = RB_write((ringbuffer*)&rbout, buf, len);
+        IWDG->KR = IWDG_REFRESH;
+        int l = RB_datalen((ringbuffer*)&rbout);
+        if(l < 0) continue;
+        int portion = rbout.length - 1 - l;
+        if(portion < 1){
+            if(lastdsz == 0) send_next();
+            continue;
+        }
+        if(portion > len) portion = len;
+        int a = RB_write((ringbuffer*)&rbout, buf, portion);
         if(a > 0){
             len -= a;
             buf += a;
@@ -217,7 +224,7 @@ int USB_receive(uint8_t *buf, int len){
  * @brief USB_receivestr - get string up to '\n' and replace '\n' with 0
  * @param buf - receiving buffer
  * @param len - its length
- * @return strlen or negative value indicating overflow (if so, string won't be ends with 0 and buffer should be cleared)
+ * @return strlen or negative value indicating overflow
  */
 int USB_receivestr(char *buf, int len){
     chkin();
@@ -226,14 +233,18 @@ int USB_receivestr(char *buf, int len){
         bufovrfl = 0;
         return -1;
     }
-    int l = RB_readto((ringbuffer*)&rbin, '\n', (uint8_t*)buf, len);
-    if(l < 1){
+    int l = RB_datalento((ringbuffer*)&rbin, '\n');
+    if(l > len){ // can't read: line too long -> clear it
+        RB_readto((ringbuffer*)&rbin, '\n', NULL, 0);
+        return -1;
+    }else if(l < 1){ // nothing or no '\n' ?
         if(rbin.length == RB_datalen((ringbuffer*)&rbin)){ // buffer is full but no '\n' found
             while(1 != RB_clearbuf((ringbuffer*)&rbin));
             return -1;
         }
         return 0;
     }
+    l = RB_readto((ringbuffer*)&rbin, '\n', (uint8_t*)buf, len);
     if(l == 0) return 0;
     buf[l-1] = 0; // replace '\n' with strend
     return l;

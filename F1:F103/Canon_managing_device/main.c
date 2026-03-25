@@ -49,13 +49,11 @@ int main(void){
     uint32_t SPIctr = Tms;
     while(1){
         IWDG->KR = IWDG_REFRESH;
-        int l = USB_receivestr(inbuff, 255);
-        if(l > 0){
-            parse_cmd(inbuff); // call it even for NULL (if `flood` is running)
-            if(Tms - SPIctr > CANONPROC_INTERVAL){ // not more than once per 10ms
-                SPIctr = Tms;
-                canon_proc();
-            }
+        if(Tms - SPIctr > CANONPROC_INTERVAL){ // not more than once per 10ms
+            SPIctr = Tms;
+            canon_proc();
         }
+        int l = USB_receivestr(inbuff, 255);
+        if(l > 0) parse_cmd(inbuff); // call it even for NULL (if `flood` is running)
     }
 }

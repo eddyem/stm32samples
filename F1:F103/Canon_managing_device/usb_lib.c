@@ -23,7 +23,7 @@
 static ep_t endpoints[STM32ENDPOINTS];
 
 static uint16_t USB_Addr = 0;
-static uint8_t setupdatabuf[EP0DATABUF_SIZE];
+static uint8_t setupdatabuf[EP0DATABUF_SIZE] __attribute__((aligned(4)));
 static config_pack_t *setup_packet = (config_pack_t*) setupdatabuf;
 volatile uint8_t usbON = 0; // device is configured and active
 
@@ -81,8 +81,7 @@ void WEAK usb_standard_request(){
         break;
         case REQ_RECIPIENT_ENDPOINT:
             if(setup_packet->bRequest == CLEAR_FEATURE){
-            }else{
-            }
+            }else{ /* wrong */ }
         break;
         default:
         break;
@@ -97,7 +96,7 @@ void WEAK usb_class_request(config_pack_t *req, uint8_t _U_ *data, uint16_t _U_ 
         case SET_CONFIGURATION: // set featuring by req->wValue
         break;
         default:
-        break;
+            break;
     }
     if(0 == (setup_packet->bmRequestType & 0x80)) // host2dev
         EP_WriteIRQ(0, NULL, 0);
@@ -119,7 +118,7 @@ bmRequestType: 76543210
  */
 static void EP0_Handler(){
     uint8_t ep0dbuflen = 0;
-    uint8_t ep0databuf[EP0DATABUF_SIZE];
+    uint8_t ep0databuf[EP0DATABUF_SIZE] __attribute__((aligned(4)));
     uint16_t epstatus = KEEP_DTOG(USB->EPnR[0]); // EP0R on input -> return this value after modifications
     int rxflag = RX_FLAG(epstatus);
     // check direction
@@ -128,6 +127,7 @@ static void EP0_Handler(){
                 EP_Read(0, setupdatabuf);
                 // interrupt handler will be called later
             }else if(epstatus & USB_EPnR_CTR_RX){ // data packet -> push received data to ep0databuf
+                //if(endpoints[0].rx_cnt){ }
                 ep0dbuflen = EP_Read(0, ep0databuf);
             }
     }
@@ -137,8 +137,7 @@ static void EP0_Handler(){
             case REQ_TYPE_STANDARD:
                 if(SETUP_FLAG(epstatus)){
                     usb_standard_request();
-                }else{
-                }
+                }else{ }
                 break;
             case REQ_TYPE_CLASS:
                 usb_class_request(setup_packet, ep0databuf, ep0dbuflen);
@@ -173,9 +172,14 @@ static void EP0_Handler(){
  */
 void EP_WriteIRQ(uint8_t number, const uint8_t *buf, uint16_t size){
     if(size > endpoints[number].txbufsz) size = endpoints[number].txbufsz;
+#ifndef USB32
     uint16_t N2 = (size + 1) >> 1;
     // the buffer is 16-bit, so we should copy data as it would be uint16_t
     uint16_t *buf16 = (uint16_t *)buf;
+#else
+    int N4 = (size + 3) >> 2;
+    uint32_t *buf32 = (uint32_t *)buf;
+#endif
 #if defined USB1_16
     // very bad: what if `size` is odd?
     uint32_t *out = (uint32_t *)endpoints[number].tx_buf;
@@ -184,13 +188,19 @@ void EP_WriteIRQ(uint8_t number, const uint8_t *buf, uint16_t size){
     }
 #elif defined USB2_16
     // use memcpy instead?
-    for(int i = 0; i < N2; i++){
+    for(int i = 0; i < N2; ++i){
         endpoints[number].tx_buf[i] = buf16[i];
     }
+#elif defined USB32
+    for(int i = 0; i < N4; ++i) endpoints[number].tx_buf[i] = buf32[i];
 #else
-#error "Define USB1_16 or USB2_16"
+#error "Define USB1_16 / USB2_16 / USB32"
 #endif
+#ifndef USB32
     USB_BTABLE->EP[number].USB_COUNT_TX = size;
+#else
+    USB_BTABLE->EP[number].USB_ADDR_COUNT_TX = (USB_BTABLE->EP[number].USB_ADDR_COUNT_TX & 0xffff) | (size << 16);
+#endif
 }
 
 /**
@@ -225,8 +235,12 @@ int EP_Read(uint8_t number, uint8_t *buf){
     // use memcpy instead?
     for(int i = 0; i < sz; ++i)
         buf[i] = endpoints[number].rx_buf[i];
+#elif defined USB32
+    uint32_t *u32buf = (uint32_t*) buf;
+    int N4 = (sz + 3) >> 2;
+    for(int i = 0; i < N4; ++i) u32buf[i] = endpoints[number].rx_buf[i];
 #else
-#error "Define USB1_16 or USB2_16"
+#error "Define USB1_16 / USB2_16 / USB32"
 #endif
     return sz;
 }
@@ -243,11 +257,16 @@ static uint16_t lastaddr = LASTADDR_DEFAULT;
  * @return 0 if all OK
  */
 int EP_Init(uint8_t number, uint8_t type, uint16_t txsz, uint16_t rxsz, void (*func)(ep_t ep)){
+#ifdef STM32G0
+    // in STM32G0 all buffers should be aligned by 32 bits
+    if(txsz & 3) txsz = ((txsz >> 2)+1) << 2;
+    if(rxsz & 3) rxsz = ((rxsz >> 2)+1) << 2;
+#endif
     if(number >= STM32ENDPOINTS) return 4; // out of configured amount
     if(txsz > USB_BTABLE_SIZE/ACCESSZ || rxsz > USB_BTABLE_SIZE/ACCESSZ) return 1; // buffer too large
     if(lastaddr + txsz + rxsz >= USB_BTABLE_SIZE/ACCESSZ) return 2; // out of btable
     USB->EPnR[number] = (type << 9) | (number & USB_EPnR_EA);
-    USB->EPnR[number] ^= USB_EPnR_STAT_RX | USB_EPnR_STAT_TX_1;
+    USB->EPnR[number] ^= USB_EPnR_STAT_RX | USB_EPnR_STAT_TX;
     if(rxsz & 1) return 3; // wrong rx buffer size
     uint16_t countrx = 0;
     if(rxsz < 64) countrx = rxsz / 2;
@@ -255,15 +274,28 @@ int EP_Init(uint8_t number, uint8_t type, uint16_t txsz, uint16_t rxsz, void (*f
         if(rxsz & 0x1f) return 3; // should be multiple of 32
         countrx = 31 + rxsz / 32;
     }
-    USB_BTABLE->EP[number].USB_ADDR_TX = lastaddr;
+#ifdef USB32
+    endpoints[number].tx_buf = (uint32_t *)(USB_BTABLE_BASE + lastaddr * ACCESSZ);
+#else
     endpoints[number].tx_buf = (uint16_t *)(USB_BTABLE_BASE + lastaddr * ACCESSZ);
+#endif
     endpoints[number].txbufsz = txsz;
-    lastaddr += txsz;
+#ifdef USB32
+    USB_BTABLE->EP[number].USB_ADDR_COUNT_TX = (uint32_t) lastaddr;
+#else
+    USB_BTABLE->EP[number].USB_ADDR_TX = lastaddr;
     USB_BTABLE->EP[number].USB_COUNT_TX = 0;
-    USB_BTABLE->EP[number].USB_ADDR_RX = lastaddr;
+#endif
+    lastaddr += txsz;
+#ifdef USB32
+    endpoints[number].rx_buf = (uint32_t *)(USB_BTABLE_BASE + lastaddr * ACCESSZ);
+    USB_BTABLE->EP[number].USB_ADDR_COUNT_RX = (uint32_t) lastaddr | countrx << 26;
+#else
     endpoints[number].rx_buf = (uint8_t *)(USB_BTABLE_BASE + lastaddr * ACCESSZ);
-    lastaddr += rxsz;
+    USB_BTABLE->EP[number].USB_ADDR_RX = lastaddr;
     USB_BTABLE->EP[number].USB_COUNT_RX = countrx << 10;
+#endif
+    lastaddr += rxsz;
     endpoints[number].func = func;
     return 0;
 }
@@ -272,7 +304,8 @@ int EP_Init(uint8_t number, uint8_t type, uint16_t txsz, uint16_t rxsz, void (*f
 void USB_IRQ(){
     uint32_t CNTR = USB->CNTR;
     USB->CNTR = 0;
-    if(USB->ISTR & USB_ISTR_RESET){
+    uint32_t istr = USB->ISTR;
+    if(istr & USB_ISTR_RESET){
         usbON = 0;
         // Reinit registers
         CNTR = USB_CNTR_RESETM | USB_CNTR_CTRM | USB_CNTR_SUSPM;
@@ -281,42 +314,56 @@ void USB_IRQ(){
         lastaddr = LASTADDR_DEFAULT;
         // clear address, leave only enable bit
         USB->DADDR = USB_DADDR_EF;
-        USB->ISTR = ~USB_ISTR_RESET;
+        //USB->ISTR = ~(USB_ISTR_RESET); // clear all flags
         if(EP_Init(0, EP_TYPE_CONTROL, USB_EP0BUFSZ, USB_EP0BUFSZ, EP0_Handler)){
             return;
         };
     }
-    if(USB->ISTR & USB_ISTR_CTR){
+    if(istr & USB_ISTR_CTR){
         // EP number
-        uint8_t n = USB->ISTR & USB_ISTR_EPID;
+        uint8_t n = istr & USB_ISTR_EPID;
+        if (istr & USB_ISTR_DIR){ // OUT
+        }else{ // IN
+        }
         // copy received bytes amount
-        endpoints[n].rx_cnt = USB_BTABLE->EP[n].USB_COUNT_RX & 0x3FF; // low 10 bits is counter
+        endpoints[n].rx_cnt =
+#ifdef USB32
+            (USB_BTABLE->EP[n].USB_ADDR_COUNT_RX >> 16) & 0x3FF;
+#else
+        USB_BTABLE->EP[n].USB_COUNT_RX & 0x3FF; // low 10 bits is counter
+#endif
         // call EP handler
         if(endpoints[n].func) endpoints[n].func();
     }
-    if(USB->ISTR & USB_ISTR_WKUP){ // wakeup
-#ifndef STM32F0
-        CNTR &= ~(USB_CNTR_FSUSP | USB_CNTR_LP_MODE | USB_CNTR_WKUPM); // clear suspend flags
-#else
+    if(istr & USB_ISTR_WKUP){ // wakeup
+#if defined STM32F0
         CNTR &= ~(USB_CNTR_FSUSP | USB_CNTR_LPMODE | USB_CNTR_WKUPM);
-#endif
-        USB->ISTR = ~USB_ISTR_WKUP;
-    }
-    if(USB->ISTR & USB_ISTR_SUSP){ // suspend -> still no connection, may sleep
-        usbON = 0;
-#ifndef STM32F0
-        CNTR |= USB_CNTR_FSUSP | USB_CNTR_LP_MODE | USB_CNTR_WKUPM;
+#elif defined STM32G0
+        CNTR &= ~(USB_CNTR_SUSPEN | USB_CNTR_PDWN | USB_CNTR_WKUPM);
 #else
+        CNTR &= ~(USB_CNTR_FSUSP | USB_CNTR_LP_MODE | USB_CNTR_WKUPM); // clear suspend flags
+#endif
+        //USB->ISTR = ~USB_ISTR_WKUP;
+    }
+    if(istr & USB_ISTR_SUSP){ // suspend -> still no connection, may sleep
+        usbON = 0;
+#if defined STM32F0
         CNTR |= USB_CNTR_FSUSP | USB_CNTR_LPMODE | USB_CNTR_WKUPM;
+#elif defined STM32G0
+        CNTR |= USB_CNTR_SUSPEN | USB_CNTR_WKUPM;
+#else
+        CNTR |= USB_CNTR_FSUSP | USB_CNTR_LP_MODE | USB_CNTR_WKUPM;
 #endif
         CNTR &= ~(USB_CNTR_SUSPM);
-        USB->ISTR = ~USB_ISTR_SUSP;
+        //USB->ISTR = ~USB_ISTR_SUSP;
     }
+    USB->ISTR = 0; // clear all flags
     USB->CNTR = CNTR; // rewoke interrupts
 }
 
 // here we suppose that all PIN settings done in hw_setup earlier
 void USB_setup(){
+    lastaddr = LASTADDR_DEFAULT; // clear last address settings
 #if defined STM32F3
     NVIC_DisableIRQ(USB_LP_IRQn);
     // remap USB LP & Wakeup interrupts to 75 and 76 - works only on pure F303
@@ -326,6 +373,7 @@ void USB_setup(){
     NVIC_DisableIRQ(USB_LP_CAN1_RX0_IRQn);
     NVIC_DisableIRQ(USB_HP_CAN1_TX_IRQn);
 #elif defined STM32F0
+    // All is clocking from HSI48
     NVIC_DisableIRQ(USB_IRQn);
     RCC->APB1ENR |= RCC_APB1ENR_CRSEN;
     RCC->CFGR3 &= ~RCC_CFGR3_USBSW; // reset USB
@@ -338,16 +386,33 @@ void USB_setup(){
     CRS->CR |= CRS_CR_AUTOTRIMEN; // enable auto trim
     CRS->CR |= CRS_CR_CEN; // enable freq counter & block CRS->CFGR as read-only
     RCC->CFGR |= RCC_CFGR_SW;
+#elif defined STM32G0
+    NVIC_DisableIRQ(USB_UCPD1_2_IRQn);
+    PWR->CR2 |= PWR_CR2_USV; // enable USB powering
+    //RCC->APBENR2 |= RCC_APBENR2_SYSCFGEN; // enable tacting of SYSCFG
+    // independent clocking of USB from HSI48
+    RCC->CR |= RCC_CR_HSI48ON;
+    uint32_t tmout = 16000000;
+    while(!(RCC->CR & RCC_CR_HSI48RDY)) if(--tmout == 0){ break;}
+    RCC->CCIPR2 &= ~RCC_CCIPR2_USBSEL; // select HSI48 for USB
+    RCC->APBENR1 |= RCC_APBENR1_CRSEN; // CRS clocking
+    CRS->CFGR = (31LL << CRS_CFGR_FELIM_Pos) | // tolerance (usually 31)
+                (48000LL / 1LL - 1LL) << CRS_CFGR_RELOAD_Pos | // 48MHz / 1kHZ (SOF)
+                CRS_CFGR_SYNCSRC_1; // USB SOF as sync source (0x2)
+    CRS->CR |= CRS_CR_AUTOTRIMEN | CRS_CR_CEN; // Enable autotrim and turn on Clock Recovery System
+    RCC->APBENR1 |= RCC_APBENR1_USBEN;
 #endif
+#ifndef STM32G0
     RCC->APB1ENR |= RCC_APB1ENR_USBEN;
-    //??
     USB->CNTR   = USB_CNTR_FRES; // Force USB Reset
-    for(uint32_t ctr = 0; ctr < 72000; ++ctr) nop(); // wait >1ms
-    USB->CNTR   = 0;
     USB->BTABLE = 0;
+#else
+    USB->CNTR   = USB_CNTR_USBRST;
+#endif
+    for(uint32_t ctr = 0; ctr < 72000; ++ctr) nop(); // wait >1ms
+    USB->CNTR   = USB_CNTR_RESETM; // allow only reset interrupts
     USB->DADDR  = 0;
     USB->ISTR   = 0;
-    USB->CNTR   = USB_CNTR_RESETM; // allow only reset interrupts
 #if defined STM32F3
     NVIC_EnableIRQ(USB_LP_IRQn);
 #elif defined STM32F1
@@ -355,6 +420,9 @@ void USB_setup(){
 #elif defined STM32F0
     USB->BCDR |= USB_BCDR_DPPU;
     NVIC_EnableIRQ(USB_IRQn);
+#elif defined STM32G0
+    USB->BCDR |= USB_BCDR_DPPU; // turn ON DP pullup
+    NVIC_EnableIRQ(USB_UCPD1_2_IRQn);
 #endif
 }
 
@@ -365,4 +433,6 @@ void usb_lp_isr() __attribute__ ((alias ("USB_IRQ")));
 void usb_lp_can_rx0_isr() __attribute__ ((alias ("USB_IRQ")));
 #elif defined STM32F0
 void usb_isr() __attribute__ ((alias ("USB_IRQ")));
+#elif defined STM32G0
+void usb_ucpd1_2_isr() __attribute__ ((alias ("USB_IRQ")));
 #endif

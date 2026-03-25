@@ -25,6 +25,7 @@
 
 #include "flash.h"
 #include "proto.h"
+#include "strfunc.h"
 #include "usb_dev.h"    // printout
 #include <string.h> // memcpy
 
@@ -145,7 +146,7 @@ static int write2flash(const void *start, const void *wrdata, uint32_t stor_size
         }
 #ifdef EBUG
         USB_sendstr(u2str(stor_size)); USB_sendstr("bytes stored @0x");
-        USB_sendstr(u2hexstr((uint32_t)(address + i))); USB_sendstr("\n");
+        USB_sendstr(uhex2str((uint32_t)(address + i))); USB_sendstr("\n");
 #endif
         FLASH->SR = FLASH_SR_EOP | FLASH_SR_PGERR | FLASH_SR_WRPRTERR;
     }

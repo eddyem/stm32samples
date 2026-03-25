@@ -16,7 +16,7 @@
  */
 #pragma once
 
-#include <stm32f1.h>
+#include <stdint.h>
 #include "usb_lib.h"
 
 typedef struct {

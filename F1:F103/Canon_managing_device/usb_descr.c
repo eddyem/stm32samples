@@ -26,7 +26,7 @@ static const uint8_t USB_DeviceDescriptor[] = {
     USB_DT_DEVICE, // bDescriptorType
     L16(bcdUSB), // bcdUSB_L
     H16(bcdUSB), // bcdUSB_H
-    USB_CLASS_COMM, // bDeviceClass
+    USB_CLASS_MISC, // bDeviceClass
     bDeviceSubClass, // bDeviceSubClass
     bDeviceProtocol, // bDeviceProtocol
     USB_EP0BUFSZ, // bMaxPacketSize
@@ -140,7 +140,7 @@ static const uint8_t USB_ConfigDescriptor[] = {
 //const uint8_t HID_ReportDescriptor[];
 
 _USB_LANG_ID_(LD, LANG_US);
-_USB_STRING_(SD, u"0.1.0");
+_USB_STRING_(SD, u"0.1.1");
 _USB_STRING_(MD, u"eddy@sao.ru");
 _USB_STRING_(PD, u"USB/CAN Canon lens controller");
 _USB_STRING_(ID, u"canonlens");

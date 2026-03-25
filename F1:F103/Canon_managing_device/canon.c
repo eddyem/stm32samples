@@ -21,6 +21,7 @@
 #include "hardware.h"
 #include "proto.h"
 #include "spi.h"
+#include "strfunc.h"
 #include "usb_dev.h"
 
 #define CU(a)   ((const uint8_t*)a)
@@ -315,7 +316,7 @@ void canon_proc(){
 /*
         case CANON_GETFOCM: // don't work @EF200
             uval = (rbuf[1] << 24) | (rbuf[2] << 16) | (rbuf[3] << 8) | rbuf[4];
-            USB_send("Fval="); USB_send(u2str(uval)); USB_send("\n");
+            USB_sendstr("Fval="); USB_sendstr(u2str(uval)); USB_sendstr("\n");
         break;
         */
 }
@@ -393,7 +394,7 @@ int canon_asku16(uint8_t cmd){
 int canon_getinfo(){
     if(!ready || !canon_read(CANON_GETINFO, 6)) return 1;
     USB_sendstr("Info="); for(int i = 1; i < 7; ++i){
-        USB_sendstr(u2hexstr(buf[i])); USB_sendstr(" ");
+        USB_sendstr(uhex2str(buf[i])); USB_sendstr(" ");
     }
     //canon_poll();
     USB_sendstr("\n");

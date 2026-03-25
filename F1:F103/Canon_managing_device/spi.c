@@ -21,9 +21,10 @@
 #include "spi.h"
 #include "hardware.h"
 #ifdef EBUG
-#include "usb.h"
+#include "usb_dev.h"
 #endif
 #include "proto.h"
+#include "strfunc.h"
 
 /*
 static void mymemcpy(uint8_t *dest, uint8_t *src, int len){
@@ -56,26 +57,26 @@ uint8_t SPI_transmit(uint8_t *buf, uint8_t len){
     if(!buf || !len) return 0; // bad data format
     if(SPI_status != SPI_READY) return 0; // spi not ready to transmit data
 #ifdef EBUG
-    USB_send("SPI send "); USB_send(u2str(len));
-    USB_send("bytes, data: ");
+    USB_sendstr("SPI send "); USB_sendstr(u2str(len));
+    USB_sendstr("bytes, data: ");
 #endif
     for(uint8_t x = 0; x < len; ++x){
         WAITX(!(SPI1->SR & SPI_SR_TXE));
         SPI1->DR = buf[x];
         WAITX(!(SPI1->SR & SPI_SR_BSY));
 #ifdef EBUG
-        USB_send(u2hexstr(buf[x])); USB_send(", ");
+        USB_sendstr(uhex2str(buf[x])); USB_sendstr(", ");
 #endif
         WAITX(!(SPI1->SR & SPI_SR_RXNE));
         buf[x] = SPI1->DR;
         for(int ctr = 0; ctr < 3600; ++ctr) IWDG->KR = IWDG_REFRESH; // ~100mks delay
     }
 #ifdef EBUG
-    USB_send("\nReceive: ");
+    USB_sendstr("\nReceive: ");
     for(int i = 0; i < len; ++i){
-        USB_send(u2hexstr(buf[i])); USB_send(", ");
+        USB_sendstr(uhex2str(buf[i])); USB_sendstr(", ");
     }
-    USB_send("\n");
+    USB_sendstr("\n");
 #endif
     return len;
 }

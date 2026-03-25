@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include <stm32f1.h>
+#include <stdint.h>
 
 // all data sent in big-endian format
 

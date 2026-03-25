@@ -13,6 +13,8 @@ ringbuffer.c
 ringbuffer.h
 spi.c
 spi.h
+strfunc.c
+strfunc.h
 usb.c
 usb.h
 usb_descr.c

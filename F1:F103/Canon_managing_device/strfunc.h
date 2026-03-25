@@ -1,5 +1,6 @@
 /*
- * Copyright 2023 Edward V. Emelianov <edward.emelianoff@gmail.com>.
+ * This file is part of the test project.
+ * Copyright 2026 Edward V. Emelianov <edward.emelianoff@gmail.com>.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,19 +19,12 @@
 #pragma once
 
 #include <stdint.h>
+#include <string.h>
 
-typedef struct{
-    uint8_t *data;      // data buffer
-    const int length;   // its length
-    int head;           // head index
-    int tail;           // tail index
-    volatile int busy; // == TRUE if buffer is busy now
-} ringbuffer;
-
-int RB_read(ringbuffer *b, uint8_t *s, int len);
-int RB_readto(ringbuffer *b, uint8_t byte, uint8_t *s, int len);
-int RB_hasbyte(ringbuffer *b, uint8_t byte);
-int RB_write(ringbuffer *b, const uint8_t *str, int l);
-int RB_datalen(ringbuffer *b);
-int RB_datalento(ringbuffer *b, uint8_t byte);
-int RB_clearbuf(ringbuffer *b);
+void hexdump(int (*sendfun)(const char *s), uint8_t *arr, uint16_t len);
+const char *u2str(uint32_t val);
+const char *i2str(int32_t i);
+const char *uhex2str(uint32_t val);
+const char *getnum(const char *txt, uint32_t *N);
+const char *omit_spaces(const char *buf);
+const char *getint(const char *txt, int32_t *I);
