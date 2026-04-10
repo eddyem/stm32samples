@@ -121,23 +121,29 @@ typedef union{
 // distance out of range
 #define DIST_OUT_OF_RANGE   (0x3f)
 
-int as3935_open(const char *path, uint8_t id);
-int as3935_getter(uint8_t reg, uint8_t *data);
-int as3935_setter(uint8_t reg, uint8_t data);
 int as3935_displco(uint8_t n);
+int as3935_get_displco(uint8_t *n);
 int as3935_tuncap(uint8_t n);
+int as3935_get_tuncap(uint8_t *n);
 int as3935_gain(uint8_t n);
+int as3935_get_gain(uint8_t *n);
 int as3935_wakeup();
 int as3935_calib_rco();
-int as3935_set_gain(uint8_t g);
+//int as3935_set_gain(uint8_t g);
 int as3935_wdthres(uint8_t t);
+int as3935_get_wdthres(uint8_t *t);
 int as3935_nflev(uint8_t l);
+int as3935_get_nflev(uint8_t *l);
 int as3935_srej(uint8_t s);
+int as3935_get_srej(uint8_t *s);
 int as3935_minnumlig(uint8_t n);
+int as3935_get_minnumlig(uint8_t *n);
 int as3935_clearstat();
 int as3935_intcode(uint8_t *code);
-int as3935_mask_disturber(uint8_t m);
+int as3935_maskdist(uint8_t m);
+int as3935_get_maskdist(uint8_t *m);
 int as3935_lco_fdiv(uint8_t d);
+int as3935_get_lco_fdiv(uint8_t *d);
 int as3935_energy(uint32_t *E);
 int as3935_distance(uint8_t *d);
 int as3935_resetdef();

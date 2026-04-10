@@ -22,6 +22,7 @@ extern "C"{
 #include <stm32f1.h>
 
 #include "adc.h"
+#include "as3935.h"
 #include "commproto.h"
 #include "hardware.h"
 #include "spi.h"
@@ -43,12 +44,27 @@ static uint8_t curbuf[MAXSTRLEN];
 
 // list of all commands and handlers
 #define COMMAND_TABLE \
+    COMMAND(clearstat,  "clear amount of lightnings for last 15 min") \
+    COMMAND(displco,    "display on LCO: 0- nothing, 1- TRCO, 2- SRCO, 3- LCO") \
+    COMMAND(distance,   "distance to lightning, km") \
+    COMMAND(energy,     "energy of last lightning") \
+    COMMAND(gain,       "change sensor's gain (0..1f)") \
     COMMAND(help,       "show this help") \
+    COMMAND(intcode,    "last interrupt code") \
+    COMMAND(lco_fdiv,   "set Fdiv of antenna LCO") \
+    COMMAND(maskdist,   "mask (1) or unmask (0) disturber") \
     COMMAND(mcutemp,    "get MCU temperature (degC*10)") \
     COMMAND(mcureset,   "reset MCU") \
-    COMMAND(SPI,        "transfer SPI data: SPI=data (hex)") \
+    COMMAND(minnumlig,  "ninimal lightnings number (0..2)") \
+    COMMAND(nflev,      "noice floor level (0..7)") \
+    COMMAND(resetdef,   "reset sensor to defaults") \
+    COMMAND(SPI,        "transfer SPI data: SPIx=data (hex)") \
+    COMMAND(srej,       "spike rejection (0..15)") \
     COMMAND(time,       "show current time (ms)") \
-    COMMAND(vdd,        "get approx Vdd value (V*100)")
+    COMMAND(tuncap,     "set 'tune capasitors' to given value") \
+    COMMAND(vdd,        "get approx Vdd value (V*100)") \
+    COMMAND(wakeup,     "wake-up given sensor and make its calibration") \
+    COMMAND(wdthres,    "watchdog threshold (0..15)" )
 
 typedef struct {
     const char *name;
@@ -106,7 +122,6 @@ static char *splitargs(char *args, int32_t *parno){
     return next;
 }
 
-#if 0
 /**
  * @brief argsvals - split `args` into `parno` and setter's value
  * @param args - rest of string after command
@@ -125,7 +140,6 @@ static bool argsvals(char *args, int32_t *parno, int32_t *parval){
     }
     return false;
 }
-#endif
 
 static errcodes_t cmd_time(const char *cmd, char _U_ *args){
     CMDEQ();
@@ -177,6 +191,91 @@ static errcodes_t cmd_help(const char _U_ *cmd, char _U_ *args){
     return ERR_AMOUNT;
 }
 
+static errcodes_t senscmd8(int32_t CHno, int (*cmd)(uint8_t), int32_t arg){
+    if(CHno < 0 || CHno >= SENSORS_AMOUNT) return ERR_BADPAR;
+    uint8_t par = static_cast<uint8_t>(arg);
+    CS(CHno);
+    int ans = cmd(par);
+    CS_OFF();
+    if(ans) return ERR_OK;
+    return ERR_CANTRUN;
+}
+
+static errcodes_t getta(const char *cmd, int32_t CHno, int (*fn)(uint8_t*)){
+    if(CHno < 0 || CHno >= SENSORS_AMOUNT) return ERR_BADPAR;
+    uint8_t par;
+    CS(CHno);
+    int ans = fn(&par);
+    CS_OFF();
+    if(!ans) return ERR_CANTRUN;
+    CMDEQP(CHno); SEND(u2str(par)); SEND("\n");
+    return ERR_AMOUNT;
+}
+
+static errcodes_t senscmd(int32_t CHno, int (*cmd)()){
+    if(CHno < 0 || CHno >= SENSORS_AMOUNT) return ERR_BADPAR;
+    CS(CHno);
+    int ans = cmd();
+    CS_OFF();
+    if(ans) return ERR_OK;
+    return ERR_CANTRUN;
+}
+
+static errcodes_t cmd_displco(const char *cmd, char *args){
+    int32_t CHno, val;
+    if(!argsvals(args, &CHno, &val)) return getta(cmd, CHno, as3935_get_displco);
+    errcodes_t ret = senscmd8(CHno, as3935_displco, val);
+    if(ret == ERR_OK) DISPLCO[CHno] = val;
+    return ret;
+}
+
+#define AS3935_FN8(nm) \
+static errcodes_t cmd_ ## nm(const char* cmd, char* args){ \
+    int32_t CHno = -1, val; \
+    if(!argsvals(args, &CHno, &val)) return getta(cmd, CHno, as3935_get_ ## nm); \
+    return senscmd8(CHno, as3935_ ## nm, val);}
+
+#define AS3935_FN(nm) \
+static errcodes_t cmd_ ## nm(const char*, char* args){ \
+        int32_t CHno = -1; \
+        splitargs(args, &CHno); \
+        return senscmd(CHno, as3935_ ## nm);}
+
+AS3935_FN8(tuncap)
+AS3935_FN8(gain)
+AS3935_FN8(wdthres)
+AS3935_FN8(nflev)
+AS3935_FN8(srej)
+AS3935_FN8(minnumlig)
+AS3935_FN8(maskdist)
+AS3935_FN8(lco_fdiv)
+AS3935_FN(wakeup)
+AS3935_FN(clearstat)
+AS3935_FN(resetdef)
+
+#define AS3935_GU8(nm) \
+static errcodes_t cmd_ ## nm(const char* cmd, char* args){ \
+    int32_t CHno = -1; uint8_t par;\
+    splitargs(args, &CHno); \
+    if(CHno < 0 || CHno >= SENSORS_AMOUNT) return ERR_BADPAR; \
+    CS(CHno); int ans = as3935_ ## nm(&par); CS_OFF(); \
+    if(!ans) return ERR_CANTRUN; \
+    CMDEQP(CHno); SEND(u2str(par)); SEND("\n"); \
+    return ERR_AMOUNT; }
+
+AS3935_GU8(intcode)
+AS3935_GU8(distance)
+
+static errcodes_t cmd_energy(const char* cmd, char* args){
+    int32_t CHno = -1; uint32_t par;
+    splitargs(args, &CHno);
+    if(CHno < 0 || CHno >= SENSORS_AMOUNT) return ERR_BADPAR;
+    CS(CHno); int ans = as3935_energy(&par); CS_OFF();
+    if(!ans) return ERR_CANTRUN;
+    CMDEQP(CHno); SEND(u2str(par)); SEND("\n");
+    return ERR_AMOUNT;
+}
+
 /**
  * @brief parse_hex_data - data parsing in case of `hex + text` input format
  * @param input - input string
@@ -224,7 +323,7 @@ static errcodes_t cmd_SPI(const char _U_ *cmd, char *args){
     int32_t CHno;
     char *setter = splitargs(args, &CHno);
     if(!setter) return ERR_BADVAL;
-    if(CHno < 0 || CHno > 1) return ERR_BADPAR;
+    if(CHno < 0 || CHno >= SENSORS_AMOUNT) return ERR_BADPAR;
     int len = parse_hex_data(setter, curbuf, MAXSTRLEN);
     if(len <= 0) return ERR_BADVAL;
     CS(CHno);

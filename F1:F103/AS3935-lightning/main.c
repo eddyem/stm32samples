@@ -23,6 +23,8 @@
 #include "strfunc.h"
 #include "usb_dev.h"
 
+uint8_t DISPLCO[SENSORS_AMOUNT] = {0};
+
 volatile uint32_t Tms = 0;
 static char inbuff[RBINSZ];
 
@@ -45,6 +47,12 @@ int main(){
 #endif
     //usart_setup();
     USBPU_ON();
+    // wake-up all sensors and run auto-calibration
+    for(int ch = 0; ch < SENSORS_AMOUNT; ++ch){
+        CS(ch);
+        as3935_wakeup();
+        CS_OFF();
+    }
     while(1){
         IWDG->KR = IWDG_REFRESH; // refresh watchdog
         if(Tms - lastT > 499){
@@ -57,7 +65,8 @@ int main(){
             const char *ans = parse_cmd(USB_sendstr, inbuff);
             if(ans) USB_sendstr(ans);
         }
-        for(int ch = 0; ch < 2; ++ch){
+        for(int ch = 0; ch < SENSORS_AMOUNT; ++ch){
+            if(DISPLCO[ch] == DISPLCO_NOTHING) continue; // don't check IRQ in if it used as clock output
             if(CHK_INT(ch)){
                 if(oldint[ch] == 0){
                     oldint[ch] = 1;

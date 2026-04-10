@@ -43,6 +43,14 @@ static int as3935_write(uint8_t reg, uint8_t data){
     return TRUE;
 }
 
+int as3935_get_displco(uint8_t *n){
+    t_tun_disp t;
+    if(!as3935_read(TUN_DISP, &t.u8)) return FALSE; // we need to save old `tun_cap` value
+    *n = t.DISP_TRCO + 2 * t.DISP_SRCO + 3 * t.DISP_LCO;
+    return TRUE;
+}
+
+
 // display on IRQ: nothing (0), TRCO (1), SRCO (2) or LCO (3)
 int as3935_displco(uint8_t n){
     if(n > 3) return FALSE;
@@ -74,6 +82,14 @@ int as3935_tuncap(uint8_t n){
     return as3935_write(TUN_DISP, t.u8);
 }
 
+int as3935_get_tuncap(uint8_t *n){
+    t_tun_disp t;
+    if(!as3935_read(TUN_DISP, &t.u8)) return FALSE;
+    *n = t.TUN_CAP;
+    return TRUE;
+}
+
+#if 0
 // set gain
 int as3935_gain(uint8_t n){
     if(n > 0x1f) return FALSE;
@@ -82,22 +98,34 @@ int as3935_gain(uint8_t n){
     g.AFE_GB = n;
     return as3935_write(AFE_GAIN, g.u8);
 }
+#endif
 
+#include "usb_dev.h"
+#include "strfunc.h"
 // starting calibration
 int as3935_calib_rco(){
     t_tun_disp t;
+    USB_sendstr("1\n");
     if(!as3935_read(TUN_DISP, &t.u8)) return FALSE;
+    USB_sendstr("2\n");
     if(!as3935_write(CALIB_RCO, DIRECT_COMMAND)) return FALSE;
+    USB_sendstr("3\n");
     t.DISP_LCO = t.DISP_TRCO = 0;
     t.DISP_SRCO = 1;
     if(!as3935_write(TUN_DISP, t.u8)) return FALSE;
+    USB_sendstr("4\n");
     uint32_t Tstart = Tms;
-    while(Tms - Tstart < 5) IWDG->KR = IWDG_REFRESH; // sleep for 5ms
+    while(Tms - Tstart < 3) IWDG->KR = IWDG_REFRESH; // sleep for ~2ms
     t.DISP_SRCO = 0;
+    USB_sendstr("5\n");
     if(!as3935_write(TUN_DISP, t.u8)) return FALSE;
+    while(Tms - Tstart < 300) IWDG->KR = IWDG_REFRESH; // sleep for ~2ms
     t_calib srco, trco;
+    USB_sendstr("6\n");
     if(!as3935_read(CALIB_TRCO, &trco.u8)) return FALSE;
+    USB_sendstr(uhex2str(trco.u8)); newline();
     if(!as3935_read(CALIB_SRCO, &srco.u8)) return FALSE;
+    USB_sendstr(uhex2str(srco.u8)); newline();
     if(!srco.CALIB_DONE || !trco.CALIB_DONE) return FALSE;
     return TRUE;
 }
@@ -112,11 +140,18 @@ int as3935_wakeup(){
 }
 
 // set amplifier gain
-int as3935_set_gain(uint8_t g){
+int as3935_gain(uint8_t g){
     if(g > 0x1f) return FALSE;
     t_afe_gain a = {0};
     a.AFE_GB = g;
     return as3935_write(AFE_GAIN, a.u8);
+}
+
+int as3935_get_gain(uint8_t *n){
+    t_afe_gain g;
+    if(!as3935_read(AFE_GAIN, &g.u8)) return FALSE;
+    *n = g.AFE_GB;
+    return TRUE;
 }
 
 // watchdog threshold
@@ -128,6 +163,13 @@ int as3935_wdthres(uint8_t t){
     return as3935_write(THRESHOLD, thres.u8);
 }
 
+int as3935_get_wdthres(uint8_t *n){
+    t_threshold thres;
+    if(!as3935_read(THRESHOLD, &thres.u8)) return FALSE;
+    *n = thres.WDTH;
+    return TRUE;
+}
+
 // noice floor level
 int as3935_nflev(uint8_t l){
     if(l > 7) return FALSE;
@@ -135,6 +177,13 @@ int as3935_nflev(uint8_t l){
     if(!as3935_read(THRESHOLD, &thres.u8)) return FALSE;
     thres.NF_LEV = l;
     return as3935_write(THRESHOLD, thres.u8);
+}
+
+int as3935_get_nflev(uint8_t *n){
+    t_threshold thres;
+    if(!as3935_read(THRESHOLD, &thres.u8)) return FALSE;
+    *n = thres.NF_LEV;
+    return TRUE;
 }
 
 // spike rejection
@@ -146,6 +195,13 @@ int as3935_srej(uint8_t s){
     return as3935_write(LIGHTNING_REG, lr.u8);
 }
 
+int as3935_get_srej(uint8_t *n){
+    t_lightning_reg lr;
+    if(!as3935_read(LIGHTNING_REG, &lr.u8)) return FALSE;
+    *n = lr.SREJ;
+    return TRUE;
+}
+
 // minimal lighting number
 int as3935_minnumlig(uint8_t n){
     if(n > 3) return FALSE;
@@ -153,6 +209,13 @@ int as3935_minnumlig(uint8_t n){
     if(!as3935_read(LIGHTNING_REG, &lr.u8)) return FALSE;
     lr.MIN_NUM_LIG = n;
     return as3935_write(LIGHTNING_REG, lr.u8);
+}
+
+int as3935_get_minnumlig(uint8_t *n){
+    t_lightning_reg lr;
+    if(!as3935_read(LIGHTNING_REG, &lr.u8)) return FALSE;
+    *n = lr.MIN_NUM_LIG;
+    return TRUE;
 }
 
 // clear amount of lightnings for last 15 min
@@ -173,12 +236,19 @@ int as3935_intcode(uint8_t *code){
 }
 
 // should interrupt react on disturbers?
-int as3935_mask_disturber(uint8_t m){
+int as3935_maskdist(uint8_t m){
     if(m > 1) return FALSE;
     t_int_mask_ant i;
     if(!as3935_read(INT_MASK_ANT, &i.u8)) return FALSE;
     i.MASK_DIST = m;
     return as3935_write(INT_MASK_ANT, i.u8);
+}
+
+int as3935_get_maskdist(uint8_t *n){
+    t_int_mask_ant i;
+    if(!as3935_read(INT_MASK_ANT, &i.u8)) return FALSE;
+    *n = i.MASK_DIST;
+    return TRUE;
 }
 
 // set Fdiv of antenna LCO
@@ -188,6 +258,13 @@ int as3935_lco_fdiv(uint8_t d){
     if(!as3935_read(INT_MASK_ANT, &i.u8)) return FALSE;
     i.LCO_FDIV = d;
     return as3935_write(INT_MASK_ANT, i.u8);
+}
+
+int as3935_get_lco_fdiv(uint8_t *n){
+    t_int_mask_ant i;
+    if(!as3935_read(INT_MASK_ANT, &i.u8)) return FALSE;
+    *n = i.LCO_FDIV;
+    return TRUE;
 }
 
 // calculate last lightning energy

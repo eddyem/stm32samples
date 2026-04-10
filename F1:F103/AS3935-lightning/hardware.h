@@ -20,6 +20,9 @@
 
 #include <stm32f1.h>
 
+// amount of connected sensors
+#define SENSORS_AMOUNT  2
+
 // LED0 - PC13 (bluepill), blinking each second
 #define LED0_port       GPIOC
 #define LED0_pin        (1<<13)
@@ -40,6 +43,15 @@
 
 // INT pins: PA0/PA1
 #define CHK_INT(x)      ((GPIOA->IDR & (1<<x)) ? 1 : 0)
+
+enum{
+    DISPLCO_NOTHING,
+    DISPLCO_TRCO,
+    DISPLCO_SRCO,
+    DISPLCO_LCO
+};
+
+extern uint8_t DISPLCO[SENSORS_AMOUNT];
 
 void hw_setup();
 void iwdg_setup();
