@@ -92,6 +92,7 @@ typedef enum{
     LENS_INITIALIZED,   // initializing process
     LENS_READY,         // ready to operate
     LENS_ERR,           // some error occured - reconnect after REINIT_PAUSE
+    LENS_DISABLED,      // powered off by command
     LENS_S_AMOUNT
 } lens_state;
 
@@ -109,6 +110,8 @@ typedef enum{
 
 void canon_init();
 void canon_proc();
+void canon_disable();
+void canon_enable();
 int canon_diaphragm(char command);
 int canon_focus(int16_t val);
 int canon_sendcmd(uint8_t cmd);

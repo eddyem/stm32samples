@@ -48,6 +48,7 @@ int main(void){
 
     uint32_t SPIctr = Tms;
     while(1){
+        // TODO: add CAN bus parsing
         IWDG->KR = IWDG_REFRESH;
         if(Tms - SPIctr > CANONPROC_INTERVAL){ // not more than once per 10ms
             SPIctr = Tms;

@@ -172,6 +172,7 @@ void canon_init(){
  */
 void canon_proc(){
     static uint32_t Tconn = 0;
+    if(state == LENS_DISABLED) return;
     if(state == LENS_DISCONNECTED){
         if(!LENSCONNECTED()){
             Tconn = 0;
@@ -403,4 +404,26 @@ int canon_getinfo(){
 
 uint16_t canon_getstate(){
     return state | (inistate << 8);
+}
+
+void canon_disable(){
+    if(state == LENS_DISABLED) return;
+    state = LENS_DISABLED;
+    LENS_OFF();
+    ready = 0;
+}
+
+void canon_enable(){
+    if(state != LENS_DISABLED) return;
+    if(OVERCURRENT()){
+        state = LENS_OVERCURRENT;
+        return;
+    }
+    if(!LENSCONNECTED()){
+        state = LENS_DISCONNECTED;
+        return;
+    }
+    LENS_ON();
+    state = LENS_SLEEPING;
+    ready = 1;
 }

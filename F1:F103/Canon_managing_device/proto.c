@@ -31,6 +31,8 @@ static const char *OK = "OK", *FAIL = "FAIL";
 
 const char* helpmsg =
     "https://github.com/eddyem/stm32samples/tree/master/F1-nolib/Canon_managing_device  build#" BUILD_NUMBER " @ " BUILD_DATE "\n"
+    "# - turn off lens power\n"
+    "* - turn on lens power\n"
     "0 - move to smallest foc value (e.g. 2.5m)\n"
     "1 - move to largest foc value (e.g. infinity)\n"
     "a - move focus to given ABSOLUTE position or get current value (without number)\n"
@@ -105,6 +107,7 @@ const char *connmsgs[LENS_S_AMOUNT+1] = {
     [LENS_INITIALIZED] = "initialized",
     [LENS_READY] = "ready",
     [LENS_ERR] = "error",
+    [LENS_DISABLED] = "turned off",
     [LENS_S_AMOUNT] = "wrong state"
 };
 const char *inimsgs[INI_S_AMOUNT+1] = {
@@ -128,6 +131,14 @@ void parse_cmd(const char *buf){
     lastFloodTime= FALSE;
     if(buf[1] == '\n' || !buf[1]){ // one symbol commands
         switch(*buf){
+            case '*':
+                canon_enable();
+                USB_sendstr(OK);
+            break;
+            case '#':
+                canon_disable();
+                USB_sendstr(OK);
+            break;
             case 'a':
             case 'f':
                 errw(canon_focus(-1));
