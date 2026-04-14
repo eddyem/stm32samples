@@ -49,4 +49,6 @@ typedef enum{
 // maximal string length includint terminating zero
 #define MAXSTRLEN   256
 
+extern const char *EQ;
 const char *parse_cmd(int (*sendfun)(const char*), char *buf);
+void lightning_info(int (*sendfun)(const char*), uint8_t CHno);

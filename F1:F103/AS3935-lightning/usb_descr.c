@@ -15,6 +15,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <string.h> // memcpy
+
+#include "flash.h" // MAX_IINTERFACE_SZ, the_conf
 #include "usb_descr.h"
 
 // low/high for uint16_t
@@ -143,14 +146,22 @@ _USB_LANG_ID_(LD, LANG_US);
 _USB_STRING_(SD, u"0.0.1");
 _USB_STRING_(MD, u"eddy@sao.ru");
 _USB_STRING_(PD, u"AS3935 lightning detector");
-_USB_STRING_(ID, u"lightning_det");
+
+// iInterface will change on initialisation by config
+#define _USB_IIDESCR_(str) {sizeof(str), 0x03, str}
+typedef struct{
+    uint8_t  bLength;
+    uint8_t  bDescriptorType;
+    uint16_t bString[MAX_IINTERFACE_SZ];
+}iidescr_t;
+static iidescr_t iid = _USB_IIDESCR_(u"lightning_det");
 
 static const void* const StringDescriptor[iDESCR_AMOUNT] = {
     [iLANGUAGE_DESCR] = &LD,
     [iMANUFACTURER_DESCR] = &MD,
     [iPRODUCT_DESCR] = &PD,
     [iSERIAL_DESCR] = &SD,
-    [iINTERFACE_DESCR1] = &ID
+    [iINTERFACE_DESCR1] = &iid
 };
 
 static void wr0(const uint8_t *buf, uint16_t size, uint16_t askedsize){
@@ -207,4 +218,12 @@ void get_descriptor(config_pack_t *pack){
         default:
             break;
     }
+}
+
+void setup_interfaces(){
+    if(the_conf.iIlength){
+        iid.bLength = the_conf.iIlength + 2; // +2 - for bLength and bDescriptorType
+        memcpy(iid.bString, the_conf.iInterface, the_conf.iIlength);
+    }
+    iid.bDescriptorType = 0x03;
 }

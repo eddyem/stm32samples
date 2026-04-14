@@ -26,7 +26,7 @@
 extern uint32_t Tms;
 
 // read one register
-static int as3935_read(uint8_t reg, uint8_t *data){
+int as3935_read(uint8_t reg, uint8_t *data){
     uint8_t word[2];
     word[0] = MODE_READ | (reg & MODE_MASK);
     word[1] = 0;
@@ -35,7 +35,7 @@ static int as3935_read(uint8_t reg, uint8_t *data){
     return TRUE;
 }
 
-static int as3935_write(uint8_t reg, uint8_t data){
+int as3935_write(uint8_t reg, uint8_t data){
     uint8_t word[2];
     word[0] = MODE_WRITE | (reg & MODE_MASK);
     word[1] = data;
@@ -100,33 +100,26 @@ int as3935_gain(uint8_t n){
 }
 #endif
 
-#include "usb_dev.h"
-#include "strfunc.h"
-// starting calibration
+// calibrate RCO
 int as3935_calib_rco(){
     t_tun_disp t;
-    USB_sendstr("1\n");
     if(!as3935_read(TUN_DISP, &t.u8)) return FALSE;
-    USB_sendstr("2\n");
     if(!as3935_write(CALIB_RCO, DIRECT_COMMAND)) return FALSE;
-    USB_sendstr("3\n");
     t.DISP_LCO = t.DISP_TRCO = 0;
     t.DISP_SRCO = 1;
     if(!as3935_write(TUN_DISP, t.u8)) return FALSE;
-    USB_sendstr("4\n");
     uint32_t Tstart = Tms;
     while(Tms - Tstart < 3) IWDG->KR = IWDG_REFRESH; // sleep for ~2ms
     t.DISP_SRCO = 0;
-    USB_sendstr("5\n");
     if(!as3935_write(TUN_DISP, t.u8)) return FALSE;
-    while(Tms - Tstart < 300) IWDG->KR = IWDG_REFRESH; // sleep for ~2ms
+    return TRUE;
+}
+
+int as3935_get_calib(uint8_t *n){
     t_calib srco, trco;
-    USB_sendstr("6\n");
     if(!as3935_read(CALIB_TRCO, &trco.u8)) return FALSE;
-    USB_sendstr(uhex2str(trco.u8)); newline();
     if(!as3935_read(CALIB_SRCO, &srco.u8)) return FALSE;
-    USB_sendstr(uhex2str(srco.u8)); newline();
-    if(!srco.CALIB_DONE || !trco.CALIB_DONE) return FALSE;
+    *n = (!srco.CALIB_DONE || !trco.CALIB_DONE) ? 0 : 1;
     return TRUE;
 }
 
@@ -136,7 +129,7 @@ int as3935_wakeup(){
     if(!as3935_read(AFE_GAIN, &g.u8)) return FALSE;
     g.PWD = 0;
     if(!as3935_write(AFE_GAIN, g.u8)) return FALSE;
-    return as3935_calib_rco();
+    return TRUE;
 }
 
 // set amplifier gain

@@ -424,6 +424,7 @@ void USB_setup(){
     USB->BCDR |= USB_BCDR_DPPU; // turn ON DP pullup
     NVIC_EnableIRQ(USB_UCPD1_2_IRQn);
 #endif
+    setup_interfaces();
 }
 
 

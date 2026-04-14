@@ -56,13 +56,8 @@ enum{
     iPRODUCT_DESCR,
     iSERIAL_DESCR,
     iINTERFACE_DESCR1,
-   /* iINTERFACE_DESCR2,
-    iINTERFACE_DESCR3,
-    iINTERFACE_DESCR4,
-    iINTERFACE_DESCR5,
-    iINTERFACE_DESCR6,
-    iINTERFACE_DESCR7,*/
     iDESCR_AMOUNT
 };
 
 void get_descriptor(config_pack_t *pack);
+void setup_interfaces();

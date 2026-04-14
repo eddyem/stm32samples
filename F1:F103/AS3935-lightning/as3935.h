@@ -121,14 +121,18 @@ typedef union{
 // distance out of range
 #define DIST_OUT_OF_RANGE   (0x3f)
 
+int as3935_read(uint8_t reg, uint8_t *data);
+int as3935_write(uint8_t reg, uint8_t data);
+int as3935_wakeup();
+int as3935_get_calib(uint8_t *n);
+int as3935_calib_rco();
+
 int as3935_displco(uint8_t n);
 int as3935_get_displco(uint8_t *n);
 int as3935_tuncap(uint8_t n);
 int as3935_get_tuncap(uint8_t *n);
 int as3935_gain(uint8_t n);
 int as3935_get_gain(uint8_t *n);
-int as3935_wakeup();
-int as3935_calib_rco();
 //int as3935_set_gain(uint8_t g);
 int as3935_wdthres(uint8_t t);
 int as3935_get_wdthres(uint8_t *t);

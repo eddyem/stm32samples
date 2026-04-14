@@ -27,6 +27,8 @@ typedef enum{
 } spiStatus;
 
 extern spiStatus SPI_status;
+// SPI channel number for `CS` macro
+extern uint8_t as3935_channel;
 
 void spi_setup();
 uint8_t SPI_transmit(uint8_t *buf, uint8_t len);

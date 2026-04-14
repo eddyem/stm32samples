@@ -17,8 +17,10 @@
  */
 
 #include "as3935.h"
+#include "flash.h"
 #include "hardware.h"
 #include "commproto.h"
+#include "flash.h"
 #include "spi.h"
 #include "strfunc.h"
 #include "usb_dev.h"
@@ -41,6 +43,7 @@ int main(){
     hw_setup();
     USBPU_OFF();
     SysTick_Config(72000);
+    flashstorage_init();
     USB_setup();
 #ifndef EBUG
     iwdg_setup();
@@ -48,10 +51,21 @@ int main(){
     //usart_setup();
     USBPU_ON();
     // wake-up all sensors and run auto-calibration
-    for(int ch = 0; ch < SENSORS_AMOUNT; ++ch){
-        CS(ch);
+    for(uint8_t ch = 0; ch < SENSORS_AMOUNT; ++ch){
+        as3935_channel = ch;
         as3935_wakeup();
-        CS_OFF();
+        as3935_calib_rco();
+        if(the_conf.flags.restore){
+            sens_pars_t *p = &the_conf.spars[ch];
+            as3935_gain(p->AFE_GB);
+            as3935_wdthres(p->WDTH);
+            as3935_nflev(p->NF_LEV);
+            as3935_srej(p->SREJ);
+            as3935_minnumlig(p->MIN_NUM_LIG);
+            as3935_maskdist(p->MASK_DIST);
+            as3935_lco_fdiv(p->LCO_FDIV);
+            as3935_tuncap(p->TUN_CAP);
+        }
     }
     while(1){
         IWDG->KR = IWDG_REFRESH; // refresh watchdog
@@ -65,24 +79,26 @@ int main(){
             const char *ans = parse_cmd(USB_sendstr, inbuff);
             if(ans) USB_sendstr(ans);
         }
-        for(int ch = 0; ch < SENSORS_AMOUNT; ++ch){
-            if(DISPLCO[ch] == DISPLCO_NOTHING) continue; // don't check IRQ in if it used as clock output
+        for(uint8_t ch = 0; ch < SENSORS_AMOUNT; ++ch){
+            if(DISPLCO[ch] != DISPLCO_NOTHING) continue; // don't check IRQ in if it used as clock output
             if(CHK_INT(ch)){
                 if(oldint[ch] == 0){
                     oldint[ch] = 1;
-                    USB_sendstr("INTERRUPT @ "); USB_putbyte('0'+ch); newline();
                     uint8_t code;
-                    CS(ch);
+                    as3935_channel = ch;
                     int result = as3935_intcode(&code);
-                    CS_OFF();
-                    if(!result) USB_sendstr("Can't get code\n");
-                    else{
-                        USB_sendstr("Code: ");
-                        switch(code){
-                        case INT_NH: USB_sendstr("Noice too high\n"); break;
-                        case INT_D: USB_sendstr("Disturber detected\n"); break;
-                        case INT_L: USB_sendstr("Lightning interrupt\n"); break;
-                        default: USB_sendstr("Unknown\n"); break;
+                    if(!result) USB_sendstr("CANTGET\n");
+                    else if(code){
+                        uint8_t savedcode = code;
+                        USB_sendstr("INTERRUPT"); USB_putbyte('0'+ch); USB_putbyte('=');
+                        const char *delim = NULL, *comma = ",";
+                        if(code & INT_NH){ USB_sendstr("NOICE"); delim = comma; code &= ~INT_NH; }
+                        if(code & INT_D){ USB_sendstr(delim); USB_sendstr("DISTURBER"); delim = comma; code &= ~INT_D; }
+                        if(code & INT_L){ USB_sendstr(delim); USB_sendstr("LIGHTNING"); code &= ~INT_L; }
+                        if(code) USB_sendstr(u2str(code));
+                        newline();
+                        if(savedcode == INT_L){ // clear lightning - show distance and power
+                            lightning_info(USB_sendstr, ch);
                         }
                     }
                 }

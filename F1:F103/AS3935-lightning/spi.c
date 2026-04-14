@@ -26,6 +26,7 @@
 static const uint32_t SPI_CR1 = SPI_CR1_MSTR | SPI_CR1_BR_2 | SPI_CR1_BR_0 | SPI_CR1_SSM | SPI_CR1_SSI | SPI_CR1_CPHA /* | SPI_CR1_CPOL*/;
 
 spiStatus SPI_status = SPI_NOTREADY;
+uint8_t as3935_channel = 0;
 
 void spi_setup(){
     // master, no slave select, BR=F/16, CPOL/CPHA - polarity.
@@ -46,6 +47,7 @@ volatile uint32_t wctr;
 uint8_t SPI_transmit(uint8_t *buf, uint8_t len){
     if(!buf || !len) return 0; // bad data format
     if(SPI_status != SPI_READY) return 0; // spi not ready to transmit data
+    CS(as3935_channel);
     for(uint8_t x = 0; x < len; ++x){
         WAITX(!(SPI1->SR & SPI_SR_TXE));
         SPI1->DR = buf[x];
@@ -53,6 +55,7 @@ uint8_t SPI_transmit(uint8_t *buf, uint8_t len){
         WAITX(!(SPI1->SR & SPI_SR_RXNE));
         buf[x] = SPI1->DR;
     }
+    CS_OFF();
     return len;
 }
 
