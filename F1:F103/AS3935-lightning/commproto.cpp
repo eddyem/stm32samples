@@ -55,7 +55,7 @@ static uint8_t curbuf[MAXSTRLEN];
     COMMAND(maskdist,   "mask (1) or unmask (0) disturber") \
     COMMAND(mcutemp,    "get MCU temperature (degC*10)") \
     COMMAND(mcureset,   "reset MCU") \
-    COMMAND(minnumlig,  "ninimal lightnings number (0..2)") \
+    COMMAND(minnumlig,  "ninimal lightnings number (0..3 -> 1/5/9/16)") \
     COMMAND(nflev,      "noice floor level (0..7)") \
     COMMAND(readconf,   "read configuration from given sensor") \
     COMMAND(resetdef,   "reset sensor to defaults") \
