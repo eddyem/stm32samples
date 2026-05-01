@@ -411,7 +411,7 @@ const char *parse_cmd(char *buf, int sendto){
             break;
             case 'I':
                 buf = omit_spaces(buf);
-                switch(*buf){
+                switch(*buf++){
                     case 'a':
                         return chaddr(buf);
                     case 'r':
