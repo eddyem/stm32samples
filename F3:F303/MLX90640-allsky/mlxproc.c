@@ -63,11 +63,15 @@ static int sensno = -1;
 mlx_state_t mlx_state(){ return MLX_state; }
 // set address
 int mlx_setaddr(int n, uint8_t addr){
-    if(n < 0 || n > N_SENSORS) return 0;
+    if(n < 0 || n >= N_SENSORS) return 0;
     if(addr > 0x7f) return 0;
     sens_addresses[n] = addr << 1;
     Tlastimage[n] = Tms; // refresh counter for autoreset I2C in case of error
     return 1;
+}
+uint8_t mlx_getaddr(int n){
+    if(n < 0 || n >= N_SENSORS) return 0;
+    return sens_addresses[n];
 }
 // pause state machine and stop
 void mlx_pause(){

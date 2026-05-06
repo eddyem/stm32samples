@@ -16,17 +16,26 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <math.h>
+
+#ifdef EBUG
+#include "strfunc.h"
+#endif
+
 #include "adc.h"
 
 /**
  * @brief ADCx_array - arrays for ADC channels with median filtering:
  * ADC1:
- * 0 - Ch0 - ADC1_IN1
- * 1 - Ch1 - ADC1_IN2
- * 2 - internal Tsens - ADC1_IN16
- * 3 - Vref - ADC1_IN18
+ * 0 - Ch0 - ADC1_IN1 - NTC1
+ * 1 - Ch1 - ADC1_IN2 - NTC2
+ * 2 - Ch2 - ADC1_IN3 - NTC3
+ * 3 - Ch3 - ADC1_IN4 - NTC4
+ * 4 - internal Tsens - ADC1_IN16
+ * 5 - Vref - ADC1_IN18
  * ADC2:
- * 4 - AIN5/DAC_OUT1 - PA4 - DAC1_OUT1 (onboard heater?), PA5 - ADC2_IN2 (DAC output control)
+ *  AIN5/DAC_OUT1 - PA4 - DAC1_OUT1 (onboard heater)
+ * 6 - PA5 - ADC2_IN2 (DAC output control)
  */
 static uint16_t ADC_array[NUMBER_OF_ADC_CHANNELS*9];
 
@@ -65,17 +74,19 @@ TRUE_INLINE void enADC(ADC_TypeDef *chnl){
  * ADC1 - DMA1_ch1
  * ADC2 - DMA2_ch1
  */
-// Setup ADC and DAC
+// Setup ADC and DAC; ADC/DAC pins should be prepared in gpio_setup
 void adc_setup(){
     RCC->AHBENR |= RCC_AHBENR_ADC12EN; //  Enable clocking
     ADC12_COMMON->CCR = ADC_CCR_TSEN | ADC_CCR_VREFEN | ADC_CCR_CKMODE; // enable Tsens and Vref, HCLK/4
     calADC(ADC1);
     calADC(ADC2);
-    // ADC1: channels 1,2,16,18; ADC2: channel 2
-    ADC1->SMPR1 = ADC_SMPR1_SMP0 | ADC_SMPR1_SMP1;
+    // ADC1: channels 1,2,3,4,16,18
+    ADC1->SMPR1 = ADC_SMPR1_SMP0 | ADC_SMPR1_SMP1 | ADC_SMPR1_SMP2 | ADC_SMPR1_SMP3;
     ADC1->SMPR2 = ADC_SMPR2_SMP15 | ADC_SMPR2_SMP17;
-    // 4 conversions in group: 1->2->16->18
-    ADC1->SQR1 = (1<<6) | (2<<12) | (16<<18) | (18<<24) | (NUMBER_OF_ADC1_CHANNELS-1);
+    // 6 conversions in group: 1->2->3->4->16->18
+    ADC1->SQR1 = (1<<6) | (2<<12) | (3<<18) | (4<<24) | (NUMBER_OF_ADC1_CHANNELS-1);
+    ADC1->SQR2 = (16<<0) | (18<<6);
+    // ADC2: channel 2
     ADC2->SMPR1 = ADC_SMPR1_SMP1;
     ADC2->SQR1 = (2<<6) | (NUMBER_OF_ADC2_CHANNELS-1);
     // configure DMA for ADC
@@ -109,7 +120,8 @@ void adc_setup(){
  * @param nch - number of channel
  * @return
  */
-uint16_t getADCval(int nch){
+uint16_t getADCval(uint8_t nch){
+    if(nch >= NUMBER_OF_ADC_CHANNELS) return 0;
     register uint16_t temp;
 #define PIX_SORT(a,b) { if ((a)>(b)) PIX_SWAP((a),(b)); }
 #define PIX_SWAP(a,b) { temp=(a);(a)=(b);(b)=temp; }
@@ -131,7 +143,7 @@ uint16_t getADCval(int nch){
 }
 
 // get voltage @input nch (V)
-float getADCvoltage(int nch){
+float getADCvoltage(uint8_t nch){
     float v = getADCval(nch);
     v *= getVdd();
     v /= 4096.f; // 12bit ADC
@@ -154,4 +166,115 @@ float getVdd(){
     float vdd = ((float) *VREFINT_CAL_ADDR) * 3.3f; // 3.3V
     vdd /= getADCval(ADC_VREF);
     return vdd;
+}
+
+// R lookup table for T=-10..59 degreesC
+#if 0
+T=[-10:59]+273.15;
+R=1000*exp(3950*(1./T-1/298.15));
+for i=1:length(T); printf("\t%.1f,\t// %d \n", R(i), T(i)-273.15); endfor
+#endif
+
+static const float Rlut[] = {
+    5824.6, // -10
+    5502.8, // -9
+    5201.1, // -8
+    4917.9, // -7
+    4652.2, // -6
+    4402.6, // -5
+    4168.1, // -4
+    3947.7, // -3
+    3740.5, // -2
+    3545.5, // -1
+    3362.1, // 0
+    3189.3, // 1
+    3026.6, // 2
+    2873.3, // 3
+    2728.8, // 4
+    2592.5, // 5
+    2463.9, // 6
+    2342.5, // 7
+    2227.9, // 8
+    2119.7, // 9
+    2017.5, // 10
+    1920.8, // 11
+    1829.4, // 12
+    1743.0, // 13
+    1661.2, // 14
+    1583.7, // 15
+    1510.4, // 16
+    1440.9, // 17
+    1375.1, // 18
+    1312.7, // 19
+    1253.5, // 20
+    1197.4, // 21
+    1144.1, // 22
+    1093.6, // 23
+    1045.6, // 24
+    1000.0, // 25
+    956.7,  // 26
+    915.5,  // 27
+    876.4,  // 28
+    839.1,  // 29
+    803.7,  // 30
+    770.0,  // 31
+    737.9,  // 32
+    707.4,  // 33
+    678.3,  // 34
+    650.6,  // 35
+    624.1,  // 36
+    598.9,  // 37
+    574.9,  // 38
+    552.0,  // 39
+    530.1,  // 40
+    509.3,  // 41
+    489.4,  // 42
+    470.3,  // 43
+    452.2,  // 44
+    434.8,  // 45
+    418.2,  // 46
+    402.4,  // 47
+    387.2,  // 48
+    372.7,  // 49
+    358.8,  // 50
+    345.5,  // 51
+    332.8,  // 52
+    320.7,  // 53
+    309.0,  // 54
+    297.8,  // 55
+    287.1,  // 56
+    276.9,  // 57
+    267.1,  // 58
+    257.7,  // 59
+};
+
+#define LUTSZ   (sizeof(Rlut) / sizeof(float))
+
+/**
+ * @brief getNTCtemp - stupid LUT-search and linear approximation of T by R
+ * @param nch - channel of ADC for Tx
+ * @return temperature in degr.C
+ */
+float getNTCtemp(uint8_t nch){
+    if(nch > ADC_AIN4) return -300.f; // bad number
+    uint16_t val = getADCval(nch);
+    if(val < 5) return -400.f; // short cirquit
+    else if(val > 4090) return -500.f; // no NTC
+    float R = 1000.f / (4096.f / val - 1.f); // resistance of NTC
+#ifdef EBUG
+    USB_sendstr("R="); USB_sendstr(float2str(R, 1)); newline();
+#endif
+    int left = 0, right = LUTSZ-1;
+    if(R > Rlut[0]) right = 1;
+    else if(R < Rlut[LUTSZ-1]) left = LUTSZ-2;
+    while(right - left > 1){
+        int idx = left + (right - left) / 2;
+        float Rl = Rlut[idx];
+        if(Rl > R) left = idx + 1;
+        else right = idx - 1;
+    }
+    if(left >= (int)LUTSZ) return 60.f;
+    float Rleft = Rlut[left], Rright = Rlut[left+1];
+    float T = (float)left - 9.f - (R - Rright) / (Rleft - Rright);
+    return T;
 }

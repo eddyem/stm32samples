@@ -20,7 +20,7 @@
 #include "hardware.h"
 #include "i2c.h"
 #include "mlxproc.h"
-#include "proto.h"
+#include "commproto.h"
 #include "strfunc.h"
 #include "usart.h"
 #include "usb_dev.h"
@@ -43,14 +43,18 @@ int main(void){
         StartHSI();
         SysTick_Config((uint32_t)48000); // 1ms
     }
-    USBPU_OFF();
+    USBPU_OFF(); // for development board with managed pullup resistor
     hw_setup();
     adc_setup();
     i2c_setup(I2C_SPEED_400K);
     bme_init();
-    USB_setup();
     usart_setup(115200);
+    // setup USB DP as alternate function - for sensors' board with constant pullup resistor
+    GPIOA->MODER = (GPIOA->MODER & ~GPIO_MODER_MODER12) | MODER_AF(12);
     USBPU_ON();
+    USB_setup();
+    // set senders for abiliby of sending messages between interfaces
+    set_senders(USB_sendstr, USB_putbyte, USB_send, usart_sendstr, usart_putbyte, usart_send);
     uint32_t ctr = Tms, Tlastima[N_SENSORS] = {0};
     mlx_continue(); // init state machine
     while(1){
@@ -63,7 +67,7 @@ int main(void){
         int l = USB_receivestr(inbuff, MAXSTRLEN);
         if(l < 0) USB_sendstr("USBOVERFLOW\n");
         else if(l){
-            const char *ans = parse_cmd(inbuff, SEND_USB);
+            const char *ans = parse_cmd(USB_sendstr, inbuff);
             if(ans) USB_sendstr(ans);
         }
         if(i2c_scanmode){ // send this to both
@@ -84,7 +88,6 @@ int main(void){
             if(Tnow != Tlastima[i]){
                 fp_t *im = mlx_getimage(i);
                 if(im){
-                    chsendfun(SEND_USB);
                     //U(Sensno); UN(i2str(i));
                     U(Timage); USB_putbyte('0'+i); USB_putbyte('='); UN(u2str(Tnow));
                     drawIma(im);
@@ -96,7 +99,7 @@ int main(void){
         if(usart_ovr()) usart_sendstr("USART_OVERFLOW\n");
         char *got = usart_getline(NULL);
         if(got){
-            const char *ans = parse_cmd(got, SEND_USART);
+            const char *ans = parse_cmd(usart_sendstr, got);
             if(ans) usart_sendstr(ans);
         }
         bme_process();

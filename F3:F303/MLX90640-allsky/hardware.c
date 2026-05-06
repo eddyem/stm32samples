@@ -51,16 +51,19 @@ TRUE_INLINE void iwdg_setup(){
 TRUE_INLINE void gpio_setup(){
     RCC->AHBENR |= RCC_AHBENR_GPIOAEN | RCC_AHBENR_GPIOBEN; // for USART and LEDs
     for(int i = 0; i < 10000; ++i) nop();
-    // USB - alternate function 14 @ pins PA11/PA12; SWD - AF0 @PA13/14; USB pullup - PA15
-    // PA6 - PWM for external heater (TIM3_CH1 or TIM16_CH1); PA7 - PWM propto (humidity - 50%)
+    // USB - alternate function 14 @ pins PA11/PA12; SWD - AF0 @PA13/14
+    // PA6,PA7 - PWM for external heaters (TIM3_CH1, TIM3_CH2)
+    // PA0..PA4 - NTC in, PA5 - DAC_OUT1 (board heater), PA6 - ADC in for DAC out
+    // USART pins will be setup in usart.c
     GPIOA->AFR[0] = AFRf(2, 6) | AFRf(2, 7);
     GPIOA->AFR[1] = AFRf(14, 11) | AFRf(14, 12);
-    GPIOA->MODER = MODER_AI(0) | MODER_AI(1)  | MODER_AI(4)  | MODER_AI(5)  | MODER_AF(6)  |
-                   MODER_AF(7) | MODER_AF(11) | MODER_AF(12) | MODER_AF(13) | MODER_AF(14) | MODER_O(15);
-    // PB0 - PWM propto Text (<=20 - 0%, >=30 - 100%), PB1 - PWM propto (Text-Tsky) (<=-5 - 0%, >=+35 - 100%) PB2 - SPI_CS
+    // force USB DP to low level for a while
+    GPIOA->MODER = MODER_AI(0) | MODER_AI(1)  | MODER_AI(2)  | MODER_AI(3)  | MODER_AI(4)  | MODER_AI(5)  | MODER_AF(6)  |
+                   MODER_AF(7) | MODER_AF(11) | MODER_O(12)  | MODER_AF(13) | MODER_AF(14) | MODER_O(15);
+    // PB0 - PWM propto Text (<=20 - 0%, >=30 - 100%), PB1 - PWM propto (Text-Tsky) (<=-5 - 0%, >=+35 - 100%) PB9 - SPI_CS
+    // SPI and I2C will be setup in spi.c and i2c.c
     GPIOB->AFR[0] = AFRf(2, 0) | AFRf(2, 1);
-    GPIOB->MODER = MODER_AF(0) | MODER_AF(1) | MODER_O(2);
-    pin_set(GPIOB, 1<<1);
+    GPIOB->MODER = MODER_AF(0) | MODER_AF(1) | MODER_O(9);
     SPI_CS_1();
 }
 
@@ -85,7 +88,7 @@ TRUE_INLINE void pwm_setup(){
 
 // change PWM value in percents; return 0 if `val` is bad or `ch` not 0..3
 int setPWM(uint8_t ch, uint8_t val){
-    if(ch > 3 || val > PWM_CCR_MAX) return 0;
+    if(ch >= PWM_CH_MAX || val > PWM_CCR_MAX) return 0;
     volatile uint32_t *CCRs = &(TIM3->CCR1);
     CCRs[ch] = val;
     return 1;
@@ -139,7 +142,6 @@ void bme_process(){
                 // set PWM duty propto humidity
                 float h = (Humidity - 50.f) * 2.f;
                 if(h < 0.f) h = 0.f; else if(h > 100.f) h = 100.f;
-                setPWM(PWM_CH_HUMIDITY, (uint8_t)h);
                 environment.Tmeas = Tms;
                 // set PWM duty propto external T
                 float t = (Temperature + 20.f) * 2.f;

@@ -8,3 +8,5 @@ LDLIBS   := -lm
 
 include ../makefile.f3
 include ../../makefile.stm32
+
+$(OBJDIR)/commproto.o: commproto.cpp $(VERSION_FILE)

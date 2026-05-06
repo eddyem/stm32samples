@@ -39,6 +39,7 @@ typedef enum{
 } mlx_state_t;
 
 int mlx_setaddr(int n, uint8_t addr);
+uint8_t mlx_getaddr(int n);
 mlx_state_t mlx_state();
 int mlx_nactive();
 uint8_t *mlx_activeids();

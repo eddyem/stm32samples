@@ -25,9 +25,9 @@
 #define USBPU_ON()  pin_clear(USBPU_port, USBPU_pin)
 #define USBPU_OFF() pin_set(USBPU_port, USBPU_pin)
 
-// SPI_CS - PB2
-#define SPI_CS_1()      pin_set(GPIOB, 1<<2)
-#define SPI_CS_0()      pin_clear(GPIOB, 1<<2)
+// SPI_CS - PB9
+#define SPI_CS_1()      pin_set(GPIOB, 1<<9)
+#define SPI_CS_0()      pin_clear(GPIOB, 1<<9)
 
 // interval of environment measurements, ms
 #define ENV_MEAS_PERIOD (10000)
@@ -36,14 +36,11 @@
 // Max PWM CCR1 value (->1)
 #define PWM_CCR_MAX (100)
 // PWM channels (start from 0 - CH1)
-// external heater
-#define PWM_CH_HEATER   (0)
-// propto humidity (the higher - the brighter)
-#define PWM_CH_HUMIDITY (1)
 // propto external T (the higher - the brighter)
 #define PWM_CH_TEXT     (2)
 // propto Tsky - Text (the higher - the brighter)
 #define PWM_CH_TSKY     (3)
+#define PWM_CH_MAX      (3)
 
 typedef struct{
     float T;    // temperature, degC

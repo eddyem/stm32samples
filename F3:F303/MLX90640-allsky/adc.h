@@ -19,22 +19,27 @@
 #pragma once
 #include <stm32f3.h>
 
-#define NUMBER_OF_ADC1_CHANNELS (4)
+// 4 sensors on 1..4, TS (16) and Vdd (18)
+#define NUMBER_OF_ADC1_CHANNELS (6)
 #define NUMBER_OF_ADC2_CHANNELS (1)
 // total number of channels - for array
 #define NUMBER_OF_ADC_CHANNELS ((NUMBER_OF_ADC1_CHANNELS+NUMBER_OF_ADC2_CHANNELS))
 
 // channels of ADC in array
-#define ADC_AIN0    (0)
-#define ADC_AIN1    (1)
-#define ADC_TS      (2)
-#define ADC_VREF    (3)
-#define ADC_AIN5    (4)
+#define ADC_AIN1        (0)
+#define ADC_AIN2        (1)
+#define ADC_AIN3        (2)
+#define ADC_AIN4        (3)
+#define ADC_NTCIN(x)    ((x)-1)
+#define ADC_TS          (4)
+#define ADC_VREF        (5)
+#define ADC_DACIN       (6)
 // starting index of ADC2
 #define ADC2START   (9*NUMBER_OF_ADC1_CHANNELS)
 
 void adc_setup();
 float getMCUtemp();
 float getVdd();
-uint16_t getADCval(int nch);
-float getADCvoltage(int nch);
+uint16_t getADCval(uint8_t nch);
+float getADCvoltage(uint8_t nch);
+float getNTCtemp(uint8_t nch);

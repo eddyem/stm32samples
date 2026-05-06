@@ -2,6 +2,8 @@ BMP280.c
 BMP280.h
 adc.c
 adc.h
+commproto.cpp
+commproto.h
 hardware.c
 hardware.h
 i2c.c
@@ -15,8 +17,6 @@ mlx90640.h
 mlx90640_regs.h
 mlxproc.c
 mlxproc.h
-proto.c
-proto.h
 ringbuffer.c
 ringbuffer.h
 spi.c
