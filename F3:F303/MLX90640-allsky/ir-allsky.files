@@ -6,6 +6,8 @@ commproto.cpp
 commproto.h
 hardware.c
 hardware.h
+heater.c
+heater.h
 i2c.c
 i2c.h
 main.c

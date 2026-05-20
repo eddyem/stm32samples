@@ -30,17 +30,42 @@
 #define SPI_CS_0()      pin_clear(GPIOB, 1<<9)
 
 // interval of environment measurements, ms
-#define ENV_MEAS_PERIOD (10000)
+#define ENV_MEAS_PERIOD     (10000)
+
+// heater check period, ms
+#define HTR_CHECK_PERIOD    (10000)
+
+// temperature hysteresis (+-hyst from holding value)
+#define HOLDT_HYSTERESIS    (5.f)
+// environment for auto-heater
+// maximal humidity
+#define HUMIDITY_MAX        (90.f)
+// delta over dew point
+#define TDEW_OVER_DELTA     (7.f)
+// defrosting temperature (when there's very cold)
+#define TEMP_DEFROST        (5.f)
+// PWM starting value (up to reaching holding T)
+#define PWM_START_VAL       (100)
+// middle value
+#define PWM_MID_VAL         (50)
+// PWM holding value (up to setTemp+Thyst)
+#define PWM_HOLD_VAL        (10)
 
 // External heater PWM: TIM3_CH1 or TIM16_CH1
 // Max PWM CCR1 value (->1)
 #define PWM_CCR_MAX (100)
+// amount of heaters
+#define HTR_AMOUNT      (2)
 // PWM channels (start from 0 - CH1)
+#define PWM_CH_HTR(x)   (x)
 // propto external T (the higher - the brighter)
 #define PWM_CH_TEXT     (2)
 // propto Tsky - Text (the higher - the brighter)
 #define PWM_CH_TSKY     (3)
 #define PWM_CH_MAX      (3)
+
+// amount of T channels
+#define NTC_AMOUNT  (4)
 
 typedef struct{
     float T;    // temperature, degC
@@ -48,11 +73,11 @@ typedef struct{
     float P;    // pressure, Pa
     float H;    // humidity, percents
     float Tsky; // mean Tsky, degC
-    // TODO: add here values of NTC on ADC channels 1/2
     uint32_t Tmeas; // time of measurement
 } bme280_t;
 
 extern volatile uint32_t Tms;
+extern uint8_t AutoHeater;
 
 void hw_setup();
 int bme_init();

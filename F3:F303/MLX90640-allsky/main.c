@@ -18,6 +18,7 @@
 
 #include "adc.h"
 #include "hardware.h"
+#include "heater.h"
 #include "i2c.h"
 #include "mlxproc.h"
 #include "commproto.h"
@@ -103,5 +104,6 @@ int main(void){
             if(ans) usart_sendstr(ans);
         }
         bme_process();
+        heater_process();
     }
 }

@@ -7,6 +7,7 @@ extern "C"{
 #include "adc.h"
 #include "commproto.h"
 #include "hardware.h"
+#include "heater.h"
 #include "i2c.h"
 #include "mlxproc.h"
 #include "strfunc.h"
@@ -61,41 +62,50 @@ uint8_t cartoon = 0;
 
 // Command list
 #define COMMAND_TABLE \
-    COMMAND(help,       "show this help") \
+    DELIM("MLX commands") \
+    COMMAND(acqtime,    "show nth image aquisition time") \
     COMMAND(ascii,      "draw nth image in ASCII (n=0..4)") \
     COMMAND(binary,     "get nth image as text array of floats") \
+    COMMAND(cartoon,    "toggle cartoon mode") \
     COMMAND(listids,    "list active sensors IDs") \
-    COMMAND(tempmap,    "show temperature map of nth image") \
-    COMMAND(acqtime,    "show nth image aquisition time") \
-    COMMAND(bmereinit,  "reinit BME280") \
-    COMMAND(environ,    "get environment parameters") \
-    COMMAND(state,      "get MLX state") \
-    COMMAND(reset,      "reset MCU") \
-    COMMAND(time,       "print current Tms") \
-    COMMAND(iicaddr,    "get/set I2C address (non-shifted)") \
+    COMMAND(mlxaddr,    "get/set I2C address of sensor n (n=0..4)") \
     COMMAND(mlxcont,    "continue MLX") \
-    COMMAND(iicspeed,   "get/set I2C speed (0..4)") \
+    COMMAND(mlxdump,    "dump parameters for sensor n") \
     COMMAND(mlxpause,   "pause MLX") \
     COMMAND(mlxstop,    "stop MLX") \
-    COMMAND(adc,        "get n'th ADC values") \
+    COMMAND(state,      "get MLX state") \
+    COMMAND(tempmap,    "show temperature map of nth image") \
+    DELIM("Environment/heaters") \
+    COMMAND(autoheater, "get/set automatic heater flag (0/1)") \
+    COMMAND(bmereinit,  "reinit BME280") \
+    COMMAND(clearheater,"clear temperature holding") \
+    COMMAND(environ,    "get environment parameters") \
     COMMAND(ntc,        "get n'th NTC temperatures") \
-    COMMAND(cartoon,    "toggle cartoon mode") \
-    COMMAND(mlxdump,    "dump MLX parameters for sensor n") \
-    COMMAND(mlxaddr,    "get/set MLX address of sensor n") \
-    COMMAND(readreg,    "read I2C register: readreg reg [= nwords]") \
-    COMMAND(writedata,  "write I2C data: writedata = val1 val2 ...") \
-    COMMAND(iicscan,    "scan I2C bus") \
+    COMMAND(pwm,        "get/set PWM for channel n (0..100%), (n=0,1 - heaters)") \
+    COMMAND(setheater,  "set heater holding temperature, int degC") \
+    DELIM("Other commands") \
+    COMMAND(adc,        "get n'th ADC values") \
+    COMMAND(dac,        "get/set DAC value (MCU heater)") \
+    COMMAND(help,       "show this help") \
     COMMAND(mcutemp,    "get MCU temperature") \
     COMMAND(mcuvdd,     "get MCU Vdd") \
-    COMMAND(dac,        "get/set DAC value") \
-    COMMAND(pwm,        "get/set PWM for channel n (0..100%)") \
-    COMMAND(sendstr,    "send string to other interface: sendstr = text")
-
+    COMMAND(reset,      "reset MCU") \
+    COMMAND(sendstr,    "send string to other interface: sendstr = text") \
+    COMMAND(time,       "print current Tms") \
+    DELIM("Raw I2C commands (MLX process should be stopped or paused)") \
+    COMMAND(hwaddr,     "set hardware I2C address (non-shifted) ") \
+    COMMAND(iicaddr,    "get/set I2C address for raw operations") \
+    COMMAND(iicscan,    "scan I2C bus") \
+    COMMAND(iicspeed,   "get/set I2C speed (0..4)") \
+    COMMAND(readreg,    "read I2C register: readreg reg [= nwords]") \
+    COMMAND(writedata,  "write I2C data: writedata = val1 val2 ...")
 
 // Command prototypes
+#define DELIM(text)
 #define COMMAND(name, desc)   static errcodes_t cmd_ ## name(const char*, char*);
 COMMAND_TABLE
 #undef COMMAND
+#undef DELIM
 
 // descrtiptions for `help`
 typedef struct {
@@ -104,9 +114,11 @@ typedef struct {
 } CmdInfo;
 
 static const CmdInfo cmdInfo[] = {
+#define DELIM(text)         { NULL,  text },
 #define COMMAND(name, desc) { #name, desc },
     COMMAND_TABLE
 #undef COMMAND
+#undef DELIM
 };
 
 // Text descriptions for error codes
@@ -171,11 +183,44 @@ static bool argsvals(char *args, int32_t *parno, int32_t *parval){
 
 /************* List of proto functions for each command *************/
 
+static errcodes_t cmd_autoheater(const char* cmd, char* args){
+    int32_t flag;
+    if(argsvals(args, NULL, &flag)){
+        if(flag == 0) AutoHeater = 0;
+        else AutoHeater = 1;
+    }
+    CMDEQ();
+    printu(AutoHeater); N();
+    return ERR_AMOUNT;
+}
+
+static errcodes_t cmd_clearheater(const char*, char*){
+    clearThold();
+    return ERR_OK;
+}
+
+static errcodes_t cmd_setheater(const char* cmd, char* args){
+    int32_t Tset;
+    if(argsvals(args, NULL, &Tset)){
+        if(setThold(Tset)) return ERR_OK;
+        else return ERR_CANTRUN;
+    }
+    float T;
+    CMDEQ();
+    if(!getThold(&T)) SEND("none\n");
+    else{
+        printfl(T, 1); N();
+    }
+    return ERR_AMOUNT;
+}
+
 static errcodes_t cmd_help(const char*, char*){
     SEND(REPOURL);
     for(size_t i = 0; i < sizeof(cmdInfo)/sizeof(cmdInfo[0]); ++i){
-        SEND(cmdInfo[i].name);
-        SEND(" - ");
+        if(cmdInfo[i].name){
+            SEND(cmdInfo[i].name);
+            SEND(" - ");
+        }else SEND("    ");
         SEND(cmdInfo[i].desc);
         SEND("\n");
     }
@@ -300,17 +345,14 @@ static errcodes_t cmd_state(const char* cmd, char*){
 
 /********** I2C commands **********/
 
-static errcodes_t cmd_iicaddr(const char* cmd, char* args){
+static errcodes_t cmd_hwaddr(const char*, char* args){
     int32_t addr;
     if(argsvals(args, NULL, &addr)){
         if(addr < 0 || addr > 0x7f) return ERR_BADVAL;
-        I2Caddress = (uint8_t)(addr << 1);
         mlx_sethwaddr(I2Caddress, addr);
-        return ERR_AMOUNT;
+        return ERR_OK;
     }
-    // getter
-    CMDEQ(); printuhex(I2Caddress >> 1); N();
-    return ERR_AMOUNT;
+    return ERR_BADVAL;
 }
 
 static errcodes_t cmd_mlxcont(const char*, char*){
@@ -414,16 +456,20 @@ static errcodes_t cmd_mlxdump(const char*, char* args){
     return ERR_AMOUNT;
 }
 
+static errcodes_t cmd_iicaddr(const char* cmd, char* args){
+    int32_t addr = -1;
+    if(argsvals(args, NULL, &addr)){
+        if(addr < 0 || addr > 0x7f) return ERR_BADVAL;
+        I2Caddress = addr << 1;
+    }
+    CMDEQ(); printuhex(I2Caddress>>1); N();
+    return ERR_AMOUNT;
+}
+
 static errcodes_t cmd_mlxaddr(const char* cmd, char* args){
     int32_t sensno = -1;
-    if(!args || !*args) { // without args: show global address
-        //CMDEQ(); printuhex(I2Caddress>>1); N();
-        //return ERR_AMOUNT;
-        return ERR_BADPAR;
-    }
     const char *setter = splitargs(args, &sensno);
     if(sensno < 0 || sensno >= N_SENSORS) return ERR_BADPAR;
-
     if(setter){ // setter: set current address
         uint32_t a;
         const char *nxt = getnum(setter, &a);
@@ -574,9 +620,11 @@ const char *parse_cmd(int (*sendfun)(const char*), char *buf) {
     uint32_t h = hash(command);
     errcodes_t ecode = ERR_AMOUNT;
     switch (h){
+#define DELIM(text)
 #define COMMAND(name, desc) case hash(#name): ecode = cmd_##name(command, args); break;
         COMMAND_TABLE
 #undef COMMAND
+#undef DELIM
         default:
             SEND("Unknown command, try 'help'\n");
     }

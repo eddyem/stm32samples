@@ -71,7 +71,7 @@ int mlx_setaddr(int n, uint8_t addr){
 }
 uint8_t mlx_getaddr(int n){
     if(n < 0 || n >= N_SENSORS) return 0;
-    return sens_addresses[n];
+    return sens_addresses[n] >> 1;
 }
 // pause state machine and stop
 void mlx_pause(){

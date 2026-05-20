@@ -41,3 +41,15 @@ Us - send string 's' to other interface
 ```
 
 To call this help just print '?', 'h' or 'H' in terminal.
+
+
+### Sensors
+
+| N | ID   | Cardinal direction |
+|---|------|--------------------|
+| 0 | 0x10 | Zenith             |
+| 1 | 0x11 | East               |
+| 2 | 0x12 | South              |
+| 3 | 0x13 | West               |
+| 4 | 0x14 | North              |
+---------------------------------
