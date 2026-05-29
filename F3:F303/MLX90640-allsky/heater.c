@@ -22,8 +22,8 @@
 
 #ifdef EBUG
 #include "strfunc.h"
-#include "usb_dev.h"
 #endif
+#include "usb_dev.h"
 
 // turn on/off automatic cover heater in case of high humidity
 uint8_t AutoHeater = 0;

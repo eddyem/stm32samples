@@ -1,5 +1,6 @@
 BMP280.c
 BMP280.h
+Readme.md
 adc.c
 adc.h
 commproto.cpp
