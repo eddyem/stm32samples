@@ -83,16 +83,19 @@ int main(void){
                 usart_sendstr(foundid); usart_sendstr(straddr); usart_putbyte('\n');
             }
         }
+        IWDG->KR = IWDG_REFRESH;
         mlx_process();
-        if(cartoon) for(int i = 0; i < N_SENSORS; ++i){ // USB-only
+        if(cartoon && CDCready) for(int i = 0; i < N_SENSORS; ++i){ // USB-only
             uint32_t Tnow = mlx_lastimT(i);
             if(Tnow != Tlastima[i]){
                 fp_t *im = mlx_getimage(i);
                 if(im){
-                    //U(Sensno); UN(i2str(i));
+                    sendfun_t cursender = get_sender();
+                    set_sender(USB_sendstr);
                     U(Timage); USB_putbyte('0'+i); USB_putbyte('='); UN(u2str(Tnow));
                     drawIma(im);
                     Tlastima[i] = Tnow;
+                    set_sender(cursender);
                 }
             }
         }

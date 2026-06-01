@@ -7,7 +7,9 @@ thermal imaging sensors (32×24 pixels each), designed for **cloud monitoring** 
 Astrophysical Observatory of the Russian Academy of Sciences. The system automates sky quality
 assessment for 0.5-meter telescopes of the "Astro-M" complex.
 
-The device continuously captures thermal images from multiple sensors (Zenith, East, South, West, North), processes environmental data from a **BMP280** pressure/humidity/temperature sensor, and controls **PWM heaters** to prevent dew formation on optics.
+The device continuously captures thermal images from multiple sensors (Zenith, East, South, West,
+North), processes environmental data from a **BMP280** pressure/humidity/temperature sensor, and
+controls **PWM heaters** to prevent dew formation on optics.
 
 **Repository:** [https://github.com/eddyem/stm32samples/tree/master/F3%3AF303/MLX90640-allsky](https://github.com/eddyem/stm32samples/tree/master/F3%3AF303/MLX90640-allsky)
 
@@ -160,7 +162,8 @@ Measurements are triggered every `ENV_MEAS_PERIOD` (10 seconds) in forced mode.
 
 ## Command Protocol
 
-The device presents a **virtual COM port** (CDC) over USB and a second UART interface. Both share the same command set.
+The device presents a **virtual COM port** (CDC) over USB and a second UART interface. Both share
+the same command set.
 
 ### Command Syntax
 ```
@@ -290,7 +293,9 @@ T_MEASUREMENT=12345678
 ### Prerequisites
 - ARM GCC toolchain (`arm-none-eabi-gcc`)
 - Make
-- [st-flash](https://github.com/texane/stlink), [stm32flash](https://sourceforge.net/projects/stm32flash/) or [OpenOCD](https://openocd.sourceforge.io) (for flashing MCU)
+- [st-flash](https://github.com/texane/stlink),
+       [stm32flash](https://sourceforge.net/projects/stm32flash/) or
+       [OpenOCD](https://openocd.sourceforge.io) (for flashing MCU)
 
 ### Build
 ```bash

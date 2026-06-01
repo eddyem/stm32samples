@@ -23,7 +23,7 @@
 // hex line number for hexdumps
 void u16s(uint16_t n, char *buf){
     for(int j = 3; j > -1; --j){
-        register uint8_t q = n & 0xf;
+        uint8_t q = n & 0xf;
         n >>= 4;
         if(q < 10) buf[j] = q + '0';
         else buf[j] = q - 10 + 'a';
@@ -40,7 +40,7 @@ void hexdump(int (*sendfun)(const char *s), uint8_t *arr, uint16_t len){
     char buf[64] = "0000  ", *bptr = &buf[6];
     for(uint16_t l = 0; l < len; ++l, ++arr){
         for(int16_t j = 1; j > -1; --j){
-            register uint8_t half = (*arr >> (4*j)) & 0x0f;
+            uint8_t half = (*arr >> (4*j)) & 0x0f;
             if(half < 10) *bptr++ = half + '0';
             else *bptr++ = half - 10 + 'a';
         }
@@ -66,7 +66,7 @@ void hexdump16(int (*sendfun)(const char *s), uint16_t *arr, uint16_t len){
         //uint16_t val = *arr;
         u16s(*arr, bptr);
         /*for(int16_t j = 3; j > -1; --j){
-            register uint8_t q = val & 0xf;
+            uint8_t q = val & 0xf;
             val >>= 4;
             if(q < 10) bptr[j] = q + '0';
             else bptr[j] = q - 10 + 'a';
@@ -297,8 +297,8 @@ const char *getint(const char *txt, int32_t *I){
     int32_t sign = 1;
     uint32_t U;
     if(*s == '-'){
-    	sign = -1;
-    	++s;
+        sign = -1;
+        ++s;
     }
     const char *nxt = getnum(s, &U);
     if(nxt == s) return txt;
@@ -341,7 +341,7 @@ char *float2str(float x, uint8_t prec){
         uint8_t m = 0;
         if(pow < 0){pow = -pow; m = 1;}
         while(pow){
-            register int p10 = pow/10;
+            int p10 = pow/10;
             *s-- = '0' + (pow - 10*p10);
             pow = p10;
         }
@@ -355,7 +355,7 @@ char *float2str(float x, uint8_t prec){
         uint32_t decimals = (uint32_t)((x-units+rounds[prec])*pwr10[prec]);
         // print decimals
         while(prec){
-            register int d10 = decimals / 10;
+            int d10 = decimals / 10;
             *s-- = '0' + (decimals - 10*d10);
             decimals = d10;
             --prec;
@@ -368,7 +368,7 @@ char *float2str(float x, uint8_t prec){
     // print main units
     if(units == 0) *s-- = '0';
     else while(units){
-        register uint32_t u10 = units / 10;
+        uint32_t u10 = units / 10;
         *s-- = '0' + (units - 10*u10);
         units = u10;
     }

@@ -595,9 +595,8 @@ static constexpr uint32_t hash(const char* str, uint32_t h = 0) {
     return *str ? hash(str + 1, h + ((h << 7) ^ *str)) : h;
 }
 
-
-const char *parse_cmd(int (*sendfun)(const char*), char *buf) {
-    if(!buf || !*buf || !sendfun) return NULL;
+// set temporary sender
+void set_sender(sendfun_t sendfun){
     SEND = sendfun;
     if(sendfun == usb_sender){
         putb = usb_putb;
@@ -606,6 +605,15 @@ const char *parse_cmd(int (*sendfun)(const char*), char *buf) {
         putb = usart_putb;
         sendbin = usart_sendbin;
     }
+}
+
+sendfun_t get_sender(){
+    return SEND;
+}
+
+const char *parse_cmd(sendfun_t sendfun, char *buf) {
+    if(!buf || !*buf || !sendfun) return NULL;
+    set_sender(sendfun);
     char command[CMD_MAXLEN+1];
     int i = 0;
     while(*buf > '@' && i < CMD_MAXLEN) command[i++] = *buf++;

@@ -49,10 +49,14 @@ typedef enum{
 // maximal available parameter number (for 16-bit registers is 0xffff
 #define MAXPARNO    0xffff
 
+typedef int (*sendfun_t)(const char*);
+
 extern const char *EQ;
-const char *parse_cmd(int (*sendfun)(const char*), char *buf);
+const char *parse_cmd(sendfun_t sendfun, char *buf);
 void set_senders(int (*usbs)(const char*), int (*usbb)(uint8_t), int (*usbbin)(const uint8_t*, int),
                  int (*usarts)(const char*), int (*usartb)(uint8_t),  int (*usartbin)(const uint8_t*, int));
+void set_sender(sendfun_t sendfun);
+sendfun_t get_sender();
 
 extern const char *const Timage;
 

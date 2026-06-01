@@ -43,7 +43,7 @@ static void occacc(int8_t *arr, int l, const uint16_t *regstart){
     int n = l >> 2; // divide by 4
     int8_t *p = arr;
     for(int i = 0; i < n; ++i){
-        register uint16_t val = *regstart++;
+        uint16_t val = *regstart++;
         *p++ = (val & 0x000F) >> 0;
         *p++ = (val & 0x00F0) >> 4;
         *p++ = (val & 0x0F00) >> 8;
@@ -123,7 +123,7 @@ MLX90640_params *get_parameters(const uint16_t dataarray[MLX_DMA_MAXLEN]){
         int idx = (row&1)<<1;
         for(int col = 0; col < MLX_W; ++col){
             // offset
-            register uint16_t rv = *pu16++;
+            uint16_t rv = *pu16++;
             i16 = (rv & 0xFC00) >> 10;
             if(i16 > 0x1F) i16 -= 0x40;
             *offset++ = (fp_t)offavg + (fp_t)occRow[row]*occRowScale + (fp_t)occColumn[col]*occColumnScale + (fp_t)i16*occRemScale;

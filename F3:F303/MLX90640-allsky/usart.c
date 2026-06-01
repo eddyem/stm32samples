@@ -149,8 +149,9 @@ int usart_setup(uint32_t speed){
     NVIC_EnableIRQ(USART1_IRQn);
     NVIC_EnableIRQ(DMA1_Channel4_IRQn);
     NVIC_EnableIRQ(DMA1_Channel5_IRQn);
-    NVIC_SetPriority(DMA1_Channel5_IRQn, 0);
-    NVIC_SetPriority(USART1_IRQn, 4); // set character match priority lower
+    NVIC_SetPriority(DMA1_Channel4_IRQn, 4);
+    NVIC_SetPriority(DMA1_Channel5_IRQn, 4);
+    NVIC_SetPriority(USART1_IRQn, 5); // set character match priority lower
     return TRUE;
 }
 
@@ -162,7 +163,7 @@ void usart_stop(){
 void usart1_exti25_isr(){
     DMA1_Channel5->CCR &= ~DMA_CCR_EN; // temporaly disable DMA
     USART1->ICR = USART_ICR_CMCF; // clear character match flag
-    register int l = UARTBUFSZI - DMA1_Channel5->CNDTR - 1; // substitute '\n' with '\0', omit empty strings!
+    int l = UARTBUFSZI - DMA1_Channel5->CNDTR - 1; // substitute '\n' with '\0', omit empty strings!
     if(l > 0){
         if(recvdatalen){ // user didn't read old data - mark as buffer overflow
             bufovr = 1;

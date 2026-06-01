@@ -116,6 +116,8 @@ void i2c_setup(i2c_speed_t speed){
     RCC->AHBENR |= RCC_AHBENR_DMA1EN;
     NVIC_EnableIRQ(DMA1_Channel6_IRQn);
     NVIC_EnableIRQ(DMA1_Channel7_IRQn);
+    NVIC_SetPriority(DMA1_Channel6_IRQn, 3);
+    NVIC_SetPriority(DMA1_Channel7_IRQn, 3);
     I2Cbusy = 0;
     i2c_curspeed = speed;
 }
@@ -153,7 +155,7 @@ static uint8_t waitISRbit(uint32_t bit, uint8_t isset){
     }
     return 1;
 goterr:
-    I2C1->ICR = 0xff;
+    I2C1->ICR = 0x3f38; // clear all errors
     return 0;
 }
 

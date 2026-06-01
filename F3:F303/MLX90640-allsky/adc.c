@@ -46,19 +46,20 @@ TRUE_INLINE void calADC(ADC_TypeDef *chnl){
     chnl->CR = ADC_CR_ADVREGEN_0;
     // wait for 10us
     uint16_t ctr = 0;
-    while(++ctr < 1000){nop();}
+    while(++ctr < 1000){IWDG->KR = IWDG_REFRESH;}
     // ADCALDIF=0 (single channels)
     if((chnl->CR & ADC_CR_ADEN)){
         chnl->CR |= ADC_CR_ADSTP;
         chnl->CR |= ADC_CR_ADDIS;
     }
     chnl->CR |= ADC_CR_ADCAL;
-    while((chnl->CR & ADC_CR_ADCAL) != 0 && ++ctr < 0xfff0){};
+    while((chnl->CR & ADC_CR_ADCAL) != 0 && ++ctr < 0xfff0){IWDG->KR = IWDG_REFRESH;};
     chnl->CR = ADC_CR_ADVREGEN_0;
     // enable ADC
     ctr = 0;
     do{
-          chnl->CR |= ADC_CR_ADEN;
+        chnl->CR |= ADC_CR_ADEN;
+        IWDG->KR = IWDG_REFRESH;
     }while((chnl->ISR & ADC_ISR_ADRDY) == 0 && ++ctr < 0xfff0);
 }
 
@@ -80,14 +81,16 @@ void adc_setup(){
     ADC12_COMMON->CCR = ADC_CCR_TSEN | ADC_CCR_VREFEN | ADC_CCR_CKMODE; // enable Tsens and Vref, HCLK/4
     calADC(ADC1);
     calADC(ADC2);
-    // ADC1: channels 1,2,3,4,16,18
-    ADC1->SMPR1 = ADC_SMPR1_SMP0 | ADC_SMPR1_SMP1 | ADC_SMPR1_SMP2 | ADC_SMPR1_SMP3;
-    ADC1->SMPR2 = ADC_SMPR2_SMP15 | ADC_SMPR2_SMP17;
+    // ADC1: channels 1,2,3,4,16,18; 601.5 clock cycles
+    //ADC1->SMPR1 = ADC_SMPR1_SMP0 | ADC_SMPR1_SMP1 | ADC_SMPR1_SMP2 | ADC_SMPR1_SMP3;
+    ADC1->SMPR1 = ADC_SMPR1_SMP1 | ADC_SMPR1_SMP2 | ADC_SMPR1_SMP3 | ADC_SMPR1_SMP4;
+    //ADC1->SMPR2 = ADC_SMPR2_SMP15 | ADC_SMPR2_SMP17;
+    ADC1->SMPR2 = ADC_SMPR2_SMP16 | ADC_SMPR2_SMP18;
     // 6 conversions in group: 1->2->3->4->16->18
     ADC1->SQR1 = (1<<6) | (2<<12) | (3<<18) | (4<<24) | (NUMBER_OF_ADC1_CHANNELS-1);
     ADC1->SQR2 = (16<<0) | (18<<6);
     // ADC2: channel 2
-    ADC2->SMPR1 = ADC_SMPR1_SMP1;
+    ADC2->SMPR1 = ADC_SMPR1_SMP2;
     ADC2->SQR1 = (2<<6) | (NUMBER_OF_ADC2_CHANNELS-1);
     // configure DMA for ADC
     RCC->AHBENR |= RCC_AHBENR_DMA1EN | RCC_AHBENR_DMA2EN;
@@ -122,12 +125,12 @@ void adc_setup(){
  */
 uint16_t getADCval(uint8_t nch){
     if(nch >= NUMBER_OF_ADC_CHANNELS) return 0;
-    register uint16_t temp;
+    uint16_t temp;
 #define PIX_SORT(a,b) { if ((a)>(b)) PIX_SWAP((a),(b)); }
 #define PIX_SWAP(a,b) { temp=(a);(a)=(b);(b)=temp; }
     uint16_t p[9];
     int adval = (nch >= NUMBER_OF_ADC1_CHANNELS) ? NUMBER_OF_ADC2_CHANNELS : NUMBER_OF_ADC1_CHANNELS;
-    int addr = (nch >= NUMBER_OF_ADC1_CHANNELS) ? nch - NUMBER_OF_ADC2_CHANNELS + ADC2START: nch;
+    int addr = (nch >= NUMBER_OF_ADC1_CHANNELS) ? nch - NUMBER_OF_ADC1_CHANNELS + ADC2START: nch;
     for(int i = 0; i < 9; ++i, addr += adval) // first we should prepare array for optmed
         p[i] = ADC_array[addr];
     PIX_SORT(p[1], p[2]) ; PIX_SORT(p[4], p[5]) ; PIX_SORT(p[7], p[8]) ;
