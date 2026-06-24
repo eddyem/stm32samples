@@ -54,6 +54,7 @@
     "zone_display_mode": 1
   },
   "git": {
+    "integration_disabled": false,
     "repo_type": "",
     "repo_username": "",
     "ssh_key": ""

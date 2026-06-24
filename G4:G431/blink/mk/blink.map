@@ -1,0 +1,255 @@
+
+Discarded input sections
+
+ .data          0x0000000000000000        0x0 /tmp/blink.elf.OW8sUI.ltrans0.ltrans.o
+
+Memory Configuration
+
+Name             Origin             Length             Attributes
+rom              0x0000000008000000 0x0000000000020000 xr
+ram              0x0000000020000000 0x0000000000008000 xrw
+*default*        0x0000000000000000 0xffffffffffffffff
+
+Linker script and memory map
+
+LOAD mk/systick_blink.o
+LOAD /tmp/blink.elf.OW8sUI.ltrans0.ltrans.o
+LOAD mk/startup.o
+LOAD /opt/bin/../lib/gcc/arm-none-eabi/9.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a
+LOAD /opt/bin/../lib/gcc/arm-none-eabi/9.3.1/thumb/v7e-m+fp/hard/libgcc.a
+START GROUP
+LOAD /opt/bin/../lib/gcc/arm-none-eabi/9.3.1/thumb/v7e-m+fp/hard/libgcc.a
+LOAD /opt/bin/../lib/gcc/arm-none-eabi/9.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a
+END GROUP
+START GROUP
+LOAD /opt/bin/../lib/gcc/arm-none-eabi/9.3.1/thumb/v7e-m+fp/hard/libgcc.a
+LOAD /opt/bin/../lib/gcc/arm-none-eabi/9.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a
+END GROUP
+                0x0000000000000800                PROVIDE (_BLOCKSIZE = 0x800)
+
+.vector_table   0x0000000008000000      0x1d8
+                0x0000000008000000                _sisrvectors = .
+ *(.vector_table)
+ .vector_table  0x0000000008000000      0x1d8 /tmp/blink.elf.OW8sUI.ltrans0.ltrans.o
+                0x0000000008000000                vector_table
+                0x00000000080001d8                _eisrvectors = .
+
+.text           0x00000000080001d8      0x29c
+                0x00000000080001d8                . = ALIGN (0x4)
+                0x00000000080001d8                _stext = .
+ *(.text*)
+ .text          0x00000000080001d8       0x84 /tmp/blink.elf.OW8sUI.ltrans0.ltrans.o
+                0x00000000080001dc                reset_handler
+ .text.startup  0x000000000800025c      0x1cc /tmp/blink.elf.OW8sUI.ltrans0.ltrans.o
+ *(.rodata*)
+ .rodata        0x0000000008000428       0x4c /tmp/blink.elf.OW8sUI.ltrans0.ltrans.o
+                0x0000000008000474                . = ALIGN (0x4)
+                0x0000000008000474                _etext = .
+
+.glue_7         0x0000000008000474        0x0
+ .glue_7        0x0000000008000474        0x0 linker stubs
+
+.glue_7t        0x0000000008000474        0x0
+ .glue_7t       0x0000000008000474        0x0 linker stubs
+
+.vfp11_veneer   0x0000000008000474        0x0
+ .vfp11_veneer  0x0000000008000474        0x0 linker stubs
+
+.v4_bx          0x0000000008000474        0x0
+ .v4_bx         0x0000000008000474        0x0 linker stubs
+
+.iplt           0x0000000008000474        0x0
+ .iplt          0x0000000008000474        0x0 /tmp/blink.elf.OW8sUI.ltrans0.ltrans.o
+
+.rel.dyn        0x0000000008000474        0x0
+ .rel.iplt      0x0000000008000474        0x0 /tmp/blink.elf.OW8sUI.ltrans0.ltrans.o
+
+.ARM.extab
+ *(.ARM.extab* .gnu.linkonce.armextab.*)
+
+.ARM
+ *(.ARM.exidx*)
+
+.data           0x0000000020000000        0x0 load address 0x0000000008000474
+                0x0000000020000000                . = ALIGN (0x4)
+                0x0000000020000000                _sdata = .
+ *(.data*)
+                0x0000000020000000                . = ALIGN (0x4)
+                0x0000000020000000                _edata = .
+
+.igot.plt       0x0000000020000000        0x0 load address 0x0000000008000474
+ .igot.plt      0x0000000020000000        0x0 /tmp/blink.elf.OW8sUI.ltrans0.ltrans.o
+
+.myvars         0x0000000008000474      0x38c
+                0x0000000008000800                . = ALIGN (_BLOCKSIZE)
+ *fill*         0x0000000008000474      0x38c 
+                0x0000000008000800                __varsstart = ABSOLUTE (.)
+ *(.myvars)
+                0x0000000008000474                _ldata = LOADADDR (.data)
+
+.bss            0x0000000020000000        0x4
+                0x0000000020000000                . = ALIGN (0x4)
+                0x0000000020000000                _sbss = .
+ *(.bss*)
+ .bss           0x0000000020000000        0x4 /tmp/blink.elf.OW8sUI.ltrans0.ltrans.o
+ *(COMMON)
+                0x0000000020000004                . = ALIGN (0x4)
+                0x0000000020000004                _ebss = .
+                0x0000000020008000                PROVIDE (_stack = (ORIGIN (ram) + LENGTH (ram)))
+OUTPUT(mk/blink.elf elf32-littlearm)
+LOAD linker stubs
+
+.comment        0x0000000000000000       0x4c
+ .comment       0x0000000000000000       0x4c /tmp/blink.elf.OW8sUI.ltrans0.ltrans.o
+                                         0x4d (size before relaxing)
+
+.ARM.attributes
+                0x0000000000000000       0x32
+ .ARM.attributes
+                0x0000000000000000       0x32 /tmp/blink.elf.OW8sUI.ltrans0.ltrans.o
+
+Cross Reference Table
+
+Symbol                                            File
+SysFreq                                           mk/startup.o (symbol from plugin)
+                                                  mk/systick_blink.o (symbol from plugin)
+_ebss                                             /tmp/blink.elf.OW8sUI.ltrans0.ltrans.o
+                                                  mk/startup.o (symbol from plugin)
+_edata                                            /tmp/blink.elf.OW8sUI.ltrans0.ltrans.o
+                                                  mk/startup.o (symbol from plugin)
+_ldata                                            /tmp/blink.elf.OW8sUI.ltrans0.ltrans.o
+                                                  mk/startup.o (symbol from plugin)
+_sbss                                             /tmp/blink.elf.OW8sUI.ltrans0.ltrans.o
+                                                  mk/startup.o (symbol from plugin)
+_sdata                                            /tmp/blink.elf.OW8sUI.ltrans0.ltrans.o
+                                                  mk/startup.o (symbol from plugin)
+_stack                                            /tmp/blink.elf.OW8sUI.ltrans0.ltrans.o
+                                                  mk/startup.o (symbol from plugin)
+adc12_isr                                         mk/startup.o (symbol from plugin)
+adc3_isr                                          mk/startup.o (symbol from plugin)
+adc4_isr                                          mk/startup.o (symbol from plugin)
+adc5_isr                                          mk/startup.o (symbol from plugin)
+aes_isr                                           mk/startup.o (symbol from plugin)
+blocking_handler                                  mk/startup.o (symbol from plugin)
+bus_fault_handler                                 /tmp/blink.elf.OW8sUI.ltrans0.ltrans.o
+                                                  mk/startup.o (symbol from plugin)
+comp123_isr                                       mk/startup.o (symbol from plugin)
+comp456_isr                                       mk/startup.o (symbol from plugin)
+comp7_isr                                         mk/startup.o (symbol from plugin)
+cordic_isr                                        mk/startup.o (symbol from plugin)
+crs_isr                                           mk/startup.o (symbol from plugin)
+debug_monitor_handler                             /tmp/blink.elf.OW8sUI.ltrans0.ltrans.o
+                                                  mk/startup.o (symbol from plugin)
+dma1_channel1_isr                                 mk/startup.o (symbol from plugin)
+dma1_channel2_isr                                 mk/startup.o (symbol from plugin)
+dma1_channel3_isr                                 mk/startup.o (symbol from plugin)
+dma1_channel4_isr                                 mk/startup.o (symbol from plugin)
+dma1_channel5_isr                                 mk/startup.o (symbol from plugin)
+dma1_channel6_isr                                 mk/startup.o (symbol from plugin)
+dma1_channel7_isr                                 mk/startup.o (symbol from plugin)
+dma1_channel8_isr                                 mk/startup.o (symbol from plugin)
+dma2_channel1_isr                                 mk/startup.o (symbol from plugin)
+dma2_channel2_isr                                 mk/startup.o (symbol from plugin)
+dma2_channel3_isr                                 mk/startup.o (symbol from plugin)
+dma2_channel4_isr                                 mk/startup.o (symbol from plugin)
+dma2_channel5_isr                                 mk/startup.o (symbol from plugin)
+dma2_channel6_isr                                 mk/startup.o (symbol from plugin)
+dma2_channel7_isr                                 mk/startup.o (symbol from plugin)
+dma2_channel8_isr                                 mk/startup.o (symbol from plugin)
+dmamux_ovr_isr                                    mk/startup.o (symbol from plugin)
+exti0_isr                                         mk/startup.o (symbol from plugin)
+exti15_10_isr                                     mk/startup.o (symbol from plugin)
+exti1_isr                                         mk/startup.o (symbol from plugin)
+exti2_isr                                         mk/startup.o (symbol from plugin)
+exti3_isr                                         mk/startup.o (symbol from plugin)
+exti4_isr                                         mk/startup.o (symbol from plugin)
+exti9_5_isr                                       mk/startup.o (symbol from plugin)
+fdcan1_it0_isr                                    mk/startup.o (symbol from plugin)
+fdcan1_it1_isr                                    mk/startup.o (symbol from plugin)
+fdcan2_it0_isr                                    mk/startup.o (symbol from plugin)
+fdcan2_it1_isr                                    mk/startup.o (symbol from plugin)
+fdcan3_it0_isr                                    mk/startup.o (symbol from plugin)
+fdcan3_it1_isr                                    mk/startup.o (symbol from plugin)
+flash_isr                                         mk/startup.o (symbol from plugin)
+fmac_isr                                          mk/startup.o (symbol from plugin)
+fpu_isr                                           mk/startup.o (symbol from plugin)
+fsmc_isr                                          mk/startup.o (symbol from plugin)
+hard_fault_handler                                /tmp/blink.elf.OW8sUI.ltrans0.ltrans.o
+                                                  mk/startup.o (symbol from plugin)
+hrtim_fault_isr                                   mk/startup.o (symbol from plugin)
+hrtim_master_isr                                  mk/startup.o (symbol from plugin)
+hrtim_tima_isr                                    mk/startup.o (symbol from plugin)
+hrtim_timb_isr                                    mk/startup.o (symbol from plugin)
+hrtim_timc_isr                                    mk/startup.o (symbol from plugin)
+hrtim_timd_isr                                    mk/startup.o (symbol from plugin)
+hrtim_time_isr                                    mk/startup.o (symbol from plugin)
+hrtim_timf_isr                                    mk/startup.o (symbol from plugin)
+i2c1_er_isr                                       mk/startup.o (symbol from plugin)
+i2c1_ev_isr                                       mk/startup.o (symbol from plugin)
+i2c2_er_isr                                       mk/startup.o (symbol from plugin)
+i2c2_ev_isr                                       mk/startup.o (symbol from plugin)
+i2c3_er_isr                                       mk/startup.o (symbol from plugin)
+i2c3_ev_isr                                       mk/startup.o (symbol from plugin)
+i2c4_er_isr                                       mk/startup.o (symbol from plugin)
+i2c4_ev_isr                                       mk/startup.o (symbol from plugin)
+lptim1_isr                                        mk/startup.o (symbol from plugin)
+lpuart_isr                                        mk/startup.o (symbol from plugin)
+main                                              mk/systick_blink.o (symbol from plugin)
+                                                  mk/startup.o (symbol from plugin)
+mem_manage_handler                                /tmp/blink.elf.OW8sUI.ltrans0.ltrans.o
+                                                  mk/startup.o (symbol from plugin)
+nmi_handler                                       /tmp/blink.elf.OW8sUI.ltrans0.ltrans.o
+                                                  mk/startup.o (symbol from plugin)
+null_handler                                      mk/startup.o (symbol from plugin)
+pend_sv_handler                                   /tmp/blink.elf.OW8sUI.ltrans0.ltrans.o
+                                                  mk/startup.o (symbol from plugin)
+pvd_isr                                           mk/startup.o (symbol from plugin)
+quadspi_isr                                       mk/startup.o (symbol from plugin)
+rcc_isr                                           mk/startup.o (symbol from plugin)
+reset_handler                                     /tmp/blink.elf.OW8sUI.ltrans0.ltrans.o
+                                                  mk/startup.o (symbol from plugin)
+rng_isr                                           mk/startup.o (symbol from plugin)
+rtc_alarm_isr                                     mk/startup.o (symbol from plugin)
+rtc_tamp_css_isr                                  mk/startup.o (symbol from plugin)
+rtc_wkup_isr                                      mk/startup.o (symbol from plugin)
+sai_isr                                           mk/startup.o (symbol from plugin)
+spi1_isr                                          mk/startup.o (symbol from plugin)
+spi2_isr                                          mk/startup.o (symbol from plugin)
+spi3_isr                                          mk/startup.o (symbol from plugin)
+spi4_isr                                          mk/startup.o (symbol from plugin)
+sv_call_handler                                   /tmp/blink.elf.OW8sUI.ltrans0.ltrans.o
+                                                  mk/startup.o (symbol from plugin)
+sys_tick_handler                                  mk/systick_blink.o (symbol from plugin)
+                                                  mk/startup.o (symbol from plugin)
+tim1_brk_tim15_isr                                mk/startup.o (symbol from plugin)
+tim1_cc_isr                                       mk/startup.o (symbol from plugin)
+tim1_trg_tim17_isr                                mk/startup.o (symbol from plugin)
+tim1_up_tim16_isr                                 mk/startup.o (symbol from plugin)
+tim20_brk_isr                                     mk/startup.o (symbol from plugin)
+tim20_cc_isr                                      mk/startup.o (symbol from plugin)
+tim20_trg_isr                                     mk/startup.o (symbol from plugin)
+tim20_up_isr                                      mk/startup.o (symbol from plugin)
+tim2_isr                                          mk/startup.o (symbol from plugin)
+tim3_isr                                          mk/startup.o (symbol from plugin)
+tim4_isr                                          mk/startup.o (symbol from plugin)
+tim5_isr                                          mk/startup.o (symbol from plugin)
+tim6_dac13under_isr                               mk/startup.o (symbol from plugin)
+tim7_dac24under_isr                               mk/startup.o (symbol from plugin)
+tim8_brk_isr                                      mk/startup.o (symbol from plugin)
+tim8_cc_isr                                       mk/startup.o (symbol from plugin)
+tim8_trg_isr                                      mk/startup.o (symbol from plugin)
+tim8_up_isr                                       mk/startup.o (symbol from plugin)
+uart4_isr                                         mk/startup.o (symbol from plugin)
+uart5_isr                                         mk/startup.o (symbol from plugin)
+ucpd1_isr                                         mk/startup.o (symbol from plugin)
+usage_fault_handler                               /tmp/blink.elf.OW8sUI.ltrans0.ltrans.o
+                                                  mk/startup.o (symbol from plugin)
+usart1_isr                                        mk/startup.o (symbol from plugin)
+usart2_isr                                        mk/startup.o (symbol from plugin)
+usart3_isr                                        mk/startup.o (symbol from plugin)
+usb_hp_isr                                        mk/startup.o (symbol from plugin)
+usb_lp_isr                                        mk/startup.o (symbol from plugin)
+usb_wakeup_isr                                    mk/startup.o (symbol from plugin)
+vector_table                                      /tmp/blink.elf.OW8sUI.ltrans0.ltrans.o
+                                                  mk/startup.o (symbol from plugin)
+wwdg_isr                                          mk/startup.o (symbol from plugin)
