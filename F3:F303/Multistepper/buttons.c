@@ -31,9 +31,10 @@ uint32_t lastUnsleep = 0; // last keys activity time
 
 void process_keys(){
     static uint32_t lastT = 0;
-    if(Tms == lastT) return;
-    uint16_t d = (uint16_t)(Tms - lastT);
-    lastT = Tms;
+    uint32_t TmsNow = Tms; // make local copy to prevent variable changing
+    if(TmsNow == lastT) return;
+    uint16_t d = (uint16_t)(TmsNow - lastT);
+    lastT = TmsNow;
     for(int i = 0; i < BTNSNO; ++i){
         keybase *k = &allkeys[i];
         keyevent e = k->event;
@@ -62,8 +63,8 @@ void process_keys(){
             }
         }
         if(e != k->event){
-            k->lastTms = Tms;
-            lastUnsleep = Tms;
+            k->lastTms = TmsNow;
+            lastUnsleep = TmsNow;
         }
     }
 }

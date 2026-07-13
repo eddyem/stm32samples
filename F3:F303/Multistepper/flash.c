@@ -106,11 +106,13 @@ void flashstorage_init(){
 int store_userconf(){
     // maxnum - 3 means that there always should be at least one empty record after last data
     // for binarySearch() checking that there's nothing more after it!
-    if(currentconfidx > (int)maxCnum - 3){ // there's no more place
-        currentconfidx = 0;
+    int curidx = currentconfidx;
+    if(curidx > (int)maxCnum - 3){ // there's no more place
+        curidx = 0;
         if(erase_storage(-1)) return 1;
-    }else ++currentconfidx; // take next data position (0 - within first run after firmware flashing)
-    return write2flash((const void*)&Flash_Data[currentconfidx], &the_conf, sizeof(the_conf));
+    }else ++curidx; // take next data position (0 - within first run after firmware flashing)
+    int r = write2flash((const void*)&Flash_Data[curidx], &the_conf, sizeof(the_conf));
+    if(0 == r) currentconfidx = curidx; // refresh counter only if succeed
 }
 
 static int write2flash(const void *start, const void *wrdata, uint32_t stor_size){
@@ -135,9 +137,6 @@ static int write2flash(const void *start, const void *wrdata, uint32_t stor_size
             ret = 1;
             break;
         }
-#ifdef EBUG
-        else{ USB_sendstr("Written "); printuhex(data[i]); newline();}
-#endif
         if(FLASH->SR & FLASH_SR_PGERR){
             USB_sendstr("Prog err\n");
             ret = 1; // program error - meet not 0xffff
@@ -152,9 +151,7 @@ static int write2flash(const void *start, const void *wrdata, uint32_t stor_size
 // erase Nth page of flash storage (flash should be prepared!)
 static int erase_pageN(int N){
     int ret = 0;
-//#ifdef EBUG
     USB_sendstr("Erase block #"); printu(N); newline();
-//#endif
     FLASH->AR = (uint32_t)Flash_Data + N*FLASH_blocksize;
     FLASH->CR |= FLASH_CR_STRT;
     while(FLASH->SR & FLASH_SR_BSY) IWDG->KR = IWDG_REFRESH;
@@ -233,13 +230,11 @@ int fn_dumpmot(uint32_t _U_ hash, char _U_ *args){ // "dumpmot" (1224122507)
 }
 
 int fn_dumpconf(uint32_t _U_ hash, char _U_ *args){ // "dumpconf" (3271513185)
-#ifdef EBUG
-    USB_sendstr("flashsize="); printu(FLASH_SIZE); USB_sendstr("kB\nblocksize=");
-    printu(FLASH_blocksize);
-    newline();
-#endif
-    USB_sendstr("userconf_addr="); printuhex((uint32_t)Flash_Data);
+    USB_sendstr("flashsize="); printu(FLASH_SIZE);
+    USB_sendstr("kB\nblocksize="); printu(FLASH_blocksize);
+    USB_sendstr("\nuserconf_addr="); printuhex((uint32_t)Flash_Data);
     USB_sendstr("\nuserconf_idx="); printi(currentconfidx);
+    USB_sendstr("\ncapacity="); printu(maxCnum-2);
     USB_sendstr("\nuserconf_sz="); printu(the_conf.userconf_sz);
     USB_sendstr("\ncanspeed="); printu(the_conf.CANspeed);
     USB_sendstr("\ncanid="); printu(the_conf.CANID);

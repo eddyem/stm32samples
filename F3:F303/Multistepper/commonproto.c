@@ -55,6 +55,7 @@ errcodes cu_accel(uint8_t _U_ par, int32_t _U_ *val){
     uint8_t n; CHECKN(n, par);
     errcodes ret = ERR_OK;
     if(ISSETTER(par)){
+        if(ismoving(n)) return ERR_CANTRUN;
         if(*val/the_conf.microsteps[n] > ACCELMAXSTEPS || *val < 1) return ERR_BADVAL;
         uint16_t acc = the_conf.accel[n];
         the_conf.accel[n] = *val;
@@ -113,7 +114,7 @@ errcodes cu_drvtype(uint8_t par, int32_t *val){
     uint8_t n; CHECKN(n, par);
     motflags_t *fl = &the_conf.motflags[n];
     if(ISSETTER(par)){
-        if(*val >= DRVTYPE_AMOUNT) return ERR_BADVAL;
+        if(*val >= DRVTYPE_AMOUNT || *val < 0) return ERR_BADVAL;
         fl->drvtype = *val;
     }
     *val = fl->drvtype;
@@ -134,6 +135,7 @@ errcodes cu_emstop(uint8_t par, int32_t _U_ *val){
 
 errcodes cu_eraseflash(uint8_t _U_ par, int32_t _U_ *val){
     NOPARCHK(par);
+    if(isanymoving()) return ERR_CANTRUN;
     if(ISSETTER(par)){
         if(erase_storage(*val)) return ERR_BADVAL;
     }else if(erase_storage(-1)) return ERR_CANTRUN;
@@ -151,6 +153,7 @@ errcodes cu_eswreact(uint8_t _U_ par, int32_t _U_ *val){
     uint8_t n; CHECKN(n, par);
     errcodes ret = ERR_OK;
     if(ISSETTER(par)){
+        if(ismoving(n)) return ERR_CANTRUN;
         if(*val < 0 || *val > ESW_AMOUNT-1) return ERR_BADVAL;
         uint8_t react = the_conf.ESW_reaction[n];
         the_conf.ESW_reaction[n] = *val;
@@ -192,14 +195,7 @@ errcodes cu_gpio(uint8_t par, int32_t *val){
 #error "change the code!!!"
 #endif
     uint8_t n = PARBASE(par);
-#ifdef EBUG
-    USND("par="); printu(par);
-    USND(", n="); USB_putbyte('0'+n); newline();
-#endif
     if(n == CANMESG_NOPAR){ // all
-#ifdef EBUG
-        USND("ALL\n");
-#endif
         uint8_t g = (uint8_t)*val;
         if(ISSETTER(par)){
             for(int i = 0; i < EXTNO; ++i){
@@ -241,6 +237,7 @@ errcodes cu_maxspeed(uint8_t _U_ par, int32_t _U_ *val){
     uint8_t n; CHECKN(n, par);
     errcodes ret = ERR_OK;
     if(ISSETTER(par)){
+        if(ismoving(n)) return ERR_CANTRUN;
         if(*val <= the_conf.minspd[n]) return ERR_BADVAL;
         uint16_t maxspd = the_conf.maxspd[n];
         the_conf.maxspd[n] = getSPD(n, *val);
@@ -256,6 +253,7 @@ errcodes cu_maxspeed(uint8_t _U_ par, int32_t _U_ *val){
 errcodes cu_maxsteps(uint8_t _U_ par, int32_t _U_ *val){
     uint8_t n; CHECKN(n, par);
     if(ISSETTER(par)){
+        if(ismoving(n)) return ERR_CANTRUN;
         if(*val < 1) return ERR_BADVAL;
         the_conf.maxsteps[n] = *val;
     }
@@ -279,6 +277,7 @@ errcodes cu_mcuvdd(uint8_t par, int32_t *val){
 errcodes cu_microsteps(uint8_t _U_ par, int32_t _U_ *val){
     uint8_t n; CHECKN(n, par);
     if(ISSETTER(par)){
+        if(ismoving(n)) return ERR_CANTRUN;
 #if MICROSTEPSMAX > 512
 #error "Change the code anywhere!"
 #endif
@@ -305,6 +304,7 @@ errcodes cu_minspeed(uint8_t _U_ par, int32_t _U_ *val){
     uint8_t n; CHECKN(n, par);
     errcodes ret = ERR_OK;
     if(ISSETTER(par)){
+        if(ismoving(n)) return ERR_CANTRUN;
         if(*val >= the_conf.maxspd[n] || *val < 0) return ERR_BADVAL;
         uint16_t minspd = the_conf.minspd[n];
         the_conf.minspd[n] = getSPD(n, *val);
@@ -320,6 +320,7 @@ errcodes cu_minspeed(uint8_t _U_ par, int32_t _U_ *val){
 errcodes cu_motcurrent(uint8_t par, int32_t *val){
     uint8_t n; CHECKN(n, par);
     if(ISSETTER(par)){
+        if(ismoving(n)) return ERR_CANTRUN;
         if(*val < 0 || *val > 31) return ERR_BADVAL;
         the_conf.motcurrent[n] = *val;
         motflags_t *f = the_conf.motflags;
@@ -335,6 +336,7 @@ errcodes cu_motflags(uint8_t _U_ par, int32_t _U_ *val){
     uint8_t n; CHECKN(n, par);
     errcodes ret = ERR_OK;
     if(ISSETTER(par)){
+        if(ismoving(n)) return ERR_CANTRUN;
         motflags_t flags = the_conf.motflags[n];
         the_conf.motflags[n] = *((motflags_t*)val);
         if(!update_stepper(n)){
@@ -347,9 +349,10 @@ errcodes cu_motflags(uint8_t _U_ par, int32_t _U_ *val){
 }
 
 errcodes cu_motno(uint8_t _U_ par, int32_t _U_ *val){
-    if(*val < 0 || *val >= MOTORSNO) return ERR_BADVAL;
+    uint8_t n; CHECKN(n, par);
     if(ISSETTER(par)){
-        if(!pdnuart_setmotno(*val)) return ERR_CANTRUN;
+        if(ismoving(n)) return ERR_CANTRUN;
+        if(!pdnuart_setmotno(n)) return ERR_CANTRUN;
     }
     *val = pdnuart_getmotno();
     return ERR_OK;
@@ -362,16 +365,20 @@ errcodes cu_motmul(uint8_t _U_ par, int32_t _U_ *val){
 // witout parameter - reinit all steppers; with parameter - just update current
 errcodes cu_motreinit(uint8_t _U_ par, int32_t _U_ *val){
     uint8_t n = PARBASE(par);
-    if(n == CANMESG_NOPAR) init_steppers();
-    else{
+    if(n == CANMESG_NOPAR){
+        // check that neither motor is moving
+        if(isanymoving()) return ERR_CANTRUN;
+        init_steppers();
+    }else{
         if(n > MOTORSNO - 1) return ERR_BADPAR;
-        if(!update_stepper(n)) return ERR_CANTRUN;
+        if(ismoving(n) || !update_stepper(n)) return ERR_CANTRUN;
     }
     return ERR_OK;
 }
 
 errcodes cu_pdn(uint8_t par, int32_t *val){
-    uint8_t n = PARBASE(par);
+    uint8_t n; CHECKN(n, par);
+    if(ismoving(n)) return ERR_CANTRUN;
     if(ISSETTER(par)){
         if(!pdnuart_writereg(n, *val)) return ERR_CANTRUN;
     }

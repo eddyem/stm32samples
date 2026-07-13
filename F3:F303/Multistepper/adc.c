@@ -17,9 +17,6 @@
  */
 
 #include "adc.h"
-#ifdef EBUG
-#include "proto.h"
-#endif
 
 /**
  * @brief ADCx_array - arrays for ADC channels with median filtering:
@@ -126,39 +123,23 @@ uint16_t getADCval(int nch){
     PIX_SORT(p[4], p[2]) ;
 #undef PIX_SORT
 #undef PIX_SWAP
-/*
-#ifdef EBUG
-    DBG("val: "); printu(p[4]); newline();
-#endif
-*/
     return p[4];
 }
 
 // get voltage @input nch (V) *1000V
 int32_t getADCvoltage(int nch){
-    float v = getADCval(nch) * 3.3;
-    v /= 4.096f; // 12bit ADC
-/*
-#ifdef EBUG
-    DBG("v="); printf(v); newline();
-#endif
-*/
+    float v = getADCval(nch) * getVdd();
+    v /= 4096.f; // 12bit ADC
     return (uint32_t) v;
 }
 
 // return MCU temperature (*1000 degrees of celsius)
 int32_t getMCUtemp(){
-    // make correction on Vdd value
     int32_t ADval = getADCval(ADC_TS);
     float temperature = (float) *TEMP30_CAL_ADDR - ADval;
     temperature *= (110.f - 30.f);
     temperature /= (float)(*TEMP30_CAL_ADDR - *TEMP110_CAL_ADDR);
     temperature += 30.f;
-/*
-#ifdef EBUG
-    DBG("t="); printf(temperature); newline();
-#endif
-*/
     return (uint32_t) (temperature*1000.f);
 }
 
@@ -166,10 +147,5 @@ int32_t getMCUtemp(){
 int32_t getVdd(){
     float vdd = ((float) *VREFINT_CAL_ADDR) * 3.3f; // 3.3V
     vdd /= getADCval(ADC_VREF);
-/*
-#ifdef EBUG
-    DBG("vdd="); printf(vdd); newline();
-#endif
-*/
     return (uint32_t) (vdd * 1000.f);
 }

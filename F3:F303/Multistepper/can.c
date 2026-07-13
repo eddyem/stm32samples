@@ -37,7 +37,6 @@ uint32_t floodT = FLOOD_PERIOD_MS; // flood period in ms
 static uint8_t incrflood = 0; // ==1 for incremental flooding
 static uint32_t incrmessagectr = 0; // counter for incremental flooding
 
-static uint32_t last_err_code = 0;
 static CAN_status can_status = CAN_STOP;
 
 static void can_process_fifo(uint8_t fifo_num);
@@ -54,17 +53,8 @@ CAN_status CAN_get_status(){
 // push next message into buffer; return 1 if buffer overfull
 static int CAN_messagebuf_push(CAN_message *msg){
     //MSG("Try to push\n");
-#ifdef EBUG
-        USB_sendstr("push: ");
-        for(int i = 0; i < msg->length; ++i){
-            printuhex(msg->data[i]); USB_putbyte(' ');
-        }
-        newline();
-#endif
+
     if(first_free_idx == first_nonfree_idx){
-#ifdef EBUG
-        USB_sendstr("INBUF OVERFULL\n");
-#endif
         return 1; // no free space
     }
     if(first_nonfree_idx < 0) first_nonfree_idx = 0;  // first message in empty buffer
@@ -77,22 +67,12 @@ static int CAN_messagebuf_push(CAN_message *msg){
 // pop message from buffer
 CAN_message *CAN_messagebuf_pop(){
     if(first_nonfree_idx < 0) return NULL;
-    #ifdef EBUG
-    //MSG("read from idx "); printu(first_nonfree_idx); NL();
-    #endif
     CAN_message *msg = &messages[first_nonfree_idx++];
     if(first_nonfree_idx == CAN_INMESSAGE_SIZE) first_nonfree_idx = 0;
     if(first_nonfree_idx == first_free_idx){ // buffer is empty - refresh it
         first_nonfree_idx = -1;
         first_free_idx = 0;
     }
-#ifdef EBUG
-        USB_sendstr("pop: ");
-        for(int i = 0; i < msg->length; ++i){
-            printuhex(msg->data[i]); USB_putbyte(' ');
-        }
-        newline();
-#endif
     return msg;
 }
 
@@ -150,7 +130,7 @@ void CAN_setup(uint16_t speed){
     CAN->MCR |= CAN_MCR_INRQ; /* (1) */
     while((CAN->MSR & CAN_MSR_INAK) != CAN_MSR_INAK) /* (2) */
         if(--tmout == 0) break;
-    if(tmout==0){ DBG("timeout!\n");}
+    if(tmout==0){ DBG("Init mode entering timeout!\n");}
     CAN->MCR &=~ CAN_MCR_SLEEP; /* (3) */
     CAN->MCR |= CAN_MCR_ABOM; /* allow automatically bus-off */
 
@@ -159,7 +139,7 @@ void CAN_setup(uint16_t speed){
     tmout = 10000;
     while(CAN->MSR & CAN_MSR_INAK) /* (6) */
         if(--tmout == 0) break;
-    if(tmout==0){ DBG("timeout!\n");}
+    if(tmout==0){ DBG("Init mode exiting timeout!\n");}
     // accept ALL
     CAN->FMR = CAN_FMR_FINIT; /* (7) */
     CAN->FA1R = CAN_FA1R_FACT0 | CAN_FA1R_FACT1; /* (8) */
@@ -182,7 +162,7 @@ void CAN_setup(uint16_t speed){
 }
 
 void CAN_printerr(){
-    if(!last_err_code) last_err_code = CAN->ESR;
+    uint32_t last_err_code = CAN->ESR;
     if(!last_err_code){
         USB_sendstr("No errors\n");
         return;
@@ -207,19 +187,10 @@ void CAN_printerr(){
     if(last_err_code & CAN_ESR_BOFF) USB_sendstr("Bus off ");
     if(last_err_code & CAN_ESR_EPVF) USB_sendstr("Passive error limit ");
     if(last_err_code & CAN_ESR_EWGF) USB_sendstr("Error counter limit");
-    last_err_code = 0;
     USB_putbyte('\n');
 }
 
 void CAN_proc(){
-#ifdef EBUG
-    if(last_err_code){
-        USB_sendstr("Error, ESR=");
-        USB_sendstr(u2str(last_err_code));
-        USB_putbyte('\n');
-        last_err_code = 0;
-    }
-#endif
     // check for messages in FIFO0 & FIFO1
     if(CAN->RF0R & CAN_RF0R_FMP0){
         can_process_fifo(0);
@@ -254,20 +225,9 @@ CAN_status CAN_send(uint8_t *msg, uint8_t len, uint16_t target_id){
     if(CAN->TSR & (CAN_TSR_TME)){
         mailbox = (CAN->TSR & CAN_TSR_CODE) >> 24;
     }else{ // no free mailboxes
-#ifdef EBUG
-        USB_sendstr("No free mailboxes\n");
-#endif
         return CAN_BUSY;
     }
-#ifdef EBUG
-    USB_sendstr("Send data. Len="); USB_sendstr(u2str(len));
-    USB_sendstr(", tagid="); USB_sendstr(u2str(target_id));
-    USB_sendstr(", data=");
-    for(int i = 0; i < len; ++i){
-        USB_sendstr(" "); USB_sendstr(uhex2str(msg[i]));
-    }
-    USB_putbyte('\n');
-#endif
+
     CAN_TxMailBox_TypeDef *box = &CAN->sTxMailBox[mailbox];
     uint32_t lb = 0, hb = 0;
     switch(len){
@@ -339,19 +299,9 @@ TRUE_INLINE void formerr(CAN_message *msg, errcodes err){
  */
 TRUE_INLINE void parseCANcommand(CAN_message *msg){
     // we don't check msg here as it cannot be NULL
-#ifdef EBUG
-    DBG("Get data: ");
-    for(int i = 0; i < msg->length; ++i){
-        USB_sendstr(uhex2str(msg->data[i])); USB_putbyte(' ');
-    }
-    for(int i = msg->length-1; i < 8; ++i) msg->data[i] = 0;
-    newline();
-#endif
     if(msg->length == 0) goto sendmessage; // PING
     uint16_t Index = *(uint16_t*)msg->data;
-#ifdef EBUG
-    USB_sendstr("Index = "); USB_sendstr(u2str(Index)); newline();
-#endif
+
     if(Index >= CCMD_AMOUNT || !cancmdlist[Index]){
         formerr(msg, ERR_BADCMD);
         goto sendmessage;
@@ -369,9 +319,7 @@ TRUE_INLINE void parseCANcommand(CAN_message *msg){
         formerr(msg, ERR_WRONGLEN);
         goto sendmessage;
     }
-#ifdef EBUG
-    USB_sendstr("Run command\n");
-#endif
+
     errcodes ec = cancmdlist[Index](par, val);
     if(ec != ERR_OK){
         formerr(msg, ec);
@@ -387,10 +335,6 @@ static void can_process_fifo(uint8_t fifo_num){
     if(fifo_num > 1) return;
     CAN_FIFOMailBox_TypeDef *box = &CAN->sFIFOMailBox[fifo_num];
     volatile uint32_t *RFxR = (fifo_num) ? &CAN->RF1R : &CAN->RF0R;
-#ifdef EBUG
-        USB_sendstr(u2str(*RFxR & CAN_RF0R_FMP0)); USB_sendstr(" messages in FIFO #");
-        USB_sendstr(u2str(fifo_num)); newline();
-#endif
     // read all
     while(*RFxR & CAN_RF0R_FMP0){ // amount of messages pending
         // CAN_RDTxR: (16-31) - timestamp, (8-15) - filter match index, (0-3) - data length
@@ -456,9 +400,6 @@ void can1_rx1_isr(){ // Rx FIFO1 (overrun)
 
 void can1_sce_isr(){ // status changed
     if(CAN->MSR & CAN_MSR_ERRI){ // Error
-#ifdef EBUG
-        last_err_code = CAN->ESR;
-#endif
         CAN->MSR = CAN_MSR_ERRI; // clear flag
         // request abort for problem mailbox
         if(CAN->TSR & CAN_TSR_TERR0) CAN->TSR |= CAN_TSR_ABRQ0;

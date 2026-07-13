@@ -72,6 +72,7 @@ static uint32_t Taccel[MOTORSNO] = {0};
 
 // recalculate ARR according to new speed
 TRUE_INLINE void recalcARR(int i){
+    if(curspeed[i] < 1) curspeed[i] = 1;
     uint32_t ARR = (((PCLK/(MOTORTIM_PSC+1)) / curspeed[i]) >> ustepsshift[i]) - 1;
     if(ARR < MOTORTIM_ARRMIN) ARR = MOTORTIM_ARRMIN;
     else if(ARR > 0xffff) ARR = 0xffff;
@@ -144,15 +145,7 @@ errcodes getremainsteps(uint8_t i, int32_t *position){
 
 // calculate acceleration/deceleration parameters for motor i
 static void calcacceleration(uint8_t i){
-    switch(state[i]){ // do nothing in case of error/stopping
-        case STP_ERR:
-        case STP_RELAX:
-        case STP_STALL:
-            return;
-        break;
-        default:
-        break;
-    }
+    if(!ismoving(i)) return; // do nothing in non-moving state
     int32_t delta = targstppos[i] - stppos[i];
     if(delta > 0){ // positive direction
         if(delta > 2*(int32_t)accdecsteps[i]){ // can move by trapezoid
@@ -219,15 +212,9 @@ static int esw_block(uint8_t i){
 errcodes motor_absmove(uint8_t i, int32_t newpos){
     //if(i >= MOTORSNO) return ERR_BADPAR; // bad motor number
     int8_t dir = (newpos > stppos[i]) ? 1 : -1;
-    switch(state[i]){
-        case STP_ERR:
-        case STP_RELAX:
-        break;
-        case STP_STALL:
-        break;
-        default: // moving state
-            DBG("Is moving");
-            return ERR_CANTRUN;
+    if(ismoving(i)){
+        DBG("Is moving");
+        return ERR_CANTRUN;
     }
     if(newpos > (int32_t)the_conf.maxsteps[i] || newpos < -(int32_t)the_conf.maxsteps[i] || newpos == stppos[i]){
         DBG("Too much steps");
@@ -251,6 +238,9 @@ errcodes motor_absmove(uint8_t i, int32_t newpos){
     USB_sendstr(", accdecsteps="); printu(accdecsteps[i]); newline();
 #endif
     MOTOR_EN(i);
+    // clear counter and generate update event to refresh ARR
+    mottimers[i]->CNT = 0;
+    mottimers[i]->EGR = TIM_EGR_UG;
     mottimers[i]->CR1 |= TIM_CR1_CEN; // start timer
     return ERR_OK;
 }
@@ -282,11 +272,40 @@ void emstopmotor(uint8_t i){
         default:
         break;
     }
-    stopflag[i] = 1;
+    // check that timer is works
+    if(mottimers[i]->CR1 & TIM_CR1_CEN){
+        stopflag[i] = 1;
+    }else{
+        state[i] = STP_RELAX;
+        stopflag[i] = 0;
+    }
 }
 
 stp_state getmotstate(uint8_t i){
     return state[i];
+}
+
+// return TRUE if motor is in moving state
+uint8_t ismoving(uint8_t i){
+    switch(state[i]){
+        case STP_ACCEL:
+        case STP_MOVE:
+        case STP_MVSLOW:
+        case STP_DECEL:
+            return TRUE;
+            break;
+        default:
+            break;
+    }
+        return FALSE;
+}
+
+// return TRUE if any motor is in moving state
+uint8_t isanymoving(){
+    for(int i = 0; i < MOTORSNO; ++i){
+        if(ismoving(i)) return TRUE;
+    }
+    return FALSE;
 }
 
 // get DIAGN input
@@ -445,6 +464,13 @@ static void chkstepper(int i){
             }
             recalcARR(i);
         break;
+        case STP_MVSLOW:
+            if(!(mottimers[i]->CR1 & TIM_CR1_CEN)){ // timer stopped but state wasn't changed
+                state[i] = STP_RELAX;
+                stopflag[i] = 0;
+                DBG("MVSLOW with timer stopped");
+            }
+            break;
         default: // do nothing, check mvzerostate
         break;
     }
@@ -491,7 +517,7 @@ errcodes motor_goto0(uint8_t i){
     errcodes e = motor_absmove(i, -the_conf.maxsteps[i]);
     if(ERR_OK != e){
         if(!esw_block(i)) return e; // limit switch not block -> error
-    }else  ESW_reaction[i] = ESW_IGNORE1;
+    }else ESW_reaction[i] = ESW_IGNORE1;
     mvzerostate[i] = M0FAST;
     return e;
 }

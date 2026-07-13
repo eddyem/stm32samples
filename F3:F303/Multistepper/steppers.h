@@ -69,5 +69,7 @@ uint8_t geteswreact(uint8_t i);
 void emstopmotor(uint8_t i);
 void stopmotor(uint8_t i);
 stp_state getmotstate(uint8_t i);
+uint8_t ismoving(uint8_t i);
+uint8_t isanymoving();
 uint8_t motdiagn(uint8_t i);
 void process_steppers();

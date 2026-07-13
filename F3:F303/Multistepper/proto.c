@@ -484,13 +484,6 @@ static int canusb_function(uint32_t hash, char *args){
     uint32_t N;
     int32_t val = 0;
     uint8_t par = CANMESG_NOPAR;
-/*
-    DBG("CMD: hash=");
-#ifdef EBUG
-    printu(hash); USB_sendstr(", args=");
-    USND(args);
-#endif
-*/
     if(*args){
         const char *n = getnum(args, &N);
         if(n != args){ // get parameter
@@ -509,12 +502,6 @@ static int canusb_function(uint32_t hash, char *args){
             }
         }
     }
-/*
-#ifdef EBUG
-    USB_sendstr("par="); printuhex(par);
-    USB_sendstr(", val="); printi(val); newline();
-#endif
-*/
     switch(hash){
         case CMD_ADC:
             e = cu_adc(par, &val);
@@ -666,8 +653,6 @@ static int canusb_function(uint32_t hash, char *args){
             break;
     }
 
-    //if(e < ERR_OK || e >= ERR_AMOUNT) USND("Bad return code");
-    //else
     if(ERR_OK != e){
         USB_sendstr(errtxt[e]); newline();
     }else{

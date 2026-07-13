@@ -94,23 +94,12 @@ static int rwreg(uint8_t reg, uint32_t data, int w){
     ++nbytes;
     for(int i = 0; i < nbytes; ++i){
         IWDG->KR = IWDG_REFRESH;
-        /*
-#ifdef EBUG
-        USB_sendstr("Send byte "); USB_putbyte('0'+i); USB_sendstr(": "); printuhex(outbuf[i]); newline();
-#endif
-        */
         USART[no]->TDR = outbuf[i]; // transmit
         while(!(USART[no]->ISR & USART_ISR_TXE));
         int l = 0;
         for(; l < 10000; ++l) if(USART[no]->ISR & USART_ISR_RXNE) break;
         // clear Rx
         (void) USART[no]->RDR;
-        /*
-#ifdef EBUG
-        if(l == 10000) USND("Nothing received");
-        else {USB_sendstr("Rcv: "); printuhex(USART[no]->RDR); newline();}
-#endif
-        */
     }
     return TRUE;
 }
@@ -134,11 +123,6 @@ int pdnuart_readreg(uint8_t reg, uint32_t *data){
                 return FALSE;
             }
         buf[i] = USART[no]->RDR;
-/*
-#ifdef EBUG
-        USB_sendstr("Read byte: "); printuhex(buf[i]); newline();
-#endif
-*/
     }
     uint32_t o = 0;
     for(int i = 3; i < 7; ++i){
@@ -228,13 +212,3 @@ int pdnuart_init(uint8_t no){
     return TRUE;
 }
 
-/*
-static void parseRx(int no){
-    USB_sendstr("Got from ");
-    USB_putbyte('#'); printu(curslaveaddr[no] + no*4); USB_sendstr(": ");
-    for(int i = 0; i < 8; ++i){
-        printuhex(inbuf[no][i]); USB_putbyte(' ');
-    }
-    newline();
-}
-*/

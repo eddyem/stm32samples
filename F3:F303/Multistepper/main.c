@@ -83,13 +83,6 @@ int main(void){
         int l = USB_receivestr(inbuff, MAXSTRLEN);
         if(l < 0) USB_sendstr("USB_BUF_OVERFLOW\n");
         else if(l){
-/*
-#ifdef EBUG
-            USB_sendstr("USB GOT:\n");
-            USB_sendstr(inbuff);
-            USB_sendstr("\n--------\n");
-#endif
-*/
             const char *ans = cmd_parser(inbuff);
             if(ans) USB_sendstr(ans);
         }
