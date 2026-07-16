@@ -1,0 +1,3 @@
+Simplest example of working with USART1 fully by DMA (both Rx and Tx).
+To detect end of line I use interrupt by symbol '\n' in RXD.
+Events of pressing/releasing button on PC13 are written onto terminal.
