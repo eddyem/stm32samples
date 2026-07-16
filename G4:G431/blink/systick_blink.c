@@ -38,6 +38,7 @@ void sys_tick_handler(void){
 
 static void gpio_setup(void){
     RCC->AHB2ENR = RCC_AHB2ENR_GPIOCEN; // enable PC
+    __DSB();
     // set PC6 as push-pull output, PC13 is pulldown input, other as default (AIN)
     GPIOC->MODER = (0xffffffff & ~(GPIO_MODER_MODE6 | GPIO_MODER_MODE13)) | MODER_O(6) | MODER_I(13);
     GPIOC->PUPDR = PUPD_PD(13); // pulldown

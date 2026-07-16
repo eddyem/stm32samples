@@ -1,4 +1,5 @@
 BINARY      := blink
+PREFIX      := /usr/bin/arm-none-eabi
 # MCU code
 MCU         := G431xx
 # change this linking script depending on particular MCU model,

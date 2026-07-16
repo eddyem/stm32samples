@@ -20,6 +20,8 @@
 
 #include <stdint.h>
 
+// maximal length of input string (including '\n' and terminating zero)
+#define MAX_INPLEN      (128)
 // Rx/Tx ring buffer size
 #define USARTTXBUFSZ    (512)
 #define USARTRXBUFSZ    (512)
@@ -36,7 +38,6 @@ typedef union{
     struct{
         uint8_t txerr       : 1; // transmit error
         uint8_t rxovrfl     : 1; // receive buffer overflow
-        uint8_t gotstring   : 1; // have new string in buffer
     };
     uint8_t all;
 } USART_flags_t;

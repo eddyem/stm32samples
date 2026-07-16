@@ -35,15 +35,13 @@ int main(void){
         USART_flags_t f = usart_process();
         if(f.rxovrfl) usart_sendstr("Rx buffer overflow!\n");
         if(f.txerr) usart_sendstr("Tx error!\n");
-        if(f.gotstring){
-            char *str = usart_getline();
-            if(str){
-                usart_sendstr("Received:\n");
-                usart_sendstr(str);
-                int l = strlen(str);
-                if(str[l-1] != '\n'){
-                    usart_sendstr("\n(only part of line)\n");
-                }
+        char *str = usart_getline();
+        if(str){
+            usart_sendstr("Received:\n");
+            usart_sendstr(str);
+            int l = strlen(str);
+            if(str[l-1] != '\n'){
+                usart_sendstr("\n(only part of line)\n");
             }
         }
         if(Tms - Tblink > 499){

@@ -24,7 +24,7 @@ typedef struct{
     const int length;   // its length
     int head;           // head index
     int tail;           // tail index
-    volatile int busy; // == TRUE if buffer is busy now
+    volatile bool busy; // == TRUE if buffer is busy now
 } ringbuffer;
 
 int RB_read(ringbuffer *b, uint8_t *s, int len);

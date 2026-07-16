@@ -121,7 +121,7 @@ void usart_setup(uint32_t speed){
 
 /**
  * @brief usart_sendbuf - send next data portion
- * @return TRUE if sent something
+ * @return true if sent something
  */
 static bool usart_sendbuf(){
     if(!txrdy) return false;
@@ -148,6 +148,7 @@ int usart_send(const char *str, int len){
         if(put < 0) continue; // busy
         else if(put == 0){
             usart_sendbuf(); // no place
+            t = Tms;
         }else{
             len -= put;
             sent += put;
@@ -160,6 +161,11 @@ int usart_send(const char *str, int len){
 int usart_sendstr(const char *str){
     int l = strlen(str);
     return usart_send(str, l);
+}
+
+static void addtoreadidx(int adder){
+    dma_read_idx += adder;
+    if(dma_read_idx >= USARTRXDMABUFSZ) dma_read_idx -= USARTRXDMABUFSZ;
 }
 
 // return current flags
@@ -178,7 +184,6 @@ USART_flags_t usart_process(){
     // add next data portion to RX ring buffer
     if(available >= (USARTRXDMABUFSZ / 2) || gotstring){
         // copy data in one or two chunks (wrap handling)
-        bool wrOK = false;
         // check if we can write to RB `available` bytes
         int rballow = RxRB.length - 1 - RB_datalen(&RxRB);
         if(rballow < available){
@@ -192,30 +197,35 @@ USART_flags_t usart_process(){
             available = rballow; // read at least as we can
         }
         if(dma_read_idx + available <= USARTRXDMABUFSZ){ // head before tail
-            if(available == RB_write(&RxRB, &dmarxbuf[dma_read_idx], available)) wrOK = true;
+            int written = RB_write(&RxRB, &dmarxbuf[dma_read_idx], available);
+            if(written == available && dmarxbuf[dma_read_idx+available-1] == '\n') gotstring = 0;
+            if(written > 0) addtoreadidx(written);
         }else{ // head after tail - two chunks
             int first = USARTRXDMABUFSZ - dma_read_idx;
-            if((first == RB_write(&RxRB, &dmarxbuf[dma_read_idx], first)) &&
-                (available - first) == RB_write(&RxRB, dmarxbuf, available - first)) wrOK = true;
-        }
-        if(wrOK){
-            gotstring = 0;
-            dma_read_idx = write_idx; // update read pointer
+            int written = RB_write(&RxRB, &dmarxbuf[dma_read_idx], first);
+            if(written != first){ // could write only part - just increase read index
+                if(written > 0) addtoreadidx(written);
+            }else{
+                dma_read_idx = 0;
+                int last = available - first;
+                written = RB_write(&RxRB, dmarxbuf, last);
+                if(written == last && dmarxbuf[last-1] == '\n') gotstring = 0;
+                if(written > 0) addtoreadidx(written);
+            }
         }
     }
-    if(RB_hasbyte(&RxRB, '\n')) flags.gotstring = 1;
     return flags;
 }
 
 char *usart_getline(){
-    static char buff[256];
+    static char buff[MAX_INPLEN];
     int l = RB_datalento(&RxRB, '\n');
     if(l < 1){
         l = RB_datalen(&RxRB); // Rx ringbuffer could be near overflow but without '\n'
-        if(l < 255) return NULL; // allow to wait for last symbols
+        if(l < MAX_INPLEN-1) return NULL; // allow to wait for last symbols
     }
-    if(l > 255){ // overflow -> read at least part of the string
-        l = 255;
+    if(l > MAX_INPLEN-1){ // overflow -> read at least part of the string
+        l = MAX_INPLEN-1;
     }
     if(l != RB_read(&RxRB, (uint8_t*)buff, l)) return NULL;
     buff[l] = 0; // return with '\n' at end of line (so user can detect non-finished overflowed lines)
