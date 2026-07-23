@@ -1,0 +1,25 @@
+#!/bin/bash
+
+if [[ $# != 2 ]]; then
+	echo "Usage: $0 <input file> <output file>" >&2
+	exit 1
+fi
+
+gnuplot << EOF
+set terminal jpeg size 800,600 enhanced font "Arial,10"
+set output '$2'
+
+# Standard thermal palette
+set pm3d map                      # Enables 2D map mode
+set palette rgbformulae 33,13,10  # Classic blue-green-red temperature palette
+set view map                      # Forces 2D top-down view
+
+set title "Temperature Distribution (degC)"
+set xlabel "X Coordinate"
+set ylabel "Y Coordinate"
+set cblabel "Temperature"         # Colorbar label
+
+# Plot matrix data as an image
+plot '$1' matrix with image
+EOF
+
