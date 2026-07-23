@@ -31,9 +31,9 @@ int RB_datalen(ringbuffer *b){
     CHK(b);
     if(0 == datalen(b)) return 0; // don't block for empty RO operations
     if(b->busy) return -1;
-    b->busy = true;
+    b->busy = 1;
     int l = datalen(b);
-    b->busy = false;
+    b->busy = 0;
     return l;
 }
 
@@ -59,9 +59,9 @@ static int hasbyte(ringbuffer *b, uint8_t byte){
 int RB_hasbyte(ringbuffer *b, uint8_t byte){
     CHK(b);
     if(b->busy) return -1;
-    b->busy = true;
+    b->busy = 1;
     int ret = hasbyte(b, byte);
-    b->busy = false;
+    b->busy = 0;
     return ret;
 }
 
@@ -100,9 +100,9 @@ int RB_read(ringbuffer *b, uint8_t *s, int len){
     if(!s || len < 1) return -1;
     if(0 == datalen(b)) return 0;
     if(b->busy) return -1;
-    b->busy = true;
+    b->busy = 1;
     int r = read(b, s, len);
-    b->busy = false;
+    b->busy = 0;
     return r;
 }
 
@@ -136,14 +136,14 @@ int RB_readto(ringbuffer *b, uint8_t byte, uint8_t *s, int len){
     if(!s || len < 1) return -1;
     if(0 == datalen(b)) return 0;
     if(b->busy) return -1;
-    b->busy = true;
+    b->busy = 1;
     int n = 0;
     if(s && len > 0){
         n = readto(b, byte, s, len);
     }else{
         incr(b, &b->head, lento(b, byte)); // just throw data out
     }
-    b->busy = false;
+    b->busy = 0;
     return n;
 }
 
@@ -151,9 +151,9 @@ int RB_datalento(ringbuffer *b, uint8_t byte){
     CHK(b);
     if(0 == datalen(b)) return 0;
     if(b->busy) return -1;
-    b->busy = true;
+    b->busy = 1;
     int n = lento(b, byte);
-    b->busy = false;
+    b->busy = 0;
     return n;
 }
 
@@ -184,9 +184,9 @@ int RB_write(ringbuffer *b, const uint8_t *str, int l){
     if(!str || l < 1) return -1;
     if(b->length - datalen(b) < 2) return 0;
     if(b->busy) return -1;
-    b->busy = true;
+    b->busy = 1;
     int w = write(b, str, l);
-    b->busy = false;
+    b->busy = 0;
     return w;
 }
 
@@ -194,10 +194,10 @@ int RB_write(ringbuffer *b, const uint8_t *str, int l){
 int RB_clearbuf(ringbuffer *b){
     CHK(b);
     if(b->busy) return -1;
-    b->busy = true;
+    b->busy = 1;
     b->head = 0;
     b->tail = 0;
     memset(b->data, 0, b->length);
-    b->busy = false;
+    b->busy = 0;
     return 1;
 }

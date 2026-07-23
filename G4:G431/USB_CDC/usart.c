@@ -65,8 +65,8 @@ void dma1_channel2_isr() __attribute__ ((alias ("dmatx_isr")));
 #define DMARXCCR    (DMA_CCR_MINC | DMA_CCR_CIRC | DMA_CCR_TEIE)
 #define DMATXCCR    (DMA_CCR_MINC | DMA_CCR_DIR | DMA_CCR_TCIE | DMA_CCR_TEIE)
 
-static volatile bool gotstring = true; // got '\n' in input stream -> force data reading to inbuf
-static volatile bool txrdy = true; // Tx DMA not busy
+static volatile uint8_t gotstring = 1; // got '\n' in input stream -> force data reading to inbuf
+static volatile uint8_t txrdy = 1; // Tx DMA not busy
 static volatile USART_flags_t curflags; // current flags (cleared in `usart_process`)
 // rx/tx DMA buffers
 static uint8_t dmarxbuf[USARTRXDMABUFSZ];
@@ -123,19 +123,19 @@ void usart_setup(uint32_t speed){
  * @brief usart_sendbuf - send next data portion
  * @return true if sent something
  */
-static bool usart_sendbuf(){
-    if(!txrdy) return false;
+static uint8_t usart_sendbuf(){
+    if(!txrdy) return 0;
     int rd = RB_read(&TxRB, dmatxbuf, USARTTXDMABUFSZ);
-    if(rd < 1) return false; // nothing to write or busy
+    if(rd < 1) return 0; // nothing to write or busy
     // set up DMA
     DMACHTX->CCR = DMATXCCR;
     DMACHTX->CMAR = (uint32_t) dmatxbuf;
     DMACHTX->CNDTR = rd;
     USARTx->ICR = USART_ICR_TCCF; // clear TC flag
-    txrdy = false;
+    txrdy = 0;
     // activate DMA
     DMACHTX->CCR = DMATXCCR | DMA_CCR_EN;
-    return true;
+    return 1;
 }
 
 int usart_send(const char *str, int len){
@@ -235,7 +235,7 @@ char *usart_getline(){
 // interrupt by '\n'
 static void usart_isr(){
     if(USARTx->ISR & USART_ISR_CMF){ // got '\n' @ USARTx
-        gotstring = true;
+        gotstring = 1;
     }
     USARTx->ICR = 0xffffffff; // clear all flags
 }
@@ -251,7 +251,7 @@ static void dmarx_isr(){
 
 static void dmatx_isr(){
     volatile uint32_t isr = DMAx->ISR;
-    if(isr & DMATXTCF) txrdy = true;
+    if(isr & DMATXTCF) txrdy = 1;
     if(isr & DMATXEF) curflags.txerr = 1;
     DMAx->IFCR = DMATXTCF | DMATXEF; // clear all flags
 }

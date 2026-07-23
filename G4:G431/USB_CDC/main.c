@@ -35,7 +35,7 @@ int main(void){
     gpio_setup();
     usart_setup(115200);
     USB_setup();
-    bool pressed = false;
+    uint8_t pressed = 0;
     uint32_t Tblink = 0, Tkey = 0; // blink and key pressed time
     while(1){
         USART_flags_t f = usart_process();
@@ -56,7 +56,7 @@ int main(void){
         }
         if(KEY_PRESSED()){
             if(!pressed){ // new event
-                pressed = true;
+                pressed = 1;
                 usart_sendstr(spressed);
                 USB_putbyte('1'); USB_putbyte('1'); newline();
                 USB_sendstr(spressed);
@@ -64,7 +64,7 @@ int main(void){
             Tkey = Tms;
         }else{ // key released
             if(pressed && (Tms - Tkey) > TDEBOUNCE){ // wait for debounce
-                pressed = false;
+                pressed = 0;
                 usart_sendstr(sreleased);
                 USB_putbyte('0'); USB_putbyte('0'); newline();
                 USB_sendstr(sreleased);

@@ -21,6 +21,8 @@
 #include "usb_descr.h"
 #include "usb_dev.h"
 
+//#pragma GCC optimize ("O1")
+
 // Class-Specific Control Requests
 #define SEND_ENCAPSULATED_COMMAND       0x00    // unused
 #define GET_ENCAPSULATED_RESPONSE       0x01    // unused

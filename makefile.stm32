@@ -49,7 +49,7 @@ LIB_DIR		:= $(INC_DIR)/ld
 
 ###############################################################################
 # C flags
-CFLAGS		+= -D__thumb2__=1 -MD
+CFLAGS		+= -D__thumb2__=1 -MD 
 CFLAGS		+= -Wall -Wextra -Wshadow -Wdouble-promotion
 CFLAGS		+= -fshort-enums -ffunction-sections -fdata-sections
 #CFLAGS		+= -fno-common -fno-stack-protector
@@ -57,12 +57,12 @@ CFLAGS		+=  $(ARCH_FLAGS)
 
 ###############################################################################
 # Linker flags
-LDFLAGS		+= -nostartfiles --static -specs=nosys.specs -specs=nano.specs
+LDFLAGS		+= -nostartfiles --static -specs=nano.specs
 LDFLAGS		+= $(ARCH_FLAGS)
 LDFLAGS		+= -L$(LIB_DIR) 
 #-L$(TOOLCHLIB)
 LDFLAGS		+= -T$(LDSCRIPT)
-LDFLAGS		+= -Wl,-Map=$(MAP),--cref -Wl,--gc-sections -Wl,--print-memory-usage
+LDFLAGS		+= -Wl,-Map=$(MAP),--cref -Wl,--gc-sections -Wl,--print-memory-usage -Wl,--trace-symbol=_sbrk 
 
 ###############################################################################
 # Used libraries
@@ -102,6 +102,8 @@ debug: CFLAGS += -O0 -DEBUG -Werror -g3 -gdwarf-2
 debug: TARGET := DEBUG
 debug: $(TARGFILE) bin list size
 
+all: $(BIN)
+
 $(TARGFILE): $(OBJDIR)
 	@echo -e "\t\tTARGET: $(TARGET)"
 	@echo "$(TARGET)" > $(TARGFILE)
@@ -130,13 +132,15 @@ $(VERSION_FILE): *.[ch]
 
 $(OBJDIR)/proto.o: proto.c $(VERSION_FILE)
 
+$(OBJDIR)/usb_dev.o: CFLAGS := $(filter-out -flto,$(CFLAGS)) -fno-lto
+
 $(OBJDIR)/%.o: %.c
 	@echo "  CC      $<"
 	$(CC) $(CFLAGS) $(DEFS) $(INCLUDE) -o $@ -c $<
 
 $(OBJDIR)/%.o: %.cpp
 	@echo "  C++     $<"
-	$(CPP) -c $(CFLAGS) -fno-exceptions $(DEFS) $(INCLUDE) -o $@ -c $<
+	$(CPP) -c $(CFLAGS) -std=c++11 -fno-exceptions -fno-rtti -Wl,--trace-symbol=_sbrk $(DEFS) $(INCLUDE) -o $@ -c $<
 
 $(BIN): $(ELF)
 	@echo "  OBJCOPY $(BIN)"
