@@ -18,14 +18,19 @@
 
 #pragma once
 
+// Default starting values
 // minimal and maximal pulse length for SG90
-#define SG90_MINPULSE   700
-#define SG90_MAXPULSE   2100
+#define SG90_MINPULSE   400
+#define SG90_MAXPULSE   2600
 #define SG90_MIDPULSE   ((SG90_MINPULSE+SG90_MAXPULSE)/2)
 #define SG90_AMPL       (SG90_MAXPULSE-SG90_MINPULSE)
 // maximal speed: 0.1s (5 ticks) per 60degr (1/3 of range):  (SG90_AMPL/15)
 #define SG90_MAXSPEED   93
 
+// Limiting values
+#define SERVO_MINPULSE  100
+#define SERVO_MAXPULSE  5000
+#define SERVO_MAXSPEED  300
 
 void process_servo();
 bool servo_set_speed(uint8_t N, uint16_t s);

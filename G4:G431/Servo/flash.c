@@ -16,26 +16,26 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stm32g0.h>
+#include <stm32g4.h>
 #include <string.h> // memcpy
+
 #include "flash.h"
-#include "strfunc.h"
-#include "usart.h"
+#include "servo.h"
 
 extern const uint32_t __varsstart, _BLOCKSIZE;
 
 static const uint32_t blocksize = (uint32_t)&_BLOCKSIZE;
 
 // max amount of Config records stored (will be recalculate in flashstorage_init()
-static uint32_t maxCnum = 1024 / sizeof(user_conf); // can't use blocksize here
-
-#define DEFMF   {.haveencoder = 1, .donthold = 1, .eswinv = 1, .keeppos = 1}
+uint32_t maxCnum = 1024 / sizeof(user_conf); // can't use blocksize here
 
 #define USERCONF_INITIALIZER  {             \
      .userconf_sz = sizeof(user_conf)       \
-    ,.flagU16 = 0xabcd                      \
-    ,.flagU32 = 0xdeadbeef                  \
-    ,.str = "test string"                   \
+    ,.usart_speed = 115200 \
+    ,.startpulse = {SG90_MIDPULSE, SG90_MIDPULSE, SG90_MIDPULSE, SG90_MIDPULSE} \
+    ,.minpulse = {SG90_MINPULSE, SG90_MINPULSE, SG90_MINPULSE, SG90_MINPULSE} \
+    ,.maxpulse = {SG90_MAXPULSE, SG90_MAXPULSE, SG90_MAXPULSE, SG90_MAXPULSE} \
+    ,.maxspeed = {SG90_MAXSPEED, SG90_MAXSPEED, SG90_MAXSPEED, SG90_MAXSPEED} \
     }
 
 static int erase_flash(const void*, const void*);
@@ -46,7 +46,7 @@ const user_conf *Flash_Data = (const user_conf *)(&__varsstart);
 
 user_conf the_conf = USERCONF_INITIALIZER;
 
-static int currentconfidx = -1; // index of current configuration
+int currentconfidx = -1; // index of current configuration
 
 /**
  * @brief binarySearch - binary search in flash for last non-empty cell
@@ -115,7 +115,7 @@ static int write2flash(const void *start, const void *wrdata, uint32_t stor_size
     volatile uint32_t *address = (volatile uint32_t*) start;
     const uint32_t *data = (const uint32_t*) wrdata;
     for(uint32_t i = 0; i < count; ++i){
-        while (FLASH->SR & (FLASH_SR_BSY1)); // 1: check BSY1
+        while (FLASH->SR & (FLASH_SR_BSY)); // 1: check BSY
         if(FLASH->SR & FLASH_SR_WRPERR){ // 2: check errors
             return 1; // write protection
         }
@@ -124,7 +124,7 @@ static int write2flash(const void *start, const void *wrdata, uint32_t stor_size
         IWDG->KR = IWDG_REFRESH;
         *address++ = *data++; // 4: write both 32 bit words
         *address++ = *data++;
-        while(FLASH->SR & FLASH_SR_BSY1);
+        while(FLASH->SR & FLASH_SR_BSY);
         if(FLASH->SR &  FLASH_SR_PGSERR){
             ret = 1; // program error - meet not 0xffff
             break;
@@ -161,7 +161,7 @@ static int erase_flash(const void *start, const void *end){
         IWDG->KR = IWDG_REFRESH;
         /* (1) Wait till no operation is on going */
         /* (2) Clear error & EOP bits */
-        while ((FLASH->SR & FLASH_SR_BSY1) != 0){} /* (1) */
+        while ((FLASH->SR & FLASH_SR_BSY) != 0){} /* (1) */
         FLASH->SR = 0xffff;  /* (2) */
         /* (1) Set the PER bit in the FLASH_CR register to enable page erasing */
         /* (2) Select the page to erase (PNB) */
@@ -169,7 +169,7 @@ static int erase_flash(const void *start, const void *end){
         /* (4) Wait until BSY1 cleared */
         FLASH->CR |= FLASH_CR_PER | i << FLASH_CR_PNB_Pos; /* (1) (2) */
         FLASH->CR |= FLASH_CR_STRT; /* (3) */
-        while ((FLASH->SR & FLASH_SR_BSY1) != 0){} /* (4) */
+        while ((FLASH->SR & FLASH_SR_BSY) != 0){} /* (4) */
         FLASH->SR = FLASH_SR_EOP;
         if(FLASH->SR & FLASH_SR_WRPERR){ /* Check Write protection error */
             ret = 1;
@@ -179,18 +179,6 @@ static int erase_flash(const void *start, const void *end){
         FLASH->CR &= ~FLASH_CR_PER; // clear PER
     }
     return ret;
-}
-
-void dump_userconf(){
-    SEND("flashsize="); printu(FLASH_SIZE);
-    SEND("\nuserconf_addr="); printuhex((uint32_t)Flash_Data);
-    SEND("\nuserconf_idx="); usart3_sendstr(i2str(currentconfidx));
-    SEND("\nuserconf_sz="); printu(the_conf.userconf_sz);
-    SEND("\nflagU16="); printuhex(the_conf.flagU16);
-    SEND("\nflagU32="); printuhex(the_conf.flagU32);
-    SEND("\nstr="); SEND(the_conf.str);
-    newline();
-    usart3_sendbuf();
 }
 
 int erase_storage(){

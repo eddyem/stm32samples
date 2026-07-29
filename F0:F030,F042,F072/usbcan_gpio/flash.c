@@ -103,7 +103,7 @@ static int binarySearch(int r, const uint8_t *start, int stor_size){
  */
 void flashstorage_init(){
     if(FLASH_SIZE > 0 && FLASH_SIZE < 20000){
-        uint32_t flsz = FLASH_SIZE * blocksize; // size in bytes
+        uint32_t flsz = FLASH_SIZE * 1024; // size in bytes
         flsz -= (uint32_t)(&__varsstart) - FLASH_BASE;
         maxCnum = flsz / sizeof(user_conf);
     }
@@ -164,7 +164,7 @@ static int erase_flash(const void *start, const void *end){
     uint32_t nblocks = 1, flsz = 0;
     if(!end){ // erase all remaining
         if(FLASH_SIZE > 0 && FLASH_SIZE < 20000){
-            flsz = FLASH_SIZE * blocksize; // size in bytes
+            flsz = FLASH_SIZE * 1024; // size in bytes
             flsz -= (uint32_t)start - FLASH_BASE;
         }
     }else{ // erase a part

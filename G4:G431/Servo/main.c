@@ -20,6 +20,7 @@
 #include <string.h>
 
 #include "commproto.h"
+#include "flash.h"
 #include "hardware.h"
 #include "servo.h"
 #include "usart.h"
@@ -29,8 +30,10 @@
 
 int main(void){
     StartHSE();
+    // init storage first to take base values
+    flashstorage_init();
     gpio_setup();
-    usart_setup(115200);
+    usart_setup(the_conf.usart_speed);
     bool pressed = false;
     uint32_t Tblink = 0, Tkey = 0; // blink and key pressed time
     while(1){

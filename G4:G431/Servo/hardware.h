@@ -31,6 +31,9 @@
 
 #define SERVO_AMOUNT    4
 
+#define MIN_USART_SPEED 1200
+#define MAX_USART_SPEED 3000000
+
 extern volatile uint32_t Tms;
 extern volatile bool tim_triggered[SERVO_AMOUNT];
 

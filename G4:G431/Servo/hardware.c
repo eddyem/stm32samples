@@ -18,6 +18,7 @@
 
 #include <stm32g4.h>
 
+#include "flash.h"
 #include "hardware.h"
 #include "servo.h"
 
@@ -32,7 +33,7 @@ void sys_tick_handler(){
 // try to set servo; if wrong return false
 bool set_servo(uint8_t N, uint16_t val){
     if(N >= SERVO_AMOUNT) return false;
-    if(val < SG90_MINPULSE || val > SG90_MAXPULSE) return false;
+    if(val < the_conf.minpulse[N] || val > the_conf.maxpulse[N]) return false;
     volatile uint32_t *CCR = &(TIM3->CCR1);
     CCR[N] = val;
     return true;
@@ -56,11 +57,14 @@ static void tim3_setup(){
                     TIM_CCMR2_OC4M_2 | TIM_CCMR2_OC4M_1 |
                     TIM_CCMR2_OC3PE | TIM_CCMR2_OC4PE;
     // frequency
-    TIM3->PSC = 169; // 1MHz -> 1us per tick
+    TIM3->PSC = 84; // 1MHz -> 1us per tick
     // ARR for PWM
     TIM3->ARR = 19999; // 20ms, 50Hz
     // CCRx - minimal position
-    TIM3->CCR1 = TIM3->CCR2 = TIM3->CCR3 = TIM3->CCR4 = SG90_MINPULSE;
+    TIM3->CCR1 = the_conf.startpulse[0];
+    TIM3->CCR2 = the_conf.startpulse[1];
+    TIM3->CCR3 = the_conf.startpulse[2];
+    TIM3->CCR4 = the_conf.startpulse[3];
     // enable CCx interrupts
     TIM3->DIER = TIM_DIER_CC1IE | TIM_DIER_CC2IE | TIM_DIER_CC3IE | TIM_DIER_CC4IE;
     // enable main output

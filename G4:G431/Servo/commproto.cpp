@@ -22,7 +22,7 @@ extern "C"{
 #include <stm32g4.h>
 
 #include "commproto.h"
-//#include "flash.h"
+#include "flash.h"
 #include "hardware.h"
 #include "servo.h"
 #include "strfunc.h"
@@ -42,12 +42,22 @@ extern volatile uint32_t Tms;
 
 // list of all commands and handlers
 #define COMMAND_TABLE \
+    COMMAND(dumpconf,   "dump current config") \
+    COMMAND(eraseflash, "erase full flash storage") \
     COMMAND(help,       "show this help") \
+    COMMAND(maxpos,     "servoN maximal allowed position (conf)") \
+    COMMAND(maxspeed,   "servoN maximal allowed speed (from 1 to " STR(SERVO_MAXSPEED) ", conf)") \
     COMMAND(mcureset,   "reset MCU") \
-    COMMAND(servo,      "get/set servoN value, mks (from " STR(SG90_MINPULSE) " to " STR(SG90_MAXPULSE) ")") \
-    COMMAND(servopos,   "get/set servoN target position with given speed") \
-    COMMAND(servospeed, "get/set servoN speed, mks per 20ms (1.." STR(SG90_MAXSPEED) ")") \
+    COMMAND(minpos,     "servoN minimal allowed position (conf)") \
+    COMMAND(readconf,   "re-read config from flash") \
+    COMMAND(saveconf,   "save config to flash") \
+    COMMAND(servo,      "servoN value, mks (in allowed range)") \
+    COMMAND(servopos,   "servoN target position with given speed") \
+    COMMAND(servospeed, "servoN speed, mks per 20ms (1..maxspeed)") \
+    COMMAND(startpos,   "servoN started position (from " STR(SERVO_MINPULSE) " to " STR(SERVO_MAXPULSE) ", conf)") \
     COMMAND(time,       "show current time (ms)") \
+    COMMAND(usart_speed,"speed of USART (set after reset, conf)") \
+
 
 typedef struct {
     const char *name;
@@ -82,7 +92,8 @@ const char *EQ = " = "; // equal sign for getters
 #define CMDEQ()   do{SEND(cmd); SEND(EQ);}while(0)
 // send `commandXXX = `
 #define CMDEQP(x)   do{SEND(cmd); SEND(u2str((uint32_t)x)); SEND(EQ);}while(0)
-
+// the same as last but with command as option and uint value
+#define SHOWPARU(cmd, x, val)  do{SEND(cmd); SEND(u2str((uint32_t)x)); SEND(EQ); SEND(u2str(val));}while(0)
 
 /**
  * @brief splitargs - get command parameter and setter from `args`
@@ -117,8 +128,8 @@ static bool argsvals(char *args, int32_t *parno, int32_t *parval){
     if(!setter) return false;
     int32_t I32;
     char *next = getint(setter, &I32);
-    if(next != setter && parval){
-        *parval = I32;
+    if(next != setter){
+        if(parval) *parval = I32;
         return true;
     }
     return false;
@@ -176,69 +187,84 @@ static errcodes_t cmd_mcureset(const char*, char*){
     NVIC_SystemReset();
     return ERR_CANTRUN; // never reached
 }
-#if 0
+
 static errcodes_t cmd_saveconf(const char*, char*){
     if(store_userconf()) return ERR_CANTRUN;
     return ERR_OK;
 }
 
 static errcodes_t cmd_eraseflash(const char*, char*){
-    if(erase_storage(-1)) return ERR_CANTRUN;
+    if(erase_storage()) return ERR_CANTRUN;
     return ERR_OK;
 }
 
-static errcodes_t cmd_readconf(const char*, char* args){
-    int32_t CHno = -1;
-    splitargs(args, &CHno);
-    if(CHno < 0 || CHno >= SENSORS_AMOUNT) return ERR_BADPAR;
-    as3935_channel = static_cast<uint8_t>(CHno);
-    uint8_t par;
-    if(!as3935_get_gain(&par)) return ERR_CANTRUN;
-    the_conf.spars[CHno].AFE_GB = par;
-    if(!as3935_get_wdthres(&par)) return ERR_CANTRUN;
-    the_conf.spars[CHno].WDTH = par;
-    if(!as3935_get_nflev(&par)) return ERR_CANTRUN;
-    the_conf.spars[CHno].NF_LEV = par;
-    if(!as3935_get_srej(&par)) return ERR_CANTRUN;
-    the_conf.spars[CHno].SREJ = par;
-    if(!as3935_get_minnumlig(&par)) return ERR_CANTRUN;
-    the_conf.spars[CHno].MIN_NUM_LIG = par;
-    if(!as3935_get_maskdist(&par)) return ERR_CANTRUN;
-    the_conf.spars[CHno].MASK_DIST = par;
-    if(!as3935_get_lco_fdiv(&par)) return ERR_CANTRUN;
-    the_conf.spars[CHno].LCO_FDIV = par;
-    if(!as3935_get_tuncap(&par)) return ERR_CANTRUN;
-    the_conf.spars[CHno].TUN_CAP = par;
+static errcodes_t cmd_readconf(const char*, char*){
+    flashstorage_init();
     return ERR_OK;
-}
-
-static void showpar(const char *par, uint8_t n, uint8_t v){
-    char c[2];
-    c[0] = '0' + n; c[1] = 0;
-    SEND(par); SEND(c); SEND(EQ);
-    SEND(u2str(v));
 }
 
 static errcodes_t cmd_dumpconf(const char*, char*){
     SEND("userconf_sz="); SEND(u2str(the_conf.userconf_sz));
-    SEND("\ncurr_idx="); SEND(u2str(currentconfidx));
+    SEND("\ncurr_idx="); SEND(i2str(currentconfidx));
     SEND("\ncapacity="); SEND(u2str(maxCnum-2));
-    cmd_setiface("\nsetiface", NULL);
-    cmd_restonstart("restonstart", NULL);
-    for(int i = 0; i < SENSORS_AMOUNT; ++i){
-        showpar("gain", i, the_conf.spars[i].AFE_GB);
-        showpar("\nlco_fdiv", i, the_conf.spars[i].LCO_FDIV);
-        showpar("\nmaskdist", i, the_conf.spars[i].MASK_DIST);
-        showpar("\nminnumlig", i, the_conf.spars[i].MIN_NUM_LIG);
-        showpar("\nnflev", i, the_conf.spars[i].NF_LEV);
-        showpar("\nsrej", i, the_conf.spars[i].SREJ);
-        showpar("\ntuncap", i, the_conf.spars[i].TUN_CAP);
-        showpar("\nwdthres", i, the_conf.spars[i].WDTH);
-        SEND("\n");
+    SEND("\nusart_speed="); SEND(u2str(the_conf.usart_speed));
+    for(int i = 0; i < SERVO_AMOUNT ; ++i){
+        SHOWPARU("\nstartpos", i, the_conf.startpulse[i]);
+        SHOWPARU("\nminpos", i, the_conf.minpulse[i]);
+        SHOWPARU("\nmaxpos", i, the_conf.maxpulse[i]);
+        SHOWPARU("\nmaxspeed", i, the_conf.maxspeed[i]);
     }
+    SEND("\n");
     return ERR_AMOUNT;
 }
-#endif
+
+static errcodes_t cmd_usart_speed(const char* cmd, char* args){
+    int32_t val;
+    if(argsvals(args, NULL, &val)){ // setter
+        if(val < MIN_USART_SPEED || val > MAX_USART_SPEED) return ERR_BADVAL;
+        the_conf.usart_speed = (uint32_t) val;
+    }
+    CMDEQ();
+    SEND(u2str(the_conf.usart_speed));
+    SEND("\n");
+    return ERR_AMOUNT;
+}
+
+static errcodes_t servo_valP(const char* cmd, char* args, uint16_t *confval){
+    int32_t val, parno;
+    if(argsvals(args, &parno, &val)){ // setter
+        if(parno < 0 || parno >= SERVO_AMOUNT) return ERR_BADPAR;
+        if(val < SERVO_MINPULSE || val > SERVO_MAXPULSE) return ERR_BADVAL;
+        confval[parno] = (uint16_t) val;
+    }
+    SHOWPARU(cmd, parno, confval[parno]);
+    SEND("\n");
+    return ERR_AMOUNT;
+}
+
+static errcodes_t cmd_maxpos(const char* cmd, char* args){
+    return servo_valP(cmd, args, the_conf.maxpulse);
+}
+
+static errcodes_t cmd_minpos(const char* cmd, char* args){
+    return servo_valP(cmd, args, the_conf.minpulse);
+}
+
+static errcodes_t cmd_startpos(const char* cmd, char* args){
+    return servo_valP(cmd, args, the_conf.startpulse);
+}
+
+static errcodes_t cmd_maxspeed(const char* cmd, char* args){
+    int32_t val, parno;
+    if(argsvals(args, &parno, &val)){ // setter
+        if(parno < 0 || parno >= SERVO_AMOUNT) return ERR_BADPAR;
+        if(val < 1 || val > SERVO_MAXSPEED) return ERR_BADVAL;
+        the_conf.maxspeed[parno] = (uint16_t) val;
+    }
+    SHOWPARU(cmd, parno, the_conf.maxspeed[parno]);
+    SEND("\n");
+    return ERR_AMOUNT;
+}
 
 static errcodes_t cmd_help(const char*, char*){
     SEND(REPOURL);

@@ -18,6 +18,7 @@
 
 #include <stdint.h>
 
+#include "flash.h"
 #include "hardware.h"
 #include "servo.h"
 
@@ -45,7 +46,7 @@ void process_servo(){
 // set speed in steps per tick
 bool servo_set_speed(uint8_t N, uint16_t s){
     if(N >= SERVO_AMOUNT) return false;
-    if(s < 1 || s > SG90_MAXSPEED) return false;
+    if(s < 1 || s > the_conf.maxspeed[N]) return false;
     servo_speed[N] = s;
     return true;
 }
@@ -58,7 +59,7 @@ bool servo_get_speed(uint8_t N, uint16_t *s){
 
 bool servo_set_tagpos(uint8_t N, uint16_t pos){
     if(N >= SERVO_AMOUNT) return false;
-    if(pos < SG90_MINPULSE || pos > SG90_MAXPULSE) return false;
+    if(pos < the_conf.minpulse[N] || pos > the_conf.maxpulse[N]) return false;
     servo_tagpos[N] = pos;
     return true;
 }
