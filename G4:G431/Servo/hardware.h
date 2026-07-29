@@ -35,7 +35,6 @@
 #define MAX_USART_SPEED 3000000
 
 extern volatile uint32_t Tms;
-extern volatile bool tim_triggered[SERVO_AMOUNT];
 
 void gpio_setup();
 

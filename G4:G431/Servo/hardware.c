@@ -23,7 +23,6 @@
 #include "servo.h"
 
 volatile uint32_t Tms = 0;
-volatile bool tim_triggered[SERVO_AMOUNT];
 
 /* Called when systick fires */
 void sys_tick_handler(){
@@ -65,18 +64,14 @@ static void tim3_setup(){
     TIM3->CCR2 = the_conf.startpulse[1];
     TIM3->CCR3 = the_conf.startpulse[2];
     TIM3->CCR4 = the_conf.startpulse[3];
-    // enable CCx interrupts
-    TIM3->DIER = TIM_DIER_CC1IE | TIM_DIER_CC2IE | TIM_DIER_CC3IE | TIM_DIER_CC4IE;
-    // enable main output
-    //TIM3->BDTR |= TIM_BDTR_MOE;
+    // enable main output (don't need for TIM3)
+    //TIMx->BDTR |= TIM_BDTR_MOE;
     // enable PWM output
     TIM3->CCER = TIM_CCER_CC1E | TIM_CCER_CC2E |TIM_CCER_CC3E | TIM_CCER_CC4E;
     // enable timer & ARR buffering
     TIM3->CR1 |= TIM_CR1_CEN | TIM_CR1_ARPE;
     // update buffers
     TIM3->EGR = TIM_EGR_UG;
-    // and enable interrupt
-    NVIC_EnableIRQ(TIM3_IRQn);
 }
 
 // TIM3 channels: 1 - PA6 (AF2), 2 - PA7 (AF2), 3 - PB0 (AF2), 4 - PB1 (AF2)
@@ -98,13 +93,4 @@ void gpio_setup(){
     // count milliseconds
     SysTick_Config(SysFreq / 1000); // arg should be < 0xffffff
     tim3_setup();
-}
-
-// update event flags
-void tim3_isr(){
-    if(TIM3->SR & TIM_SR_CC1IF) tim_triggered[0] = true;
-    if(TIM3->SR & TIM_SR_CC2IF) tim_triggered[1] = true;
-    if(TIM3->SR & TIM_SR_CC3IF) tim_triggered[2] = true;
-    if(TIM3->SR & TIM_SR_CC4IF) tim_triggered[3] = true;
-    TIM3->SR = 0;
 }
