@@ -165,7 +165,7 @@ static errcodes_t cmd_testm(const char*, char *args){
         ok = false;
     }
     if(!ok) return ERR_BADVAL;
-    SEND("TIME=");
+    SEND("TIMEus=");
     SEND(u2str(elapsed));
     SEND("\n");
     return ERR_AMOUNT;
@@ -193,7 +193,7 @@ static errcodes_t cmd_testc(const char*, char *args){
         ok = false;
     }
     if(!ok) return ERR_BADVAL;
-    SEND("TIME=");
+    SEND("TIMEus=");
     SEND(u2str(elapsed));
     SEND("\n");
     return ERR_AMOUNT;

@@ -27,6 +27,9 @@
 // amount of iterations over test
 #define N_TESTS     1000
 
+static float arr[N_TESTS];
+
+
 // RNG
 static uint32_t rand_state = 123456789;
 static uint32_t next_rand(void){
@@ -35,35 +38,34 @@ static uint32_t next_rand(void){
 }
 
 // fill array with random angles
-static void fill_random_sin_cos(float *arr){
+static void fill_random_sin_cos(){
     for(int i = 0; i < N_TESTS; ++i){
         // angle from -pi to +pi
         arr[i] = (float)(next_rand() % 62831853) / 10000000.0f - 3.14159265f;
     }
 }
 
-static void fill_random_atan(float *arr){
+static void fill_random_atan(){
     for(int i = 0; i < N_TESTS; ++i){
         arr[i] = (float)(next_rand() % 2000000) / 1e6f - 1e6f; // [-1,1]
     }
 }
 
-static void fill_random_sqrt(float *arr){
+static void fill_random_sqrt(){
     for(int i = 0; i < N_TESTS; ++i){
         arr[i] = (float)(next_rand() % 10000) / 100.0f; // [0,100]
     }
 }
 
-static void fill_random_log(float *arr){
+static void fill_random_log(){
     for(int i = 0; i < N_TESTS; ++i){
         arr[i] = (float)(next_rand() % 10000 + 1) / 100.0f; // [0.01, 100]
     }
 }
 
 // main test template
-static uint32_t run_test(void (*gen)(float*), float (*func)(float)){
-    float arr[N_TESTS];
-    gen(arr);
+static uint32_t run_test(void (*gen)(), float (*func)(float)){
+    gen();
     volatile float result = 0.0f; // don't let gcc to optimize this cycle
     timer_start();
     for(int i = 0; i < N_TESTS; ++i){
