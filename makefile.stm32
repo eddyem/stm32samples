@@ -49,11 +49,10 @@ LIB_DIR		:= $(INC_DIR)/ld
 
 ###############################################################################
 # C flags
-CFLAGS		+= -D__thumb2__=1 -MD 
-CFLAGS		+= -Wall -Wextra -Wshadow -Wdouble-promotion
-CFLAGS		+= -fshort-enums -ffunction-sections -fdata-sections
-#CFLAGS		+= -fno-common -fno-stack-protector
-CFLAGS		+=  $(ARCH_FLAGS)
+FLAGS       := -D__thumb2__=1 -MD -Wall -Wextra -Wshadow -Wdouble-promotion -fshort-enums -ffunction-sections -fdata-sections
+# -fno-common -fno-stack-protector
+CFLAGS		+= $(FLAGS)  $(ARCH_FLAGS)
+CPPFLAGS	+= $(FLAGS)  $(ARCH_FLAGS)
 
 ###############################################################################
 # Linker flags
@@ -130,6 +129,8 @@ $(VERSION_FILE): *.[ch]
 	@sed -i "s/#define BUILDNO.*/#define BUILDNO $(NEXTVER)/" $(VERSION_FILE)
 	@sed -i "s/#define BUILD_DATE.*/#define BUILD_DATE \"$(BUILDDATE)\"/" $(VERSION_FILE)
 
+$(OBJDIR)/commproto.o: commproto.cpp $(VERSION_FILE)
+
 $(OBJDIR)/proto.o: proto.c $(VERSION_FILE)
 
 $(OBJDIR)/usb_dev.o: CFLAGS := $(filter-out -flto,$(CFLAGS)) -fno-lto
@@ -140,7 +141,7 @@ $(OBJDIR)/%.o: %.c
 
 $(OBJDIR)/%.o: %.cpp
 	@echo "  C++     $<"
-	$(CPP) -c $(CFLAGS) -std=c++11 -fno-exceptions -fno-rtti -Wl,--trace-symbol=_sbrk $(DEFS) $(INCLUDE) -o $@ -c $<
+	$(CPP) -c  $(CPPFLAGS) -fno-exceptions -fno-rtti -Wl,--trace-symbol=_sbrk $(DEFS) $(INCLUDE) -o $@ -c $<
 
 $(BIN): $(ELF)
 	@echo "  OBJCOPY $(BIN)"

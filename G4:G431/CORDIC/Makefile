@@ -1,0 +1,13 @@
+BINARY      := cordic
+PREFIX      := /usr/bin/arm-none-eabi
+CFLAGS       = -std=c23
+CPPFLAGS     = -std=c++11
+# MCU code
+MCU         := G431xx
+# change this linking script depending on particular MCU model,
+LDSCRIPT    := stm32g431xb.ld
+LDLIBS      += -lm
+
+include ../makefile.g4
+include ../../makefile.stm32
+
