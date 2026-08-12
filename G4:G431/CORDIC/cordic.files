@@ -1,3 +1,5 @@
+astro.c
+astro.h
 commproto.cpp
 commproto.h
 cordic.c

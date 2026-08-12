@@ -19,9 +19,12 @@
 #include <cstring>
 
 extern "C"{
+#include <math.h>
 #include <stm32g4.h>
 
+#include "astro.h"
 #include "commproto.h"
+#include "cordic.h"
 #include "hardware.h"
 #include "strfunc.h"
 #include "test.h"
@@ -42,8 +45,11 @@ extern volatile uint32_t Tms;
 // list of all commands and handlers
 #define COMMAND_TABLE \
     COMMAND(help,       "show this help") \
+    COMMAND(sets,       "set sin-cos to cordic (1) or math (0)") \
+    COMMAND(sincos,     "calculate sin/cos for given angle in degrees") \
+    COMMAND(testc,      "test CORDIC function: sincos, sin, cos, atan, sqrt, log") \
     COMMAND(testm,      "test math function: sin, cos, atan, sqrt, log") \
-    COMMAND(testc,      "test CORDIC function: sin, cos, atan, sqrt, log")
+    COMMAND(time,       "show MJD and LST for given UNIX-time") \
 
 
 typedef struct {
@@ -103,7 +109,6 @@ static char *splitargs(char *args, int32_t *parno){
     return next;
 }
 
-#if 0
 /**
  * @brief argsvals - split `args` into `parno` and setter's value
  * @param args - rest of string after command
@@ -122,7 +127,6 @@ static bool argsvals(char *args, int32_t *parno, int32_t *parval){
     }
     return false;
 }
-#endif
 
 static errcodes_t cmd_help(const char*, char*){
     SEND(REPOURL);
@@ -134,8 +138,8 @@ static errcodes_t cmd_help(const char*, char*){
     return ERR_AMOUNT;
 }
 
-static const char* parse_func_name(char *args, int32_t *parno){
-    char *setter = splitargs(args, parno);
+static const char* parse_func_name(char *args){
+    char *setter = splitargs(args, NULL);
     if(!setter) return nullptr;
     // remove trailing spaces
     char *p = setter;
@@ -144,10 +148,25 @@ static const char* parse_func_name(char *args, int32_t *parno){
     return setter;
 }
 
+// calculate sin/cos
+static errcodes_t cmd_sincos(const char *, char *args){
+    char *setter = splitargs(args, NULL);
+    float f;
+    if(!setter || !getfloat(setter, &f)) return ERR_BADVAL;
+    f = f/180.f * M_PIf;
+    SEND("mathsin="); SEND(float2str(sinf(f), 7));
+    SEND("\nmathcos="); SEND(float2str(cosf(f), 7));
+    float s, c;
+    cordic_sincos(f, &s, &c);
+    SEND("\ncordicsin="); SEND(float2str(s, 7));
+    SEND("\ncordiccos="); SEND(float2str(c, 7));
+    SEND("\n");
+    return ERR_AMOUNT;
+}
+
 // test math function
 static errcodes_t cmd_testm(const char*, char *args){
-    int32_t parno;
-    const char *fname = parse_func_name(args, &parno);
+    const char *fname = parse_func_name(args);
     if(!fname) return ERR_BADPAR;
     uint32_t elapsed = 0;
     bool ok = true;
@@ -174,12 +193,14 @@ static errcodes_t cmd_testm(const char*, char *args){
 
 // test CORDIC function
 static errcodes_t cmd_testc(const char*, char *args){
-    int32_t parno;
-    const char *fname = parse_func_name(args, &parno);
+    const char *fname = parse_func_name(args);
     if(!fname) return ERR_BADPAR;
     uint32_t elapsed = 0;
     bool ok = true;
-    if(strcmp(fname, "sin") == 0){
+    if(strcmp(fname, "sincos") == 0){
+        elapsed = test_cordic_sincos();
+    }
+    else if(strcmp(fname, "sin") == 0){
         elapsed = test_cordic_sin();
     }else if(strcmp(fname, "cos") == 0){
         elapsed = test_cordic_cos();
@@ -196,6 +217,27 @@ static errcodes_t cmd_testc(const char*, char *args){
     SEND("TIMEus=");
     SEND(u2str(elapsed));
     SEND("\n");
+    return ERR_AMOUNT;
+}
+
+static errcodes_t cmd_time(const char *, char *args){
+    char *setter = splitargs(args, NULL);
+    if(!setter) return ERR_BADVAL;
+    uint32_t unix_time;
+    if(setter == getnum(setter, &unix_time)) return ERR_BADVAL;
+    float mjd = MJD_from_unix(unix_time);
+    SEND("MJD="); SEND(float2str(mjd, 7));
+    SEND("\nLST="); SEND(float2str(LST_from_unix(unix_time), 7));
+    SEND("\n");
+    return ERR_AMOUNT;
+}
+
+static errcodes_t cmd_sets(const char *cmd, char *args){
+    int32_t val;
+    if(argsvals(args, NULL, &val)) set_sincos(val);
+    CMDEQ();
+    if(get_sincos()) SEND("CORDIC\n");
+    else SEND("MATH\n");
     return ERR_AMOUNT;
 }
 

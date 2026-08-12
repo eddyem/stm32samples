@@ -32,7 +32,7 @@ static float arr[N_TESTS];
 
 // RNG
 static uint32_t rand_state = 123456789;
-static uint32_t next_rand(void){
+static uint32_t next_rand(){
     rand_state = rand_state * 1664525 + 1013904223;
     return rand_state;
 }
@@ -76,36 +76,52 @@ static uint32_t run_test(void (*gen)(), float (*func)(float)){
     return timer_read();
 }
 
+static uint32_t run_test2(void (*gen)(), void (*func)(float, float*, float*)){
+    gen();
+    volatile float result1 = 0.f, result2 = 0.f; // don't let gcc to optimize this cycle
+    timer_start();
+    for(int i = 0; i < N_TESTS; ++i){
+        func(arr[i], (float*)&result1, (float*)&result2);
+        (void) result1;
+        (void) result2;
+    }
+    timer_stop();
+    return timer_read();
+}
+
 // ------------- math.h tests -------------
-uint32_t test_math_sin(void){
+uint32_t test_math_sin(){
     return run_test(fill_random_sin_cos, sinf);
 }
-uint32_t test_math_cos(void){
+uint32_t test_math_cos(){
     return run_test(fill_random_sin_cos, cosf);
 }
-uint32_t test_math_atan(void){
+uint32_t test_math_atan(){
     return run_test(fill_random_atan, atanf);
 }
-uint32_t test_math_sqrt(void){
+uint32_t test_math_sqrt(){
     return run_test(fill_random_sqrt, sqrtf);
 }
-uint32_t test_math_log(void){
+uint32_t test_math_log(){
     return run_test(fill_random_log, logf);
 }
 
 // ------------- CORDIC tests -------------
-uint32_t test_cordic_sin(void){
+uint32_t test_cordic_sincos(){
+    return run_test2(fill_random_sin_cos, cordic_sincos);
+}
+uint32_t test_cordic_sin(){
     return run_test(fill_random_sin_cos, cordic_sin);
 }
-uint32_t test_cordic_cos(void){
+uint32_t test_cordic_cos(){
     return run_test(fill_random_sin_cos, cordic_cos);
 }
-uint32_t test_cordic_atan(void){
+uint32_t test_cordic_atan(){
     return run_test(fill_random_atan, cordic_atan);
 }
-uint32_t test_cordic_sqrt(void){
+uint32_t test_cordic_sqrt(){
     return run_test(fill_random_sqrt, cordic_sqrt);
 }
-uint32_t test_cordic_log(void){
+uint32_t test_cordic_log(){
     return run_test(fill_random_log, cordic_log);
 }

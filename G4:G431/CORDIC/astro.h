@@ -1,5 +1,6 @@
 /*
- * Copyright 2025 Edward V. Emelianov <edward.emelianoff@gmail.com>.
+ * This file is part of the cordic project.
+ * Copyright 2026 Edward V. Emelianov <edward.emelianoff@gmail.com>.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,13 +20,13 @@
 
 #include <stdint.h>
 
-char *omit_spaces(char *buf);
-void hexdump(int (*sendfun)(const char*), uint8_t *arr, uint16_t len);
-char *u2str(uint32_t val);
-char *i2str(int32_t i);
-char *float2str(float x, uint8_t prec);
-char *uhex2str(uint32_t val);
-char *gethex(const char *buf, uint32_t *N);
-char *getnum(char *txt, uint32_t *N);
-char *getint(char *txt, int32_t *I);
-char *getfloat(char *str, float *f);
+void set_sincos(int iscordic);
+int get_sincos();
+float MJD_from_unix(uint32_t t);
+//float LST_from_mjd(float mjd);
+float LST_from_unix(uint32_t t);
+float ha_to_ra(float ha, float lst);
+float ra_to_ha(float ra, float lst);
+void altaz_to_hadec(float alt_deg, float az_deg, float *ha_deg, float *dec_deg);
+void hadec_to_altaz(float ha_deg, float dec_deg, float *alt_deg, float *az_deg);
+float refraction(float phpa, float tc, float rh, float Z_rad);

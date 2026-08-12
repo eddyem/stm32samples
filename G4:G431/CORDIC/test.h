@@ -28,6 +28,7 @@ uint32_t test_math_sqrt();
 uint32_t test_math_log();
 
 // CORDIC tests
+uint32_t test_cordic_sincos();
 uint32_t test_cordic_sin();
 uint32_t test_cordic_cos();
 uint32_t test_cordic_atan();

@@ -33,17 +33,12 @@ static void cordic_enable(void){
 static int32_t float_to_q31(float x){
     if(x >= 1.0f) x = 1.0f - 1e-6f;
     if(x <= -1.0f) x = -1.0f + 1e-6f;
-    return (int32_t)(x * 2147483648.0f);
+    return (int32_t)(x * Q31_BASE);
 }
 
 // Convert Q1.31 to float
 static float q31_to_float(int32_t q){
-    return (float)q / 2147483648.0f;
-}
-
-// Wait CORDIC ready
-static void cordic_wait_ready(void){
-    while(!(CORDIC->CSR & CORDIC_CSR_RRDY));
+    return (float)q / Q31_BASE;
 }
 
 static void cordic_init(void){
@@ -72,28 +67,40 @@ static float cordic_scalar(uint32_t func_mode, float x, int arg_count){
 }
 #endif
 
+// sincos
+void cordic_sincos(float angle, float *s, float *c){
+    float norm = angle / M_PIf;
+    if(norm > 1.0f) norm = 1.0f;
+    if(norm < -1.0f) norm = -1.0f;
+    cordic_init();
+    CORDIC->CSR = (CORDIC_CSR_FUNC_SIN << CORDIC_CSR_FUNC_Pos) | CORDIC_CSR_DEF | CORDIC_CSR_NRES;
+    CORDIC->WDATA = float_to_q31(norm);
+    int32_t res = CORDIC->RDATA;
+    if(s) *s = q31_to_float(res);
+    res = CORDIC->RDATA;
+    if(c) *c = q31_to_float(res);
+}
+
 // sin
 float cordic_sin(float angle){
-    float norm = angle / 3.141592653589793f;
+    float norm = angle / M_PIf;
     if(norm > 1.0f) norm = 1.0f;
     if(norm < -1.0f) norm = -1.0f;
     cordic_init();
     CORDIC->CSR = (CORDIC_CSR_FUNC_SIN << CORDIC_CSR_FUNC_Pos) | CORDIC_CSR_DEF;
     CORDIC->WDATA = float_to_q31(norm);
-    cordic_wait_ready();
-    int32_t res = CORDIC->RDATA; // первое чтение -> sin
+    int32_t res = CORDIC->RDATA;
     return q31_to_float(res);
 }
 
 // cos
 float cordic_cos(float angle){
-    float norm = angle / 3.141592653589793f;
+    float norm = angle / M_PIf;
     if(norm > 1.0f) norm = 1.0f;
     if(norm < -1.0f) norm = -1.0f;
     cordic_init();
     CORDIC->CSR = (CORDIC_CSR_FUNC_COS << CORDIC_CSR_FUNC_Pos) | CORDIC_CSR_DEF;
     CORDIC->WDATA = float_to_q31(norm);
-    cordic_wait_ready();
     int32_t res = CORDIC->RDATA; // cos
     return q31_to_float(res);
 }
@@ -104,9 +111,8 @@ float cordic_atan(float val){
     cordic_init();
     CORDIC->CSR = (CORDIC_CSR_FUNC_ATAN << CORDIC_CSR_FUNC_Pos) | CORDIC_CSR_DEF;
     CORDIC->WDATA = float_to_q31(val);
-    cordic_wait_ready();
     int32_t res = CORDIC->RDATA;
-    return q31_to_float(res) * 3.141592653589793f;
+    return q31_to_float(res) * M_PIf;
 }
 
 // sqrt
@@ -123,7 +129,6 @@ float cordic_sqrt(float x){
     cordic_init();
     CORDIC->CSR = (CORDIC_CSR_FUNC_SQRT << CORDIC_CSR_FUNC_Pos) | CORDIC_CSR_DEF;
     CORDIC->WDATA = float_to_q31(x);
-    cordic_wait_ready();
     int32_t res = CORDIC->RDATA;
     return scale * q31_to_float(res);
 }
@@ -141,7 +146,6 @@ float cordic_log(float x){
     cordic_init();
     CORDIC->CSR = (CORDIC_CSR_FUNC_LOG << CORDIC_CSR_FUNC_Pos) | CORDIC_CSR_DEF;
     CORDIC->WDATA = float_to_q31(x);
-    cordic_wait_ready();
     int32_t res = CORDIC->RDATA;
     return q31_to_float(res) * 0.6931471805599453f + add;
 }

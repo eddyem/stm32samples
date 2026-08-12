@@ -20,6 +20,12 @@
 
 #include <stdint.h>
 
+#ifndef M_PIf
+#define M_PIf       3.141592653589793f
+#endif
+
+#define Q31_BASE    2147483648.0f
+
 // functions
 enum {
     CORDIC_CSR_FUNC_COS = 0,
@@ -33,6 +39,7 @@ enum {
     CORDIC_CSR_FUNC_SQRT
 };
 
+void  cordic_sincos(float angle, float *s, float *c);
 float cordic_sin(float angle);
 float cordic_cos(float angle);
 float cordic_atan(float val);
