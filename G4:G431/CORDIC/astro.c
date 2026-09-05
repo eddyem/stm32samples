@@ -22,11 +22,11 @@
 #include "astro.h"
 #include "cordic.h"
 
-static int sincosflag = 0; // math.h
+static int sincosflag = 0; // 0: math.h, 1: cordic
 // longitude/latitude + in rad/hrs
 //static float longitude = 41.44143375f, latitude = 43.6535278f;
-static float lat_rad = 43.6535278f * M_PIf / 180.f;
-static float long_hrs = 41.44143375f / 15.f;
+static float lat_rad = DEG2RAD(43.6535278f);
+static float long_hrs = DEG2HOURS(41.44143375f);
 
 static void sincosf_m(float angle, float *s, float *c){
     if(s) *s = sin(angle);
@@ -77,13 +77,13 @@ float LST_from_unix(uint32_t t){
 
 /* 3. Convert Hour Angle (HA) to Right Ascension (RA) and vice versa.
    All angles in degrees. LST is Local Sidereal Time in degrees. */
-float ha_to_ra(float ha, float lst){
-    float ra = lst - ha;
+float ha_to_ra(float ha, float lst_deg){
+    float ra = lst_deg - ha;
     return normalize_degrees(ra);
 }
 
-float ra_to_ha(float ra, float lst){
-    float ha = lst - ra;
+float ra_to_ha(float ra, float lst_deg){
+    float ha = lst_deg - ra;
     // Hour angle is usually in range [-180,180)
     ha = normalize_degrees(ha);
     if (ha > 180.0f) ha -= 360.0f;
@@ -93,8 +93,8 @@ float ra_to_ha(float ra, float lst){
 /* 4. Convert Altitude-Azimuth coordinates to Equatorial (Hour Angle, Declination)
    and back. All angles in degrees. Azimuth is measured from North through East. */
 void altaz_to_hadec(float alt_deg, float az_deg, float *ha_deg, float *dec_deg){
-    float alt = alt_deg * M_PIf / 180.0f;
-    float az  = az_deg  * M_PIf / 180.0f;
+    float alt = DEG2RAD(alt_deg);
+    float az  = DEG2RAD(az_deg);
 
     float sin_alt, cos_alt, sin_az, cos_az, sin_lat, cos_lat;
     sincosf(alt, &sin_alt, &cos_alt);
@@ -110,13 +110,13 @@ void altaz_to_hadec(float alt_deg, float az_deg, float *ha_deg, float *dec_deg){
     float y = -cos_alt * sin_az;
     float ha = atan2f(y, x);   // radians
 
-    *ha_deg  = ha * 180.0f / M_PIf;
-    *dec_deg = dec * 180.0f / M_PIf;
+    *ha_deg  = RAD2DEG(ha);
+    *dec_deg = RAD2DEG(dec);
 }
 
 void hadec_to_altaz(float ha_deg, float dec_deg, float *alt_deg, float *az_deg){
-    float ha  = ha_deg  * M_PIf / 180.0f;
-    float dec = dec_deg * M_PIf / 180.0f;
+    float ha  = DEG2RAD(ha_deg);
+    float dec = DEG2RAD(dec_deg);
 
     float sin_dec, cos_dec, sin_ha, cos_ha, sin_lat, cos_lat;
     sincosf(dec, &sin_dec, &cos_dec);
@@ -130,10 +130,10 @@ void hadec_to_altaz(float ha_deg, float dec_deg, float *alt_deg, float *az_deg){
     /* Azimuth (from North through East) */
     float x = sin_dec * cos_lat - cos_dec * sin_lat * cos_ha;
     float y = -cos_dec * sin_ha;
-    float az = atan2f(y, x);   // radians, [-π, π]
+    float az = atan2f(y, x);   // radians
 
-    *alt_deg = alt * 180.0f / M_PIf;
-    *az_deg  = az * 180.0f / M_PIf;
+    *alt_deg = DEG2RAD(alt);
+    *az_deg  = DEG2RAD(az);
     if (*az_deg < 0.0f) *az_deg += 360.0f;
 }
 
@@ -150,7 +150,7 @@ void hadec_to_altaz(float ha_deg, float dec_deg, float *alt_deg, float *az_deg){
  * @param refa    Output: tan(Z) coefficient (radians)
  * @param refb    Output: tan^3(Z) coefficient (radians)
  */
-static void refco_f32(float phpa, float tc, float rh, float wl, float *refa, float *refb) {
+void refco_f32(float phpa, float tc, float rh, float wl, float *refa, float *refb) {
     // Restrict input parameters to safe values (clamp)
     float t = tc;
     if(t < -150.0f) t = -150.0f;
@@ -195,10 +195,68 @@ static void refco_f32(float phpa, float tc, float rh, float wl, float *refa, flo
     if(refb) *refb = -gamma * (beta - gamma / 2.0f);
 }
 
-//alt_corrected = alt_apparent + refraction
-float refraction(float phpa, float tc, float rh, float Z_rad){
+#if 0
+void refco_f32(float phpa, float tc, float rh, float wl, float *refa, float *refb){
+    // Restrict input parameters to safe values (clamp)
+    float t = tc;
+    if(t < -150.0f) t = -150.0f;
+    if(t > 200.0f)  t = 200.0f;
+
+    float p = phpa;
+    if(p < 0.0f)     p = 0.0f;
+    if(p > 10000.0f) p = 10000.0f;
+
+    float r = rh;
+    if(r < 0.0f)    r = 0.0f;
+    if(r > 1.0f)    r = 1.0f;
+
+    float w = wl;
+    if(w < 0.1f)  w = 0.1f;
+    if(w > 10.0f) w = 10.0f;
+
+    // Water vapour pressure at the observer
+    float pw = 0.0f;
+    if(p > 0.0f){
+        // Saturation vapour pressure (empirical formula)
+        float ps = powf(10.0f, (0.7859f + 0.03477f * t) / (1.0f + 0.00412f * t))
+                   * (1.0f + p * (4.5e-6f + 6e-10f * t * t));
+        float denom = 1.0f - (1.0f - r) * ps / p;
+        if (denom < 1e-12f) denom = 1e-12f;
+        pw = r * ps / denom;
+    }
+
+    // Temperature in Kelvin
+    float tk = t + 273.15f;
+
+    // Refractive index minus 1 at the observer (gamma = (n - 1) at the observer)
+    float gamma;
+    // Optical/IR: wavelength-dependent formula
+    float wlsq = w * w;
+    float coef = 77.53484e-6f + (4.39108e-7f + 3.666e-9f / wlsq) / wlsq;
+    float num = fmaf(coef, p, -11.2684e-6f * pw);   // fmaf(a,b,c) = a*b+c
+    gamma = num / tk;
+
+    // Beta coefficient (from Stone, with empirical adjustments)
+    float beta = 4.4474e-6f * tk;
+
+    // Refraction constants (from Green)
+    if(refa) *refa = gamma * (1.0f - beta);
+    if(refb) *refb = -gamma * (beta - gamma / 2.0f);
+}
+#endif
+
+/**
+ * @brief refraction - calculates refraction (z = z0 - refraction)
+ * @param phpa - pressure, Hpa
+ * @param tc - temperature, degC
+ * @param rh - relative humidity, 0..1
+ * @param zd - zenith distance, degrees
+ * @return refraction, degrees
+ */
+float refraction(float phpa, float tc, float rh, float zd){
     float A, B;
     refco_f32(phpa, tc, rh, 0.55, &A, &B);
-    float tanZ = tanf(Z_rad);
-    return A * tanZ + B * tanZ * tanZ * tanZ;
+    float tanZ = tanf(DEG2RAD(zd));
+    float refr = A * tanZ + B * tanZ * tanZ * tanZ;
+    return RAD2DEG(refr);
 }

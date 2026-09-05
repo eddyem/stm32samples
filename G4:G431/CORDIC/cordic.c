@@ -37,7 +37,7 @@ static int32_t float_to_q31(float x){
 }
 
 // Convert Q1.31 to float
-static float q31_to_float(int32_t q){
+TRUE_INLINE float q31_to_float(int32_t q){
     return (float)q / Q31_BASE;
 }
 

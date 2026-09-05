@@ -20,13 +20,25 @@
 
 #include <stdint.h>
 
+#ifndef M_PIf
+#define M_PIf       3.141592653589793f
+#endif
+
+#define DEG2HOURS(d)    ((d) / 15.f)
+#define HOURS2DEG(h)    ((h) * 15.f)
+#define DEG2RAD(d)      ((d) * M_PIf / 180.f)
+#define RAD2DEG(r)      ((r) * 180.f / M_PIf)
+#define DEG2ARCSEC(d)   ((d) * 3600.f)
+#define RAD2ARCSEC(r)   ((r) * 180.f * 3600.f / M_PI)
+
 void set_sincos(int iscordic);
 int get_sincos();
 float MJD_from_unix(uint32_t t);
 //float LST_from_mjd(float mjd);
 float LST_from_unix(uint32_t t);
-float ha_to_ra(float ha, float lst);
-float ra_to_ha(float ra, float lst);
+float ha_to_ra(float ha, float lst_deg);
+float ra_to_ha(float ra, float lst_deg);
 void altaz_to_hadec(float alt_deg, float az_deg, float *ha_deg, float *dec_deg);
 void hadec_to_altaz(float ha_deg, float dec_deg, float *alt_deg, float *az_deg);
-float refraction(float phpa, float tc, float rh, float Z_rad);
+void refco_f32(float phpa, float tc, float rh, float wl, float *refa, float *refb);
+float refraction(float phpa, float tc, float rh, float zd);
