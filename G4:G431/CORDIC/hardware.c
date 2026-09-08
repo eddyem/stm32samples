@@ -28,24 +28,12 @@ void sys_tick_handler(){
 }
 
 static void timer_setup(){
-    RCC->APB1ENR1 |= RCC_APB1ENR1_TIM3EN;
+    RCC->APB1ENR1 |= RCC_APB1ENR1_TIM2EN;
     __DSB();
-    TIM3->CR1 = 0;              // disable counter
-    TIM3->PSC = 84;             // 85 MHz / 85 = 1 MHz
-    TIM3->ARR = 0xFFFFFFFF;     // 32-bit auto-reload (maximum)
-}
-
-void timer_start(){
-    TIM3->CNT = 0;
-    TIM3->CR1 = TIM_CR1_CEN;
-}
-
-void timer_stop(){
-    TIM3->CR1 = 0;
-}
-
-uint32_t timer_read(){
-    return TIM3->CNT;
+    TIM2->CR1 = 0;              // disable counter
+    TIM2->PSC = 84;             // 85 MHz / 85 = 1 MHz
+    TIM2->ARR = 0xFFFFFFFF;     // 32-bit auto-reload (maximum)
+    TIM2->EGR = TIM_EGR_UG;
 }
 
 void gpio_setup(){
@@ -62,7 +50,7 @@ void gpio_setup(){
     // count milliseconds
     SysTick_Config(SysFreq / 1000);
 
-    // Setup TIM3 for microsecond counting
+    // Setup 32-bit TIM2 for microsecond counting
     timer_setup();
 }
 

@@ -18,6 +18,8 @@
 
 #pragma once
 
+#include <stm32g4.h>
+
 // KEY (intpullup->0) - PC13
 // LED - PC6
 #define KEY_PORT    GPIOC
@@ -38,6 +40,15 @@ extern volatile uint32_t Tms;
 
 void gpio_setup();
 
-void timer_start();
-void timer_stop();
-uint32_t timer_read();
+TRUE_INLINE void timer_start(){
+    TIM2->CNT = 0;
+    TIM2->CR1 = TIM_CR1_CEN;
+}
+
+TRUE_INLINE void timer_stop(){
+    TIM2->CR1 = 0;
+}
+
+TRUE_INLINE uint32_t timer_read(){
+    return TIM2->CNT;
+}

@@ -34,3 +34,8 @@ uint32_t test_cordic_cos();
 uint32_t test_cordic_atan();
 uint32_t test_cordic_sqrt();
 uint32_t test_cordic_log();
+
+// Astronomy tests
+uint32_t test_astro_coordsTransform();
+uint32_t test_astro_refraction();
+uint32_t test_astro_LST();
