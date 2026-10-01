@@ -372,7 +372,7 @@ static errcodes modbussend(const char *txt, text_cmd _U_ cmd){
             usart_send("Need amount of data for given fcode\n");
             return ERR_WRONGLEN;
         }
-        if(N == 0 || N > MODBUSBUFSZO - 7){
+        if(N == 0 || N > MODBUSBUFSZO - 9){
             usart_send("Data length too big\n");
             return ERR_BADVAL;
         }

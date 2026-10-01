@@ -90,8 +90,8 @@ void gpio_setup(void){
     AFIO->MAPR |= AFIO_MAPR_SWJ_CFG_DISABLE;
 #endif
     // be sure that all OK
-   // __ISB();
-   // __DSB();
+    __ISB();
+    __DSB();
     // pullups & initial values
     GPIOA->ODR = 0;
     GPIOB->ODR = (1<<2) | (1<<10) | (1<<11) | (1<<12) | (1<<13) | (1<<14);
@@ -174,7 +174,7 @@ static const pin_t OUT[OUTMAX+1] = {
 
 // bit 1 - input channel is working, 0 - no
 uint32_t inchannels(){
-    return 0b1111110011111111;
+    return 0b1111110111111111;
 }
 // bit 1 - input channel is working, 0 - no
 uint32_t outchannels(){

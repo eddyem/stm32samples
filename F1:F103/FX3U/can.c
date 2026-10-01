@@ -100,6 +100,9 @@ MASK: FBMx=0 (CAN1->FM1R), two filters (n in FR1 and n+1 in FR2)
 LIST: FBMx=1, four filters (n&n+1 in FR1, n+2&n+3 in FR2)
     IDn:   CAN1->sFilterRegister[x].FRn[0..15]
     IDn+1: CAN1->sFilterRegister[x].FRn[16..31]
+
+IDE == 0 for 11 bit ID, 1 for 29 bit ID
+RTR == 1 for remote transmission request ("remote frame", I don't support them)
 */
 
 /*
@@ -133,7 +136,7 @@ void CAN_setup(uint32_t speed){
     /* (5) Leave init mode */
     /* (6) Wait the init mode leaving */
     /* (7) Enter filter init mode, (16-bit + mask, bank 0 for FIFO 0) */
-    /* (8) Acivate filter 0 for two IDs */
+    /* (8) Acivate filters 0 and 1 */
     /* (9) Identifier mode for bank#0, mask mode for #1 */
     /* (10) Set the Id list */
     /* (12) Leave filter init */
@@ -156,17 +159,17 @@ void CAN_setup(uint32_t speed){
         IWDG->KR = IWDG_REFRESH;
         if(--tmout == 0) break;
     }
-    // accept depending of monitor flag
+    // accept depending of monitor flag (CAN_FS1R after reset is 0, as we need for 2 16-bit filters in one reg)
     CAN1->FMR = CAN_FMR_FINIT; /* (7) */
-    CAN1->FA1R = CAN_FA1R_FACT0; /* (8) */
+    CAN1->FA1R = CAN_FA1R_FACT0 | CAN_FA1R_FACT1; /* (8) */
     CAN1->FM1R = CAN_FM1R_FBM0;
     // filter 0 for FIFO0
-    CAN1->sFilterRegister[0].FR1 = the_conf.CANIDin << 5; // (10) CANIDin and 0
-    if(flags.can_monitor){ /* (11) */
-        CAN1->FA1R |= CAN_FA1R_FACT1; // activate filter1
-        CAN1->sFilterRegister[1].FR1 = 0; // all packets
-        CAN1->FFA1R = 2; // filter 1 for FIFO1
+    CAN1->sFilterRegister[0].FR1 = the_conf.CANIDin << 5; // (10) CANIDin + 0 (broadcast)
+    CAN1->sFilterRegister[1].FR1 = 0; // all packets
+    if(!flags.can_monitor){ /* (11) */
+        CAN1->FM1R = CAN_FM1R_FBM0 | CAN_FM1R_FBM1; // both in ID mode
     }
+    CAN1->FFA1R = 2; // filter 1 for FIFO1
     CAN1->FMR &= ~CAN_FMR_FINIT; /* (12) */
     CAN1->IER |= CAN_IER_ERRIE | CAN_IER_FOVIE0 | CAN_IER_FOVIE1 | CAN_IER_BOFIE; /* (13) */
 
@@ -249,6 +252,7 @@ CAN_status CAN_send(CAN_message *message){
     IWDG->KR = IWDG_REFRESH;
     uint8_t *msg = message->data;
     uint8_t len = message->length;
+    if(len > 8) len = 8;
     uint16_t target_id = message->ID;
     uint8_t mailbox = 0xff;
     uint32_t Tstart = Tms;

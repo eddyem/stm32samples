@@ -33,10 +33,11 @@ void adc_setup(){
     DMA1_Channel1->CCR = DMA_CCR_MINC | DMA_CCR_MSIZE_0 | DMA_CCR_PSIZE_0
                           | DMA_CCR_CIRC | DMA_CCR_PL | DMA_CCR_EN;
     RCC->CFGR = (RCC->CFGR & ~(RCC_CFGR_ADCPRE)) | RCC_CFGR_ADCPRE_DIV8; // ADC clock = RCC / 8
-    // sampling time - 239.5 cycles for channels 0, 16 and 17
-    ADC1->SMPR2 = ADC_SMPR2_SMP0;
-    ADC1->SMPR1 = ADC_SMPR1_SMP16 | ADC_SMPR1_SMP17;
-    // sequence order: 1[0]->3[1]->14[2]->15[3]->10[4]->11[5] -> 16[tsen] -> 17[vdd]
+    // sampling time - 239.5 cycles for all channels
+    ADC1->SMPR2 = ADC_SMPR2_SMP1 | ADC_SMPR2_SMP3;
+    ADC1->SMPR1 = ADC_SMPR1_SMP10 | ADC_SMPR1_SMP11 | ADC_SMPR1_SMP12 | ADC_SMPR1_SMP13 |
+                  ADC_SMPR1_SMP14 | ADC_SMPR1_SMP15 | ADC_SMPR1_SMP16 | ADC_SMPR1_SMP17;
+    // sequence order: 1[0]->3[1]->14[2]->15[3]->10[4]->11[5] ->12[pot0] ->13[pot1] -> 16[tsen] -> 17[vdd]
     ADC1->SQR3 = (1 << 0) | (3<<5) | (14 << 10) | (15 << 15) | (10 << 20) | (11 << 25);
     ADC1->SQR2 = (12 << 0) | (13 << 5) | (16 << 10) | (17 << 15);
     ADC1->SQR1 = (ADC_CHANNELS - 1) << 20; // amount of conversions
@@ -89,16 +90,16 @@ uint16_t getADCval(int nch){
 uint32_t getADCvoltage(int nch){
     uint32_t v = getADCval(nch);
     v *= getVdd();
-    v /= 0xfff; // 12bit ADC
+    v >>= 12; // 12bit ADC
     return v;
 }
 
 // return MCU temperature (degrees of celsius * 10)
 int32_t getMCUtemp(){
     // Temp = (V25 - Vsense)/Avg_Slope + 25
-    // V_25 = 1.45V,  Slope = 4.3e-3
+    // V_25 = 1.43V,  Slope = 4.3e-3
     int32_t Vsense = getVdd() * getADCval(ADC_CH_TSEN);
-    int32_t temperature = 593920 - Vsense; // 593920 == 145*4096
+    int32_t temperature = 585728 - Vsense; // 585728 == 143*4096
     temperature /= 172; // == /(4096*10*4.3e-3), 10 - to convert from *100 to *10
     temperature += 250;
     return(temperature);
@@ -106,7 +107,8 @@ int32_t getMCUtemp(){
 
 // return Vdd * 100 (V)
 uint32_t getVdd(){
-    uint32_t vdd = 120 * 4096; // 1.2V
-    vdd /= getADCval(ADC_CH_VDD);
+    uint32_t vdd = 120 << 12; // 1.2V
+    uint32_t val = getADCval(ADC_CH_VDD);
+    if(val) vdd /= val;
     return vdd;
 }

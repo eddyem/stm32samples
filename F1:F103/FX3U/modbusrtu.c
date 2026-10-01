@@ -47,7 +47,7 @@ static void us(){
 static volatile int modbus_txrdy = 1;
 
 static volatile int modbus_rdy = 0      // received data ready
-    ,dlen = 0                           // length of data (including '\n') in current buffer
+    ,dlen = 0                           // length of data in current buffer
     ,bufovr = 0                         // input buffer overfull
 ;
 
@@ -83,6 +83,7 @@ static uint16_t getCRC(uint8_t *data, int l){
  */
 int modbus_receive(uint8_t **packet){
     if(!modbus_rdy) return 0;
+    if(dlen < 4) return -1; // broken packet
     if(bufovr){
         DBG("Modbus buffer overflow\n");
         bufovr = 0;
@@ -112,9 +113,9 @@ static int senddata(int l){
     DMA2_Channel5->CCR &= ~DMA_CCR_EN;
     DMA2_Channel5->CMAR = (uint32_t) tbuf[tbufno]; // mem
     DMA2_Channel5->CNDTR = l + 2; // + CRC
+    _485_Tx();
     DMA2_Channel5->CCR |= DMA_CCR_EN;
     tbufno = !tbufno;
-    _485_Tx();
     return l;
 }
 
@@ -139,7 +140,7 @@ int modbus_send_request(modbus_request *r){
     *curbuf++ = (uint8_t) r->regno; // L
     // if r->datalen == 0 - this is responce for request with fcode > 4
     if((r->Fcode == MC_WRITE_MUL_COILS || r->Fcode == MC_WRITE_MUL_REGS) && r->datalen){ // request with data
-        if(r->datalen > MODBUSBUFSZO - 7) return -1;
+        if(r->datalen > MODBUSBUFSZO - 9) return -1; // 6 previous + 1 for datalen + 2 for CRC
         *curbuf++ = r->datalen;
         memcpy(curbuf, r->data, r->datalen);
         n += r->datalen + 1; // + data length byte
@@ -164,7 +165,7 @@ int modbus_get_request(modbus_request* r){
     if(l > 6){ // request with data
         if(r->Fcode != MC_WRITE_MUL_COILS && r->Fcode != MC_WRITE_MUL_REGS) return -1; // bad request
         r->datalen = pack[4];
-        if(r->datalen > l-6) r->datalen = l-6; // fix if data bytes less than field
+        if(r->datalen > l - 7) r->datalen = l - 7; // fix if data bytes less than field
         r->data = pack + 5;
     }else{
         r->datalen = 0;
@@ -227,6 +228,7 @@ void modbus_setup(uint32_t speed){
     NVIC_SetPriority(DMA2_Channel3_IRQn, 2);
     NVIC_EnableIRQ(DMA2_Channel3_IRQn);
     // setup uart4
+    if(speed < 1200) speed = 1200;
     UART4->BRR = 36000000 / speed; // APB1 is 36MHz
     UART4->CR1 = USART_CR1_TE | USART_CR1_RE | USART_CR1_UE; // 1start,8data,nstop; enable Rx,Tx,USART
     uint32_t tmout = 16000000;

@@ -1,20 +1,140 @@
-A usefull thing made of chineese FX3U clone
-===========================================
+# A useful thing made of a Chinese FX3U clone
 
-Works over RS-232 (default: 115200, 8N1), CAN (default: 250000 baud)
-or MODBUS-RTU (default: 9600, 8N1).
+Device works over RS-232 (default 115200 8N1), CAN bus (default 250 kbit/s), or MODBUS-RTU (default
+9600 8N1).
 
-You can see pinout table in file `hardware.c`.
+Full pinout table is available in `hardware.c`.
 
-## Serial protocol (each string ends with '\n').
+The firmware help output also prints the build number and build date from `version.inc`.
 
-Values in parentheses after flags command is its bit number in whole uint32_t.
-E.g. to reset flag "f_relay_inverted" you can call `f_relay_inverted=0` or 
-`flags2=0`.
+## Startup diagnostics
 
+On power-up or reset the firmware prints a startup banner over USART1:
 
 ```
+START
+IWDGRSTF=1    # reset occurred due to independent watchdog
+SFTRSTF=1     # software reset (NVIC_SystemReset)
+PORRSTF=1     # power-on / power-down reset
+PINRSTF=1     # reset via NRST pin
+```
 
+Only the flags that were actually set are printed. After printing, all reset flags are cleared.
+
+## Hardware notes
+
+### Inputs (X)
+
+X8 is not a screw terminal — it is the on-board "Prog" pushbutton (PB2).
+X9 is absent. Bits of the `inchannels` mask correspond to these positions.
+
+| Ch  | Pin  | Notes |
+|-----|------|-------|
+| X0  | PB13 | |
+| X1  | PB14 | |
+| X2  | PB11 | |
+| X3  | PB12 | |
+| X4  | PE15 | |
+| X5  | PB10 | |
+| X6  | PE13 | |
+| X7  | PE14 | |
+| X8  | PB2  | on-board "Prog" button |
+| X9  | —    | absent |
+| X10 | PE11 | |
+| X11 | PE12 | |
+| X12 | PE9  | |
+| X13 | PE10 | |
+| X14 | PE7  | |
+| X15 | PE8  | |
+
+### Outputs (Y)
+
+Y8 and Y9 are absent.
+
+| Ch  | Pin  |
+|-----|------|
+| Y0  | PC9  |
+| Y1  | PC8  |
+| Y2  | PA8  |
+| Y3  | PA0  |
+| Y4  | PB3  |
+| Y5  | PD12 |
+| Y6  | PB15 |
+| Y7  | PA7  |
+| Y8  | —    |
+| Y9  | —    |
+| Y10 | PA6  |
+| Y11 | PA2  |
+
+### On-board LED
+
+"RUN" LED is on PD10. **Active low**: `led` returns the logical state (`1` when the LED is on,
+`0` when off).
+
+### ADC channels
+
+| № | Enum         | Pin / source | Meaning |
+|---|--------------|--------------|---------|
+| 0 | `ADC_CH_0`   | PA1 / adc1   | voltage input, up to 11 V |
+| 1 | `ADC_CH_1`   | PA3 / adc3   | voltage input, up to 11 V |
+| 2 | `ADC_CH_2`   | PC4 / adc14  | voltage input |
+| 3 | `ADC_CH_3`   | PC5 / adc15  | current input |
+| 4 | `ADC_CH_4`   | PC0 / adc10  | current input, 0..20 mA |
+| 5 | `ADC_CH_5`   | PC1 / adc11  | current input |
+| 6 | `ADC_POT0`   | PC2 / adc12  | right on-board potentiometer |
+| 7 | `ADC_POT1`   | PC3 / adc13  | left on-board potentiometer |
+| 8 | `ADC_CH_TSEN`| internal     | MCU temperature sensor |
+| 9 | `ADC_CH_VDD` | internal     | Vdd reference |
+
+Each channel is sampled continuously in scan mode via DMA into a circular buffer of `9 ×
+ADC_CHANNELS` values. The getter returns the median of the last 9 samples per channel. Reported raw
+values are 12-bit (0..4095).
+
+The `mcutemp` command returns MCU temperature in `°C × 10` (as `int32_t`).
+
+## Runtime parameters
+
+### Watchdog
+
+IWDG prescaler `/4` (LSI ≈ 40 kHz) with reload 1250 → about **125 ms** watchdog timeout. Refreshed
+in every main-loop iteration, in DMA/send wait loops and during flash writes. Any hang longer than
+that triggers a reset.
+
+### CAN timeouts
+
+- Mailbox wait inside `CAN_send()`: `SEND_TIMEOUT_MS / 10` = **10 ms**.
+- High-level send loops (command reply, ESW notifications): up to `SEND_TIMEOUT_MS` = **100 ms**.
+If a message cannot be queued, `error=canbusy` is printed to USART.
+
+### Buffer sizes
+
+| Subsystem    | Macro                | Value | Notes |
+|--------------|----------------------|-------|-------|
+| USART input  | `UARTBUFSZI`         | 196   | longer lines are dropped; firmware prints `USART IN buffer overflow!` |
+| USART output | `UARTBUFSZO`         | 256   | |
+| CAN RX queue | `CAN_INMESSAGE_SIZE` | 8     | extra messages are dropped silently |
+| Modbus RX    | `MODBUSBUFSZI`       | 68    | |
+| Modbus TX    | `MODBUSBUFSZO`       | 64    | |
+
+## Serial protocol
+
+Every command is a string terminated by `\n`. General syntax:
+
+```
+command[number][=value]
+```
+
+- `command` — command name (letters/digits);
+- `number` — optional parameter number, 0..127;
+- `=value` — optional setter value.
+
+Numbers are parsed by `getnum()` and accept decimal (`123`), hexadecimal (`0x7B`), octal (`0173`)
+and binary (`0b1111011`). Signed values (`getint()`) allow a leading `-`.
+
+Values in parentheses after a flag command is its bit number in the whole `uint32_t`. E.g. to reset
+flag `f_relay_inverted` you can call `f_relay_inverted=0` or `flags2=0`.
+
+```
 commands format: parameter[number][=setter]
 parameter [CAN idx] - help
 --------------------------
@@ -44,7 +164,7 @@ saveconf [9] - save configuration
 usartspeed [15] - get/set USART1 speed
 
 IN/OUT:
-adc [4] - get raw ADC values for given channel
+adc [4] - get raw ADC value for the given channel (0..9)
 esw [12] - anti-bounce read inputs
 eswnow [13] - read current inputs' state
 led [16] - work with onboard LED
@@ -59,316 +179,380 @@ outchannels [19] - get u32 with bits set on supported OUT channels
 reset [1] - reset MCU
 time [2] - get/set time (1ms, 32bit)
 wdtest - test watchdog
-
-
 ```
 
-Value in square brackets is CAN bus command code.
+Value in square brackets is the CAN bus command code (see below).
 
-The INs are changed compared to original "FX3U" clone: instead of the absent IN8 I use the on-board 
-button "RUN".
+### Notes on specific commands
+
+#### `bounce`
+
+`bouncetime` (default 50 ms) is not a classical debounce delay — it is the **per-input sampling
+interval**. Once an input has been sampled, it will not be re-read until `bouncetime` milliseconds
+have elapsed. Worst-case reaction time for an input change is therefore up to `bouncetime` ms;
+changes within that window are ignored (which is the debounce behaviour itself).
+
+#### `s`
+
+Send a CAN message. All numbers are space-separated; the first is the CAN ID (0..0x7FF), the
+remaining 0..8 numbers are data bytes. Numbers may be given in any format accepted by `getnum()`.
+
+```
+s 0x123 0x11 0x22 0x33
+s 291 1 2 3 4
+```
+
+On invalid arguments the firmware prints `error=badpar` / `error=badval` / `error=wronglen` and
+sends nothing.
+
+#### `cansniff`
+
+When enabled, every received CAN frame is printed to USART in the format:
+
+```
+<time_ms> #<ID> <b0> <b1> ...
+```
+
+All fields are hexadecimal except `<time_ms>`. While messages are being received, the regular
+periodic USART keep-alive is suppressed.
+
+#### `adc`
+
+Accepts a parameter number 0..9 (`ADC_CHANNELS - 1`). Numbers outside this range return
+`error=badpar`.
+
+#### `flags`
+
+With a parameter number (0..`MAX_FLAG_BITNO` = 0..3): sets/reads the Nth bit only. Without a
+parameter ("no par", 0x7F): operates on the whole `uint32_t`. Bits above `MAX_FLAG_BITNO` return
+`error=badpar`.
+
+### Default configuration
+
+Flash storage is empty after flashing; on first boot `flashstorage_init()` returns `currentconfidx
+= -1` and the firmware uses `USERCONF_INITIALIZER` from `flash.c`:
+
+```
+CANspeed    = 250000
+CANIDin     = 1
+CANIDout    = 2
+usartspeed  = 115200
+bouncetime  = 50
+modbusID    = 1
+modbusIDout = 2
+modbusspeed = 9600
+flags       = { sw_send_relay_inv = 1 }
+```
+
+After the first `saveconf`, these defaults are replaced by the stored record.
 
 ## CAN bus protocol
 
-Default CAN speed is 250kbaud.  Default CAN ID: 1 and 2 for slave. 
-All data in little-endian format!
+Default speed is 250 kbit/s. Default CAN IDs are 1 (input) and 2 (output) for a slave. **All
+multi-byte data is little-endian.**
 
-BYTE -  MEANING
+| Byte(s) | Meaning |
+|---------|---------|
+| 0, 1    | `uint16_t` command code (see table below) |
+| 2       | `uint8_t` parameter number: 0..126, ORed with 0x80 for setter, 127 = "no parameter" |
+| 3       | `uint8_t` error code (only in device answers) |
+| 4..7    | `int32_t` data |
 
-0, 1 - (uint16_t) - command code (value in square brackets upper);
+When the device receives a CAN packet addressed to its own ID or to ID = 0 ("broadcast"), it
+performs the requested action and sends an answer (usually a getter reply). If the command cannot
+be executed or carries bad data, the device returns the same packet with the error code inserted
+into byte 3.
 
-2 - (uint8_t) - parameter number (e.g. ADC channel or X/Y channel number), 0..126 [ORed with 0x80 for setter], 127 means "no parameter";
+Getters may be requested by a 3-byte packet (command code + parameter). "No parameter" (0x7F) in
+some commands means "all data" — e.g. get/set all relays or get all inputs.
 
-3 - (uint8_t) - error code (only when device answers for requests);
+### CAN bus error codes (byte 3 of the answer)
 
-4..7 - (int32_t) - data.
+| Code | Name             | Meaning |
+|------|------------------|---------|
+| 0    | `ERR_OK`         | all OK |
+| 1    | `ERR_BADPAR`     | wrong parameter |
+| 2    | `ERR_BADVAL`     | value out of range |
+| 3    | `ERR_WRONGLEN`   | wrong message length (for setter or where a parameter is required) |
+| 4    | `ERR_BADCMD`     | unknown command code |
+| 5    | `ERR_CANTRUN`    | cannot run the command (bad parameters or other reason) |
 
-When device receives CAN packet with its ID or ID=0 ("broadcast" message) it check this packet, perform some action and sends answer
-(usually - getter). If command can't be execute or have wrong data (bad command, bad parameter number etc) the device sends back
-the same packet with error code inserted.
+Bus-level errors (stuff/form/ack/bit/CRC, bus-off, error-passive, error-warning) are not reported
+in byte 3. They are printed over USART by `CAN_printerr()` when the `canbuserr` printer is enabled:
 
-When runnming getter you can send only three bytes: command code and parameter number. Sending "no parameter" instead of parno
-means in some commands "all data" (e.g. get/set all relays or get all inputs).
+```
+Receive error counter: <n>
+Transmit error counter: <n>
+Last error code: <name>
+[Bus off] [Passive error limit] [Error counter limit]
+```
 
-### CAN bus error codes
+### CAN command codes
 
-0 - `ERR_OK`       - all OK,
+| Code | Enum | Text command |
+|------|------|--------------|
+| 0  | `CMD_PING`         | (ping) |
+| 1  | `CMD_RESET`        | `reset` |
+| 2  | `CMD_TIME`         | `time` |
+| 3  | `CMD_MCUTEMP`      | `mcutemp` |
+| 4  | `CMD_ADCRAW`       | `adc` |
+| 5  | `CMD_CANSPEED`     | `canspeed` |
+| 6  | `CMD_CANID`        | `canid` |
+| 7  | `CMD_CANIDin`      | `canidin` |
+| 8  | `CMD_CANIDout`     | `canidout` |
+| 9  | `CMD_SAVECONF`     | `saveconf` |
+| 10 | `CMD_ERASESTOR`    | `eraseflash` |
+| 11 | `CMD_RELAY`        | `relay` |
+| 12 | `CMD_GETESW`       | `esw` |
+| 13 | `CMD_GETESWNOW`    | `eswnow` |
+| 14 | `CMD_BOUNCE`       | `bounce` |
+| 15 | `CMD_USARTSPEED`   | `usartspeed` |
+| 16 | `CMD_LED`          | `led` |
+| 17 | `CMD_FLAGS`        | `flags` |
+| 18 | `CMD_INCHNLS`      | `inchannels` |
+| 19 | `CMD_OUTCHNLS`     | `outchannels` |
+| 20 | `CMD_MODBUSID`     | `modbusid` |
+| 21 | `CMD_MODBUSIDOUT`  | `modbusidout` |
+| 22 | `CMD_MODBUSSPEED`  | `modbusspeed` |
 
-1 - `ERR_BADPAR`   - parameter is wrong,
+### Examples
 
-2 - `ERR_BADVAL`   - value is wrong (e.g. out of range),
+All data in hex. Slave ID is omitted.
 
-3 - `ERR_WRONGLEN` - wrong message length (for setter or for obligatory parameter number),
+Get current time:
+- request: `02 00 00`
+- answer: `02 00 00 00 de ad be ef` — last four bytes are time in ms since power-up.
 
-4 - `ERR_BADCMD`   - unknown command code,
+Set relay number 5:
+- request: `0b 00 85 00 01 00 00 00`
+- answer: `0b 00 05 00 01 00 00 00`
 
-5 - `ERR_CANTRUN`  - can't run given command due to bad parameters or other reason.
+Set relays 0..3, reset the rest:
+- request: `0b 00 ff 00 07 00 00 00`
+- answer: `0b 00 7f 00 07 00 00 00`
 
-### CAN bus command codes
-
-Number - enum from canproto.h - text command analog
-
-0 - CMD_PING - ping
-
-1- CMD_RESET - reset
-
-2 - CMD_TIME - time
-
-3 - CMD_MCUTEMP - mcutemp
-
-4 - CMD_ADCRAW - adc
-
-5 - CMD_CANSPEED - canspeed
-
-6 - CMD_CANID - canid
-
-7 - CMD_CANIDin - canidin
-
-8 - CMD_CANIDout - canidout
-
-9 - CMD_SAVECONF - saveconf
-
-10 - CMD_ERASESTOR - eraseflash
-
-11 - CMD_RELAY - relay
-
-12 - CMD_GETESW - esw
-
-13 - CMD_GETESWNOW - eswnow
-
-14 - CMD_BOUNCE - bounce
-
-15 - CMD_USARTSPEED - usartspeed
-
-16 - CMD_LED - led
-
-17 - CMD_FLAGS - flags
-
-18 - CMD_INCHNLS - inchannels
-
-19 - CMD_OUTCHNLS - outchannels
-
-20 - CMD_MODBUSID - modbusid
-
-21 - CMD_MODBUSIDOUT - modbusidout
-
-22 - CMD_MODBUSSPEED - modbusspeed
-
-### Examples of CAN commands (bytes of data transmitted with given ID)
-
-(all data in HEX)
-
-Get current time: "02 00 00". Answer something like "02 00 00 00 de ad be ef", where last four bytes
-is time value (in milliseconds) from powering on.
-
-Set relay number 5: "0b 00 85 00 01 00 00 00", answer: "0b 00 05 00 01 00 00 00".
-
-Set relays 0..3 and reset other: "0b 00 ff 00 07 00 00 00", answer: "0b 00 7f 00 07 00 00 00".
-
-Changing flags is the same as for text command: with parameter number (0..31) it will only change given
-bit value, without ("no par" - 0x7f) will change all bits like whole uint32_t.
+Changing flags works like the text command: with a parameter number the Nth bit is changed, without
+a parameter the whole `uint32_t` is replaced.
 
 ## MODBUS-RTU protocol
 
-The device can work as master or slave.  Default format is 9600-8N1. BIG ENDIAN (like standard requires).
-Default device ID is 1 ans 2 for target of "relay command" (if ID would be changed to 0 and flag `f_send_relay_modbus` set.
+The device can operate as master or slave. Default format is 9600-8N1. **Big-endian**, as the
+standard requires. Default slave ID is 1, and the "relay command" target ID is 2.
 
-To run in master mode you should set its modbus ID to zero. Command `modbus` lets you to send strict 
-formal modbus packet in format "slaveID fcode regaddr nregs [N data]" (all are space-delimited numbers in
-decimal, hexadecimal (e.g. 0xFF), octal (e.g. 075) or binary (e.g. 0b1100110) format.
-Here "slaveID" - one byte; "fcode" - one byte; "regaddr" - two bytes big endian; "nregs" - two bytes big endian;
-"N" - one byte; "data" - N bytes.
-Optional data bytes allowed only for "multiple" functions. In case of simple setters "nregs" is two bytes data
-sent to slave. 
+Set `modbusid=0` to enter master mode. In master mode the device no longer answers incoming modbus
+requests, but instead parses incoming **responses** and prints them to USART.
 
-The command `modbusraw` will not check your data, just add CRC and send into bus.
+The `modbus` command sends a formal modbus request in the format:
 
-In master mode you can activate flag `f_send_relay_modbus`. In this case each time the IN state changes
-device will send command with ID=`modbusidout` to change corresponding relays. So, like for CAN commands
-you can bind several devices to transmit IN states of one to OUT states of another. 
-If `modbusidout` is zero, master will send broadcasting command. Slaves non answer for broadcast, only making
-required action.
+```
+modbus = slaveID fcode regaddr nregs [N data]
+```
 
-The hardware realisation of modbus based on UART4. Both input and output works over DMA, signal of packet end
-is IDLE interrupt. This device doesn't supports full modbus protocol realisation: no 3.5 idle frames as packet
-end; no long packets (input buffer is 68 bytes, allowing no more that 67 bytes; output buffer is 64 bytes, allowing
-no more that 64 bytes). Maximal modbus slave ID is 247. You can increase in/out buffers size changing value of
-macros `MODBUSBUFSZI` and `MODBUSBUFSZO` in `modbusrtu.h`.
+All numbers are space-separated and parsed by `getnum()` (decimal / hex / octal / binary).
+`slaveID` and `fcode` are one byte each; `regaddr` and `nregs` are two bytes little-endian; `N` is
+one byte; `data` is N bytes. Optional data bytes are allowed only for "multiple" functions (0x0F,
+0x10). For simple setters (0x05, 0x06) `nregs` is the two-byte value written to the slave.
 
-In slave mode device doesn't support whole CAN-bus commands range. Next I describe allowed commands.
+```
+modbus = 1 6 2 1             # slave 1, write register, register 2 (MR_LED), value 1
+modbus = 1 0x0f 0 8 1 0xff   # slave 1, write coils, 8 coils, 1 byte of data
+```
 
-There are five holding registers. "[R]" means read-only, "[W]" - write-only, "[RW]" - read and write.
+`modbusraw` does not validate the fields; it just sends the data (user should add CRC by himself).
+Useful for testing unusual requests.
 
-0 - MR_RESET [W] - reset MCU.
+In master mode, flag `f_send_relay_modbus` makes the device send an "write coils" command with ID =
+`modbusidout` every time the IN state changes. This lets you bind several devices: inputs of one
+drive the outputs of another. If `modbusidout` is zero, a broadcast is sent (slaves do not reply to
+broadcasts, they just perform the action).
 
-1 - MR_TIME [RW] - read or set MCU time (milliseconds, uint32_t).
+### Implementation notes
 
-2 - MR_LED [RW] - read or change on-board LED state.
+- Modbus uses UART4 with DMA for both RX and TX. End of frame is detected by the IDLE interrupt.
+- There is no 3.5-character silent-interval handling — any IDLE marks the end of a packet.
+- Input buffer is 68 bytes (up to 67 data bytes), output buffer is 64 bytes (up to 64 bytes).
+Enlarge `MODBUSBUFSZI` / `MODBUSBUFSZO` in `modbusrtu.h` if needed.
+- Maximal modbus slave ID is 247.
+- The device does **not reply** to broadcast requests (ID = 0).
 
-3 - MR_INCHANNELS [R] - get uint32_t value where each N-th bit means availability of N-th IN channel 
-(e.g. if 9th channel is physically absent 9th bit would be 0).
+### Slave registers
 
-### Supported functional codes
+Holding registers: `[R]` = read-only, `[W]` = write-only, `[RW]` = read/write.
 
-#### 01 - read coil
-Read state of all relays. Obligatory regaddr="00 00", nregs="00 N", where "N" is 8-multiple
-number (in case of 10-relay module: 8 or 16). You will reseive N/8 bytes of data with relays' status (e.g. most 
-lest significant bit is state or relay0, next - relay1 and so on).
+| № | Symbol            | Access | Meaning |
+|---|-------------------|--------|---------|
+| 0 | `MR_RESET`        | W      | reset MCU |
+| 1 | `MR_TIME`         | RW     | MCU time in ms (`uint32_t`) |
+| 2 | `MR_LED`          | RW     | on-board LED state |
+| 3 | `MR_INCHANNELS`   | R      | `uint32_t` of available IN channels |
+| 4 | `MR_OUTCHANNELS`  | R      | `uint32_t` of available OUT channels |
 
-Example: "01 01 00 00 00 10" - read state of all relays. If only relay 10 active you will 
-receive: "01 01 02 04 00".
+### Supported function codes
 
-Errors: "02" - "regaddr" isn't zero; "03" - N isn't multiple of 8 or too large.
+#### 01 — read coils
+Read state of all relays. `regaddr` must be 0, `nregs` must be a multiple of 8 (in this hardware: 8 or 16). Answer contains `nregs / 8` bytes; bit 0 of the first data byte is relay 0.
 
-#### 02 - read discrete input
-Read state of all discrete inputs. Input/output parameters are the same like for "read coil".
+Example — read all relays; only relay 10 active:
+- request: `01 01 00 00 00 10`
+- answer: `01 01 02 00 04`
 
-Example: "01 02 00 00 00 08" - read 8 first INs. Answer if first 4 inputs active (disconnected):
-"01 02 01 0f".
+Errors: `02` — non-zero `regaddr`; `03` — `nregs` not a multiple of 8 or too large.
 
-Errors: like for "read coil".
+#### 02 — read discrete inputs
+Same semantics as "read coils", but for the IN channels.
 
-#### 03 - read holding register
-You can read value of non write-only registers. You can read only one register by time.
+Example — read first 8 INs; all 4 low-order inputs active:
+- request: `01 02 00 00 00 08`
+- answer: `01 02 01 0f`
 
-Example: "01 03 00 01 00 01" - read time. Answer: "01 03 04 00 15 53 01", where 0x00155301 is 1397.505 seconds 
-from device start.
+#### 03 — read holding register
+Reads one register at a time.
 
-Errors: "02" - "regaddr" is wrong, "03" - "regno" isn't 1.
+Example — read time:
+- request: `01 03 00 01 00 01`
+- answer: `01 03 04 01 53 15 00` — value `0x00155301` = 1397505 ms ≈ 1397.5 s.
 
-#### 04 - read input register
-Read "nregs" ADC channels starting from "regaddr" number.
+Errors: `02` — bad `regaddr`; `03` — `regno != 1`.
 
-Example: "01 04 00 05 00 04" - read channels 5..8.  
-Answer: "01 04 08 08 6c 00 21 00 33 00 41" - got 0x86c (2156) for 5th channel and so on.
+#### 04 — read input register
+Read `nregs` ADC channels starting at `regaddr`.
 
-Errors: "02" - wrong starting number, "03" - wrong amount (zero or N+start > last channel available).
+Example — read channels 5..8:
+- request: `01 04 00 05 00 04`
+- answer: `01 04 08 6c 08 21 00 33 00 41 00` — `0x086c` (2156) for channel 5, etc.
 
-#### 05 - write coil
-Change single relay state. "nregs" is value (0 - off, non-0 - on), "regaddr" is relay number.
+Errors: `02` — bad start channel; `03` — bad amount (zero or beyond last channel).
 
-Example: "01 05 00 03 00 01" - turn 3rd relay on. Answer: "01 05 00 03 00 01".
+#### 05 — write coil
+Changes a single relay state. `regaddr` — relay number, `nregs` — value (0 = off, non-zero = on).
 
-Errors: "02" - wrong relay number.
+Example:
+- request: `01 05 00 03 00 01`
+- answer: `01 05 00 03 00 01`
 
-#### 06 - write holding register
-Write data to non read-only register (reset MCU, change time value or turn LED on/off). 
+Errors: `02` — bad relay number.
 
-Example: "01 06 00 02 00 01" - turn LED on. Answer: "01 06 00 02 00 01".
+#### 06 — write holding register
+Writes to one register (`MR_RESET`, `MR_TIME` or `MR_LED`).
 
-Errors: "02" - wrong register.
+Example — turn LED on:
+- request: `01 06 00 02 00 01`
+- answer: `01 06 00 02 00 01`
 
-#### 0f - write multiple coils
-Change state of all relays by once. Here "regaddr" should be "00 00", 
-"nregs" should be multiple of 8, "N" should be equal ("nregs"+7)/8. Each data bit means nth relay state.
+Errors: `02` — bad register.
 
-Example: "01 0f 00 00 00 08 01 ff" - turn on relays 0..7.
-Answer: "01 0f 00 00 00 08".
+#### 0F — write multiple coils
+Changes all relays at once. `regaddr` must be 0, `nregs` a multiple of 8, `N` = `(nregs + 7) / 8`.
+Each data bit is a relay state.
 
-Errors: "02" - "regaddr" isn't zero, "03" - wrong amount of relays, "07" - can't change relay values.
+Example — turn on relays 0..7:
+- request: `01 0f 00 00 00 08 ff 01`
+- answer: `01 0f 00 00 00 08`
 
+Errors: `02` — non-zero `regaddr`; `03` — wrong amount; `07` — cannot change relays.
 
-#### 10 - write multiple registers
-You can write only four "registers" by once changing appropriate uint32_t value. 
-The only "register" you can change is 01 - MR_TIME. "nregs" should be equal 1.
+#### 10 — write multiple registers
+Only `MR_TIME` can be written this way; `nregs` must be 1 and the data length 4 bytes.
 
-Example: "01 10 00 01 00 01 04 00 00 00 00" - clears Tms counter, starting time from zero.
-Answer: "01 10 00 01 00 01".
+Example — clear `Tms`:
+- request: `01 10 00 01 00 01 04 00 00 00 00`
+- answer: `01 10 00 01 00 01`
 
-Errors: "02" - wrong register.
+Errors: `02` — wrong register.
 
+### Modbus exception codes
 
-### Error codes
-01 - ME_ILLEGAL_FUNCION - The function code received in the request is not an authorized action for the slave.
+| Code | Name | Meaning |
+|------|------|---------|
+| 01 | `ME_ILLEGAL_FUNCION` | function code is not authorized for the slave |
+| 02 | `ME_ILLEGAL_ADDRESS` | data address is not authorized |
+| 03 | `ME_ILLEGAL_VALUE`   | data field value is not authorized |
+| 04 | `ME_SLAVE_FAILURE`   | unrecoverable error |
+| 05 | `ME_ACK`             | accepted, but processing takes a long time |
+| 06 | `ME_SLAVE_BUSY`      | slave is busy |
+| 07 | `ME_NACK`            | programming request cannot be performed |
+| 08 | `ME_PARITY_ERROR`    | memory parity error |
 
-02 - ME_ILLEGAL_ADDRESS - The data address received by the slave is not an authorized address for the slave.
+## Limitations
 
-03 - ME_ILLEGAL_VALUE - The value in the request data field is not an authorized value for the slave.
+- CAN RX queue holds 8 messages; extras are dropped silently.
+- USART RX buffer holds 196 bytes; longer lines are discarded with an error message.
+- Modbus does not implement the 3.5-character silent interval. Buffers are 67/64 bytes.
+- The Modbus master does not implement retries, timeouts or a transaction queue — it just prints
+incoming responses. Reliable exchange should be arranged by the host.
+- CAN filters accept only the configured `CANIDin` plus ID 0 (broadcast); the "monitor" mode adds a
+second, match-all filter.
+- The IWDG is enabled in release builds. Any hang longer than ~125 ms triggers a reset.
+- The `EBUG` build disables the IWDG and enables verbose `DBG(...)` messages.
 
-04 - ME_SLAVE_FAILURE - The slave fails to perform a requested action because of an unrecoverable error.
+## Short programming guide
 
-05 - ME_ACK - The slave accepts the request but needs a long time to process it.
+### Adding a new value to flash storage
 
-06 - ME_SLAVE_BUSY - The slave is busy processing another command.
+All stored values are described in `struct user_conf` (`flash.h`). You can add new fields, but keep
+32-bit alignment in mind. Bit flags live in `union confflags_t`, which combines 32-bit and per-bit
+access.
 
-07 - ME_NACK - The slave cannot perform the programming request sent by the master.
+After adding a field:
+1. Add a setter/getter (usually via `u32setget` or `flagsetget`).
+2. Add a line in `dumpconf()` (`proto.c`).
 
-08 - ME_PARITY_ERROR - Memory parity error: slave is almost dead.
+The text protocol allows working with flags by their semantic name. To add a flag, edit `proto.c`:
+- add a `static const char* S_f_...` constant with the flag name;
+- add its address to the `bitfields[]` array **in the same order as the bits are defined in
+`confflags_t`** (critical: `dumpconf` and `confflags` index this array by bit number);
+- add an entry to the `text_cmd` enum;
+- add a `funcdescr` entry to `funclist`;
+- modify `confflags()` for setter/getter handling.
 
+### Adding a new command
 
+Base commands are processed in `canproto.c` and `proto.c`. `modbusproto.c` handles modbus-specific
+commands.
 
+To add a CAN/serial command:
 
-# Short programming guide
+1. Add an enum member in `canproto.h` (`CMD_...`). **This value is the numeric command code** on
+the wire.
+2. Add a string constant with the text command name in `proto.c`.
+3. Add a `funcdescr` entry to `funclist`.
+4. Implement the handler in `canproto.c` (returns one of `errcodes`, receives a `CAN_message *`).
 
-## Adding a new value to flash storage
+**Important:** the `funclist[]` array in `canproto.c` is indexed by enum value — the entry for
+`CMD_X` must be at array position `CMD_X`. Use designated initializers (`[CMD_X] = {...}`) as the
+existing code does.
 
-All storing values described in structure `user_conf` (`flash.h`). You can add there any new value
-but be carefull with 32-bit alignment. Bit flags stored as union `confflags_t` combining 32-bit and 1-bit access.
-After you add this new value don't forget to add setter/getter and string describing it in function `dumpconf`.
+The `commonfunction` struct has fields `{fn, minval, maxval, datalen}`:
+- `minval == maxval` disables range checking of the value (bytes 4..7) for setter commands;
+- `datalen` is the minimal packet length in bytes that the handler requires.
 
-Text protocol allows you to work with flags by their semantic name. So to add some flag you should also modify
-`proto.c`:
+The handler only sees a `CAN_message *`. The serial parser builds an equivalent packet from user
+input: `[C C P 0 V0 V1 V2 V3]`, where `C` = command code (little-endian); `P` = parameter number
+(or 0x7F if not specified), ORed with 0x80 in case of a setter; `Vx` = bytes of the user value
+(little-endian).
 
-- add text constant with flag name;
-- add address of this constant into `bitfields` array (according to bit order in flags);
-- add appropriate enum into `text_cmd`;
-- add appropriate string into `funclist`: pointer to string constant, enum field and help text;
-- modify function `confflags` for setter/getter of new flag.
+For `uint32_t` configuration values use `u32setget`; for bit flags — `flagsetget`.
 
+### Adding a serial-only command
 
-## Adding a new command
+If the command has no CAN equivalent, work purely in `proto.c`:
+- add an entry to the `text_cmd` enum (negative indices are used in `funclist`);
+- add a string constant and a `funcdescr` entry;
+- implement the handler with signature `errcodes fn(const char *str, text_cmd cmd)`;
+- register it in the `textfunctions[]` array.
 
-All base commands are processed in files `canproto.c` and `proto.c`. `modbusproto.c` is for modbus-specific commands.
+### Working with modbus
 
-To add CAN/serial command you should first add a field to anonimous enum in `canproto.h`, which will be number code of 
-given CANbus command. Codes of serial-only commands are stored in enum `text_cmd` of file `proto.c`. 
+Modbus-specific enums (`modbus_fcode`, `modbus_exceptions`) and structs (`modbus_request`,
+`modbus_response`) are declared in `modbusrtu.h`. `data` fields hold bytes in wire order. For
+requests without data (Fcode ≤ 6), `data` may be `NULL`.
 
-### Add both CAN/serial command
-- add enum in `canproto.c`;
-- add string const with text name of this command in `proto.c`;
-- add string to `funclist` with address of string const, enum and help;
-- add command handler into `canproto.c` and describer into array `funclist` (index should be equal
-to command code, struct consists from pointer to handler, minimal and maximal value and minimal data length
-of can packet). If min==max then argument wouldn't be checked.
+High-level modbus slave handlers live in `modbusproto.c`. To add a new register, extend the
+`modbus_registers` enum in `modbusproto.h` and handle the new value in `readreg()`, `writereg()` or
+`writeregs()`. The main dispatch point is `parse_modbus_request()`.
 
-The handler returns one of `errcodes` and have as argument only pointer to `CAN_message` structure. 
-So, serial command parser before call this handler creates CAN packet from user data.
-Format of command is next: "cmd[X][=VAL]", where "cmd" is command text, "X" - optional parameter,
-"VAL" - value for setter. So the packet would be "C C P 0 VAL0 VAL1 VAL2 VAL3", where
-"C" - command code, "P" - parameter number (or 0x7f" if X is omit) OR'ed with 0x80 for setter,
-VALx - xth byte (little endian) of user value.
+---
 
-For setting/getting uint32_t paramegers (especially configuration parameters) you can use handler `u32setget`.
-For bit flags - `flagsetget`.
+## License
 
-To work with bit-flags by particular name use `confflags` handler of `proto.c`.
-
-### Add serial-only command
-In this case there's no CAN handler. You work only with `proto.c`.
-- add enum in `text_cmd`;
-- add string const with text name of this command;
-- add string to `funclist` with address of string const, enum and help;
-- add command handler;
-- add pointer to this handler into `textfunctions` array.
-
-Handler also returns one of `errcodes`, but have next arguments:
-- `const char *txt` - all text (excluding spaces in beginning) after command in user string;
-- `text_cmd command` - number of command (useful when you have common handler for several commands).
-
-## Working with modbus
-
-All exceptions and functional codes described as enums in `modbusrtu.h`. 
-To form request or responce use structs `modbus_request` and `modbus_responce`. `data` fields in this 
-structs is big-endian storing bytes in order like they will be sent via RS-485.
-Amount of data bytes should be not less then `datalen` value. For requests that don't need data, 
-`data` may be NULL regardless `datalen` (for Fcode <= 6). `regno` is amount of registers or 
-data written to register dependent on `Fcode`.
-The responce struct of error codes have NULL in `data` and `datalen` is appropriate exception code.
-
-All high-level commands are in `modbusproto.c`. To add new `register` you should edit `modbus_regusters`
-enum in `modbusproto.h`.
-
-The main parsing pipeline is `parse_modbus_request` in `modbusproto.c`. 
-Here you can add parsing of new functional codes.
-
-To work with new "registers" edit `readreg`, `writereg` or `writeregs`.
+All source files are licensed under **GNU General Public License v3.0** unless stated otherwise. 

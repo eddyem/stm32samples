@@ -106,6 +106,7 @@ int store_userconf(){
 
 static int write2flash(const void *start, const void *wrdata, uint32_t stor_size){
     int ret = 0;
+    __disable_irq();
     if (FLASH->CR & FLASH_CR_LOCK){ // unloch flash
         FLASH->KEYR = FLASH_KEY1;
         FLASH->KEYR = FLASH_KEY2;
@@ -120,11 +121,13 @@ static int write2flash(const void *start, const void *wrdata, uint32_t stor_size
         *(volatile uint16_t*)(address + i) = data[i];
         while(FLASH->SR & FLASH_SR_BSY) IWDG->KR = IWDG_REFRESH;
         if(*(volatile uint16_t*)(address + i) != data[i]){
+            __enable_irq();
             usart_send("DON'T MATCH!\n");
             ret = 1;
             break;
         }
         if(FLASH->SR & FLASH_SR_PGERR){
+            __enable_irq();
             usart_send("Prog err\n");
             ret = 1; // program error - meet not 0xffff
             break;
@@ -132,6 +135,7 @@ static int write2flash(const void *start, const void *wrdata, uint32_t stor_size
         FLASH->SR = FLASH_SR_EOP | FLASH_SR_PGERR | FLASH_SR_WRPRTERR;
     }
     FLASH->CR &= ~(FLASH_CR_PG);
+    __enable_irq();
     return ret;
 }
 

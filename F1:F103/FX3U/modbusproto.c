@@ -48,7 +48,7 @@ TRUE_INLINE void readcoil(modbus_request *r){
     int curidx = OUTMAXBYTES;
     int vals = get_relay(OUTMAX+1);
     for(int i = 0; i < amount; ++i){
-        bytes[--curidx] = vals & 0xff;
+        bytes[i] = vals & 0xff;
         vals >>= 8;
     }
     modbus_response resp = {.Fcode = r->Fcode, .ID = the_conf.modbusID, .data = bytes+curidx, .datalen = amount};
@@ -69,7 +69,7 @@ TRUE_INLINE void readdiscr(modbus_request *r){
     }
     uint8_t bytes[INMAXBYTES] = {0};
     int vals = get_esw(INMAX+1);
-    for(int i = amount - 1; i > -1; --i){
+    for(int i = 0; i < amount; ++i){
         bytes[i] = vals & 0xff;
         vals >>= 8;
     }
@@ -167,8 +167,7 @@ TRUE_INLINE void writecoils(modbus_request *r){
     }
     uint32_t v = 0;
     for(int i = 0; i < amount; ++i){
-        v <<= 8;
-        v |= r->data[i];
+        v |= r->data[i] << (8 * i);
     }
     if(set_relay(OUTMAX+1, v) < 0){
         senderr(r, ME_NACK);
