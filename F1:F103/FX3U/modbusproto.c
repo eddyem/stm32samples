@@ -45,13 +45,12 @@ TRUE_INLINE void readcoil(modbus_request *r){
         return;
     }
     uint8_t bytes[OUTMAXBYTES] = {0};
-    int curidx = OUTMAXBYTES;
     int vals = get_relay(OUTMAX+1);
     for(int i = 0; i < amount; ++i){
         bytes[i] = vals & 0xff;
         vals >>= 8;
     }
-    modbus_response resp = {.Fcode = r->Fcode, .ID = the_conf.modbusID, .data = bytes+curidx, .datalen = amount};
+    modbus_response resp = {.Fcode = r->Fcode, .ID = the_conf.modbusID, .data = bytes, .datalen = amount};
     modbus_send_response(&resp);
 }
 

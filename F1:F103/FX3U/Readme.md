@@ -426,7 +426,7 @@ Errors: `02` — bad start channel; `03` — bad amount (zero or beyond last cha
 #### 05 — write coil
 Changes a single relay state. `regaddr` — relay number, `nregs` — value (0 = off, non-zero = on).
 
-Example:
+Example - turn on coil 3:
 - request: `01 05 00 03 00 01`
 - answer: `01 05 00 03 00 01`
 
@@ -446,8 +446,12 @@ Changes all relays at once. `regaddr` must be 0, `nregs` a multiple of 8, `N` = 
 Each data bit is a relay state.
 
 Example — turn on relays 0..7:
-- request: `01 0f 00 00 00 08 ff 01`
+- request: `01 0f 00 00 00 08 01 ff`
 - answer: `01 0f 00 00 00 08`
+
+Turn on all relays (0..7 and 10, 11):
+- request: `01 0f 00 00 00 10 02 ff 0f`
+- answer: `01 0f 00 00 00 10 56 c2`
 
 Errors: `02` — non-zero `regaddr`; `03` — wrong amount; `07` — cannot change relays.
 
