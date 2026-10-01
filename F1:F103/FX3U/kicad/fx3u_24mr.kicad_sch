@@ -3805,6 +3805,156 @@
 			)
 			(embedded_fonts no)
 		)
+		(symbol "Device:D_TVS"
+			(pin_numbers
+				(hide yes)
+			)
+			(pin_names
+				(offset 1.016)
+				(hide yes)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "D"
+				(at 0 2.54 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "D_TVS"
+				(at 0 -2.54 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "~"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "Bidirectional transient-voltage-suppression diode"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "diode TVS thyrector"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_fp_filters" "TO-???* *_Diode_* *SingleDiode* D_*"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "D_TVS_0_1"
+				(polyline
+					(pts
+						(xy -2.54 1.27) (xy -2.54 -1.27) (xy 2.54 1.27) (xy 2.54 -1.27) (xy -2.54 1.27)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 0.508 1.27) (xy 0 1.27) (xy 0 -1.27) (xy -0.508 -1.27)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 1.27 0) (xy -1.27 0)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "D_TVS_1_1"
+				(pin passive line
+					(at -3.81 0 0)
+					(length 2.54)
+					(name "A1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 3.81 0 180)
+					(length 2.54)
+					(name "A2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
 		(symbol "Device:D_Zener"
 			(pin_numbers
 				(hide yes)
@@ -5179,144 +5329,6 @@
 					(at 3.81 0 180)
 					(length 1.27)
 					(name "2"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "2"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-			)
-			(embedded_fonts no)
-		)
-		(symbol "Diode:SM6T6V8A"
-			(pin_numbers
-				(hide yes)
-			)
-			(pin_names
-				(offset 1.016)
-				(hide yes)
-			)
-			(exclude_from_sim no)
-			(in_bom yes)
-			(on_board yes)
-			(property "Reference" "D"
-				(at 0 2.54 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Value" "SM6T6V8A"
-				(at 0 -2.54 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Footprint" "Diode_SMD:D_SMB"
-				(at 0 -5.08 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Datasheet" "https://www.st.com/resource/en/datasheet/sm6t.pdf"
-				(at -1.27 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Description" "600W unidirectional Transil Transient Voltage Suppressor, 6.8Vrwm, DO-214AA"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "ki_keywords" "diode TVS voltage suppressor"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "ki_fp_filters" "D*SMB*"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(symbol "SM6T6V8A_0_1"
-				(polyline
-					(pts
-						(xy -0.762 1.27) (xy -1.27 1.27) (xy -1.27 -1.27)
-					)
-					(stroke
-						(width 0.254)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy 1.27 1.27) (xy 1.27 -1.27) (xy -1.27 0) (xy 1.27 1.27)
-					)
-					(stroke
-						(width 0.254)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-			)
-			(symbol "SM6T6V8A_1_1"
-				(pin passive line
-					(at -3.81 0 0)
-					(length 2.54)
-					(name "A1"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "1"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 3.81 0 180)
-					(length 2.54)
-					(name "A2"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -11339,6 +11351,16 @@
 		)
 		(uuid face456b-c4d3-4977-8e8a-a5c27ba953ff)
 	)
+	(text "(COM)"
+		(exclude_from_sim no)
+		(at 453.39 176.53 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "13b660a1-268e-4493-beb4-6b6351d095ee")
+	)
 	(text "RS-232"
 		(exclude_from_sim no)
 		(at 81.28 332.74 0)
@@ -11389,9 +11411,9 @@
 		)
 		(uuid "4d7f305b-00a1-493f-995a-ab259abdad08")
 	)
-	(text "Analog inputs"
+	(text "Analog inputs (Umax = 10V)"
 		(exclude_from_sim no)
-		(at 254 309.88 0)
+		(at 247.65 309.88 0)
 		(effects
 			(font
 				(size 3 3)
@@ -11419,9 +11441,9 @@
 		)
 		(uuid "63aa7ac3-f03d-49c1-b81d-567c02d6c7a0")
 	)
-	(text "DAC output"
+	(text "DAC output (1mA max; 0..10V)"
 		(exclude_from_sim no)
-		(at 270.51 262.89 0)
+		(at 283.21 261.62 0)
 		(effects
 			(font
 				(size 2 2)
@@ -11449,6 +11471,16 @@
 			)
 		)
 		(uuid "6e99b878-c7ec-40c4-a4de-f1271a8da814")
+	)
+	(text "U_{Out} ≈ 3 U_{In}"
+		(exclude_from_sim no)
+		(at 256.54 275.59 0)
+		(effects
+			(font
+				(size 2 2)
+			)
+		)
+		(uuid "900d596b-090b-43b3-91ae-a2c6ad636a1f")
 	)
 	(text "Optional!"
 		(exclude_from_sim no)
@@ -11500,6 +11532,16 @@
 			)
 		)
 		(uuid "c405c04e-9d45-493c-a445-173823401c47")
+	)
+	(text "(Imax = 20mA)"
+		(exclude_from_sim no)
+		(at 247.65 340.36 0)
+		(effects
+			(font
+				(size 3 3)
+			)
+		)
+		(uuid "c71cecac-4533-4217-84db-c92ecac5dbce")
 	)
 	(text "Prog"
 		(exclude_from_sim no)
@@ -16403,7 +16445,7 @@
 			(uuid "29f388ae-600b-4244-8971-cb6dd7da67b4")
 		)
 		(instances
-			(project ""
+			(project "fx3u_24mr"
 				(path "/b583aae5-8eb0-4221-b485-3f768bd7f89b"
 					(reference "R1")
 					(unit 1)
@@ -16549,7 +16591,7 @@
 			(uuid "5ecb05b4-ca11-4ead-ba66-2f1f9a1b9191")
 		)
 		(instances
-			(project ""
+			(project "fx3u_24mr"
 				(path "/b583aae5-8eb0-4221-b485-3f768bd7f89b"
 					(reference "SW3")
 					(unit 2)
@@ -16820,7 +16862,7 @@
 			(uuid "08bb7a9d-9472-4365-a3d7-2ae360f76ebc")
 		)
 		(instances
-			(project ""
+			(project "fx3u_24mr"
 				(path "/b583aae5-8eb0-4221-b485-3f768bd7f89b"
 					(reference "#PWR046")
 					(unit 1)
@@ -16931,7 +16973,7 @@
 			(uuid "e354257e-d237-4e19-b7f5-02b63bdb9c55")
 		)
 		(instances
-			(project ""
+			(project "fx3u_24mr"
 				(path "/b583aae5-8eb0-4221-b485-3f768bd7f89b"
 					(reference "U3")
 					(unit 1)
@@ -17001,7 +17043,7 @@
 			(uuid "b9ad2e85-e01b-4b9b-8975-d6c132171592")
 		)
 		(instances
-			(project ""
+			(project "fx3u_24mr"
 				(path "/b583aae5-8eb0-4221-b485-3f768bd7f89b"
 					(reference "D20")
 					(unit 1)
@@ -17292,7 +17334,7 @@
 			(uuid "90d13576-6e80-4704-b0e7-3ada249fa550")
 		)
 		(instances
-			(project ""
+			(project "fx3u_24mr"
 				(path "/b583aae5-8eb0-4221-b485-3f768bd7f89b"
 					(reference "U22")
 					(unit 1)
@@ -17764,7 +17806,7 @@
 			(uuid "64240610-c4ea-40b7-9783-85aed92866b2")
 		)
 		(instances
-			(project ""
+			(project "fx3u_24mr"
 				(path "/b583aae5-8eb0-4221-b485-3f768bd7f89b"
 					(reference "U24")
 					(unit 1)
@@ -17831,7 +17873,7 @@
 			(uuid "57f9fc8a-d687-412b-ae4e-2f304f4150fc")
 		)
 		(instances
-			(project ""
+			(project "fx3u_24mr"
 				(path "/b583aae5-8eb0-4221-b485-3f768bd7f89b"
 					(reference "#FLG01")
 					(unit 1)
@@ -17897,7 +17939,7 @@
 			(uuid "c18acfe2-8260-4c99-be4b-099db0e70104")
 		)
 		(instances
-			(project ""
+			(project "fx3u_24mr"
 				(path "/b583aae5-8eb0-4221-b485-3f768bd7f89b"
 					(reference "#PWR051")
 					(unit 1)
@@ -17985,7 +18027,7 @@
 			(uuid "c9070210-9b6c-43e4-b00b-c539795a3fb5")
 		)
 		(instances
-			(project ""
+			(project "fx3u_24mr"
 				(path "/b583aae5-8eb0-4221-b485-3f768bd7f89b"
 					(reference "U25")
 					(unit 3)
@@ -18164,7 +18206,7 @@
 			(uuid "bb5a0fed-588b-4816-b33b-1cadfa365537")
 		)
 		(instances
-			(project ""
+			(project "fx3u_24mr"
 				(path "/b583aae5-8eb0-4221-b485-3f768bd7f89b"
 					(reference "U20")
 					(unit 1)
@@ -18402,7 +18444,7 @@
 			(uuid "5791c6a2-d543-40ab-9ae5-36e78c3c304b")
 		)
 		(instances
-			(project ""
+			(project "fx3u_24mr"
 				(path "/b583aae5-8eb0-4221-b485-3f768bd7f89b"
 					(reference "J7")
 					(unit 1)
@@ -18747,7 +18789,7 @@
 		)
 	)
 	(symbol
-		(lib_id "Diode:SM6T6V8A")
+		(lib_id "Device:D_TVS")
 		(at 68.58 250.19 90)
 		(unit 1)
 		(exclude_from_sim no)
@@ -18765,7 +18807,7 @@
 				(justify right)
 			)
 		)
-		(property "Value" "SM6T6V8A"
+		(property "Value" "P6SMB6.8"
 			(at 70.612 251.4021 90)
 			(effects
 				(font
@@ -18775,7 +18817,7 @@
 			)
 		)
 		(property "Footprint" "Diode_SMD:D_SMB"
-			(at 73.66 250.19 0)
+			(at 68.58 250.19 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -18783,8 +18825,8 @@
 				(hide yes)
 			)
 		)
-		(property "Datasheet" "https://www.st.com/resource/en/datasheet/sm6t.pdf"
-			(at 68.58 251.46 0)
+		(property "Datasheet" "~"
+			(at 68.58 250.19 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -18792,7 +18834,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" "600W unidirectional Transil Transient Voltage Suppressor, 6.8Vrwm, DO-214AA"
+		(property "Description" "Bidirectional transient-voltage-suppression diode"
 			(at 68.58 250.19 0)
 			(effects
 				(font
@@ -18954,7 +18996,7 @@
 			(uuid "5ecb05b4-ca11-4ead-ba66-2f1f9a1b9192")
 		)
 		(instances
-			(project ""
+			(project "fx3u_24mr"
 				(path "/b583aae5-8eb0-4221-b485-3f768bd7f89b"
 					(reference "SW3")
 					(unit 1)
@@ -19020,7 +19062,7 @@
 			(uuid "9d3dbc1b-15ac-42ec-8e79-33bd7953a488")
 		)
 		(instances
-			(project ""
+			(project "fx3u_24mr"
 				(path "/b583aae5-8eb0-4221-b485-3f768bd7f89b"
 					(reference "#PWR02")
 					(unit 1)
@@ -19157,7 +19199,7 @@
 			(uuid "afa81ebd-d054-4f33-bbf5-9aa05f2a9e28")
 		)
 		(instances
-			(project ""
+			(project "fx3u_24mr"
 				(path "/b583aae5-8eb0-4221-b485-3f768bd7f89b"
 					(reference "F1")
 					(unit 1)
@@ -19979,7 +20021,7 @@
 			(uuid "c9070210-9b6c-43e4-b00b-c539795a3fb6")
 		)
 		(instances
-			(project ""
+			(project "fx3u_24mr"
 				(path "/b583aae5-8eb0-4221-b485-3f768bd7f89b"
 					(reference "U25")
 					(unit 2)
@@ -20269,7 +20311,7 @@
 			(uuid "c9070210-9b6c-43e4-b00b-c539795a3fb7")
 		)
 		(instances
-			(project ""
+			(project "fx3u_24mr"
 				(path "/b583aae5-8eb0-4221-b485-3f768bd7f89b"
 					(reference "U25")
 					(unit 1)
@@ -20296,7 +20338,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "schottky"
+		(property "Value" "1N4148?"
 			(at 120.142 69.4746 90)
 			(effects
 				(font
@@ -20339,7 +20381,7 @@
 			(uuid "4939ffcd-4f71-4fa9-a0ba-37139fadf745")
 		)
 		(instances
-			(project ""
+			(project "fx3u_24mr"
 				(path "/b583aae5-8eb0-4221-b485-3f768bd7f89b"
 					(reference "D35")
 					(unit 1)
@@ -21750,7 +21792,7 @@
 			(uuid "d0e2b595-fd8b-40f3-b2a6-e692ef828198")
 		)
 		(instances
-			(project ""
+			(project "fx3u_24mr"
 				(path "/b583aae5-8eb0-4221-b485-3f768bd7f89b"
 					(reference "L1")
 					(unit 1)
@@ -21885,7 +21927,7 @@
 			(uuid "cce4560b-5eaf-4b66-aa7d-7b6c311f73a7")
 		)
 		(instances
-			(project ""
+			(project "fx3u_24mr"
 				(path "/b583aae5-8eb0-4221-b485-3f768bd7f89b"
 					(reference "J2")
 					(unit 1)
@@ -21894,7 +21936,7 @@
 		)
 	)
 	(symbol
-		(lib_id "Diode:SM6T6V8A")
+		(lib_id "Device:D_TVS")
 		(at 78.74 300.99 270)
 		(unit 1)
 		(exclude_from_sim no)
@@ -21912,7 +21954,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "SM6T6V8A"
+		(property "Value" "P6SMB6.8"
 			(at 80.772 302.2021 90)
 			(effects
 				(font
@@ -21922,7 +21964,7 @@
 			)
 		)
 		(property "Footprint" "Diode_SMD:D_SMB"
-			(at 73.66 300.99 0)
+			(at 78.74 300.99 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -21930,8 +21972,8 @@
 				(hide yes)
 			)
 		)
-		(property "Datasheet" "https://www.st.com/resource/en/datasheet/sm6t.pdf"
-			(at 78.74 299.72 0)
+		(property "Datasheet" "~"
+			(at 78.74 300.99 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -21939,7 +21981,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" "600W unidirectional Transil Transient Voltage Suppressor, 6.8Vrwm, DO-214AA"
+		(property "Description" "Bidirectional transient-voltage-suppression diode"
 			(at 78.74 300.99 0)
 			(effects
 				(font
@@ -22025,7 +22067,7 @@
 			(uuid "6c5c7ba7-c680-403b-b977-c868b4261bf4")
 		)
 		(instances
-			(project ""
+			(project "fx3u_24mr"
 				(path "/b583aae5-8eb0-4221-b485-3f768bd7f89b"
 					(reference "C1")
 					(unit 1)
@@ -22699,7 +22741,7 @@
 		)
 	)
 	(symbol
-		(lib_id "Diode:SM6T6V8A")
+		(lib_id "Device:D_TVS")
 		(at 68.58 262.89 270)
 		(unit 1)
 		(exclude_from_sim no)
@@ -22717,7 +22759,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "SM6T6V8A"
+		(property "Value" "P6SMB6.8"
 			(at 70.612 264.1021 90)
 			(effects
 				(font
@@ -22727,7 +22769,7 @@
 			)
 		)
 		(property "Footprint" "Diode_SMD:D_SMB"
-			(at 63.5 262.89 0)
+			(at 68.58 262.89 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -22735,8 +22777,8 @@
 				(hide yes)
 			)
 		)
-		(property "Datasheet" "https://www.st.com/resource/en/datasheet/sm6t.pdf"
-			(at 68.58 261.62 0)
+		(property "Datasheet" "~"
+			(at 68.58 262.89 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -22744,7 +22786,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" "600W unidirectional Transil Transient Voltage Suppressor, 6.8Vrwm, DO-214AA"
+		(property "Description" "Bidirectional transient-voltage-suppression diode"
 			(at 68.58 262.89 0)
 			(effects
 				(font
@@ -22831,7 +22873,7 @@
 			(uuid "a5055c83-a704-4928-8192-5c6507dfd81c")
 		)
 		(instances
-			(project ""
+			(project "fx3u_24mr"
 				(path "/b583aae5-8eb0-4221-b485-3f768bd7f89b"
 					(reference "U19")
 					(unit 1)
@@ -23040,7 +23082,7 @@
 		)
 	)
 	(symbol
-		(lib_id "Diode:SM6T6V8A")
+		(lib_id "Device:D_TVS")
 		(at 78.74 288.29 90)
 		(unit 1)
 		(exclude_from_sim no)
@@ -23058,7 +23100,7 @@
 				(justify right)
 			)
 		)
-		(property "Value" "SM6T6V8A"
+		(property "Value" "P6SMB6.8"
 			(at 80.772 289.5021 90)
 			(effects
 				(font
@@ -23068,7 +23110,7 @@
 			)
 		)
 		(property "Footprint" "Diode_SMD:D_SMB"
-			(at 83.82 288.29 0)
+			(at 78.74 288.29 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -23076,8 +23118,8 @@
 				(hide yes)
 			)
 		)
-		(property "Datasheet" "https://www.st.com/resource/en/datasheet/sm6t.pdf"
-			(at 78.74 289.56 0)
+		(property "Datasheet" "~"
+			(at 78.74 288.29 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -23085,7 +23127,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" "600W unidirectional Transil Transient Voltage Suppressor, 6.8Vrwm, DO-214AA"
+		(property "Description" "Bidirectional transient-voltage-suppression diode"
 			(at 78.74 288.29 0)
 			(effects
 				(font
@@ -23101,7 +23143,7 @@
 			(uuid "1f63512f-5eda-49cc-bebc-140febe8048b")
 		)
 		(instances
-			(project ""
+			(project "fx3u_24mr"
 				(path "/b583aae5-8eb0-4221-b485-3f768bd7f89b"
 					(reference "D23")
 					(unit 1)
@@ -23459,7 +23501,7 @@
 			(uuid "5cb602bd-672c-4434-9e18-b3c46e1b7e7e")
 		)
 		(instances
-			(project ""
+			(project "fx3u_24mr"
 				(path "/b583aae5-8eb0-4221-b485-3f768bd7f89b"
 					(reference "J8")
 					(unit 1)
@@ -23529,7 +23571,7 @@
 			(uuid "770cbac8-9e9a-4520-b802-111185d206bc")
 		)
 		(instances
-			(project ""
+			(project "fx3u_24mr"
 				(path "/b583aae5-8eb0-4221-b485-3f768bd7f89b"
 					(reference "L2")
 					(unit 1)
@@ -23932,7 +23974,7 @@
 			(uuid "5760a80f-2f7f-4816-85a5-d01fccfcf0ff")
 		)
 		(instances
-			(project ""
+			(project "fx3u_24mr"
 				(path "/b583aae5-8eb0-4221-b485-3f768bd7f89b"
 					(reference "R93")
 					(unit 1)
@@ -24196,7 +24238,7 @@
 			(uuid "cf7c475e-f19b-46cb-84a3-814058d501e2")
 		)
 		(instances
-			(project ""
+			(project "fx3u_24mr"
 				(path "/b583aae5-8eb0-4221-b485-3f768bd7f89b"
 					(reference "#PWR057")
 					(unit 1)
@@ -25202,7 +25244,7 @@
 			(uuid "aa0adaeb-c46a-423d-8ffc-48cb55506c3e")
 		)
 		(instances
-			(project ""
+			(project "fx3u_24mr"
 				(path "/b583aae5-8eb0-4221-b485-3f768bd7f89b"
 					(reference "D1")
 					(unit 1)
@@ -25481,7 +25523,7 @@
 			(uuid "aedf02c5-5db9-4d32-9d0d-54c752de3d0f")
 		)
 		(instances
-			(project ""
+			(project "fx3u_24mr"
 				(path "/b583aae5-8eb0-4221-b485-3f768bd7f89b"
 					(reference "BT1")
 					(unit 1)
@@ -25683,7 +25725,7 @@
 			(uuid "180d8377-e1a9-4750-9f5b-14a15b74aa62")
 		)
 		(instances
-			(project ""
+			(project "fx3u_24mr"
 				(path "/b583aae5-8eb0-4221-b485-3f768bd7f89b"
 					(reference "D21")
 					(unit 1)
@@ -26022,7 +26064,7 @@
 			(uuid "990315c9-5f16-4bf2-bb81-c39fad8807b5")
 		)
 		(instances
-			(project ""
+			(project "fx3u_24mr"
 				(path "/b583aae5-8eb0-4221-b485-3f768bd7f89b"
 					(reference "RV1")
 					(unit 1)
@@ -26156,7 +26198,7 @@
 			(uuid "c76ce31e-29e3-409e-9823-311438222fe5")
 		)
 		(instances
-			(project ""
+			(project "fx3u_24mr"
 				(path "/b583aae5-8eb0-4221-b485-3f768bd7f89b"
 					(reference "Y1")
 					(unit 1)
@@ -26242,7 +26284,7 @@
 			(uuid "7a60d95c-5991-445c-8c92-11a331604b5b")
 		)
 		(instances
-			(project ""
+			(project "fx3u_24mr"
 				(path "/b583aae5-8eb0-4221-b485-3f768bd7f89b"
 					(reference "U5")
 					(unit 1)
@@ -26335,7 +26377,7 @@
 				)
 			)
 		)
-		(property "Value" "M7"
+		(property "Value" "1N4007"
 			(at 57.15 38.9198 0)
 			(effects
 				(font
@@ -26607,7 +26649,7 @@
 				)
 			)
 		)
-		(property "Value" "M7"
+		(property "Value" "1N4007"
 			(at 381 26.2198 0)
 			(effects
 				(font
@@ -27448,7 +27490,7 @@
 			(uuid "1a2b7a75-58d5-495e-a4f9-65a8ae25f997")
 		)
 		(instances
-			(project ""
+			(project "fx3u_24mr"
 				(path "/b583aae5-8eb0-4221-b485-3f768bd7f89b"
 					(reference "#PWR01")
 					(unit 1)
@@ -27474,7 +27516,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "schottky"
+		(property "Value" "1N4148?"
 			(at 104.14 69.215 90)
 			(effects
 				(font
@@ -27742,7 +27784,7 @@
 				)
 			)
 		)
-		(property "Value" "M7"
+		(property "Value" "1N4007"
 			(at 64.77 38.9198 0)
 			(effects
 				(font
@@ -27784,7 +27826,7 @@
 			(uuid "ed6571fa-752a-46bc-bd77-80ec20d042df")
 		)
 		(instances
-			(project ""
+			(project "fx3u_24mr"
 				(path "/b583aae5-8eb0-4221-b485-3f768bd7f89b"
 					(reference "D18")
 					(unit 1)
@@ -28409,7 +28451,7 @@
 			(uuid "c4d21b79-4305-42a9-83fe-76b98cb21463")
 		)
 		(instances
-			(project ""
+			(project "fx3u_24mr"
 				(path "/b583aae5-8eb0-4221-b485-3f768bd7f89b"
 					(reference "J3")
 					(unit 1)
@@ -28972,7 +29014,7 @@
 			(uuid "18b3be13-4d58-48b7-85be-95eabccc6c65")
 		)
 		(instances
-			(project ""
+			(project "fx3u_24mr"
 				(path "/b583aae5-8eb0-4221-b485-3f768bd7f89b"
 					(reference "U21")
 					(unit 1)
@@ -29688,7 +29730,7 @@
 			(uuid "1e4a4470-dba7-4ac1-8cf5-45e9bda93f15")
 		)
 		(instances
-			(project ""
+			(project "fx3u_24mr"
 				(path "/b583aae5-8eb0-4221-b485-3f768bd7f89b"
 					(reference "J6")
 					(unit 1)
@@ -29902,7 +29944,7 @@
 			(uuid "9bc91ef6-4a21-4acc-ac3c-41392169ecb9")
 		)
 		(instances
-			(project ""
+			(project "fx3u_24mr"
 				(path "/b583aae5-8eb0-4221-b485-3f768bd7f89b"
 					(reference "J1")
 					(unit 1)
@@ -29972,7 +30014,7 @@
 			(uuid "5e048d7f-4acd-49d0-9128-a9f7dd4ae437")
 		)
 		(instances
-			(project ""
+			(project "fx3u_24mr"
 				(path "/b583aae5-8eb0-4221-b485-3f768bd7f89b"
 					(reference "C26")
 					(unit 1)
@@ -30452,7 +30494,7 @@
 			(uuid "9720353c-164d-46c0-a485-63d5154e4bd3")
 		)
 		(instances
-			(project ""
+			(project "fx3u_24mr"
 				(path "/b583aae5-8eb0-4221-b485-3f768bd7f89b"
 					(reference "U23")
 					(unit 1)
@@ -30886,7 +30928,7 @@
 			(uuid "be06873d-2fea-44de-9184-81db1ae1b0d0")
 		)
 		(instances
-			(project ""
+			(project "fx3u_24mr"
 				(path "/b583aae5-8eb0-4221-b485-3f768bd7f89b"
 					(reference "U1")
 					(unit 1)
@@ -31088,7 +31130,7 @@
 			(uuid "fb6031d5-43e5-4849-acdd-0279e14bc97a")
 		)
 		(instances
-			(project ""
+			(project "fx3u_24mr"
 				(path "/b583aae5-8eb0-4221-b485-3f768bd7f89b"
 					(reference "#PWR054")
 					(unit 1)

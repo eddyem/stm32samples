@@ -864,6 +864,22 @@
 		(color 0 0 0 0)
 		(uuid "617159a7-e972-442a-afc4-859b99b5ab99")
 	)
+	(junction
+		(at 49.53 55.245)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "f02b403f-5bfa-4c89-8c3c-cba6eca7961a")
+	)
+	(wire
+		(pts
+			(xy 47.625 55.245) (xy 49.53 55.245)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "050f5e42-5517-4a61-be02-6858a2be9689")
+	)
 	(wire
 		(pts
 			(xy 49.53 47.625) (xy 51.435 47.625)
@@ -886,6 +902,16 @@
 	)
 	(wire
 		(pts
+			(xy 49.53 55.245) (xy 51.435 55.245)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "46d54f8c-ebef-4010-a2d0-efae64c3569b")
+	)
+	(wire
+		(pts
 			(xy 69.85 29.845) (xy 75.565 29.845)
 		)
 		(stroke
@@ -903,16 +929,6 @@
 			(type default)
 		)
 		(uuid "5bf1c17f-a49c-4016-a7d6-d63b4d463e74")
-	)
-	(wire
-		(pts
-			(xy 49.53 55.245) (xy 51.435 55.245)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "7ceab231-4da6-480e-af8b-da00a2eb2700")
 	)
 	(wire
 		(pts
@@ -967,7 +983,7 @@
 	)
 	(hierarchical_label "Xin"
 		(shape input)
-		(at 47.625 40.005 180)
+		(at 47.625 55.245 180)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -978,7 +994,7 @@
 	)
 	(hierarchical_label "Xcom"
 		(shape input)
-		(at 49.53 55.245 180)
+		(at 47.625 40.005 180)
 		(effects
 			(font
 				(size 1.27 1.27)
