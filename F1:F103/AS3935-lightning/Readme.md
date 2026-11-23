@@ -3,9 +3,8 @@
 ## Overview
 
 This project implements a lightning detection system using two AS3935 Franklin Lightning Sensors interfaced
-with an STM32F103 microcontroller. The device communicates over USB CDC (virtual serial port) and exposes a
-text-based command protocol for configuration, monitoring, and data extraction.
-In the next version it is possible to add RS-232 or RS-485 as an alternative to USB.
+with an STM32F103 microcontroller. The device communicates over USB CDC (virtual serial port) and RS-485;
+exposes a text-based command protocol for configuration, monitoring, and data extraction.
 
 Key features:
 - Dual AS3935 sensors on single SPI channel.
@@ -64,9 +63,10 @@ When the host opens the virtual COM port (DTR asserted), the device becomes read
 
 - **command** — case-sensitive name (exactly as listed, all lowercase).
 - **channel** — numeric index of the sensor (0 or 1). Required for sensor-specific commands; omitted for
-global commands.
-- **value** — decimal integer, hexadecimal (`0x` prefix), binary (`0b` prefix), or a string (for commands
-like `setiface`). For the `SPI` command, the value is a sequence of hex bytes and/or quoted text.
+   global commands.
+- **value** — decimal integer, hexadecimal (`0x` prefix), octal (`0` prefix), binary (`b` prefix), or 
+   a string (for commands like `setiface`). For the `SPI` command, the value is a sequence of hex bytes
+   and/or quoted text.
 - **whitespaces** around `=` and between tokens is ignored.
 
 There are two modes:
@@ -245,7 +245,7 @@ corresponding `DISPLCO` setting is `0` (not used as clock output), the code read
   ```
 
 If the pin is configured as a clock output (`displco` != 0), no interrupt processing occurs. You can mask
-disturber interrupts by command `maskdist n = 0`, in this case only `NOICE` and `LIGHTNING` will be
+disturber interrupts by command `maskdist n = 1`, in this case only `NOICE` and `LIGHTNING` will be
 monitored.
 
 ---
@@ -257,6 +257,7 @@ starts at a fixed address (defined in the linker script) and has a limited capac
 `user_conf` contains:
 
 - `userconf_sz` — magic cookie (size of the structure).
+- `usartspeed` — RS-485 baudrate.
 - `iInterface` + `iIlength` — USB interface name (stored as two bytes per character for Unicode).
 - `spars[]` — per-sensor parameters (gain, WDTH, NF_LEV, SREJ, MIN_NUM_LIG, MASK_DIST, LCO_FDIV, TUN_CAP).
 - `flags.restore` — if 1, all parameters are automatically applied after reset.

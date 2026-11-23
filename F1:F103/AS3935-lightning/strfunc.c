@@ -219,7 +219,7 @@ static char *getbin(char *buf, uint32_t *N){
 }
 
 /**
- * @brief getnum - read uint32_t from string (dec, hex or bin: 127, 0x7f, 0b1111111)
+ * @brief getnum - read uint32_t from string (dec, hex, oct or bin: 127, 0x7f, 0124, b1111111)
  * @param buf - buffer with number and so on
  * @param N   - the number read
  * @return pointer to first non-number symbol in buf
