@@ -23,7 +23,7 @@
 #define MODE_WRITE  (0)
 #define MODE_MASK   (0x3f)
 
-extern uint32_t Tms;
+extern volatile uint32_t Tms;
 
 // read one register
 int as3935_read(uint8_t reg, uint8_t *data){
@@ -126,6 +126,7 @@ int as3935_get_calib(uint8_t *n){
 // wakeup - call this function after first run
 int as3935_wakeup(){
     t_afe_gain g;
+    if(!as3935_live()) return FALSE;
     if(!as3935_read(AFE_GAIN, &g.u8)) return FALSE;
     g.PWD = 0;
     if(!as3935_write(AFE_GAIN, g.u8)) return FALSE;
@@ -216,7 +217,12 @@ int as3935_clearstat(){
     t_lightning_reg lr;
     if(!as3935_read(LIGHTNING_REG, &lr.u8)) return FALSE;
     lr.CL_STAT = 1;
-    return as3935_write(LIGHTNING_REG, lr.u8);
+    if(!as3935_write(LIGHTNING_REG, lr.u8)) return FALSE;
+    lr.CL_STAT = 0;
+    if(!as3935_write(LIGHTNING_REG, lr.u8)) return FALSE;
+    lr.CL_STAT = 1;
+    if(!as3935_write(LIGHTNING_REG, lr.u8)) return FALSE;
+    return TRUE;
 }
 
 // get interrupt code
@@ -288,4 +294,23 @@ int as3935_distance(uint8_t *d){
 // reset to factory settings
 int as3935_resetdef(){
     return as3935_write(PRESET_DEFAULT, DIRECT_COMMAND);
+}
+
+/**
+ * Check if AS3935 sensor on current channel responds with valid register signature.
+ * @return 1 if sensor is alive, 0 if missing or bus error
+ */
+int as3935_live(){
+    uint8_t r00, r02, r08;
+    if(!as3935_read(AFE_GAIN, &r00)) return 0;
+    if(!as3935_read(LIGHTNING_REG, &r02)) return 0;
+    if(!as3935_read(TUN_DISP, &r08)) return 0;
+    // If MISO is stuck low (0x00) or high (0xFF), these checks will fail:
+    // REG 0x00: bits [7:6] are reserved and always 0
+    if((r00 & 0xC0) != 0x00) return 0;
+    // REG 0x02: bit [7] (reserved) is 1
+    if((r02 & 0x80) != 0x80) return 0;
+    // REG 0x08: bit [4] is reserved and always 0
+    if((r08 & 0x10) != 0x00) return 0;
+    return 1;
 }

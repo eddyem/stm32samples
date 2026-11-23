@@ -27,6 +27,10 @@
 #define LED0_port       GPIOC
 #define LED0_pin        (1<<13)
 
+// RS-485 receive/transmit (PA8: 0-Rx, 1-Tx)
+#define RS485_TX()      pin_set(GPIOA, (1<<8))
+#define RS485_RX()      pin_clear(GPIOA, (1<<8))
+
 // USB pullup (not present in bluepill, should be soldered) - PA15
 #define USBPU_port      GPIOA
 #define USBPU_pin       (1<<15)
@@ -51,6 +55,7 @@ enum{
     DISPLCO_LCO
 };
 
+extern volatile uint32_t Tms;
 extern uint8_t DISPLCO[SENSORS_AMOUNT];
 
 void hw_setup();

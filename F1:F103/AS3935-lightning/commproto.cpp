@@ -28,6 +28,7 @@ extern "C"{
 #include "hardware.h"
 #include "spi.h"
 #include "strfunc.h"
+#include "usart.h"
 }
 
 // sending function
@@ -66,6 +67,7 @@ static uint8_t curbuf[MAXSTRLEN];
     COMMAND(srej,       "spike rejection (0..15)") \
     COMMAND(time,       "show current time (ms)") \
     COMMAND(tuncap,     "set 'tune capasitors' to given value (0..15)") \
+    COMMAND(usartspeed, "get/set RS-485 speed (1200..921600)") \
     COMMAND(vdd,        "get approx Vdd value (V*100)") \
     COMMAND(wakeup,     "wake-up given sensor and make its calibration") \
     COMMAND(wdthres,    "watchdog threshold (0..15)" )
@@ -171,6 +173,7 @@ static errcodes_t cmd_readconf(const char*, char* args){
     splitargs(args, &CHno);
     if(CHno < 0 || CHno >= SENSORS_AMOUNT) return ERR_BADPAR;
     as3935_channel = static_cast<uint8_t>(CHno);
+    if(!as3935_live()) return ERR_CANTRUN;
     uint8_t par;
     if(!as3935_get_gain(&par)) return ERR_CANTRUN;
     the_conf.spars[CHno].AFE_GB = par;
@@ -236,10 +239,11 @@ static void showpar(const char *par, uint8_t n, uint8_t v){
 
 static errcodes_t cmd_dumpconf(const char*, char*){
     SEND("userconf_sz="); SEND(u2str(the_conf.userconf_sz));
-    SEND("\ncurr_idx="); SEND(u2str(currentconfidx));
+    SEND("\ncurr_idx="); SEND(i2str(currentconfidx));
     SEND("\ncapacity="); SEND(u2str(maxCnum-2));
     cmd_setiface("\nsetiface", NULL);
     cmd_restonstart("restonstart", NULL);
+    cmd_usartspeed("usartspeed", NULL);
     for(int i = 0; i < SENSORS_AMOUNT; ++i){
         showpar("gain", i, the_conf.spars[i].AFE_GB);
         showpar("\nlco_fdiv", i, the_conf.spars[i].LCO_FDIV);
@@ -280,6 +284,7 @@ static errcodes_t senscmd8(int32_t CHno, int (*cmd)(uint8_t), int32_t arg){
     if(CHno < 0 || CHno >= SENSORS_AMOUNT) return ERR_BADPAR;
     uint8_t par = static_cast<uint8_t>(arg);
     as3935_channel = static_cast<uint8_t>(CHno);
+    if(!as3935_live()) return ERR_CANTRUN;
     int ans = cmd(par);
     if(ans) return ERR_OK;
     return ERR_CANTRUN;
@@ -289,6 +294,7 @@ static errcodes_t getta(const char *cmd, int32_t CHno, int (*fn)(uint8_t*)){
     if(CHno < 0 || CHno >= SENSORS_AMOUNT) return ERR_BADPAR;
     uint8_t par;
     as3935_channel = static_cast<uint8_t>(CHno);
+    if(!as3935_live()) return ERR_CANTRUN;
     int ans = fn(&par);
     if(!ans) return ERR_CANTRUN;
     CMDEQP(CHno); SEND(u2str(par)); SEND("\n");
@@ -298,6 +304,7 @@ static errcodes_t getta(const char *cmd, int32_t CHno, int (*fn)(uint8_t*)){
 static errcodes_t senscmd(int32_t CHno, int (*cmd)()){
     if(CHno < 0 || CHno >= SENSORS_AMOUNT) return ERR_BADPAR;
     as3935_channel = static_cast<uint8_t>(CHno);
+    if(!as3935_live()) return ERR_CANTRUN;
     int ans = cmd();
     if(ans) return ERR_OK;
     return ERR_CANTRUN;
@@ -340,6 +347,7 @@ static errcodes_t cmd_ ## nm(const char* cmd, char* args){ \
     splitargs(args, &CHno); \
     if(CHno < 0 || CHno >= SENSORS_AMOUNT) return ERR_BADPAR; \
     as3935_channel = static_cast<uint8_t>(CHno); \
+    if(!as3935_live()) return ERR_CANTRUN; \
     int ans = as3935_ ## nm(&par); \
     if(!ans) return ERR_CANTRUN; \
     CMDEQP(CHno); SEND(u2str(par)); SEND("\n"); \
@@ -368,8 +376,22 @@ static errcodes_t cmd_energy(const char* cmd, char* args){
     splitargs(args, &CHno);
     if(CHno < 0 || CHno >= SENSORS_AMOUNT) return ERR_BADPAR;
     as3935_channel = static_cast<uint8_t>(CHno);
+    if(!as3935_live()) return ERR_CANTRUN;
     if(!as3935_energy(&par)) return ERR_CANTRUN;
     CMDEQP(CHno); SEND(u2str(par)); SEND("\n");
+    return ERR_AMOUNT;
+}
+
+static errcodes_t cmd_usartspeed(const char *cmd, char *args){
+    int32_t val;
+    if(argsvals(args, NULL, &val)){ // setter
+        if(val < 1200 || val > 921600) return ERR_BADVAL;
+        the_conf.usartspeed = (uint32_t)val;
+        usart_setup(the_conf.usartspeed);
+    }
+    CMDEQ();
+    SEND(u2str(the_conf.usartspeed));
+    SEND("\n");
     return ERR_AMOUNT;
 }
 

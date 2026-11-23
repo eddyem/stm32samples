@@ -50,9 +50,10 @@ typedef struct{
 /*
  * struct to save user configurations
  */
-typedef struct __attribute__((packed, aligned(4))){
-    uint16_t userconf_sz;       // "magick number"
+typedef struct __attribute__((aligned(4))){
+    uint16_t userconf_sz;                   // "magick number"
     uint16_t iInterface[MAX_IINTERFACE_SZ]; // interface name
+    uint32_t usartspeed;                    // RS-485 baudrate
     uint8_t iIlength;                       // length in symbols
     sens_pars_t spars[SENSORS_AMOUNT];      // sensors' stored flags
     flags_t flags;                          // common flags

@@ -32,6 +32,7 @@ static int write2flash(const void*, const void*, uint32_t);
 const user_conf *Flash_Data = (const user_conf *)(&__varsstart);
 user_conf the_conf = {
     .userconf_sz = sizeof(user_conf),
+    .usartspeed = 115200,
 };
 
 int currentconfidx = -1; // index of current configuration
@@ -78,6 +79,7 @@ void flashstorage_init(){
     if(currentconfidx > -1){
         memcpy(&the_conf, &Flash_Data[currentconfidx], sizeof(user_conf));
     }
+    if(the_conf.usartspeed < 1200 || the_conf.usartspeed > 1000000) the_conf.usartspeed = 115200;
 }
 
 // store new configuration

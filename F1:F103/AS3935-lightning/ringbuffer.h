@@ -30,9 +30,9 @@
 typedef struct{
     uint8_t *data;      // data buffer
     const int length;   // its length
-    int head;           // head index
-    int tail;           // tail index
-    volatile int busy; // == TRUE if buffer is busy now
+    volatile int head;  // head index
+    volatile int tail;  // tail index
+    volatile int busy;  // == TRUE if buffer is busy now
 } ringbuffer;
 
 int RB_read(ringbuffer *b, uint8_t *s, int len);

@@ -28,8 +28,9 @@ Key features:
 | PA5    | SPI1 SCK  | SPI clock |
 | PA6    | SPI1 MISO | SPI Master In / Slave Out |
 | PA7    | SPI1 MOSI | SPI Master Out / Slave In |
-| PA9    | USART1 Tx | (unused in this version) |
-| PA10   | USART1 Rx | (unused) |
+| PA8    | DE        | RS-485 Tx enable / Rx disable |
+| PA9    | USART1 Tx | RS-485 Tx |
+| PA10   | USART1 Rx | RS-485 Rx |
 | PA15   | GPIO      | USB D+ pull-up control (1.5 kΩ) |
 | PC13   | GPIO      | On-board LED (active low) |
 
@@ -183,6 +184,7 @@ These commands do not require a channel number.
 | `setiface` | Get/set the USB interface name string (max 16 characters) |
 | `time`  | Current uptime in milliseconds |
 | `vdd`   | Supply voltage VDD in hundredths of a volt (e.g., 330 = 3.30 V) |
+| `usartspeed` | Get/set RS-485 baudrate (1200..921600) |
 
 **Examples:**
 

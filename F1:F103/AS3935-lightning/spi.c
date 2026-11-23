@@ -36,13 +36,13 @@ void spi_setup(){
 }
 
 volatile uint32_t wctr;
-#define WAITX(x)  do{wctr = 0; while((x) && (++wctr < 360000)) IWDG->KR = IWDG_REFRESH; if(wctr==360000) return -1;}while(0)
+#define WAITX(x)  do{wctr = 0; while((x) && (++wctr < 360000)) IWDG->KR = IWDG_REFRESH; if(wctr==360000){CS_OFF(); return 0;} }while(0)
 
 /**
  * @brief SPI_transmit - transmit data and receive new one
  * @param buf - data to transmit/receive
  * @param len - its length
- * @return amount of transmitted data or -1 if error
+ * @return amount of transmitted data or 0 if error
  */
 uint8_t SPI_transmit(uint8_t *buf, uint8_t len){
     if(!buf || !len) return 0; // bad data format

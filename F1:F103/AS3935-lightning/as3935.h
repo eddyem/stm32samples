@@ -121,6 +121,8 @@ typedef union{
 // distance out of range
 #define DIST_OUT_OF_RANGE   (0x3f)
 
+int as3935_live();
+
 int as3935_read(uint8_t reg, uint8_t *data);
 int as3935_write(uint8_t reg, uint8_t data);
 int as3935_wakeup();

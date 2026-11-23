@@ -36,6 +36,9 @@
 #define CONTROL_DTR                     0x01
 #define CONTROL_RTS                     0x02
 
+// Tx timeout (for stalled host)
+#define USB_TX_TIMEOUT_MS   (50)
+
 // inbuf overflow when receiving
 static volatile uint8_t bufovrfl = 0;
 
@@ -160,10 +163,19 @@ int USB_sendall(){
     return TRUE;
 }
 
+extern volatile uint32_t Tms;
 // put `buf` into queue to send
 int USB_send(const uint8_t *buf, int len){
     if(!buf || !CDCready || !len) return FALSE;
+    uint32_t t0 = Tms;
     while(len){
+        if(!CDCready) return FALSE;
+        if(Tms - t0 >= USB_TX_TIMEOUT_MS){ // Tx timeout -> clear
+            NVIC_DisableIRQ(USB_LP_CAN1_RX0_IRQn);
+            RB_clearbuf((ringbuffer*)&rbout);
+            NVIC_EnableIRQ(USB_LP_CAN1_RX0_IRQn);
+            return FALSE;
+        }
         IWDG->KR = IWDG_REFRESH;
         int l = RB_datalen((ringbuffer*)&rbout);
         if(l < 0) continue;
@@ -175,6 +187,7 @@ int USB_send(const uint8_t *buf, int len){
         if(portion > len) portion = len;
         int a = RB_write((ringbuffer*)&rbout, buf, portion);
         if(a > 0){
+            t0 = Tms;
             len -= a;
             buf += a;
         } else if (a < 0) continue; // do nothing if buffer is in reading state
@@ -186,7 +199,16 @@ int USB_send(const uint8_t *buf, int len){
 int USB_putbyte(uint8_t byte){
     if(!CDCready) return FALSE;
     int l = 0;
+    uint32_t t0 = Tms;
     while((l = RB_write((ringbuffer*)&rbout, &byte, 1)) != 1){
+        if(!CDCready) return FALSE;
+        IWDG->KR = IWDG_REFRESH;
+        if(Tms - t0 >= USB_TX_TIMEOUT_MS){
+            NVIC_DisableIRQ(USB_LP_CAN1_RX0_IRQn);
+            RB_clearbuf((ringbuffer*)&rbout);
+            NVIC_EnableIRQ(USB_LP_CAN1_RX0_IRQn);
+            return FALSE;
+        }
         if(l < 0) continue;
     }
     if(lastdsz == 0) send_next(); // need to run manually - all data sent, so no IRQ on IN
